@@ -9,6 +9,8 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Exercices** : 3 QCM corrigés par cours, soit 12 questions, meilleur score conservé.
 - **Suivi** : marquage des cours terminés dans le stockage local du navigateur.
 - **Générateur ITK** : tomate, laitue, carotte, courgette, choix de variété/type, abri/plein champ, surface, mois, sol et disponibilité en eau. Calendrier indicatif, alerte selon contraintes, export CSV et impression en PDF via le navigateur.
+- **Ressources documentaires** : 5 sites de référence, recherche et filtres, plus un PDF d’exemple téléchargeable.
+- **Mode sombre** : interrupteur présent sur toutes les pages, préférence conservée dans le navigateur.
 - Interface responsive (ordinateur et mobile).
 
 ## Consulter la démo en local
@@ -53,11 +55,57 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 ## Modifier et enrichir le contenu
 
 - `assets/content.js` : intitulés des UC dans `units`, cours dans `lessons`, questions dans `quiz`, données ITK dans `crops`.
-- `assets/style.css` : palette, mise en page et styles responsives.
+- `assets/resources.js` : **catalogue éditable** des liens externes et des documents PDF (voir ci-dessous).
+- `documents/` : fichiers PDF accessibles aux visiteurs.
+- `assets/theme-init.js` : application du thème sombre ou clair dès le chargement.
+- `assets/style.css` : palette, mise en page, styles responsives et mode sombre.
 - `assets/app.js` : navigation, progression, exercices, calcul ITK et export.
 - Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html` sont les points d'entrée.
 
 Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
+
+## Ajouter un lien documentaire
+
+Ouvre `assets/resources.js` et ajoute un objet dans le tableau `resourceLinks` :
+
+```js
+{
+  id: 'mon-site',
+  title: 'Le nom du site',
+  description: 'Une ou deux phrases pour expliquer ce qu’on y trouve.',
+  category: 'Maraîchage',
+  url: 'https://exemple.fr/',
+  tags: ['ITK', 'Bio']
+},
+```
+
+Chaque identifiant `id` doit être unique. Les adresses des liens externes doivent commencer par `https://` ou `http://`. Les visiteurs ouvrent ces sites dans un nouvel onglet.
+
+## Ajouter un PDF à télécharger
+
+1. Copie ton PDF dans **`documents/`**, par exemple `documents/guide-sols.pdf`.
+2. Dans `assets/resources.js`, ajoute un objet dans `resourceFiles` :
+
+```js
+{
+  id: 'guide-sols',
+  title: 'Guide des sols - fiche de révision',
+  description: 'Notes personnelles sur la structure et la biologie du sol.',
+  category: 'Sol & fertilité',
+  file: 'documents/guide-sols.pdf',
+  tags: ['Sol', 'PDF', 'UC 03']
+},
+```
+
+3. Valide les changements et pousse-les sur GitHub. GitHub Actions publiera la nouvelle page, les liens et le dossier `documents/` automatiquement. **Tu dois mettre à jour à la fois le tableau ET le fichier PDF** ; une simple adresse dans le catalogue sans fichier ne fonctionnera pas.
+
+Le bouton « Télécharger le PDF » repose sur l'attribut HTML `download` : les navigateurs modernes proposent généralement un téléchargement, mais leur comportement peut varier selon les réglages. Le lien mène toujours au PDF original.
+
+**Conseils :** utilise des noms de fichiers sans espaces ni accents (lettres, chiffres, tirets, underscores), compresse les PDF si possible et évite d'accumuler des scans très lourds. GitHub Pages publie des fichiers statiques avec une taille totale maximale de site de 1 Go ; pour quelques petites fiches, il n'y a aucun souci. Pour des fichiers volumineux, utilise un hébergement dédié. Les documents d'un site public sont accessibles à tout le monde : vérifie les droits de redistribution de chaque support avant de le publier.
+
+## Utiliser le mode sombre
+
+Clique sur « Mode sombre » en haut du site. Le choix est conservé dans `localStorage` sous `bprea-demo-theme-v1` et appliqué à toutes les pages sur le même navigateur, jusqu'à ce que les données locales soient effacées. Sans préférence enregistrée, le site démarre en mode clair. L'impression d'un ITK conserve une présentation claire.
 
 ## Limites explicites
 
