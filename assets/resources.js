@@ -55,5 +55,21 @@ export const resourceFiles = [
     category: 'Sol & fertilité',
     file: 'documents/fiche-demo-matiere-organique.pdf',
     tags: ['PDF', 'Matière organique', 'UC 03']
+  },
+  {
+    id: 'annuaire-fournisseurs-semences',
+    title: 'Annuaire des fournisseurs de semences',
+    description: 'Répertoire des fournisseurs de semences biologiques en Corrèze.',
+    category: 'Semences',
+    file: 'documents/Annuaire_fournisseurs_semences.pdf',
+    tags: ['PDF', 'Semences', 'Corrèze']
+  },
+  {
+    id: 'guide-aides',
+    title: 'Guide des aides financières',
+    description: 'Résumé des aides disponibles pour les agriculteurs en Corrèze.',
+    category: 'Soutien',
+    file: 'documents/Guide_des_aides_2026.pdf',
+    tags: ['PDF', 'Aides', 'Corrèze']
   }
 ];
