@@ -30,6 +30,7 @@ jobs:
           mkdir -p site-public
           cp ./*.html site-public/
           cp -R assets site-public/
+          cp -R documents site-public/
           touch site-public/.nojekyll
       - name: Déposer les fichiers du site
         uses: actions/upload-pages-artifact@v3
