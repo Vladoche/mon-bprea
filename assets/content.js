@@ -5,8 +5,8 @@ export const units = [
   { id: 'uc3', code: 'UC 03', title: 'Conduire le processus de production', short: 'Sol vivant, agronomie et agroécosystème', icon: 'leaf', tone: 'green' },
   { id: 'uc4', code: 'UC 04', title: 'Assurer la gestion de l’entreprise', short: 'Gestion technique, économique et administrative', icon: 'calculator', tone: 'violet' },
   { id: 'uc5', code: 'UC 05', title: 'Valoriser les produits ou services', short: 'Commercialisation, circuits et valeur ajoutée', icon: 'store', tone: 'rose' },
-  { id: 'ucare1', code: 'UCARE 01', title: 'Adaptation régionale à l’emploi', short: 'À personnaliser selon ton parcours', icon: 'puzzle', tone: 'sand' },
-  { id: 'ucare2', code: 'UCARE 02', title: 'Adaptation régionale à l’emploi', short: 'À personnaliser selon ton parcours', icon: 'puzzle', tone: 'sky' },
+  { id: 'ucare1', code: 'UCARE 01', title: 'HappyCulture', short: "Oh ! L'abeille coule !", icon: 'puzzle', tone: 'sand' },
+  { id: 'ucare2', code: 'UCARE 02', title: 'Haies fruitières', short: "Haie toi non plus tu n'as pas changé", icon: 'puzzle', tone: 'sky' },
 ];
 
 export const lessons = [
