@@ -10,7 +10,7 @@ export const resourceLinks = [
     title: 'Chlorofil — Référentiel BPREA',
     description: 'Référentiel national, organisation du diplôme et documents institutionnels.',
     category: 'Formation',
-    url: 'https://chlorofil.fr/diplomes/secondaire/bp/rea',
+    url: 'https://chlorofil.fr/diplomes/secondaire/bp/bp-rea',
     tags: ['BPREA', 'Diplôme', 'UC']
   },
   {
