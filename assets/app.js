@@ -1,4 +1,5 @@
 import { units, lessons, crops } from './content.js';
+import { resourceLinks, resourceFiles } from './resources.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -6,10 +7,12 @@ const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const BASE = './';
 const STORE_KEY = 'bprea-demo-progress-v1';
 const ITK_KEY = 'bprea-demo-itk-v1';
+const THEME_KEY = 'bprea-demo-theme-v1';
 const safeRead = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
 let progress = safeRead(STORE_KEY, {});
 const saveProgress = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); } catch {} };
 const clean = value => String(value).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+const normalizeSearch = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr');
 const unitUrl = id => `uc.html?id=${encodeURIComponent(id)}`;
 const lessonUrl = id => `cours.html?id=${encodeURIComponent(id)}`;
 const quizUrl = id => `exercices.html?id=${encodeURIComponent(id)}`;
@@ -32,12 +35,37 @@ const icons = {
   sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>',
   warning:'<path d="m12 3 10 18H2L12 3Zm0 7v4m0 4h.01"/>',
   flask:'<path d="M9 2h6m-5 0v7L4 19a2 2 0 0 0 2 3h12a2 2 0 0 0 2-3L14 9V2m-7 13h10"/>',
+  moon:'<path d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z"/>',
+  file:'<path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M13 2v7h7M8 14h8m-8 4h6"/>',
+  external:'<path d="M14 4h6v6m0-6-9 9"/><path d="M20 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h6"/>',
+  download:'<path d="M12 3v12m-4-4 4 4 4-4M4 18v3h16v-3"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
 };
 const icon = (name, size=20) => `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]||icons.book}</svg>`;
+function setupThemeToggle() {
+  const button = $('#theme-toggle');
+  function update() {
+    const dark = document.documentElement.dataset.theme === 'dark';
+    button.querySelector('.theme-icon').innerHTML = icon(dark ? 'sun' : 'moon', 18);
+    button.querySelector('.theme-label').textContent = dark ? 'Mode clair' : 'Mode sombre';
+    button.setAttribute('aria-label', dark ? 'Activer le mode clair' : 'Activer le mode sombre');
+    button.setAttribute('aria-pressed', String(dark));
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#101a15' : '#184e39');
+  }
+  button.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem(THEME_KEY, next); } catch {}
+    update();
+  });
+  update();
+}
 function header() {
   const page = document.body.dataset.page;
   const title = document.title;
-  $('#app-header').innerHTML = `<div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf',20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="top-nav" aria-label="Navigation principale"><a class="${page==='home'||page==='uc'||page==='course'||page==='quiz'?'active':''}" href="index.html">Mes unités</a><a class="${page==='itk'?'active':''}" href="itk.html">Générateur ITK</a></nav><span class="header-badge">Démo personnelle</span></div>`;
+  $('#app-header').innerHTML = `<div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf',20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="top-nav" aria-label="Navigation principale"><a class="${page==='home'||page==='uc'||page==='course'||page==='quiz'?'active':''}" href="index.html">Mes unités</a><a class="${page==='itk'?'active':''}" href="itk.html">Générateur ITK</a><a class="${page==='resources'?'active':''}" href="ressources.html">Ressources documentaires</a></nav><span class="header-badge">Démo personnelle</span><button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-icon" aria-hidden="true"></span><span class="theme-label"></span></button></div>`;
+  setupThemeToggle();
   $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><span>Contenus de démonstration non officiels · Données conservées sur cet appareil</span></div>`;
   document.title = `${title} · Mon BPREA`;
 }
@@ -50,6 +78,7 @@ function home() {
   $('#app-main').innerHTML = `<section class="hero wrap"><div class="hero-content"><div class="section-kicker"><span class="kicker-line"></span> TON CARNET DE RÉVISION</div><h1>Faire pousser<br><em>ses connaissances.</em></h1><p>Un espace clair pour retrouver tes cours de BPREA, tester ce que tu as retenu et préparer des itinéraires techniques.</p><div class="hero-actions"><a class="btn btn-primary" href="${unitUrl('uc3')}">Reprendre les cours ${icon('arrow',18)}</a><a class="btn btn-outline" href="itk.html">Créer un ITK ${icon('flask',18)}</a></div></div><div class="hero-visual" aria-hidden="true"><div class="soil-panel"><span class="diagram-label top-label">LE SAVOIR PREND RACINE</span><svg viewBox="0 0 410 340" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#aecdb4" stroke-width="1"><path d="M0 178H410" stroke-dasharray="5 7"/><path d="M0 226H410M0 274H410" opacity=".33"/></g><path d="M205 182C207 131 200 86 197 39" stroke="#255f42" stroke-width="7" stroke-linecap="round"/><path d="M201 139C160 132 126 112 113 75c48 0 81 21 88 64Z" fill="#87ae74"/><path d="M207 110c28-45 51-56 88-57-10 44-40 67-88 57Z" fill="#52875b"/><path d="M199 71c-13-15-17-31-16-52 24 13 30 30 16 52Z" fill="#afca94"/><path d="M207 179c-19 23-20 36-26 57m25-57c21 24 32 36 45 57m-46-56c-1 55-8 91-17 121m17-81c-29 6-46 29-55 48m54-29c23 3 38 23 46 54m-63-33c-20-3-34 6-45 21m111-19c14 1 29 11 35 25" stroke="#b88652" stroke-width="4" stroke-linecap="round"/><g fill="#b88652"><circle cx="150" cy="269" r="4"/><circle cx="241" cy="291" r="4"/><circle cx="187" cy="300" r="4"/></g></svg><span class="diagram-label bottom-label">SOL • CULTURE • PRATIQUE</span></div><div class="hero-float">${icon('book',21)}<span><b>04</b><small>Cours pour commencer</small></span></div></div></section>
   <section class="wrap summary-row"><div class="summary-intro"><span class="eyebrow">TABLEAU DE BORD</span><h2>Ton parcours, à ton rythme.</h2></div><div class="summary-stat"><span class="summary-number">${done}<span>/${total}</span></span><span>Cours terminés</span></div><div class="summary-stat"><span class="summary-number">${pct(done,total)}<span>%</span></span><span>Progression de la démo</span></div><div class="summary-progress"><div class="progress-ring" style="--value:${pct(done,total)}"><div>${pct(done,total)}%</div></div></div></section>
   <section class="wrap units-section"><div class="section-heading"><div><span class="eyebrow">TON PROGRAMME</span><h2>Les unités capitalisables</h2><p>5 UC nationales et 2 UCARE. Commence par l’UC 03 : elle contient les cours de démonstration.</p></div><span class="section-count">7 unités</span></div><div class="unit-grid">${units.map(unitCard).join('')}</div></section>
+  <section class="wrap resource-spotlight"><div class="resource-spotlight-icon">${icon('book',29)}</div><div><span class="eyebrow">BIBLIOTHÈQUE BPREA</span><h2>Ressources documentaires</h2><p>Liens utiles, sites de référence et fiches PDF réunis au même endroit.</p></div><a href="ressources.html" class="btn btn-outline">Parcourir les ressources ${icon('arrow',17)}</a></section>
   <section class="wrap next-section"><div class="next-panel"><div><span class="eyebrow">PASSER DE LA THÉORIE AU TERRAIN</span><h2>Un légume, une contrainte, un itinéraire.</h2><p>Teste le prototype ITK sur la tomate, la laitue, la carotte ou la courgette. Calendrier indicatif et opérations exportables.</p><a href="itk.html" class="btn btn-primary">Explorer le générateur ${icon('arrow',17)}</a></div><div class="next-art" aria-hidden="true"><span class="crop-circle">🍅</span><span class="crop-circle">🥬</span><span class="crop-circle">🥕</span><span class="crop-circle">🥒</span></div></div></section>`;
 }
 function crumbs(items) { return `<div class="crumbs"><a href="index.html">Accueil</a>${items.map((x,i)=>`<span>/</span>${x.href?`<a href="${x.href}">${clean(x.label)}</a>`:`<span>${clean(x.label)}</span>`}`).join('')}</div>`; }
@@ -107,5 +136,62 @@ function itk(){
   $('#area').addEventListener('input',e=>e.target.setCustomValidity(''));
   form.addEventListener('submit',event=>{event.preventDefault();const raw=Object.fromEntries(new FormData(form));const area=Number(raw.area);if(!Number.isFinite(area)||area<1||area>100000){$('#area').setCustomValidity('Saisis une surface entre 1 et 100 000 m².');$('#area').reportValidity();return;}$('#area').setCustomValidity('');try{localStorage.setItem(ITK_KEY,JSON.stringify(raw));}catch{};const result=$('#itk-output');result.innerHTML=itkResult(raw);result.classList.add('has-result');const crop=crops[raw.crop],date=dateForMonth(Number(raw.month),Number(raw.year));const rows=crop.tasks.map(([name,detail],i)=>[monthLabel(moveWeeks(date,crop.weeks[i])),name,detail]);$('#csv-export').addEventListener('click',()=>{const dataCSV=[['Période','Opération','Description'],...rows].map(row=>row.map(cell=>'"'+String(cell).replaceAll('"','""')+'"').join(';')).join('\r\n');const blob=new Blob(['\uFEFF'+dataCSV],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`itk-${raw.crop}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});$('#print-itk').addEventListener('click',()=>window.print());});
 }
-function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk}[page]||home)();}
+function validExternalUrl(value) {
+  try { const u = new URL(value); return ['https:', 'http:'].includes(u.protocol); } catch { return false; }
+}
+function validDocumentPath(path) {
+  // Pas de chemin absolu ni de remontée hors du site ; dossier documents uniquement.
+  return /^documents\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*\.pdf$/i.test(path);
+}
+function resourceCard(entry) {
+  const isFile = entry.kind === 'pdf';
+  if (isFile && !validDocumentPath(entry.file)) return '';
+  if (!isFile && !validExternalUrl(entry.url)) return '';
+  const href = isFile ? entry.file : entry.url;
+  const label = isFile ? 'Télécharger le PDF' : 'Consulter le site';
+  return `<article class="resource-card" data-kind="${isFile ? 'pdf' : 'link'}" data-search="${clean(normalizeSearch(`${entry.title} ${entry.description} ${entry.category} ${(entry.tags || []).join(' ')}`))}">
+    <span class="resource-icon ${isFile ? 'resource-icon-pdf' : ''}">${icon(isFile ? 'file' : 'external',23)}</span>
+    <div class="resource-body"><div class="resource-card-top"><span class="eyebrow">${clean(entry.category)}</span><span class="pill">${isFile ? 'PDF' : 'Site externe'}</span></div>
+    <h3>${clean(entry.title)}</h3><p>${clean(entry.description)}</p>
+    <div class="resource-tags">${(entry.tags || []).map(tag => `<span>${clean(tag)}</span>`).join('')}</div>
+    <a class="resource-open" href="${clean(href)}" ${isFile ? `download="${clean(href.split('/').pop())}"` : 'target="_blank" rel="noopener noreferrer"'}>${label} ${icon(isFile ? 'download' : 'arrow', 17)}</a></div></article>`;
+}
+function resources() {
+  const all = [
+    ...resourceLinks.map(x=>({...x,kind:'link'})),
+    ...resourceFiles.map(x=>({...x,kind:'pdf'}))
+  ];
+  $('#app-main').innerHTML = `<section class="page-top wrap resource-intro">${crumbs([{label:'Ressources documentaires'}])}
+    <div class="page-eyebrow">BIBLIOTHÈQUE PÉDAGOGIQUE</div><h1>Ressources documentaires.</h1><p>Des sites à consulter et des documents à conserver pour réviser. Cette sélection est personnelle et évolutive.</p>
+    </section><section class="wrap resource-layout"><div class="resource-toolbar">
+      <label class="resource-search">${icon('search',19)}<span class="sr-only">Rechercher une ressource</span><input id="resource-search" type="search" placeholder="Rechercher par thème, titre ou mot-clé…" autocomplete="off" /></label>
+      <div class="resource-filters" role="group" aria-label="Filtrer les ressources"><button type="button" class="resource-filter active" data-filter="all" aria-pressed="true">Tout voir <span>${all.length}</span></button><button type="button" class="resource-filter" data-filter="link" aria-pressed="false">Sites utiles <span>${resourceLinks.length}</span></button><button type="button" class="resource-filter" data-filter="pdf" aria-pressed="false">Documents PDF <span>${resourceFiles.length}</span></button></div>
+    </div><div class="resource-overview"><span id="resource-count" role="status" aria-live="polite"></span><span class="resource-info">Une ressource manque ? Ajoute-la dans <code>assets/resources.js</code>.</span></div>
+    <div class="resource-grid" id="resource-grid">${all.map(resourceCard).join('')}</div>
+    <div class="resource-empty" id="resource-empty" hidden><h3>Aucune ressource trouvée.</h3><p>Essaie une autre recherche ou un filtre différent.</p></div>
+    <aside class="resource-help"><div class="resource-help-icon">${icon('file',25)}</div><div><h2>Tu veux ajouter un PDF ?</h2><p>Dépose-le dans le dossier <code>documents/</code>, puis ajoute sa fiche dans <code>assets/resources.js</code>. Son téléchargement sera disponible sans connexion ni backend. Ne publie que des documents que tu as le droit de partager.</p></div></aside>
+    </section>`;
+  const search = $('#resource-search');
+  const filters = $$('.resource-filter');
+  let selected = 'all';
+  function refresh() {
+    const query = normalizeSearch(search.value.trim());
+    let visible = 0;
+    $$('.resource-card').forEach(card => {
+      const show = (selected === 'all' || card.dataset.kind === selected) && card.dataset.search.includes(query);
+      card.hidden = !show;
+      if (show) visible += 1;
+    });
+    $('#resource-count').textContent = `${visible} ressource${visible > 1 ? 's' : ''} affichée${visible > 1 ? 's' : ''}`;
+    $('#resource-empty').hidden = visible !== 0;
+  }
+  search.addEventListener('input', refresh);
+  filters.forEach(button => button.addEventListener('click', () => {
+    selected = button.dataset.filter;
+    filters.forEach(b => {const current = b === button; b.classList.toggle('active', current); b.setAttribute('aria-pressed', String(current));});
+    refresh();
+  }));
+  refresh();
+}
+function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources}[page]||home)();}
 init();
