@@ -1,6 +1,8 @@
 import { units, lessons } from './content.js';
 import { loadCalendar, parseDate, todayKey, daysBetween } from './calendar-data.js';
 import { getUnitExamStats } from './exam-stats.js';
+import { readDrillState } from './drill-store.js';
+import { getParisWeek, getSeriesStats, getDrillUnitStats } from './drill-engine.js';
 
 const clean = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const percent = value => `${Math.round(value)} %`;
@@ -17,11 +19,24 @@ function metrics(unit, progress) {
   if (stats.legacyScores.length) historyNotes.push('Historique partiel : les anciens meilleurs scores restent conservés et comptent pour les exercices terminés. Le taux de réussite utilise uniquement les tentatives historisées depuis cette mise à jour.');
   if (stats.hasInvalidHistory) historyNotes.push('Certaines données enregistrées sont inexploitables : elles restent conservées et sont exclues du calcul.');
   return `<div class="exam-metrics">
-    <div class="exam-metric"><span>Exercices terminés</span><strong>${completion}</strong><small>${stats.availableQuestions ? `${stats.completedQuestions} / ${stats.availableQuestions} questions, dans les QCM corrigés` : 'Aucun exercice disponible pour cette UC'}</small>${stats.completionPercent === null ? '' : `<progress max="100" value="${stats.completionPercent}" aria-label="Exercices terminés pour ${clean(unit.code)}">${completion}</progress>`}</div>
-    <div class="exam-metric"><span>Taux de réussite</span><strong>${success}</strong><small>${stats.answeredQuestions ? `${stats.correctAnswers} / ${stats.answeredQuestions} réponses correctes · ${stats.attemptCount} tentative${stats.attemptCount > 1 ? 's' : ''} historisée${stats.attemptCount > 1 ? 's' : ''}` : 'Aucune tentative historisée pour cette UC'}</small></div>
+    <div class="exam-metric"><span>QCM de cours terminés</span><strong>${completion}</strong><small>${stats.availableQuestions ? `${stats.completedQuestions} / ${stats.availableQuestions} questions, dans les QCM corrigés` : 'Aucun exercice disponible pour cette UC'}</small>${stats.completionPercent === null ? '' : `<progress max="100" value="${stats.completionPercent}" aria-label="Exercices terminés pour ${clean(unit.code)}">${completion}</progress>`}</div>
+    <div class="exam-metric"><span>Réussite aux QCM de cours</span><strong>${success}</strong><small>${stats.answeredQuestions ? `${stats.correctAnswers} / ${stats.answeredQuestions} réponses correctes · ${stats.attemptCount} tentative${stats.attemptCount > 1 ? 's' : ''} historisée${stats.attemptCount > 1 ? 's' : ''}` : 'Aucune tentative historisée pour cette UC'}</small></div>
     <div class="exam-metric"><span>Indice indicatif de préparation</span><strong>${preparation}</strong><small>${stats.preparationIndex === null ? 'Données insuffisantes pour calculer un indice' : 'Part des exercices terminés × taux de réussite observé'}</small></div>
   </div><p class="exam-method">Cet indice est un repère de révision, jamais une probabilité de réussir l’examen. Il porte uniquement sur les QCM disponibles, sans évaluer la pratique ni l’oral.</p>
-  ${historyNotes.length ? `<p class="exam-data-note">${historyNotes.join(' ')}</p>` : ''}`;
+  ${historyNotes.length ? `<p class="exam-data-note">${historyNotes.join(' ')}</p>` : ''}${drillMetrics(unit)}`;
+}
+
+function drillMetrics(unit) {
+  const state = readDrillState();
+  const week = getParisWeek();
+  const series = state.series[`${unit.id}__${week.id}`];
+  const total = getDrillUnitStats(state.series, unit.id);
+  const stats = series ? getSeriesStats(series) : null;
+  const text = state.error ? 'Le suivi Drill ne peut pas être lu pour le moment. Les données restent conservées.'
+    : stats ? `${stats.completed} / ${stats.planned} exercices réalisés · ${stats.correct} bonne${stats.correct > 1 ? 's' : ''} réponse${stats.correct > 1 ? 's' : ''} · ${stats.incorrect} mauvaise${stats.incorrect > 1 ? 's' : ''} réponse${stats.incorrect > 1 ? 's' : ''} · Réussite : ${stats.successRate === null ? 'Aucune donnée' : percent(stats.successRate)}.`
+      : state.warnings.length ? 'Le suivi Drill est partiel : certaines séries enregistrées ne peuvent pas être interprétées.'
+      : 'Aucune série Drill commencée cette semaine pour cette UC. Réussite : Aucune donnée.';
+  return `<div class="exam-drill"><div><h3>Mode Drill · ${week.id}</h3><p>${text}</p>${total.completed ? `<p class="exam-drill-total">Historique Drill : ${total.completed} réponses comptabilisées, ${total.trainingAttempts} entraînement${total.trainingAttempts > 1 ? 's' : ''} supplémentaire${total.trainingAttempts > 1 ? 's' : ''}.</p>` : ''}${state.warnings.length ? '<p class="exam-method">Certaines données Drill sont inexploitables ; elles sont conservées et exclues du bilan. Le Mode Drill détaille ces informations.</p>' : ''}<p class="exam-method">Le Drill est suivi séparément des QCM de cours et de l’indice ci-dessus, pour éviter de compter deux fois les mêmes questions.</p></div><a class="text-link" href="drill.html?unit=${encodeURIComponent(unit.id)}">${series ? 'Reprendre le Drill' : 'Ouvrir le Mode Drill'} →</a></div>`;
 }
 
 export async function initExamPreparation(root, getProgress) {
@@ -59,9 +74,10 @@ export async function initExamPreparation(root, getProgress) {
   render();
   // Relire les résultats au retour sur l’accueil, y compris depuis un autre onglet.
   window.addEventListener('storage', event => {
-    if (event.key === 'bprea-demo-progress-v1' || event.key === null) render();
+    if (event.key === 'bprea-demo-progress-v1' || event.key === 'bprea-demo-drill-v1' || event.key === null) render();
   });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
   window.addEventListener('pageshow', render);
-  window.setInterval(() => { if (!document.hidden && displayedDay !== todayKey()) render(); }, 60000);
+  let displayedWeek = getParisWeek().id;
+  window.setInterval(() => { const week = getParisWeek().id; if (!document.hidden && (displayedDay !== todayKey() || week !== displayedWeek)) { displayedWeek = week; render(); } }, 60000);
 }

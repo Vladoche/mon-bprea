@@ -3,6 +3,7 @@ import { resourceLinks, resourceFiles } from './resources.js';
 import { initExamPreparation } from './exam-preparation.js';
 import { initCalendar } from './calendar.js';
 import { recordQuizAttempt } from './exam-stats.js';
+import { initDrill } from './drill.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -79,7 +80,14 @@ function setupThemeToggle() {
 function header() {
   const page = document.body.dataset.page;
   const title = document.title;
-  $('#app-header').innerHTML = `<div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf', 20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="top-nav" aria-label="Navigation principale"><a class="${page === 'home' || page === 'uc' || page === 'course' || page === 'quiz' ? 'active' : ''}" href="index.html">Mes cours</a><a class="${page === 'calendar' ? 'active' : ''}" ${page === 'calendar' ? 'aria-current="page"' : ''} href="calendrier.html">Calendrier</a><a class="${page === 'itk' ? 'active' : ''}" href="itk.html">Générateur ITK</a><a class="${page === 'resources' ? 'active' : ''}" href="ressources.html">Ressources documentaires</a></nav><span class="header-badge">Etat - W.I.P</span><button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-icon" aria-hidden="true"></span><span class="theme-label"></span></button></div>`;
+  const links = [
+    { label: 'Mes cours', href: 'index.html', active: ['home', 'uc', 'course', 'quiz'].includes(page) },
+    { label: 'Mode Drill', href: 'drill.html', active: page === 'drill' },
+    { label: 'Calendrier', href: 'calendrier.html', active: page === 'calendar' },
+    { label: 'Générateur ITK', href: 'itk.html', active: page === 'itk' },
+    { label: 'Ressources documentaires', href: 'ressources.html', active: page === 'resources' },
+  ];
+  $('#app-header').innerHTML = `<div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf', 20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="top-nav" aria-label="Navigation principale">${links.map(link => `<a href="${link.href}" ${link.active ? 'class="active" aria-current="page"' : ''}>${link.label}</a>`).join('')}</nav><span class="header-badge">Etat - W.I.P</span><button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-icon" aria-hidden="true"></span><span class="theme-label"></span></button></div>`;
   setupThemeToggle();
   $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><span>Contenus de démonstration non officiels · Données conservées sur cet appareil</span></div>`;
   document.title = `${title} · Mon BPREA`;
@@ -209,5 +217,5 @@ function resources() {
   }));
   refresh();
 }
-function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources,calendar:()=>initCalendar($('#app-main'))}[page]||home)();}
+function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources,calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main'))}[page]||home)();}
 init();
