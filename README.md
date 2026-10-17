@@ -11,6 +11,8 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Générateur ITK** : tomate, laitue, carotte, courgette, choix de variété/type, abri/plein champ, surface, mois, sol et disponibilité en eau. Calendrier indicatif, alerte selon contraintes, export CSV et impression en PDF via le navigateur.
 - **Ressources documentaires** : 5 sites de référence, recherche et filtres, plus un PDF d’exemple téléchargeable.
 - **Mode sombre** : interrupteur présent sur toutes les pages, préférence conservée dans le navigateur.
+- **Calendrier annuel** : navigation par mois, cours, stages, vacances, examens associés à une UC, agenda et détail des événements. Calendrier livré vide, sans dates de formation inventées.
+- **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
 - Interface responsive (ordinateur et mobile).
 
 ## Consulter la démo en local
@@ -60,7 +62,10 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/theme-init.js` : application du thème sombre ou clair dès le chargement.
 - `assets/style.css` : palette, mise en page, styles responsives et mode sombre.
 - `assets/app.js` : navigation, progression, exercices, calcul ITK et export.
-- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html` sont les points d'entrée.
+- `assets/calendar-events.json` : événements et dates d’examen, modifiables sans changer le JavaScript.
+- `assets/calendar-data.js` et `assets/calendar.js` : lecture/validation des événements, navigation mensuelle, agenda et détail.
+- `assets/exam-stats.js` et `assets/exam-preparation.js` : statistiques des QCM et bandeau d’accueil ; `assets/calendar.css` et `assets/exam-preparation.css` : leurs styles clair/sombre.
+- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html` et `calendrier.html` sont les points d'entrée.
 
 Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
 
@@ -106,6 +111,79 @@ Le bouton « Télécharger le PDF » repose sur l'attribut HTML `download` : les
 ## Utiliser le mode sombre
 
 Clique sur « Mode sombre » en haut du site. Le choix est conservé dans `localStorage` sous `bprea-demo-theme-v1` et appliqué à toutes les pages sur le même navigateur, jusqu'à ce que les données locales soient effacées. Sans préférence enregistrée, le site démarre en mode clair. L'impression d'un ITK conserve une présentation claire.
+
+## Modifier les événements et les examens
+
+Le fichier **`assets/calendar-events.json`** est la seule source des dates du calendrier et du bandeau d’accueil. Il est livré vide :
+
+```json
+{
+  "version": 1,
+  "events": []
+}
+```
+
+Ajoute des objets dans `events`. Exemple **entièrement fictif**, qui ne représente aucune date réelle de formation :
+
+```json
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "exemple-examen-uc3",
+      "title": "Exemple fictif — période d’examen UC 03",
+      "type": "examen",
+      "start": "2027-06-14",
+      "end": "2027-06-16",
+      "unit": "uc3",
+      "location": "Lieu fictif",
+      "description": "Exemple de structure uniquement. Dates à remplacer par celles du centre.",
+      "example": true
+    }
+  ]
+}
+```
+
+| Champ | Règle |
+| --- | --- |
+| `id` | Texte obligatoire, unique et stable. |
+| `title` | Intitulé obligatoire, affiché comme du texte (pas de HTML). |
+| `type` | `cours`, `stage`, `vacances` ou `examen`. |
+| `start` | Date obligatoire au format strict `YYYY-MM-DD`. |
+| `end` | Facultatif ; même date que `start` si omis. Doit être postérieur ou égal au début. |
+| `unit` | Facultatif : `uc1`, `uc2`, `uc3`, `uc4`, `uc5`, `ucare1` ou `ucare2`. Recommandé pour chaque examen afin d’afficher ses statistiques. |
+| `location`, `description` | Textes facultatifs. Les retours à la ligne de la description sont conservés. |
+| `example` | Booléen facultatif, `false` par défaut. `true` identifie visiblement un exemple fictif et l’exclut toujours du bandeau d’examen. |
+
+Les journées de début **et** de fin sont incluses. Les périodes peuvent chevaucher des mois ou des années. Les dates sont des journées civiles dans le fuseau du navigateur, sans horaires ; le compte à rebours reste exact lors d’un changement d’heure. Pour enregistrer un véritable examen, utilise uniquement les dates communiquées par le centre et omets `example` ou mets-le à `false`.
+
+Le calendrier ouvre le mois courant et permet de revenir à aujourd’hui, d’avancer/reculer et de choisir directement un mois. Sur mobile, la grille présente le nombre d’événements par jour et l’agenda placé dessous conserve tous les titres et les accès au détail. Liens directs possibles : `calendrier.html?month=2027-06`, `?date=2027-06-14` ou `?event=exemple-examen-uc3`.
+
+Un événement invalide (date impossible, fin avant début, catégorie inconnue, identifiant répété…) est écarté de l’affichage avec un avertissement, sans modifier le fichier. Une UC inconnue laisse l’événement visible, sans lien ni statistiques d’UC. Un fichier vide, manquant ou illisible a un état explicite et une erreur de chargement peut être relancée. Recharge la page après modification du JSON.
+
+Les chemins sont relatifs et fonctionnent sous le sous-dossier GitHub Pages. Le workflow existant copie déjà les pages HTML et tout `assets/`, y compris ce JSON : aucune configuration de déploiement supplémentaire. La modification se prépare sur la branche dédiée ; **ne pas fusionner vers `main`, pousser vers `main` ou lancer le workflow de publication sans validation préalable**.
+
+## Comprendre le bandeau de préparation
+
+Le bandeau, directement sous l’en-tête de l’accueil, choisit l’examen non fictif en cours ou à venir dont le début est le plus ancien. Une période en cours est donc prioritaire ; après sa date de fin, elle disparaît de la sélection. Si plusieurs périodes commencent ensemble ou sont en cours, un message renvoie au calendrier pour consulter toutes les UC. Le lien du bandeau ouvre le mois du début. Le compte à rebours se met à jour au retour sur l’onglet et au changement de jour (vérification chaque minute).
+
+Les statistiques concernent **les questions des QCM disponibles de l’UC**, et non les cours cochés comme terminés :
+
+- **Exercices terminés** : questions des QCM corrigés au moins une fois / questions disponibles dans l’UC. Une répétition n’augmente pas ce nombre. Un ancien meilleur score, y compris zéro, prouve qu’un QCM a été corrigé.
+- **Taux de réussite** : total des bonnes réponses / total des questions de toutes les tentatives historisées, y compris celles avec des erreurs et les répétitions. Les exercices non réalisés ne sont jamais comptés comme des erreurs.
+- **Indice indicatif sur 100** : fraction des exercices terminés × fraction de bonnes réponses observées × 100. Exemple de calcul, sans résultat utilisateur : 50 % terminés et 80 % de bonnes réponses donnent 40/100. Les calculs gardent leurs valeurs exactes ; seul l’affichage est arrondi.
+
+L’indice est un repère pour organiser les révisions, **jamais une probabilité de réussir l’examen**. Il ne mesure ni la pratique ni l’oral, et sa portée dépend des QCM disponibles. Aucun seuil, badge ou récompense n’est associé à cet indice. Aucune nouvelle série d’exercices n’est créée par ce lot.
+
+Sans examen, sans UC associée, sans QCM disponible ou sans tentative historisée, le bandeau explique ce qui manque. Avec des QCM disponibles mais non réalisés, la complétion est 0 %, tandis que réussite et indice restent non calculables. Les seuls anciens meilleurs scores ne suffisent pas à inventer un taux de réussite historique : ils contribuent à la complétion et un avertissement précise la portée des données. Dès qu’une nouvelle tentative est enregistrée, réussite et indice utilisent les tentatives documentées.
+
+### Sauvegardes préservées
+
+La clé existante `bprea-demo-progress-v1` reste utilisée. Les champs `done`, `score` (meilleur score) et les autres propriétés sont conservés ; chaque correction ajoute, sous l’identifiant du cours, une entrée à `quizAttempts` contenant `score`, `total` et `completedAt` (date ISO de correction). Les tentatives ne sont pas remplacées lors d’un nouveau QCM. `legacyQuizScore` conserve le meilleur score antérieur à cet historique, sans lui attribuer de date fictive. Les valeurs illisibles sont conservées dans des champs d’archive et exclues des calculs. Les écritures relisent la sauvegarde courante pour préserver les modifications réalisées dans un autre onglet avant l’enregistrement.
+
+Les clés `bprea-demo-itk-v1` et `bprea-demo-theme-v1` restent indépendantes. Le calendrier ne modifie aucune donnée utilisateur. Aucun résultat n’est envoyé au serveur. Le stockage reste propre au navigateur et à l’adresse du site ; il n’est pas synchronisé entre appareils. Si l’espace local est indisponible ou saturé, le QCM signale que la tentative ne peut pas être conservée. L’historique grandit au fil des corrections, sans purge automatique.
+
+Les parcours vérifiés et les limites de la vérification sont consignés dans [VALIDATION-LOT1.md](VALIDATION-LOT1.md).
 
 ## Limites explicites
 

@@ -61,7 +61,7 @@ export const resourceFiles = [
     title: 'Annuaire des fournisseurs de semences',
     description: 'Répertoire des fournisseurs de semences biologiques en Corrèze.',
     category: 'Semences',
-    file: 'documents/Annuaire_fournisseurs_semences.pdf',
+    file: 'documents/Annuaire_fournisseurs-semences-couverts_vegetaux.pdf',
     tags: ['PDF', 'Semences', 'Corrèze']
   },
   {

@@ -131,3 +131,8 @@ footer{margin-top:100px;border-top:1px solid var(--line);background:#fff}.footer
 :root[data-theme="dark"] .resource-filter.active{color:#b3e9c0}
 :root[data-theme="dark"] ::selection{background:#385d43;color:#fff}
 @media print{:root[data-theme="dark"]{color-scheme:light;--bg:#fff;--white:#fff;--text:#000;--muted:#444;--line:#ccc;--green:#23694d}}
+
+/* Le calendrier partage la navigation avec toutes les pages existantes. */
+@media(min-width:761px) and (max-width:1250px){.header-in{gap:18px}.brand{min-width:185px}.top-nav{gap:18px}.header-badge{display:none}}
+@media(min-width:761px) and (max-width:930px){.top-nav{gap:14px}.top-nav a{font-size:12px}.theme-toggle{min-width:41px;padding:10px}.theme-label{display:none}.brand{min-width:170px}}
+@media(max-width:760px){.top-nav{height:54px;overflow-y:hidden;align-items:flex-start}.top-nav a{height:39px;transform:none}}
