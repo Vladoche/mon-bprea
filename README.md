@@ -13,6 +13,7 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Mode sombre** : interrupteur présent sur toutes les pages, préférence conservée dans le navigateur.
 - **Calendrier annuel** : navigation par mois, cours, stages, vacances, examens associés à une UC, agenda et détail des événements. Calendrier livré vide, sans dates de formation inventées.
 - **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
+- **Mode Drill** : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
 - Interface responsive (ordinateur et mobile).
 
 ## Consulter la démo en local
@@ -65,7 +66,9 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/calendar-events.json` : événements et dates d’examen, modifiables sans changer le JavaScript.
 - `assets/calendar-data.js` et `assets/calendar.js` : lecture/validation des événements, navigation mensuelle, agenda et détail.
 - `assets/exam-stats.js` et `assets/exam-preparation.js` : statistiques des QCM et bandeau d’accueil ; `assets/calendar.css` et `assets/exam-preparation.css` : leurs styles clair/sombre.
-- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html` et `calendrier.html` sont les points d'entrée.
+- `drill.html` et `assets/drill.js` / `assets/drill.css` : interface du Mode Drill ; `assets/drill-engine.js` : semaines, sélection et statistiques ; `assets/drill-store.js` : sauvegardes indépendantes.
+- `assets/drill-bank.json` et `assets/drill-bank.js` : banque éditable et validation des questions.
+- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html` et `drill.html` sont les points d'entrée.
 
 Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
 
@@ -173,7 +176,9 @@ Les statistiques concernent **les questions des QCM disponibles de l’UC**, et 
 - **Taux de réussite** : total des bonnes réponses / total des questions de toutes les tentatives historisées, y compris celles avec des erreurs et les répétitions. Les exercices non réalisés ne sont jamais comptés comme des erreurs.
 - **Indice indicatif sur 100** : fraction des exercices terminés × fraction de bonnes réponses observées × 100. Exemple de calcul, sans résultat utilisateur : 50 % terminés et 80 % de bonnes réponses donnent 40/100. Les calculs gardent leurs valeurs exactes ; seul l’affichage est arrondi.
 
-L’indice est un repère pour organiser les révisions, **jamais une probabilité de réussir l’examen**. Il ne mesure ni la pratique ni l’oral, et sa portée dépend des QCM disponibles. Aucun seuil, badge ou récompense n’est associé à cet indice. Aucune nouvelle série d’exercices n’est créée par ce lot.
+L’indice est un repère pour organiser les révisions, **jamais une probabilité de réussir l’examen**. Il ne mesure ni la pratique ni l’oral, et sa portée dépend des QCM disponibles. Aucun seuil, badge ou récompense n’est associé à cet indice.
+
+Le suivi du **Mode Drill** apparaît désormais dans une ligne distincte pour l’UC de l’examen. Ses premières réponses comptabilisées et ses entraînements restent séparés des QCM de cours et de leur indice : les questions réutilisées ne sont pas additionnées comme des questions uniques.
 
 Sans examen, sans UC associée, sans QCM disponible ou sans tentative historisée, le bandeau explique ce qui manque. Avec des QCM disponibles mais non réalisés, la complétion est 0 %, tandis que réussite et indice restent non calculables. Les seuls anciens meilleurs scores ne suffisent pas à inventer un taux de réussite historique : ils contribuent à la complétion et un avertissement précise la portée des données. Dès qu’une nouvelle tentative est enregistrée, réussite et indice utilisent les tentatives documentées.
 
@@ -184,6 +189,18 @@ La clé existante `bprea-demo-progress-v1` reste utilisée. Les champs `done`, `
 Les clés `bprea-demo-itk-v1` et `bprea-demo-theme-v1` restent indépendantes. Le calendrier ne modifie aucune donnée utilisateur. Aucun résultat n’est envoyé au serveur. Le stockage reste propre au navigateur et à l’adresse du site ; il n’est pas synchronisé entre appareils. Si l’espace local est indisponible ou saturé, le QCM signale que la tentative ne peut pas être conservée. L’historique grandit au fil des corrections, sans purge automatique.
 
 Les parcours vérifiés et les limites de la vérification sont consignés dans [VALIDATION-LOT1.md](VALIDATION-LOT1.md).
+
+## Utiliser et enrichir le Mode Drill
+
+Ouvre **Mode Drill** dans la navigation, choisis une UC puis une semaine et clique sur « Commencer cette série ». Chaque choix est sauvegardé avant validation. Après validation, la correction explique la réponse ; « Revoir cette question » ajoute un entraînement séparé sans changer le résultat initial de la série. Tu peux reprendre une ancienne série sans avoir terminé les autres.
+
+La semaine suit **Europe/Paris**, indépendamment du fuseau de l’appareil. Dix questions différentes sont sélectionnées de façon reproductible par UC et par semaine ISO. Avec la banque actuelle de 12 questions UC 03, huit questions communes entre deux semaines consécutives sont inévitables ; aucune question n’est dupliquée dans une série. Les UC avec moins de dix questions exploitables affichent « Banque incomplète ». Sans réponse validée, le taux affiche **« Aucune donnée »**.
+
+Pour ajouter un exercice, modifie **`assets/drill-bank.json`** : un document `{"version":1,"questions":[...]}` contient des questions avec `id` permanent, `version` entière positive, `unit`, `chapter`, `concept`, `type: "single-choice"`, `prompt`, `options: [{"id":"a","text":"..."}, ...]`, `answer` (identifiant d’option), `explanation`, `difficulty` et une `reference` facultative `{title,url}`. Utilise au moins deux options aux identifiants distincts et une seule réponse attendue. Les champs facultatifs `sourceLesson` et `sourceQuestionIndex` conservent le lien avec les QCM existants. Lors d’une correction, garde l’identifiant et augmente la version ; les séries commencées gardent leur copie complète des questions.
+
+La progression utilise **`bprea-demo-drill-v1`**, sans modifier les anciennes clés de cours, QCM, ITK ou thème. Chaque série conserve sa semaine, ses questions versionnées, ses brouillons et ses réponses datées ; la première réponse compte une fois, les entraînements sont historisés à part. Le taux est `bonnes premières réponses / exercices réalisés × 100` ; les questions non réalisées n’entrent pas au dénominateur.
+
+Le schéma complet, un exemple JSON réel, les règles de sélection, les données préparées pour le futur Dashboard et les limites sont détaillés dans [MODE-DRILL.md](MODE-DRILL.md). Les vérifications de ce lot sont consignées dans [VALIDATION-LOT2.md](VALIDATION-LOT2.md). Aucune courbe de Dashboard ni gamification n’est ajoutée.
 
 ## Limites explicites
 

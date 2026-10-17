@@ -1,0 +1,389 @@
+{
+  "version": 1,
+  "questions": [
+    {
+      "id": "uc3-matiere-organique-k2",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Coefficient K2",
+      "type": "single-choice",
+      "prompt": "Que décrit le coefficient K2 ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "La proportion d’un apport immédiatement assimilable"
+        },
+        {
+          "id": "b",
+          "text": "La fraction du stock humique minéralisée annuellement"
+        },
+        {
+          "id": "c",
+          "text": "La densité de vers de terre"
+        }
+      ],
+      "answer": "b",
+      "explanation": "K2 correspond à une fraction annuelle du stock humique minéralisé dans les modèles de bilan.",
+      "difficulty": "Fondamentaux",
+      "reference": {
+        "title": "Le cycle de la matière organique",
+        "url": "cours.html?id=matiere-organique"
+      },
+      "sourceLesson": "matiere-organique",
+      "sourceQuestionIndex": 0
+    },
+    {
+      "id": "uc3-matiere-organique-mineralisation",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Minéralisation de la matière organique",
+      "type": "single-choice",
+      "prompt": "Quel processus libère des nutriments sous forme minérale ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "La minéralisation"
+        },
+        {
+          "id": "b",
+          "text": "Le tassement"
+        },
+        {
+          "id": "c",
+          "text": "La battance"
+        }
+      ],
+      "answer": "a",
+      "explanation": "La minéralisation transforme de la matière organique en composés minéraux.",
+      "difficulty": "Fondamentaux",
+      "reference": {
+        "title": "Le cycle de la matière organique",
+        "url": "cours.html?id=matiere-organique"
+      },
+      "sourceLesson": "matiere-organique",
+      "sourceQuestionIndex": 1
+    },
+    {
+      "id": "uc3-matiere-organique-k1",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Variabilité du coefficient K1",
+      "type": "single-choice",
+      "prompt": "Pourquoi K1 ne peut-il pas être unique pour tous les apports ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "La lune modifie K1"
+        },
+        {
+          "id": "b",
+          "text": "Les apports ont des compositions et comportements différents"
+        },
+        {
+          "id": "c",
+          "text": "K1 ne concerne que le sable"
+        }
+      ],
+      "answer": "b",
+      "explanation": "La nature de la matière organique et les conditions de transformation influencent son devenir.",
+      "difficulty": "Fondamentaux",
+      "reference": {
+        "title": "Le cycle de la matière organique",
+        "url": "cours.html?id=matiere-organique"
+      },
+      "sourceLesson": "matiere-organique",
+      "sourceQuestionIndex": 2
+    },
+    {
+      "id": "uc3-rapport-cn-definition",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Interprétation du rapport C/N",
+      "type": "single-choice",
+      "prompt": "Un rapport C/N de 40 signifie…",
+      "options": [
+        {
+          "id": "a",
+          "text": "40 unités de carbone pour 1 unité d’azote"
+        },
+        {
+          "id": "b",
+          "text": "40 % de matière organique"
+        },
+        {
+          "id": "c",
+          "text": "40 kg d’azote disponibles"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Le rapport exprime une proportion massique de carbone et d’azote.",
+      "difficulty": "Fondamentaux",
+      "reference": {
+        "title": "Le rapport carbone / azote (C/N)",
+        "url": "cours.html?id=rapport-cn"
+      },
+      "sourceLesson": "rapport-cn",
+      "sourceQuestionIndex": 0
+    },
+    {
+      "id": "uc3-rapport-cn-immobilisation-azote",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Immobilisation temporaire de l’azote",
+      "type": "single-choice",
+      "prompt": "Une paille très carbonée incorporée peut entraîner…",
+      "options": [
+        {
+          "id": "a",
+          "text": "Une augmentation immédiate de tous les éléments"
+        },
+        {
+          "id": "b",
+          "text": "Une immobilisation temporaire de l’azote"
+        },
+        {
+          "id": "c",
+          "text": "Une suppression de toute activité microbienne"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Les microorganismes peuvent prélever de l’azote minéral pour dégrader un matériau très carboné.",
+      "difficulty": "Fondamentaux",
+      "reference": {
+        "title": "Le rapport carbone / azote (C/N)",
+        "url": "cours.html?id=rapport-cn"
+      },
+      "sourceLesson": "rapport-cn",
+      "sourceQuestionIndex": 1
+    },
+    {
+      "id": "uc3-rapport-cn-decomposition",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Facteurs de décomposition",
+      "type": "single-choice",
+      "prompt": "Le C/N suffit-il à prédire la vitesse de décomposition ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Oui, toujours"
+        },
+        {
+          "id": "b",
+          "text": "Non, la composition et le milieu comptent aussi"
+        },
+        {
+          "id": "c",
+          "text": "Oui, uniquement en serre"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Température, humidité, lignine, taille des particules et autres facteurs interviennent.",
+      "difficulty": "Fondamentaux",
+      "reference": {
+        "title": "Le rapport carbone / azote (C/N)",
+        "url": "cours.html?id=rapport-cn"
+      },
+      "sourceLesson": "rapport-cn",
+      "sourceQuestionIndex": 2
+    },
+    {
+      "id": "uc3-pedofaune-ingenieurs",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Rôle des vers de terre",
+      "type": "single-choice",
+      "prompt": "Pourquoi dit-on que les vers de terre sont des « ingénieurs de l’écosystème » ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Ils construisent des serres"
+        },
+        {
+          "id": "b",
+          "text": "Ils modifient physiquement le milieu par leurs galeries et leurs activités"
+        },
+        {
+          "id": "c",
+          "text": "Ils produisent directement de l’engrais chimique"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Leur activité transforme la structure et les flux d’eau, d’air et de matière.",
+      "difficulty": "Compréhension",
+      "reference": {
+        "title": "La pédofaune et les vers de terre",
+        "url": "cours.html?id=pedofaune"
+      },
+      "sourceLesson": "pedofaune",
+      "sourceQuestionIndex": 0
+    },
+    {
+      "id": "uc3-pedofaune-epiges",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Groupes écologiques des vers de terre",
+      "type": "single-choice",
+      "prompt": "Quel groupe vit plutôt dans la litière de surface ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Les épigés"
+        },
+        {
+          "id": "b",
+          "text": "Les anéciques"
+        },
+        {
+          "id": "c",
+          "text": "Les endogés"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Les épigés sont surtout associés à la litière et aux débris de surface.",
+      "difficulty": "Compréhension",
+      "reference": {
+        "title": "La pédofaune et les vers de terre",
+        "url": "cours.html?id=pedofaune"
+      },
+      "sourceLesson": "pedofaune",
+      "sourceQuestionIndex": 1
+    },
+    {
+      "id": "uc3-pedofaune-observations",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Contexte des observations biologiques",
+      "type": "single-choice",
+      "prompt": "Un comptage de vers un jour sec et froid permet-il de conclure définitivement ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Oui"
+        },
+        {
+          "id": "b",
+          "text": "Non, la période et l’humidité influencent les observations"
+        },
+        {
+          "id": "c",
+          "text": "Oui si la parcelle est bio"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Les observations biologiques sont sensibles au contexte de mesure.",
+      "difficulty": "Compréhension",
+      "reference": {
+        "title": "La pédofaune et les vers de terre",
+        "url": "cours.html?id=pedofaune"
+      },
+      "sourceLesson": "pedofaune",
+      "sourceQuestionIndex": 2
+    },
+    {
+      "id": "uc3-pedoflore-biomasse",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Biomasse microbienne",
+      "type": "single-choice",
+      "prompt": "La biomasse microbienne mesure principalement…",
+      "options": [
+        {
+          "id": "a",
+          "text": "La quantité estimée de microorganismes"
+        },
+        {
+          "id": "b",
+          "text": "La réserve facilement utilisable"
+        },
+        {
+          "id": "c",
+          "text": "Le pH exact du sol"
+        }
+      ],
+      "answer": "a",
+      "explanation": "Il s’agit d’un indicateur de quantité de microorganismes, pas d’un diagnostic complet.",
+      "difficulty": "Approfondissement",
+      "reference": {
+        "title": "Pédoflore et indicateurs biologiques",
+        "url": "cours.html?id=pedoflore"
+      },
+      "sourceLesson": "pedoflore",
+      "sourceQuestionIndex": 0
+    },
+    {
+      "id": "uc3-pedoflore-respiration",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Respiration du sol",
+      "type": "single-choice",
+      "prompt": "Pourquoi interpréter la respiration avec prudence ?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Parce qu’elle ne change jamais"
+        },
+        {
+          "id": "b",
+          "text": "Parce qu’elle dépend aussi de l’humidité, de la température et des racines"
+        },
+        {
+          "id": "c",
+          "text": "Parce qu’elle mesure directement le rendement"
+        }
+      ],
+      "answer": "b",
+      "explanation": "Le CO₂ mesuré varie selon de nombreux facteurs, indépendamment d’une « qualité » simple.",
+      "difficulty": "Approfondissement",
+      "reference": {
+        "title": "Pédoflore et indicateurs biologiques",
+        "url": "cours.html?id=pedoflore"
+      },
+      "sourceLesson": "pedoflore",
+      "sourceQuestionIndex": 1
+    },
+    {
+      "id": "uc3-pedoflore-diagnostic",
+      "version": 1,
+      "unit": "uc3",
+      "chapter": "Le sol vivant",
+      "concept": "Complémentarité des indicateurs biologiques",
+      "type": "single-choice",
+      "prompt": "Le meilleur diagnostic biologique repose sur…",
+      "options": [
+        {
+          "id": "a",
+          "text": "Un seul indicateur"
+        },
+        {
+          "id": "b",
+          "text": "Une combinaison d’indicateurs et le contexte du sol"
+        },
+        {
+          "id": "c",
+          "text": "Uniquement la couleur de la terre"
+        }
+      ],
+      "answer": "b",
+      "explanation": "L’activité et la diversité biologiques ne se résument pas à une seule mesure.",
+      "difficulty": "Approfondissement",
+      "reference": {
+        "title": "Pédoflore et indicateurs biologiques",
+        "url": "cours.html?id=pedoflore"
+      },
+      "sourceLesson": "pedoflore",
+      "sourceQuestionIndex": 2
+    }
+  ]
+}
