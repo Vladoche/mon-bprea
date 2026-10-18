@@ -4,6 +4,7 @@ import { initExamPreparation } from './exam-preparation.js';
 import { initCalendar } from './calendar.js';
 import { recordQuizAttempt } from './exam-stats.js';
 import { initDrill } from './drill.js';
+import { initDashboard } from './dashboard.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -83,6 +84,7 @@ function header() {
   const links = [
     { label: 'Mes cours', href: 'index.html', active: ['home', 'uc', 'course', 'quiz'].includes(page) },
     { label: 'Mode Drill', href: 'drill.html', active: page === 'drill' },
+    { label: 'Tableau de bord', href: 'tableau-de-bord.html', active: page === 'dashboard' },
     { label: 'Calendrier', href: 'calendrier.html', active: page === 'calendar' },
     { label: 'Générateur ITK', href: 'itk.html', active: page === 'itk' },
     { label: 'Ressources documentaires', href: 'ressources.html', active: page === 'resources' },
@@ -217,5 +219,5 @@ function resources() {
   }));
   refresh();
 }
-function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources,calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main'))}[page]||home)();}
+function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources,calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main'))}[page]||home)();}
 init();
