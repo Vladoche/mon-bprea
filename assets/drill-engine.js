@@ -179,6 +179,37 @@ function countedAnswer(series, question) {
   return isAnswer(answer) ? answer : null;
 }
 
+function uniqueSeries(collection, unitId) {
+  const source = isRecord(collection) && hasOwn(collection, 'series') ? collection.series : collection;
+  const seriesList = Array.isArray(source) ? source : isRecord(source) ? Object.values(source) : [];
+  const seen = new Set();
+  return seriesList.filter(series => {
+    if (!isRecord(series) || (unitId !== undefined && series.unit !== unitId)) return false;
+    const key = typeof series.id === 'string' && series.id ? series.id :
+      typeof series.week === 'string' ? `${series.unit}__${series.week}` : series;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+/**
+ * Réponses racines comptabilisées, avec leur question historique et leur série.
+ * À utiliser sur la vue normalisée du stockage : les brouillons et tentatives
+ * d'entraînement ne sont jamais des réponses supplémentaires. Les règles de
+ * validation et de dédoublonnage sont les mêmes que les statistiques du Drill.
+ */
+export function getCountedDrillResponses(collection, unitId) {
+  const responses = [];
+  for (const series of uniqueSeries(collection, unitId)) {
+    for (const question of uniqueQuestions(series.questions)) {
+      const answer = countedAnswer(series, question);
+      if (answer) responses.push({ series, question, answer });
+    }
+  }
+  return responses;
+}
+
 function emptyStats() {
   return { planned: 0, completed: 0, correct: 0, incorrect: 0, successRate: null, trainingAttempts: 0 };
 }
@@ -227,17 +258,9 @@ export function getSeriesStats(series) {
  */
 export function getDrillUnitStats(collection, unitId) {
   if (typeof unitId !== 'string' || !unitId) return { ...emptyStats(), notions: [] };
-  const source = isRecord(collection) && hasOwn(collection, 'series') ? collection.series : collection;
-  const seriesList = Array.isArray(source) ? source : isRecord(source) ? Object.values(source) : [];
   const stats = emptyStats();
   const notions = new Map();
-  const seenSeries = new Set();
-  for (const series of seriesList) {
-    if (!isRecord(series) || series.unit !== unitId) continue;
-    const key = typeof series.id === 'string' && series.id ? series.id :
-      typeof series.week === 'string' ? `${series.unit}__${series.week}` : series;
-    if (seenSeries.has(key)) continue;
-    seenSeries.add(key);
+  for (const series of uniqueSeries(collection, unitId)) {
     for (const question of uniqueQuestions(series.questions)) {
       const answer = countedAnswer(series, question);
       addQuestion(stats, answer);

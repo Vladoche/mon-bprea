@@ -14,6 +14,7 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Calendrier annuel** : navigation par mois, cours, stages, vacances, examens associés à une UC, agenda et détail des événements. Calendrier livré vide, sans dates de formation inventées.
 - **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
 - **Mode Drill** : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
+- **Tableau de bord pédagogique** : résultats réels du Mode Drill, volumes et taux hebdomadaires, comparaison des UC et notions à retravailler ; filtres par UC et sur 4, 8, 12 semaines ou tout l’historique, graphiques et tableaux accessibles.
 - Interface responsive (ordinateur et mobile).
 
 ## Consulter la démo en local
@@ -68,7 +69,8 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/exam-stats.js` et `assets/exam-preparation.js` : statistiques des QCM et bandeau d’accueil ; `assets/calendar.css` et `assets/exam-preparation.css` : leurs styles clair/sombre.
 - `drill.html` et `assets/drill.js` / `assets/drill.css` : interface du Mode Drill ; `assets/drill-engine.js` : semaines, sélection et statistiques ; `assets/drill-store.js` : sauvegardes indépendantes.
 - `assets/drill-bank.json` et `assets/drill-bank.js` : banque éditable et validation des questions.
-- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html` et `drill.html` sont les points d'entrée.
+- `tableau-de-bord.html` et `assets/dashboard.js` / `assets/dashboard.css` : interface du Tableau de bord ; `assets/dashboard-data.js` : adaptateur de lecture seul, fondé sur la validation/normalisation du stockage Drill ; `assets/dashboard-stats.js` : calculs purs et séries temporelles réutilisables.
+- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html`, `drill.html` et `tableau-de-bord.html` sont les points d'entrée.
 
 Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
 
@@ -200,7 +202,23 @@ Pour ajouter un exercice, modifie **`assets/drill-bank.json`** : un document `{"
 
 La progression utilise **`bprea-demo-drill-v1`**, sans modifier les anciennes clés de cours, QCM, ITK ou thème. Chaque série conserve sa semaine, ses questions versionnées, ses brouillons et ses réponses datées ; la première réponse compte une fois, les entraînements sont historisés à part. Le taux est `bonnes premières réponses / exercices réalisés × 100` ; les questions non réalisées n’entrent pas au dénominateur.
 
-Le schéma complet, un exemple JSON réel, les règles de sélection, les données préparées pour le futur Dashboard et les limites sont détaillés dans [MODE-DRILL.md](MODE-DRILL.md). Les vérifications de ce lot sont consignées dans [VALIDATION-LOT2.md](VALIDATION-LOT2.md). Aucune courbe de Dashboard ni gamification n’est ajoutée.
+Le schéma complet, un exemple JSON réel, les règles de sélection et les limites sont détaillés dans [MODE-DRILL.md](MODE-DRILL.md). Les vérifications de ce lot sont consignées dans [VALIDATION-LOT2.md](VALIDATION-LOT2.md).
+
+## Lire le Tableau de bord pédagogique
+
+Ouvre **Tableau de bord** dans la navigation. Le filtre d’UC et la période s’appliquent aux résultats affichés ; la comparaison conserve les UC côte à côte sur cette période, avec leurs volumes. Les périodes de 4, 8 et 12 semaines comprennent la semaine courante. L’historique complet va de la première activité fiable, toutes UC confondues, à la semaine courante : changer d’UC garde le même axe temporel. Les graphiques proposent des détails interactifs et une pagination par fenêtre d’au plus 12 semaines ; le tableau conserve toute la période et les totaux ne changent pas en passant d’une fenêtre à l’autre. Une semaine sans réponse reste une absence de données et coupe la courbe de réussite.
+
+Le Tableau de bord lit exclusivement les premières réponses validées des séries du Mode Drill. L’adaptateur `readDashboardData()` s’appuie sur `readDrillState()`, qui valide et normalise les données enregistrées ; le calcul statistique reste indépendant du stockage et du DOM. Une réponse est comptée une fois par couple série/question. Les brouillons, entraînements répétés et QCM de cours n’entrent pas dans ces totaux. Une question reprise dans une autre série hebdomadaire constitue un autre exercice réalisé. Le taux est **bonnes premières réponses / premières réponses réalisées × 100** ; les résultats globaux sont pondérés par le nombre de réponses, jamais par une moyenne des pourcentages. Seul l’affichage est arrondi. Sans réponse, les volumes valent zéro et le taux reste « Aucune donnée ».
+
+L’activité d’une réponse appartient à la semaine ISO de sa date de validation `answeredAt`, dans **Europe/Paris**. Une ancienne série effectuée aujourd’hui contribue donc à la semaine actuelle, tandis que le Mode Drill continue à présenter ses séries par semaine d’origine. Cette différence de regroupement ne change pas les totaux sur l’historique complet.
+
+Une date `answeredAt` postérieure à l’instant de calcul est exclue, même si elle appartient à la semaine courante. Les réponses futures, les UC inconnues et les données illisibles produisent un avertissement de **bilan partiel** ; leurs valeurs sources restent conservées. Vérifie l’horloge de l’appareil si des dates futures sont signalées.
+
+Les catégories descriptives sont configurables dans `DASHBOARD_THRESHOLDS`, au début de `assets/dashboard-stats.js` : au moins **5 réponses** sont nécessaires ; à partir de **80 %**, un point fort est observé ; sous **60 %**, la notion est à retravailler ; entre les deux, elle est à consolider. Moins de 5 réponses donne « Données insuffisantes ». Ce sont des repères d’organisation sans validation scientifique, sans badge et sans prédiction de réussite à l’examen.
+
+Les notions sont regroupées par **UC + chapitre + notion** à partir des copies de questions enregistrées dans chaque série. Les modifications ultérieures de la banque ne réécrivent pas les résultats historiques ; des changements de libellés peuvent séparer des groupes. Le faible volume de la banque, les répétitions de questions et les notions effectivement couvertes limitent l’interprétation. Les liens vers les cours et exercices reposent sur les associations réellement disponibles.
+
+La page ne modifie aucune donnée utilisateur et n’exige pas le chargement de la banque actuelle. Le stockage reste local, sans synchronisation ni backend ; la couche de calcul séparée pourra recevoir plus tard une source synchronisée après adaptation de la lecture. Les règles complètes et les limites figurent dans [DASHBOARD.md](DASHBOARD.md). Les vérifications réellement effectuées et leurs limites sont consignées dans [VALIDATION-LOT3.md](VALIDATION-LOT3.md). Aucun déploiement en production ne doit être lancé sans validation.
 
 ## Limites explicites
 
