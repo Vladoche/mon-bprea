@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "chapters": [
+    {
+      "id": "uc3-sol-vivant",
+      "unit": "uc3",
+      "title": "Le sol vivant",
+      "lessons": ["matiere-organique", "rapport-cn", "pedofaune", "pedoflore"]
+    }
+  ],
+  "resources": [
+    {
+      "id": "chlorofil",
+      "title": "Chlorofil — Référentiel BPREA",
+      "description": "Référentiel national, organisation du diplôme et documents institutionnels.",
+      "type": "website",
+      "url": "https://chlorofil.fr/diplomes/secondaire/bp/bp-rea",
+      "organization": "Chlorofil",
+      "units": ["uc1", "uc2", "uc3", "uc4", "uc5"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Formation"],
+      "keywords": ["BPREA", "Diplôme", "UC"],
+      "source": { "title": "Chlorofil", "url": "https://chlorofil.fr/diplomes/secondaire/bp/bp-rea" }
+    },
+    {
+      "id": "grab",
+      "title": "GRAB — Techniques de maraîchage biologique",
+      "description": "Synthèses et essais sur les systèmes, les variétés et les pratiques en maraîchage bio.",
+      "type": "website",
+      "url": "https://www.grab.fr/techniques-bio/maraichage/",
+      "organization": "GRAB",
+      "units": ["uc2", "uc3"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Maraîchage", "Agriculture biologique"],
+      "keywords": ["Bio", "Essais", "ITK"],
+      "source": { "title": "GRAB", "url": "https://www.grab.fr/techniques-bio/maraichage/" }
+    },
+    {
+      "id": "ctifl",
+      "title": "CTIFL — Fruits et légumes",
+      "description": "Recherches, publications et références techniques de la filière fruits et légumes.",
+      "type": "website",
+      "url": "https://www.ctifl.fr/",
+      "organization": "CTIFL",
+      "units": ["uc3", "uc5"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Maraîchage", "Fruits et légumes"],
+      "keywords": ["Cultures", "Technique", "Références"],
+      "source": { "title": "CTIFL", "url": "https://www.ctifl.fr/" }
+    },
+    {
+      "id": "dephy-correze",
+      "title": "DEPHY — Maraîchers en circuits courts de Corrèze",
+      "description": "Réseau local : démarches de réduction des produits phytosanitaires et retours de pratiques.",
+      "type": "website",
+      "url": "https://ecophytopic.fr/dephy/reseau-maraichers-en-circuits-courts-de-correze",
+      "organization": "Réseau DEPHY",
+      "units": ["uc2", "uc3"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Agroécologie", "Territoire"],
+      "keywords": ["Corrèze", "Agroécologie", "DEPHY"],
+      "source": { "title": "EcophytoPIC — Réseau DEPHY", "url": "https://ecophytopic.fr/dephy/reseau-maraichers-en-circuits-courts-de-correze" }
+    },
+    {
+      "id": "meteo-open-data",
+      "title": "Météo-France — Données climatiques ouvertes",
+      "description": "Portail de données climatiques pour documenter les contraintes météorologiques locales.",
+      "type": "website",
+      "url": "https://meteo.data.gouv.fr/",
+      "organization": "Météo-France",
+      "units": ["uc3"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Climat"],
+      "keywords": ["Météo", "Climat", "Corrèze"],
+      "source": { "title": "Météo-France", "url": "https://meteo.data.gouv.fr/" }
+    },
+    {
+      "id": "fiche-demo",
+      "title": "Fiche mémo — Le cycle de la matière organique",
+      "description": "Exemple de PDF téléchargeable, créé pour illustrer la bibliothèque documentaire.",
+      "type": "pdf",
+      "file": "documents/fiche-demo-matiere-organique.pdf",
+      "organization": "",
+      "units": ["uc3"],
+      "chapters": ["uc3-sol-vivant"],
+      "lessons": ["matiere-organique"],
+      "themes": ["Sol et fertilité"],
+      "keywords": ["PDF", "Matière organique", "UC 03"]
+    },
+    {
+      "id": "annuaire-fournisseurs-semences",
+      "title": "Annuaire des fournisseurs de semences",
+      "description": "Répertoire des fournisseurs de semences biologiques en Corrèze.",
+      "type": "pdf",
+      "file": "documents/Annuaire_fournisseurs-semences-couverts_vegetaux.pdf",
+      "organization": "",
+      "units": ["uc2", "uc3"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Semences"],
+      "keywords": ["PDF", "Semences", "Corrèze"]
+    },
+    {
+      "id": "guide-aides",
+      "title": "Guide des aides financières",
+      "description": "Résumé des aides disponibles pour les agriculteurs en Corrèze.",
+      "type": "pdf",
+      "file": "documents/Guide_des_aides_2026.pdf",
+      "organization": "",
+      "units": ["uc4"],
+      "chapters": [],
+      "lessons": [],
+      "themes": ["Gestion", "Financement"],
+      "keywords": ["PDF", "Aides", "Corrèze"]
+    }
+  ]
+}

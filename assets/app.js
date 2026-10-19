@@ -1,5 +1,5 @@
 import { units, lessons, crops } from './content.js';
-import { resourceLinks, resourceFiles } from './resources.js';
+import { initResources, initCourseResources, initUnitResources } from './resource-library.js';
 import { initExamPreparation } from './exam-preparation.js';
 import { initCalendar } from './calendar.js';
 import { recordQuizAttempt } from './exam-stats.js';
@@ -29,7 +29,6 @@ function readProgress(fallback = {}) {
 let progress = readProgress();
 const saveProgress = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); return true; } catch { return false; } };
 const clean = value => String(value).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-const normalizeSearch = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr');
 const unitUrl = id => `uc.html?id=${encodeURIComponent(id)}`;
 const lessonUrl = id => `cours.html?id=${encodeURIComponent(id)}`;
 const quizUrl = id => `exercices.html?id=${encodeURIComponent(id)}`;
@@ -111,11 +110,13 @@ function crumbs(items) { return `<div class="crumbs"><a href="index.html">Accuei
 function lessonsList(list) {return list.map((l,i)=>`<a href="${lessonUrl(l.id)}" class="lesson-row"><span class="lesson-number">${String(i+1).padStart(2,'0')}</span><div class="lesson-details"><strong>${clean(l.title)}</strong><span>${clean(l.summary)}</span></div><div class="lesson-right"><span>${l.minutes} min</span>${isDone(l.id)?'<span class="completed-label">✓ Terminé</span>':''}${icon('arrow',18)}</div></a>`).join('');}
 function unit() {
   const u=units.find(x=>x.id===params.get('id'))||units[2];const list=lessons.filter(x=>x.unit===u.id);
-  $('#app-main').innerHTML=`<section class="page-top wrap">${crumbs([{label:u.code}])}<div class="page-eyebrow">${u.code} · BPREA</div><h1>${clean(u.title)}</h1><p>${clean(u.short)}. <span class="soft-text">Démo indépendante à adapter à ta formation.</span></p></section><section class="wrap content-layout"><div class="content-panel"><div class="panel-heading"><div><span class="eyebrow">SOMMAIRE DES COURS</span><h2>${list.length?'Le sol vivant':'Contenu à construire'}</h2></div><span class="pill">${list.length} cours</span></div>${list.length?`<p class="panel-subtitle">Notions introductives sur la biologie du sol, avec exercices interactifs.</p>${lessonsList(list)}`:`<div class="empty-state"><div class="empty-icon">${icon(u.icon,32)}</div><h3>Cette unité attend tes ressources.</h3><p>La navigation est prête. Tu pourras y ajouter chapitres, cours, schémas et exercices lorsque tu auras rassemblé les supports.</p><a class="text-link" href="${unitUrl('uc3')}">Voir un exemple de cours ${icon('arrow',17)}</a></div>`}</div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">MON AVANCEMENT</span><div class="big-ratio">${list.filter(l=>isDone(l.id)).length}<span> / ${list.length} cours</span></div><div class="thick-track"><span style="width:${pct(list.filter(l=>isDone(l.id)).length,list.length)}%"></span></div><p>La progression est enregistrée sur cet appareil.</p></div><div class="aside-card"><span class="eyebrow">À SAVOIR</span><h3>Ce n’est pas un support officiel.</h3><p>Les intitulés nationaux correspondent au BPREA, mais les chapitres de la démo sont libres et doivent être ajustés à ta formation.</p></div></aside></section>`;
+  $('#app-main').innerHTML=`<section class="page-top wrap">${crumbs([{label:u.code}])}<div class="page-eyebrow">${u.code} · BPREA</div><h1>${clean(u.title)}</h1><p>${clean(u.short)}. <span class="soft-text">Démo indépendante à adapter à ta formation.</span></p></section><section class="wrap content-layout"><div class="content-panel"><div class="panel-heading"><div><span class="eyebrow">SOMMAIRE DES COURS</span><h2>${list.length?'Le sol vivant':'Contenu à construire'}</h2></div><span class="pill">${list.length} cours</span></div>${list.length?`<p class="panel-subtitle">Notions introductives sur la biologie du sol, avec exercices interactifs.</p>${lessonsList(list)}`:`<div class="empty-state"><div class="empty-icon">${icon(u.icon,32)}</div><h3>Cette unité attend tes ressources.</h3><p>La navigation est prête. Tu pourras y ajouter chapitres, cours, schémas et exercices lorsque tu auras rassemblé les supports.</p><a class="text-link" href="${unitUrl('uc3')}">Voir un exemple de cours ${icon('arrow',17)}</a></div>`}<section id="unit-resources" aria-label="Ressources associées à cette UC"></section></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">MON AVANCEMENT</span><div class="big-ratio">${list.filter(l=>isDone(l.id)).length}<span> / ${list.length} cours</span></div><div class="thick-track"><span style="width:${pct(list.filter(l=>isDone(l.id)).length,list.length)}%"></span></div><p>La progression est enregistrée sur cet appareil.</p></div><div class="aside-card"><span class="eyebrow">À SAVOIR</span><h3>Ce n’est pas un support officiel.</h3><p>Les intitulés nationaux correspondent au BPREA, mais les chapitres de la démo sont libres et doivent être ajustés à ta formation.</p></div></aside></section>`;
+  initUnitResources($('#unit-resources'), u);
 }
 function course() {
   const l=lessons.find(x=>x.id===params.get('id'))||lessons[0], index=lessons.indexOf(l), next=lessons[index+1];
-  $('#app-main').innerHTML=`<section class="page-top wrap">${crumbs([{label:'UC 03',href:unitUrl('uc3')},{label:l.title}])}<div class="page-eyebrow">UC 03 <span class="dot-spacer">·</span> ${clean(l.chapter)} <span class="dot-spacer">·</span> ${l.minutes} min</div><h1>${clean(l.title)}</h1><p>${clean(l.summary)}</p><div class="course-labels"><span class="pill status-ready">Cours de démonstration</span><span class="pill">${clean(l.level)}</span></div></section><section class="wrap content-layout course-layout"><article class="content-panel course-article">${l.body}<div class="finish-box"><div><span class="eyebrow">PRÊT À VÉRIFIER TES ACQUIS ?</span><h3>Passer aux exercices</h3><p>Trois questions corrigées sur ce cours, avec un résultat conservé localement.</p></div><a class="btn btn-primary" href="${quizUrl(l.id)}">Faire le QCM ${icon('arrow',17)}</a></div><div class="done-box"><label class="done-toggle"><input type="checkbox" id="mark-done" ${isDone(l.id)?'checked':''}/><span class="check-visual">${icon('check',14)}</span><span>Marquer ce cours comme terminé</span></label><span class="mini-muted" id="done-state">${isDone(l.id)?'Terminé ✓':'Pas encore terminé'}</span></div>${next?`<a class="next-lesson" href="${lessonUrl(next.id)}"><span>PROCHAIN COURS <strong>${clean(next.title)}</strong></span>${icon('arrow',19)}</a>`:''}</article><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">L’ESSENTIEL</span><ul class="essentials">${l.essentials.map(x=>`<li>${icon('check',16)}<span>${clean(x)}</span></li>`).join('')}</ul></div><div class="aside-card"><span class="eyebrow">OUTILS DE RÉVISION</span><a class="aside-link" href="${quizUrl(l.id)}">${icon('flask',18)} Exercices de ce cours ${icon('arrow',16)}</a><a class="aside-link" href="${unitUrl('uc3')}">${icon('book',18)} Tous les cours UC 03 ${icon('arrow',16)}</a></div></aside></section>`;
+  $('#app-main').innerHTML=`<section class="page-top wrap">${crumbs([{label:'UC 03',href:unitUrl('uc3')},{label:l.title}])}<div class="page-eyebrow">UC 03 <span class="dot-spacer">·</span> ${clean(l.chapter)} <span class="dot-spacer">·</span> ${l.minutes} min</div><h1>${clean(l.title)}</h1><p>${clean(l.summary)}</p><div class="course-labels"><span class="pill status-ready">Cours de démonstration</span><span class="pill">${clean(l.level)}</span></div></section><section class="wrap content-layout course-layout"><article class="content-panel course-article">${l.body}<section id="course-resources" aria-label="Ressources associées à ce cours"></section><div class="finish-box"><div><span class="eyebrow">PRÊT À VÉRIFIER TES ACQUIS ?</span><h3>Passer aux exercices</h3><p>Trois questions corrigées sur ce cours, avec un résultat conservé localement.</p></div><a class="btn btn-primary" href="${quizUrl(l.id)}">Faire le QCM ${icon('arrow',17)}</a></div><div class="done-box"><label class="done-toggle"><input type="checkbox" id="mark-done" ${isDone(l.id)?'checked':''}/><span class="check-visual">${icon('check',14)}</span><span>Marquer ce cours comme terminé</span></label><span class="mini-muted" id="done-state">${isDone(l.id)?'Terminé ✓':'Pas encore terminé'}</span></div>${next?`<a class="next-lesson" href="${lessonUrl(next.id)}"><span>PROCHAIN COURS <strong>${clean(next.title)}</strong></span>${icon('arrow',19)}</a>`:''}</article><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">L’ESSENTIEL</span><ul class="essentials">${l.essentials.map(x=>`<li>${icon('check',16)}<span>${clean(x)}</span></li>`).join('')}</ul></div><div class="aside-card"><span class="eyebrow">OUTILS DE RÉVISION</span><a class="aside-link" href="${quizUrl(l.id)}">${icon('flask',18)} Exercices de ce cours ${icon('arrow',16)}</a><a class="aside-link" href="${unitUrl('uc3')}">${icon('book',18)} Tous les cours UC 03 ${icon('arrow',16)}</a></div></aside></section>`;
+  initCourseResources($('#course-resources'), l);
   $('#mark-done').addEventListener('change',event=>{progress=readProgress(progress);const previous=progress[l.id];const saved=previous&&typeof previous==='object'&&!Array.isArray(previous)?previous:previous===undefined?{}:{progressArchive:[previous]};progress[l.id]={...saved,done:event.target.checked};saveProgress();$('#done-state').textContent=event.target.checked?'Terminé ✓':'Pas encore terminé';});
 }
 function quizzes() {
@@ -162,62 +163,5 @@ function itk(){
   $('#area').addEventListener('input',e=>e.target.setCustomValidity(''));
   form.addEventListener('submit',event=>{event.preventDefault();const raw=Object.fromEntries(new FormData(form));const area=Number(raw.area);if(!Number.isFinite(area)||area<1||area>100000){$('#area').setCustomValidity('Saisis une surface entre 1 et 100 000 m².');$('#area').reportValidity();return;}$('#area').setCustomValidity('');try{localStorage.setItem(ITK_KEY,JSON.stringify(raw));}catch{};const result=$('#itk-output');result.innerHTML=itkResult(raw);result.classList.add('has-result');const crop=crops[raw.crop],date=dateForMonth(Number(raw.month),Number(raw.year));const rows=crop.tasks.map(([name,detail],i)=>[monthLabel(moveWeeks(date,crop.weeks[i])),name,detail]);$('#csv-export').addEventListener('click',()=>{const dataCSV=[['Période','Opération','Description'],...rows].map(row=>row.map(cell=>'"'+String(cell).replaceAll('"','""')+'"').join(';')).join('\r\n');const blob=new Blob(['\uFEFF'+dataCSV],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`itk-${raw.crop}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});$('#print-itk').addEventListener('click',()=>window.print());});
 }
-function validExternalUrl(value) {
-  try { const u = new URL(value); return ['https:', 'http:'].includes(u.protocol); } catch { return false; }
-}
-function validDocumentPath(path) {
-  // Pas de chemin absolu ni de remontée hors du site ; dossier documents uniquement.
-  return /^documents\/[a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*\.pdf$/i.test(path);
-}
-function resourceCard(entry) {
-  const isFile = entry.kind === 'pdf';
-  if (isFile && !validDocumentPath(entry.file)) return '';
-  if (!isFile && !validExternalUrl(entry.url)) return '';
-  const href = isFile ? entry.file : entry.url;
-  const label = isFile ? 'Télécharger le PDF' : 'Consulter le site';
-  return `<article class="resource-card" data-kind="${isFile ? 'pdf' : 'link'}" data-search="${clean(normalizeSearch(`${entry.title} ${entry.description} ${entry.category} ${(entry.tags || []).join(' ')}`))}">
-    <span class="resource-icon ${isFile ? 'resource-icon-pdf' : ''}">${icon(isFile ? 'file' : 'external',23)}</span>
-    <div class="resource-body"><div class="resource-card-top"><span class="eyebrow">${clean(entry.category)}</span><span class="pill">${isFile ? 'PDF' : 'Site externe'}</span></div>
-    <h3>${clean(entry.title)}</h3><p>${clean(entry.description)}</p>
-    <div class="resource-tags">${(entry.tags || []).map(tag => `<span>${clean(tag)}</span>`).join('')}</div>
-    <a class="resource-open" href="${clean(href)}" ${isFile ? `download="${clean(href.split('/').pop())}"` : 'target="_blank" rel="noopener noreferrer"'}>${label} ${icon(isFile ? 'download' : 'arrow', 17)}</a></div></article>`;
-}
-function resources() {
-  const all = [
-    ...resourceLinks.map(x=>({...x,kind:'link'})),
-    ...resourceFiles.map(x=>({...x,kind:'pdf'}))
-  ];
-  $('#app-main').innerHTML = `<section class="page-top wrap resource-intro">${crumbs([{label:'Ressources documentaires'}])}
-    <div class="page-eyebrow">BIBLIOTHÈQUE PÉDAGOGIQUE</div><h1>Ressources documentaires.</h1><p>Des sites à consulter et des documents à conserver pour réviser. Cette sélection est personnelle et évolutive.</p>
-    </section><section class="wrap resource-layout"><div class="resource-toolbar">
-      <label class="resource-search">${icon('search',19)}<span class="sr-only">Rechercher une ressource</span><input id="resource-search" type="search" placeholder="Rechercher par thème, titre ou mot-clé…" autocomplete="off" /></label>
-      <div class="resource-filters" role="group" aria-label="Filtrer les ressources"><button type="button" class="resource-filter active" data-filter="all" aria-pressed="true">Tout voir <span>${all.length}</span></button><button type="button" class="resource-filter" data-filter="link" aria-pressed="false">Sites utiles <span>${resourceLinks.length}</span></button><button type="button" class="resource-filter" data-filter="pdf" aria-pressed="false">Documents PDF <span>${resourceFiles.length}</span></button></div>
-    </div><div class="resource-overview"><span id="resource-count" role="status" aria-live="polite"></span><span class="resource-info">Une ressource manque ? Ajoute-la dans <code>assets/resources.js</code>.</span></div>
-    <div class="resource-grid" id="resource-grid">${all.map(resourceCard).join('')}</div>
-    <div class="resource-empty" id="resource-empty" hidden><h3>Aucune ressource trouvée.</h3><p>Essaie une autre recherche ou un filtre différent.</p></div>
-    <aside class="resource-help"><div class="resource-help-icon">${icon('file',25)}</div><div><h2>Tu veux ajouter un PDF ?</h2><p>Dépose-le dans le dossier <code>documents/</code>, puis ajoute sa fiche dans <code>assets/resources.js</code>. Son téléchargement sera disponible sans connexion ni backend. Ne publie que des documents que tu as le droit de partager.</p></div></aside>
-    </section>`;
-  const search = $('#resource-search');
-  const filters = $$('.resource-filter');
-  let selected = 'all';
-  function refresh() {
-    const query = normalizeSearch(search.value.trim());
-    let visible = 0;
-    $$('.resource-card').forEach(card => {
-      const show = (selected === 'all' || card.dataset.kind === selected) && card.dataset.search.includes(query);
-      card.hidden = !show;
-      if (show) visible += 1;
-    });
-    $('#resource-count').textContent = `${visible} ressource${visible > 1 ? 's' : ''} affichée${visible > 1 ? 's' : ''}`;
-    $('#resource-empty').hidden = visible !== 0;
-  }
-  search.addEventListener('input', refresh);
-  filters.forEach(button => button.addEventListener('click', () => {
-    selected = button.dataset.filter;
-    filters.forEach(b => {const current = b === button; b.classList.toggle('active', current); b.setAttribute('aria-pressed', String(current));});
-    refresh();
-  }));
-  refresh();
-}
-function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources,calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main'))}[page]||home)();}
+function init(){header();const page=document.body.dataset.page;({home,uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main'))}[page]||home)();}
 init();
