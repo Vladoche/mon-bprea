@@ -9,7 +9,7 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Exercices** : 3 QCM corrigés par cours, soit 12 questions, meilleur score conservé.
 - **Suivi** : marquage des cours terminés dans le stockage local du navigateur.
 - **Générateur ITK** : tomate, laitue, carotte, courgette, choix de variété/type, abri/plein champ, surface, mois, sol et disponibilité en eau. Calendrier indicatif, alerte selon contraintes, export CSV et impression en PDF via le navigateur.
-- **Ressources documentaires** : 5 sites de référence, recherche et filtres, plus un PDF d’exemple téléchargeable.
+- **Bibliothèque documentaire** : 5 sites et 3 PDF conservés, recherche dans les métadonnées, filtres combinés par UC, cours, chapitre, thématique, type et organisme, tri et navigation entre cours et ressources. Les cours et UC présentent leurs ressources associées.
 - **Mode sombre** : interrupteur présent sur toutes les pages, préférence conservée dans le navigateur.
 - **Calendrier annuel** : navigation par mois, cours, stages, vacances, examens associés à une UC, agenda et détail des événements. Calendrier livré vide, sans dates de formation inventées.
 - **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
@@ -59,8 +59,10 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 ## Modifier et enrichir le contenu
 
 - `assets/content.js` : intitulés des UC dans `units`, cours dans `lessons`, questions dans `quiz`, données ITK dans `crops`.
-- `assets/resources.js` : **catalogue éditable** des liens externes et des documents PDF (voir ci-dessous).
-- `documents/` : fichiers PDF accessibles aux visiteurs.
+- `assets/resources.json` : **catalogue éditable unique** des ressources et registre de chapitres ; relations explicites vers les identifiants des UC et cours.
+- `assets/resources.js` : lecture, validation et recherche du catalogue JSON ; aucun second catalogue à maintenir.
+- `assets/resource-library.js` / `assets/resource-library.css` : bibliothèque documentaire, recherche, filtres et ressources associées aux pages de cours et d’UC.
+- `documents/` : PDF accessibles aux visiteurs ; [documents/README.md](documents/README.md) explique leur classement et la préservation des chemins existants.
 - `assets/theme-init.js` : application du thème sombre ou clair dès le chargement.
 - `assets/style.css` : palette, mise en page, styles responsives et mode sombre.
 - `assets/app.js` : navigation, progression, exercices, calcul ITK et export.
@@ -74,44 +76,23 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 
 Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
 
-## Ajouter un lien documentaire
+## Administrer la bibliothèque documentaire
 
-Ouvre `assets/resources.js` et ajoute un objet dans le tableau `resourceLinks` :
+Le fichier **`assets/resources.json`** réunit les fiches dans `resources` et le registre stable des chapitres dans `chapters`, avec `version: 1`. Aucune connaissance de JavaScript n’est nécessaire : modifie les valeurs JSON entre guillemets, conserve les virgules entre les objets et n’ajoute pas de commentaire dans le fichier.
 
-```js
-{
-  id: 'mon-site',
-  title: 'Le nom du site',
-  description: 'Une ou deux phrases pour expliquer ce qu’on y trouve.',
-  category: 'Maraîchage',
-  url: 'https://exemple.fr/',
-  tags: ['ITK', 'Bio']
-},
-```
+La bibliothèque présente les filtres UC, thématique et type ; « Préciser par cours, chapitre ou organisme » ouvre les critères supplémentaires. Tous les critères se combinent. Le tri propose les titres de A à Z ou de Z à A selon l’ordre alphabétique français, ou la date d’ajout de la plus récente à la plus ancienne ; les fiches sans date connue restent à la fin, par titre. « Réinitialiser les filtres » revient à toute la bibliothèque avec le tri par titre de A à Z.
 
-Chaque identifiant `id` doit être unique. Les adresses des liens externes doivent commencer par `https://` ou `http://`. Les visiteurs ouvrent ces sites dans un nouvel onglet.
+1. **Ajouter un site** : ajoute une fiche à `resources`, avec un `id` unique et stable, un titre, une description, `type: "website"` et son `url` en `https://` ou `http://`. Renseigne l’organisme, la source et les mots-clés disponibles.
+2. **Ajouter un PDF** : copie d’abord un petit document que tu as le droit de republier dans un sous-dossier de `documents/`, puis ajoute une fiche avec `type: "pdf"` et `file`, par exemple `documents/sols/ma-fiche.pdf`. Le fichier et sa fiche doivent être livrés ensemble. L’interface permet de le consulter ou de le télécharger.
+3. **Associer une UC** : renseigne `units`, par exemple `["uc2", "uc3"]` pour une ressource commune aux deux UC. Une seule fiche suffit. Une liste vide garde une ressource générale.
+4. **Associer plusieurs cours** : renseigne leurs identifiants exacts dans `lessons`. Par exemple `["pedofaune", "pedoflore"]` pour une nouvelle fiche personnelle conçue pour ces deux cours. Les cartes « Pour approfondir » proviennent uniquement de ces relations explicites ; une UC, un chapitre ou un mot-clé commun ne crée pas de lien automatique vers un cours.
+5. **Classer par chapitre et thématique** : `chapters` contient les identifiants du registre, par exemple `["uc3-sol-vivant"]`. `themes` contient des intitulés libres et réutilisables, par exemple `["Sol", "Biologie du sol"]`. Le chapitre sert au classement et au filtre ; les mots-clés servent à la recherche.
+6. **Modifier ou retirer une fiche** : corrige l’objet existant en conservant son `id`, ou retire cet objet de `resources`. Supprimer une fiche ne supprime pas son PDF ; conserve les fichiers déjà liés tant que leur retrait n’a pas été décidé. Après un renommage de cours, corrige les relations par identifiant.
+7. **Vérifier avant publication** : démarre le serveur HTTP local, ouvre la bibliothèque puis le cours associé, combine les filtres et vérifie consultation/téléchargement. Respecte la casse et le nom réel du fichier ; utilise des chemins relatifs sans `/` initial pour conserver le sous-dossier GitHub Pages. Évite espaces et accents pour les nouveaux fichiers et n’encode pas deux fois un nom existant. La mise en production nécessite une validation préalable.
 
-## Ajouter un PDF à télécharger
+Le guide [RESSOURCES.md](RESSOURCES.md) détaille tous les champs et donne deux exemples concrets : une **fiche personnelle de biologie du sol à créer**, associée à `pedofaune` et `pedoflore`, et le **site GRAB déjà présent**, commun aux UC 02 et UC 03. Ces exemples n’ajoutent aucun PDF tiers au dépôt.
 
-1. Copie ton PDF dans **`documents/`**, par exemple `documents/guide-sols.pdf`.
-2. Dans `assets/resources.js`, ajoute un objet dans `resourceFiles` :
-
-```js
-{
-  id: 'guide-sols',
-  title: 'Guide des sols - fiche de révision',
-  description: 'Notes personnelles sur la structure et la biologie du sol.',
-  category: 'Sol & fertilité',
-  file: 'documents/guide-sols.pdf',
-  tags: ['Sol', 'PDF', 'UC 03']
-},
-```
-
-3. Valide les changements et pousse-les sur GitHub. GitHub Actions publiera la nouvelle page, les liens et le dossier `documents/` automatiquement. **Tu dois mettre à jour à la fois le tableau ET le fichier PDF** ; une simple adresse dans le catalogue sans fichier ne fonctionnera pas.
-
-Le bouton « Télécharger le PDF » repose sur l'attribut HTML `download` : les navigateurs modernes proposent généralement un téléchargement, mais leur comportement peut varier selon les réglages. Le lien mène toujours au PDF original.
-
-**Conseils :** utilise des noms de fichiers sans espaces ni accents (lettres, chiffres, tirets, underscores), compresse les PDF si possible et évite d'accumuler des scans très lourds. GitHub Pages publie des fichiers statiques avec une taille totale maximale de site de 1 Go ; pour quelques petites fiches, il n'y a aucun souci. Pour des fichiers volumineux, utilise un hébergement dédié. Les documents d'un site public sont accessibles à tout le monde : vérifie les droits de redistribution de chaque support avant de le publier.
+La recherche porte sur les métadonnées des fiches, sans indexer le texte intégral des PDF. La disponibilité des PDF locaux est vérifiée automatiquement dès l’affichage de leur fiche, dans la bibliothèque, les cours et les UC. Un fichier introuvable ou ne correspondant pas à un PDF retire ses liens d’action et permet de réessayer la vérification. Une panne ou un délai dépassé de 10 secondes laisse un état « non vérifié », avec la possibilité d’essayer de consulter le document ou de relancer le contrôle. Les liens externes peuvent changer ou devenir indisponibles et ne sont pas vérifiés automatiquement depuis ce site statique. Les dates et organismes absents ne sont pas inventés. Les vérifications réellement réalisées et leurs limites sont consignées dans [VALIDATION-LOT4.md](VALIDATION-LOT4.md).
 
 ## Utiliser le mode sombre
 
