@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "id": "home",
+      "label": "Accueil",
+      "href": "index.html",
+      "pages": ["home"]
+    },
+    {
+      "id": "courses",
+      "label": "Mes cours",
+      "href": "mes-cours.html",
+      "pages": ["courses", "uc", "course", "quiz", "practice", "drill", "dashboard", "calendar"],
+      "groups": [
+        {
+          "id": "course-units",
+          "label": "Cours par UC",
+          "href": "mes-cours.html",
+          "source": "units"
+        },
+        {
+          "id": "practice",
+          "label": "S’exercer",
+          "href": "s-exercer.html",
+          "pages": ["practice", "drill", "dashboard", "calendar"],
+          "children": [
+            { "id": "drill", "label": "Exercices hebdomadaires", "href": "drill.html", "pages": ["drill"] },
+            { "id": "dashboard", "label": "Tableau de bord", "href": "tableau-de-bord.html", "pages": ["dashboard"] },
+            { "id": "calendar", "label": "Calendrier", "href": "calendrier.html", "pages": ["calendar"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tools",
+      "label": "Outils",
+      "href": "outils.html",
+      "pages": ["tools", "itk", "resources"],
+      "children": [
+        { "id": "itk", "label": "Générateur ITK", "href": "itk.html", "pages": ["itk"] },
+        { "id": "resources", "label": "Ressources documentaires", "href": "ressources.html", "pages": ["resources"] }
+      ]
+    }
+  ]
+}

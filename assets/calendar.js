@@ -1,4 +1,5 @@
 import { units } from './content.js';
+import { renderBreadcrumbs } from './breadcrumbs.js';
 import { loadCalendar, parseDate, dateKey, todayKey, eventTypes } from './calendar-data.js';
 
 const clean = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
@@ -12,7 +13,7 @@ const rangeLabel = event => event.start === event.end
   : `Du ${dayFormat.format(parseDate(event.start))} au ${dayFormat.format(parseDate(event.end))}`;
 
 function introduction() {
-  return `<section class="page-top wrap calendar-intro"><div class="crumbs"><a href="index.html">Accueil</a><span>/</span><span>Calendrier</span></div><div class="page-eyebrow">LE FIL DE TA FORMATION</div><h1>Une année pour apprendre.</h1><p>Retrouve tes temps de cours, de stage et de pause, puis garde les périodes d’examen en vue. Chaque étape a sa place.</p></section>`;
+  return `<section class="page-top wrap calendar-intro">${renderBreadcrumbs('calendar')}<div class="page-eyebrow">LE FIL DE TA FORMATION</div><h1>Une année pour apprendre.</h1><p>Retrouve tes temps de cours, de stage et de pause, puis garde les périodes d’examen en vue. Chaque étape a sa place.</p></section>`;
 }
 
 export async function initCalendar(root) {
