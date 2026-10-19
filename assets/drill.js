@@ -1,4 +1,5 @@
 import { units } from './content.js';
+import { renderBreadcrumbs } from './breadcrumbs.js';
 import { loadDrillBank } from './drill-bank.js';
 import { getParisWeek, parseWeek, shiftWeek, nextParisWeekAt, selectWeeklyQuestions, getSeriesStats, getDrillUnitStats } from './drill-engine.js';
 import { readDrillState, ensureSeries, saveDraft, submitAnswer } from './drill-store.js';
@@ -16,7 +17,7 @@ function statsMarkup(stats, className = '') {
 }
 
 export async function initDrill(root) {
-  root.innerHTML = '<section class="page-top wrap"><h1>Mode Drill</h1><p role="status">Chargement des exercices de la semaine…</p></section>';
+  root.innerHTML = `<section class="page-top wrap">${renderBreadcrumbs('drill')}<h1>Exercices hebdomadaires</h1><p role="status">Chargement des exercices de la semaine…</p></section>`;
   let bank = await loadDrillBank();
   let state = readDrillState();
   let currentWeek = getParisWeek();
@@ -81,7 +82,7 @@ export async function initDrill(root) {
     Object.values(state.series).filter(item => item.unit === selectedUnit.id).forEach(item => { const week = parseWeek(item.week); if (week) choices.set(week.id, week); });
     choices.set(selectedWeek.id, selectedWeek);
     const bankCount = bank.questions.filter(question => question.unit === selectedUnit.id).length;
-    root.innerHTML = `<section class="page-top wrap drill-intro"><div class="crumbs"><a href="index.html">Accueil</a><span>/</span><span>Mode Drill</span></div><div class="page-eyebrow">LA PRATIQUE AU FIL DES SEMAINES</div><h1>Une question après l’autre.</h1><p>Dix exercices par UC, une correction pour comprendre et toute la liberté de reprendre plus tard. Une nouvelle série est disponible chaque lundi à 00 h, heure de Paris.</p></section>
+    root.innerHTML = `<section class="page-top wrap drill-intro">${renderBreadcrumbs('drill')}<div class="page-eyebrow">LA PRATIQUE AU FIL DES SEMAINES</div><h1>Exercices hebdomadaires</h1><p>Dix exercices par UC, une correction pour comprendre et toute la liberté de reprendre plus tard. Une nouvelle série est disponible chaque lundi à 00 h, heure de Paris.</p></section>
     <section class="wrap drill-overview" aria-labelledby="drill-current-title"><div class="drill-week-strip"><div><span class="eyebrow">SEMAINE EN COURS · EUROPE/PARIS</span><h2 id="drill-current-title">${currentWeek.id}</h2><p>${periodLabel(currentWeek)}</p></div><p>Les séries précédentes restent ouvertes.<br>Les questions non réalisées ne sont jamais des erreurs.</p></div><details class="drill-unit-picker" ${unitPickerOpen ? 'open' : ''}><summary>Choisir une UC <span>· ${clean(selectedUnit.code)} sélectionnée</span></summary><div class="drill-unit-grid" aria-label="Unités capitalisables">${units.map(unitCard).join('')}</div></details></section>
     <section class="wrap drill-workspace" aria-labelledby="drill-session-title"><div class="drill-session-top"><div><span class="eyebrow">${clean(selectedUnit.code)} · ${selectedWeek.id === currentWeek.id ? 'SÉRIE ACTUELLE' : 'SÉRIE PRÉCÉDENTE'}</span><h2 id="drill-session-title">${clean(selectedUnit.title)}</h2><p>${periodLabel(selectedWeek)} · ${selectedWeek.id}</p></div><label class="drill-week-select">Choisir une semaine<select id="drill-week-select">${[...choices.values()].sort((a, b) => b.ordinal - a.ordinal).map(week => `<option value="${week.id}" ${week.id === selectedWeek.id ? 'selected' : ''}>${week.id}${week.id === currentWeek.id ? ' · actuelle' : ''}</option>`).join('')}</select></label></div>
     <div id="drill-week-notice" role="status">${selectedWeek.id !== currentWeek.id ? `<p class="drill-notice">Tu consultes une série précédente. <a class="text-link" href="${pageUrl(selectedUnit.id, currentWeek.id)}">Ouvrir la semaine actuelle →</a></p>` : ''}</div>

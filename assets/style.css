@@ -144,3 +144,8 @@ footer{margin-top:100px;border-top:1px solid var(--line);background:#fff}.footer
 @media(min-width:1121px) and (max-width:1250px){.theme-toggle{min-width:41px;padding:10px}.theme-label{display:none}}
 @media(max-width:1120px){#app-header{height:auto}.header-in{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;row-gap:2px;column-gap:10px;padding:10px 0 0}.brand{grid-column:1;grid-row:1;min-width:0}.theme-toggle{grid-column:2;grid-row:1;min-width:auto;margin:0}.theme-label{display:inline}.top-nav{grid-column:1 / -1;grid-row:2;min-width:0;margin:0;gap:24px;height:54px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:thin;align-items:flex-start}.top-nav a{height:39px;padding:0 1px;display:flex;align-items:center;transform:none}}
 @media(max-width:525px){.theme-label{display:none}}
+
+/* Chapitres accessibles depuis les fils d’Ariane, sans déplacer les cours. */
+.course-chapter{scroll-margin-top:24px;padding-top:8px;min-width:0}
+.course-chapter+.course-chapter{border-top:1px solid var(--line);margin-top:24px;padding-top:24px}
+.course-chapter-heading{margin:14px 0 6px}.course-chapter-heading h3{font-size:21px;margin:7px 0 15px}

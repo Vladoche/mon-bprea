@@ -1,0 +1,68 @@
+/* Header layout replaces the former six-link strip, including its tablet grid. */
+#app-header{height:auto;min-height:88px;background:var(--white)}
+#app-header .header-in{position:relative;display:flex;align-items:center;gap:20px;min-height:88px;height:auto;padding:14px 0;grid-template-columns:none;grid-template-rows:none}
+#app-header .brand{min-width:190px;grid-column:auto;grid-row:auto}
+#app-header #theme-toggle{flex-shrink:0;margin:0;min-height:44px;grid-column:auto;grid-row:auto}
+#app-header .theme-label{display:inline}
+
+.primary-nav{flex:1;min-width:0;margin-left:auto}
+.primary-nav ul{list-style:none;margin:0;padding:0}
+.primary-nav .primary-nav__list{display:flex;justify-content:flex-end;align-items:center;gap:8px}
+.primary-nav .primary-nav__item{min-width:0}
+.primary-nav .primary-nav__entry{display:flex;align-items:center;min-height:47px;border-bottom:3px solid transparent}
+.primary-nav .primary-nav__item.active>.primary-nav__entry{border-bottom-color:var(--green)}
+.primary-nav .primary-nav__top-link{display:flex;align-items:center;justify-content:center;min-height:44px;padding:9px 10px;color:var(--muted);font-size:14px;font-weight:800;line-height:1.3}
+.primary-nav .primary-nav__top-link.active,.primary-nav .primary-nav__item.active .primary-nav__toggle{color:var(--green)}
+.primary-nav .primary-nav__toggle{display:grid;place-items:center;flex-shrink:0;width:44px;min-height:44px;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--muted)}
+.primary-nav .primary-nav__toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.primary-nav a:hover,.primary-nav .primary-nav__toggle:hover{color:var(--green);background:var(--green-light)}
+.primary-nav .primary-nav__panel{position:absolute;top:100%;right:0;z-index:20;width:min(740px,100%);max-height:calc(100dvh - 110px);overflow-y:auto;padding:18px;border:1px solid var(--line);border-radius:0 0 14px 14px;background:var(--white);box-shadow:var(--shadow);overscroll-behavior:contain}
+.primary-nav .primary-nav__panel[hidden]{display:none!important}
+.primary-nav .primary-nav__panel--courses{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:24px}
+.primary-nav .primary-nav__panel--tools{width:min(310px,100%)}
+.primary-nav .primary-nav__group{min-width:0}
+.primary-nav .primary-nav__group-heading{margin:0 0 8px;border-bottom:1px solid var(--line)}
+.primary-nav .primary-nav__group-link{display:flex;align-items:center;min-height:44px;padding:8px 10px;color:var(--text);font-size:14px;font-weight:800;line-height:1.4}
+.primary-nav .primary-nav__link{display:flex;align-items:center;min-height:44px;padding:10px;border-radius:7px;color:var(--text);font-size:13px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+.primary-nav .primary-nav__link.active,.primary-nav .primary-nav__group-link.active{color:var(--green);background:var(--green-light)}
+.primary-nav .primary-nav__links--units .primary-nav__link{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;padding:8px 10px}
+.primary-nav .primary-nav__unit-code{color:var(--muted);font-size:11px;font-weight:800;white-space:nowrap}
+.primary-nav .primary-nav__unit-title{min-width:0;font-size:12px;line-height:1.4}
+.primary-nav [aria-current="page"]{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+
+.skip-link{position:fixed;top:12px;left:12px;z-index:1000;display:block;max-width:calc(100% - 24px);padding:10px 16px;border:2px solid var(--green);border-radius:8px;background:var(--white);color:var(--text);font-weight:800;transform:translateY(calc(-100% - 24px))}
+.skip-link:focus{transform:none}
+nav.crumbs{display:block}
+.crumbs ol{display:flex;flex-wrap:wrap;align-items:center;gap:5px 0;margin:0;padding:0;list-style:none}
+.crumbs li{display:inline-flex;align-items:center;min-width:0;max-width:100%;line-height:1.5}
+.crumbs .crumb-separator{flex-shrink:0;margin:0 10px;color:var(--muted)}
+.crumbs li a,.crumbs li span{overflow-wrap:anywhere}
+.crumbs [aria-current="page"]{color:var(--text)}
+
+@media(min-width:761px) and (max-width:1000px){
+  #app-header .header-in{gap:14px}
+  #app-header .brand{min-width:170px}
+  #app-header #theme-toggle{min-width:44px;width:44px;padding:8px}
+  #app-header .theme-label{display:none}
+  .primary-nav .primary-nav__list{gap:4px}
+  .primary-nav .primary-nav__top-link{font-size:13px;padding:9px 8px}
+}
+@media(max-width:760px){
+  #app-header{min-height:0}
+  #app-header .header-in{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:8px 12px;min-height:0;padding:10px 0 8px}
+  #app-header .brand{min-width:0;grid-column:1;grid-row:1}
+  #app-header #theme-toggle{grid-column:2;grid-row:1;min-width:44px;width:44px;height:44px;padding:8px}
+  #app-header .theme-label{display:none}
+  .primary-nav{grid-column:1 / -1;grid-row:2;width:100%;margin:0}
+  .primary-nav .primary-nav__list{justify-content:space-between;gap:2px}
+  .primary-nav .primary-nav__item{flex:1 1 auto}
+  .primary-nav .primary-nav__entry{justify-content:center}
+  .primary-nav .primary-nav__top-link{flex:1;min-width:0;padding:8px 6px;font-size:13px;text-align:center}
+  .primary-nav .primary-nav__panel{position:static;width:100%;max-height:65dvh;margin-top:10px;padding:14px;border-radius:10px;box-shadow:none}
+  .primary-nav .primary-nav__panel--courses{grid-template-columns:minmax(0,1fr);gap:18px}
+  .primary-nav .primary-nav__link{font-size:13px}
+}
+@media(max-width:350px){
+  .primary-nav .primary-nav__list{gap:0}
+  .primary-nav .primary-nav__top-link{padding:8px 4px;font-size:12px}
+}

@@ -4,7 +4,8 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 
 ## Fonctions incluses
 
-- **Accueil** : 5 UC nationales et 2 UCARE, navigation et suivi de progression.
+- **Navigation** : trois rubriques principales, **Accueil**, **Mes cours** et **Outils**. Pages de rubrique dédiées, menus accessibles et fils d’Ariane cohérents.
+- **Accueil et Mes cours** : 5 UC nationales et 2 UCARE, cours par UC et suivi de progression. **S’exercer** appartient à Mes cours et regroupe exercices, résultats et calendrier.
 - **UC 03** : quatre cours d'exemple (cycle de la matière organique, C/N, pédofaune, pédoflore et indicateurs).
 - **Exercices** : 3 QCM corrigés par cours, soit 12 questions, meilleur score conservé.
 - **Suivi** : marquage des cours terminés dans le stockage local du navigateur.
@@ -13,9 +14,36 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Mode sombre** : interrupteur présent sur toutes les pages, préférence conservée dans le navigateur.
 - **Calendrier annuel** : navigation par mois, cours, stages, vacances, examens associés à une UC, agenda et détail des événements. Calendrier livré vide, sans dates de formation inventées.
 - **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
-- **Mode Drill** : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
+- **Exercices hebdomadaires** (Mode Drill) : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
 - **Tableau de bord pédagogique** : résultats réels du Mode Drill, volumes et taux hebdomadaires, comparaison des UC et notions à retravailler ; filtres par UC et sur 4, 8, 12 semaines ou tout l’historique, graphiques et tableaux accessibles.
 - Interface responsive (ordinateur et mobile).
+
+## Se repérer dans le site
+
+La navigation présente exactement trois entrées de premier niveau :
+
+```text
+Accueil — index.html
+Mes cours — mes-cours.html
+  Cours par UC — uc.html?id=…
+    Chapitres
+    Leçons — cours.html?id=…
+  S’exercer — s-exercer.html
+    Exercices hebdomadaires — drill.html
+    Tableau de bord — tableau-de-bord.html
+    Calendrier — calendrier.html
+Outils — outils.html
+  Générateur ITK — itk.html
+  Ressources documentaires — ressources.html
+```
+
+**S’exercer** appartient exclusivement à **Mes cours**. **Outils** constitue une rubrique principale indépendante. Les liens des titres permettent d’ouvrir les pages de rubrique ; des boutons distincts déplient les destinations. Sur ordinateur, Mes cours regroupe les cours par UC et les trois activités de S’exercer. Le menu mobile conserve les mêmes rubriques et leurs accès directs.
+
+La page **S’exercer** affiche les premières réponses réellement validées pendant la semaine ISO courante en Europe/Paris : exercices réalisés, bonnes réponses et taux calculé uniquement sur les réponses réalisées. Elle réutilise les calculs du Tableau de bord, y compris pour une ancienne série reprise cette semaine. Sans réponse, elle explique l’absence de données ; une erreur de lecture du stockage n’est pas présentée comme un résultat nul. Les entraînements supplémentaires et les QCM restent séparés.
+
+Les anciennes URL, leurs paramètres et les liens contextuels restent valables : exercices d’un cours, ressources associées, calendrier depuis le bandeau d’examens et liens du Tableau de bord. « Exercices hebdomadaires » est le nouveau libellé du Mode Drill ; son fonctionnement, `drill.html` et ses sauvegardes restent identiques.
+
+Le menu commun est configuré dans `assets/navigation.json`, avec rendu et interactions dans `assets/navigation.js` et styles dans `assets/navigation.css`. Le guide [NAVIGATION.md](NAVIGATION.md) décrit cette configuration, les pages de rubrique et les fils d’Ariane. Les vérifications réellement effectuées figurent dans [VALIDATION-LOT4-5.md](VALIDATION-LOT4-5.md). Les thèmes horaires et saisonniers restent prévus pour un lot ultérieur.
 
 ## Consulter la démo en local
 
@@ -66,13 +94,15 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/theme-init.js` : application du thème sombre ou clair dès le chargement.
 - `assets/style.css` : palette, mise en page, styles responsives et mode sombre.
 - `assets/app.js` : navigation, progression, exercices, calcul ITK et export.
+- `assets/navigation.json` et `assets/navigation.js` / `assets/navigation.css` : arborescence commune, menu et interactions ordinateur/mobile ; `assets/breadcrumbs.js` : fils d’Ariane partagés.
+- `mes-cours.html`, `s-exercer.html` et `outils.html` : pages de rubrique ; `assets/section-hubs.js` / `assets/section-hubs.css` : leurs cartes et la synthèse hebdomadaire de S’exercer.
 - `assets/calendar-events.json` : événements et dates d’examen, modifiables sans changer le JavaScript.
 - `assets/calendar-data.js` et `assets/calendar.js` : lecture/validation des événements, navigation mensuelle, agenda et détail.
 - `assets/exam-stats.js` et `assets/exam-preparation.js` : statistiques des QCM et bandeau d’accueil ; `assets/calendar.css` et `assets/exam-preparation.css` : leurs styles clair/sombre.
 - `drill.html` et `assets/drill.js` / `assets/drill.css` : interface du Mode Drill ; `assets/drill-engine.js` : semaines, sélection et statistiques ; `assets/drill-store.js` : sauvegardes indépendantes.
 - `assets/drill-bank.json` et `assets/drill-bank.js` : banque éditable et validation des questions.
 - `tableau-de-bord.html` et `assets/dashboard.js` / `assets/dashboard.css` : interface du Tableau de bord ; `assets/dashboard-data.js` : adaptateur de lecture seul, fondé sur la validation/normalisation du stockage Drill ; `assets/dashboard-stats.js` : calculs purs et séries temporelles réutilisables.
-- Les pages `index.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html`, `drill.html` et `tableau-de-bord.html` sont les points d'entrée.
+- Les pages `index.html`, `mes-cours.html`, `s-exercer.html`, `outils.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html`, `drill.html` et `tableau-de-bord.html` sont les points d'entrée.
 
 Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
 
@@ -175,7 +205,7 @@ Les parcours vérifiés et les limites de la vérification sont consignés dans 
 
 ## Utiliser et enrichir le Mode Drill
 
-Ouvre **Mode Drill** dans la navigation, choisis une UC puis une semaine et clique sur « Commencer cette série ». Chaque choix est sauvegardé avant validation. Après validation, la correction explique la réponse ; « Revoir cette question » ajoute un entraînement séparé sans changer le résultat initial de la série. Tu peux reprendre une ancienne série sans avoir terminé les autres.
+Depuis **Mes cours → S’exercer → Exercices hebdomadaires**, choisis une UC puis une semaine et clique sur « Commencer cette série ». Chaque choix est sauvegardé avant validation. Après validation, la correction explique la réponse ; « Revoir cette question » ajoute un entraînement séparé sans changer le résultat initial de la série. Tu peux reprendre une ancienne série sans avoir terminé les autres.
 
 La semaine suit **Europe/Paris**, indépendamment du fuseau de l’appareil. Dix questions différentes sont sélectionnées de façon reproductible par UC et par semaine ISO. Avec la banque actuelle de 12 questions UC 03, huit questions communes entre deux semaines consécutives sont inévitables ; aucune question n’est dupliquée dans une série. Les UC avec moins de dix questions exploitables affichent « Banque incomplète ». Sans réponse validée, le taux affiche **« Aucune donnée »**.
 
@@ -187,7 +217,7 @@ Le schéma complet, un exemple JSON réel, les règles de sélection et les limi
 
 ## Lire le Tableau de bord pédagogique
 
-Ouvre **Tableau de bord** dans la navigation. Le filtre d’UC et la période s’appliquent aux résultats affichés ; la comparaison conserve les UC côte à côte sur cette période, avec leurs volumes. Les périodes de 4, 8 et 12 semaines comprennent la semaine courante. L’historique complet va de la première activité fiable, toutes UC confondues, à la semaine courante : changer d’UC garde le même axe temporel. Les graphiques proposent des détails interactifs et une pagination par fenêtre d’au plus 12 semaines ; le tableau conserve toute la période et les totaux ne changent pas en passant d’une fenêtre à l’autre. Une semaine sans réponse reste une absence de données et coupe la courbe de réussite.
+Ouvre **Mes cours → S’exercer → Tableau de bord**. Le filtre d’UC et la période s’appliquent aux résultats affichés ; la comparaison conserve les UC côte à côte sur cette période, avec leurs volumes. Les périodes de 4, 8 et 12 semaines comprennent la semaine courante. L’historique complet va de la première activité fiable, toutes UC confondues, à la semaine courante : changer d’UC garde le même axe temporel. Les graphiques proposent des détails interactifs et une pagination par fenêtre d’au plus 12 semaines ; le tableau conserve toute la période et les totaux ne changent pas en passant d’une fenêtre à l’autre. Une semaine sans réponse reste une absence de données et coupe la courbe de réussite.
 
 Le Tableau de bord lit exclusivement les premières réponses validées des séries du Mode Drill. L’adaptateur `readDashboardData()` s’appuie sur `readDrillState()`, qui valide et normalise les données enregistrées ; le calcul statistique reste indépendant du stockage et du DOM. Une réponse est comptée une fois par couple série/question. Les brouillons, entraînements répétés et QCM de cours n’entrent pas dans ces totaux. Une question reprise dans une autre série hebdomadaire constitue un autre exercice réalisé. Le taux est **bonnes premières réponses / premières réponses réalisées × 100** ; les résultats globaux sont pondérés par le nombre de réponses, jamais par une moyenne des pourcentages. Seul l’affichage est arrondi. Sans réponse, les volumes valent zéro et le taux reste « Aucune donnée ».
 
