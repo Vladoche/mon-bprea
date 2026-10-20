@@ -1,0 +1,20 @@
+.header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+#app-header .appearance-open{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 12px;border:1px solid var(--line);border-radius:9px;background:var(--white);color:var(--text);font-size:12px;font-weight:750}
+#app-header .appearance-open:hover{background:var(--green-light)}
+.appearance-open svg{width:19px;height:19px;flex-shrink:0}
+.appearance-dialog{width:min(520px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:26px;background:var(--white);color:var(--text);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:auto}
+.appearance-dialog::backdrop{background:#101c18a6}
+.appearance-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px}
+.appearance-heading h2{font-size:26px;margin:0}
+.appearance-close{display:grid;place-items:center;flex-shrink:0;width:44px;height:44px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font-size:25px;line-height:1}
+.appearance-dialog p{font-size:13px;line-height:1.7}
+.appearance-fields{display:grid;gap:7px;margin-top:22px}
+.appearance-fields label{display:flex;flex-direction:column;gap:7px;font-size:14px;font-weight:750}
+.appearance-fields select{width:100%;min-height:46px;padding:9px 12px;border:1px solid var(--color-control-border);border-radius:8px;background:var(--bg);color:var(--text)}
+.appearance-fields p{font-size:12px;margin:0 0 14px}
+.appearance-current{margin:8px 0 12px;padding:12px;border-radius:8px;background:var(--green-light);color:var(--text);font-weight:700}
+.appearance-dialog .appearance-save{font-size:12px;margin-bottom:0}
+@media(min-width:761px) and (max-width:1100px){#app-header .appearance-label{display:none}#app-header .appearance-open{width:44px;padding:8px}#app-header .theme-label{display:none}#app-header #theme-toggle{width:44px;min-width:44px;padding:8px}#app-header .header-in{gap:12px}}
+@media(max-width:760px){#app-header .header-actions{grid-column:2;grid-row:1;gap:6px}#app-header .appearance-open{width:44px;padding:8px}#app-header .appearance-label{display:none}#app-header #theme-toggle{grid-column:auto;grid-row:auto}.appearance-dialog{padding:20px}}
+@media(max-width:350px){#app-header .header-in{column-gap:6px}#app-header .brand-copy small{max-width:112px;font-size:8px}.header-actions{gap:4px}}
+@media print{.header-actions,.appearance-dialog{display:none!important}}

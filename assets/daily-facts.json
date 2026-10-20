@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "facts": [
+    {
+      "id": "mycorhizes-echanges",
+      "text": "Une mycorhize est un partenariat : le champignon apporte à la plante de l’eau et des éléments minéraux, et reçoit en échange des sucres produits par celle-ci.",
+      "theme": "Biologie du sol",
+      "source": "INRAE — Les interactions au cœur de la guilde des champignons",
+      "url": "https://www.inrae.fr/actualites/interactions-au-coeur-guilde-champignons"
+    },
+    {
+      "id": "vers-aneciques-galeries",
+      "text": "Les vers de terre anéciques creusent surtout des galeries verticales. Ces passages favorisent l’infiltration de l’eau et l’aération du sol.",
+      "theme": "Biologie du sol",
+      "source": "Ephytia / INRAE — Jardibiodiv : Vers de terre",
+      "url": "https://ephytia.inrae.fr/fr/C/25158/jardibiodiv-Vers-de-terre",
+      "lessonId": "pedofaune"
+    },
+    {
+      "id": "legumineuses-nodosites",
+      "text": "Les nodosités des racines de légumineuses peuvent héberger des bactéries qui fixent l’azote de l’air. La plante leur fournit de l’énergie en échange.",
+      "theme": "Agronomie",
+      "source": "INRAE — Au champ, des atouts à valoriser",
+      "url": "https://www.inrae.fr/dossiers/quand-grand-retour-legumineuses/au-champ-atouts-valoriser"
+    },
+    {
+      "id": "stomates-eau-carbone",
+      "text": "Les stomates sont de minuscules pores des feuilles : leur ouverture laisse entrer le CO₂ nécessaire à la photosynthèse, mais laisse aussi sortir de l’eau sous forme de vapeur.",
+      "theme": "Physiologie végétale",
+      "source": "INRAE / Institut Agro — Stomates et amidon : le côté obscur des pertes en eau des plantes",
+      "url": "https://www.inrae.fr/actualites/stomates-amidon-cote-obscur-pertes-eau-plantes"
+    },
+    {
+      "id": "coccinelles-larves-auxiliaires",
+      "text": "Chez les coccinelles qui se nourrissent de pucerons, les larves sont elles aussi prédatrices. Elles participent à la régulation des pucerons avant même le stade adulte.",
+      "theme": "Biodiversité",
+      "source": "Ephytia / INRAE — Jardibiodiv : Coccinelles",
+      "url": "https://ephytia.inrae.fr/fr/C/25138/jardibiodiv-Coccinelles"
+    },
+    {
+      "id": "couverts-protection-sol",
+      "text": "Un couvert végétal ne sert pas seulement à produire de la biomasse : il contribue aussi à protéger le sol contre l’érosion entre deux cultures.",
+      "theme": "Agronomie",
+      "source": "INRAE — L’agroécologie source de solutions",
+      "url": "https://www.inrae.fr/dossiers/lagriculture-va-t-elle-manquer-deau/lagroecologie-source-solutions"
+    },
+    {
+      "id": "amidon-reserve-nocturne",
+      "text": "L’amidon fabriqué dans les feuilles pendant la journée constitue une réserve : la plante l’utilise la nuit pour produire des sucres, quand la photosynthèse ne dispose plus de lumière.",
+      "theme": "Physiologie végétale",
+      "source": "INRAE / Institut Agro — Stomates et amidon : le côté obscur des pertes en eau des plantes",
+      "url": "https://www.inrae.fr/actualites/stomates-amidon-cote-obscur-pertes-eau-plantes"
+    },
+    {
+      "id": "pollinisateurs-diversite",
+      "text": "Les abeilles ne sont pas les seules à polliniser : papillons, certains coléoptères, oiseaux et même chauves-souris participent aussi à la reproduction de plantes à fleurs.",
+      "theme": "Biodiversité",
+      "source": "FAO — Bee-ing grateful to our pollinators (en anglais)",
+      "url": "https://www.fao.org/newsroom/story/bee-ing-grateful-to-our-pollinators/en"
+    },
+    {
+      "id": "legumineuses-residus-azote",
+      "text": "Après la récolte des graines d’une légumineuse, les résidus laissés au champ peuvent enrichir le sol en azote au bénéfice des cultures suivantes.",
+      "theme": "Agronomie",
+      "source": "INRAE — Au champ, des atouts à valoriser",
+      "url": "https://www.inrae.fr/dossiers/quand-grand-retour-legumineuses/au-champ-atouts-valoriser",
+      "lessonId": "matiere-organique"
+    },
+    {
+      "id": "haies-auxiliaires",
+      "text": "Les haies et les bandes enherbées peuvent accueillir des auxiliaires des cultures. Ces infrastructures contribuent aussi à limiter le ruissellement et à préserver la qualité de l’eau.",
+      "theme": "Agroécologie",
+      "source": "INRAE — L’agroécologie source de solutions",
+      "url": "https://www.inrae.fr/dossiers/lagriculture-va-t-elle-manquer-deau/lagroecologie-source-solutions"
+    }
+  ]
+}

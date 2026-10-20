@@ -1,0 +1,19 @@
+/* A compact reading aid; all colors follow the shared appearance tokens. */
+.daily-fact{display:flex;align-items:flex-start;gap:14px;margin-top:20px;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--white);color:var(--text)}
+.daily-fact[hidden]{display:none!important}
+.daily-fact-icon{display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;border-radius:10px;color:var(--green);background:var(--cream)}
+.daily-fact-content{flex:1;min-width:0}
+.daily-fact-heading{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:5px}
+.daily-fact h2{font-size:15px;font-weight:800;line-height:1.5;margin:0;color:var(--text)}
+.daily-fact-theme{font-size:11px;line-height:1.5;font-weight:700;color:var(--muted)}
+.daily-fact .daily-fact-text{font-size:13px;line-height:1.7;margin:0;color:var(--text)}
+.daily-fact-details{display:flex;align-items:baseline;flex-wrap:wrap;column-gap:16px;row-gap:5px;margin-top:7px;font-size:11px;line-height:1.65}
+.daily-fact-source{color:var(--muted);overflow-wrap:anywhere}
+.daily-fact-link{display:inline-flex;align-items:center;min-height:24px;color:var(--green);font-weight:750;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.daily-fact-link:hover{text-decoration-thickness:2px}
+.daily-fact-dismiss{display:grid;place-items:center;flex:0 0 44px;width:44px;min-height:44px;margin:-6px -8px -6px 0;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--muted);font:inherit;font-size:24px;line-height:1;cursor:pointer}
+.daily-fact-dismiss:hover{border-color:var(--line);color:var(--text);background:var(--bg)}
+.daily-fact-link:focus-visible,.daily-fact-dismiss:focus-visible{outline:3px solid var(--green);outline-offset:3px}
+@media(max-width:525px){.daily-fact{padding:14px;gap:10px;margin-top:16px}.daily-fact-icon{display:none}.daily-fact-heading{gap:4px 10px}.daily-fact-details{column-gap:12px}.daily-fact-dismiss{margin-right:-8px}.daily-fact-link{min-height:32px}}
+@media(prefers-reduced-motion:reduce){.daily-fact,.daily-fact *{transition:none;animation:none}}
+@media print{.daily-fact{display:none!important}}

@@ -11,7 +11,9 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Suivi** : marquage des cours terminés dans le stockage local du navigateur.
 - **Générateur ITK** : tomate, laitue, carotte, courgette, choix de variété/type, abri/plein champ, surface, mois, sol et disponibilité en eau. Calendrier indicatif, alerte selon contraintes, export CSV et impression en PDF via le navigateur.
 - **Bibliothèque documentaire** : 5 sites et 3 PDF conservés, recherche dans les métadonnées, filtres combinés par UC, cours, chapitre, thématique, type et organisme, tri et navigation entre cours et ressources. Les cours et UC présentent leurs ressources associées.
-- **Mode sombre** : interrupteur présent sur toutes les pages, préférence conservée dans le navigateur.
+- **Apparence dynamique** : quatre saisons, quatre ambiances horaires et préférences indépendantes de saison/luminosité, conservées sur le navigateur ; accès rapide clair/sombre et migration de l’ancien choix.
+- **« Tu savais que… ? »** : anecdote agronomique quotidienne sourcée, identique pour une même date Europe/Paris, masquable pour la journée.
+- **Mises à jour** : ressources CSS, JavaScript et données JSON versionnées dans l’artefact GitHub Pages à partir du commit, sans toucher aux données locales.
 - **Calendrier annuel** : navigation par mois, cours, stages, vacances, examens associés à une UC, agenda et détail des événements. Calendrier livré vide, sans dates de formation inventées.
 - **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
 - **Exercices hebdomadaires** (Mode Drill) : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
@@ -43,7 +45,7 @@ La page **S’exercer** affiche les premières réponses réellement validées p
 
 Les anciennes URL, leurs paramètres et les liens contextuels restent valables : exercices d’un cours, ressources associées, calendrier depuis le bandeau d’examens et liens du Tableau de bord. « Exercices hebdomadaires » est le nouveau libellé du Mode Drill ; son fonctionnement, `drill.html` et ses sauvegardes restent identiques.
 
-Le menu commun est configuré dans `assets/navigation.json`, avec rendu et interactions dans `assets/navigation.js` et styles dans `assets/navigation.css`. Le guide [NAVIGATION.md](NAVIGATION.md) décrit cette configuration, les pages de rubrique et les fils d’Ariane. Les vérifications réellement effectuées figurent dans [VALIDATION-LOT4-5.md](VALIDATION-LOT4-5.md). Les thèmes horaires et saisonniers restent prévus pour un lot ultérieur.
+Le menu commun est configuré dans `assets/navigation.json`, avec rendu et interactions dans `assets/navigation.js` et styles dans `assets/navigation.css`. Le guide [NAVIGATION.md](NAVIGATION.md) décrit cette configuration, les pages de rubrique et les fils d’Ariane. Le lot 5 ajoute l’apparence et le bandeau quotidien sans changer cette hiérarchie : voir [THEMES.md](THEMES.md), [ANECDOTES.md](ANECDOTES.md) et [VALIDATION-LOT5.md](VALIDATION-LOT5.md).
 
 ## Consulter la démo en local
 
@@ -60,7 +62,7 @@ Puis ouvre <http://localhost:8000>.
 
 Tu peux aussi utiliser l'extension **Live Server** de VS Code.
 
-## Déployer sur GitHub Pages (sans étape de compilation)
+## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
 1. Crée un dépôt GitHub, par exemple **`mon-bprea`**. Pour GitHub Pages sur un compte GitHub Free, le dépôt doit généralement être **public**.
 2. Ajoute **tout le contenu du dossier `bprea-demo` à la racine du dépôt**, y compris le dossier caché `.github/workflows/` et le fichier `.nojekyll`.
@@ -69,6 +71,8 @@ Tu peux aussi utiliser l'extension **Live Server** de VS Code.
 5. Le site sera consultable à `https://TON-PSEUDO.github.io/mon-bprea/` (adapte le nom du dépôt).
 
 > Tu n'as **pas** besoin de configurer un « base path ». Tous les liens internes sont relatifs. Aucun nom d'utilisateur ou de dépôt n'est codé en dur.
+
+Le workflow prépare les fichiers publics avec `scripts/prepare-pages.py` (Python standard, aucune dépendance) et ajoute `?v=<SHA du commit>` aux ressources CSS/JS/JSON dans la copie publiée, y compris les imports JavaScript transitifs. Les sources restent directement utilisables en local. [CACHE.md](CACHE.md) décrit la vérification de l’artefact et les limites du cache HTML de GitHub Pages : une ancienne page encore en cache peut temporairement continuer à demander ses anciennes ressources. **Ne pas fusionner vers `main` ni lancer la publication sans validation**, car une poussée sur `main` déclenche le workflow.
 
 ### Depuis Git en local (exemple)
 
@@ -91,8 +95,11 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/resources.js` : lecture, validation et recherche du catalogue JSON ; aucun second catalogue à maintenir.
 - `assets/resource-library.js` / `assets/resource-library.css` : bibliothèque documentaire, recherche, filtres et ressources associées aux pages de cours et d’UC.
 - `documents/` : PDF accessibles aux visiteurs ; [documents/README.md](documents/README.md) explique leur classement et la préservation des chemins existants.
-- `assets/theme-init.js` : application du thème sombre ou clair dès le chargement.
-- `assets/style.css` : palette, mise en page, styles responsives et mode sombre.
+- `assets/theme-init.js` : résolution de saison/luminosité avant le rendu, migration et sauvegarde des préférences.
+- `assets/style.css` : tokens sémantiques, palettes saisonnières claires/sombres et styles communs.
+- `assets/appearance.js` / `assets/appearance.css` : paramètres visuels et accès rapide clair/sombre.
+- `assets/daily-facts.json` et `assets/daily-fact.js` / `assets/daily-fact.css` : banque sourcée, rotation et bandeau quotidien.
+- `scripts/prepare-pages.py` : préparation des fichiers publics versionnés pour GitHub Pages.
 - `assets/app.js` : navigation, progression, exercices, calcul ITK et export.
 - `assets/navigation.json` et `assets/navigation.js` / `assets/navigation.css` : arborescence commune, menu et interactions ordinateur/mobile ; `assets/breadcrumbs.js` : fils d’Ariane partagés.
 - `mes-cours.html`, `s-exercer.html` et `outils.html` : pages de rubrique ; `assets/section-hubs.js` / `assets/section-hubs.css` : leurs cartes et la synthèse hebdomadaire de S’exercer.
@@ -124,9 +131,13 @@ Le guide [RESSOURCES.md](RESSOURCES.md) détaille tous les champs et donne deux 
 
 La recherche porte sur les métadonnées des fiches, sans indexer le texte intégral des PDF. La disponibilité des PDF locaux est vérifiée automatiquement dès l’affichage de leur fiche, dans la bibliothèque, les cours et les UC. Un fichier introuvable ou ne correspondant pas à un PDF retire ses liens d’action et permet de réessayer la vérification. Une panne ou un délai dépassé de 10 secondes laisse un état « non vérifié », avec la possibilité d’essayer de consulter le document ou de relancer le contrôle. Les liens externes peuvent changer ou devenir indisponibles et ne sont pas vérifiés automatiquement depuis ce site statique. Les dates et organismes absents ne sont pas inventés. Les vérifications réellement réalisées et leurs limites sont consignées dans [VALIDATION-LOT4.md](VALIDATION-LOT4.md).
 
-## Utiliser le mode sombre
+## Personnaliser l’apparence
 
-Clique sur « Mode sombre » en haut du site. Le choix est conservé dans `localStorage` sous `bprea-demo-theme-v1` et appliqué à toutes les pages sur le même navigateur, jusqu'à ce que les données locales soient effacées. Sans préférence enregistrée, le site démarre en mode clair. L'impression d'un ITK conserve une présentation claire.
+Ouvre **Apparence** dans l’en-tête et choisis une saison (automatique ou fixe) puis une luminosité (automatique selon l’heure, claire ou sombre). Les choix sont indépendants et s’appliquent sans rechargement. Le bouton clair/sombre conserve son accès rapide et fixe la luminosité ; le dialogue permet de revenir en automatique. Le réglage automatique suit les saisons météorologiques de l’hémisphère nord et quatre plages horaires locales conventionnelles (6–10 h, 10–18 h, 18–22 h, 22–6 h), actualisées chaque minute.
+
+Les préférences sont enregistrées dans `bprea-demo-appearance-v1`. Une ancienne préférence `bprea-demo-theme-v1` est migrée en choix manuel, sans supprimer l’ancienne clé. Les cours, résultats et historiques restent intacts. L’impression d’un ITK conserve une présentation claire. [THEMES.md](THEMES.md) explique palettes, horaires et format de sauvegarde.
+
+Le bandeau **« Tu savais que… ? »** propose un fait sourcé par date civile Europe/Paris et revient le lendemain s’il a été masqué. Sur l’accueil, le bandeau d’examens conserve la première place. [ANECDOTES.md](ANECDOTES.md) explique l’ajout d’un fait et son association à un cours ou à une ressource. Aucun service externe n’est requis à l’exécution.
 
 ## Modifier les événements et les examens
 
@@ -177,7 +188,7 @@ Le calendrier ouvre le mois courant et permet de revenir à aujourd’hui, d’a
 
 Un événement invalide (date impossible, fin avant début, catégorie inconnue, identifiant répété…) est écarté de l’affichage avec un avertissement, sans modifier le fichier. Une UC inconnue laisse l’événement visible, sans lien ni statistiques d’UC. Un fichier vide, manquant ou illisible a un état explicite et une erreur de chargement peut être relancée. Recharge la page après modification du JSON.
 
-Les chemins sont relatifs et fonctionnent sous le sous-dossier GitHub Pages. Le workflow existant copie déjà les pages HTML et tout `assets/`, y compris ce JSON : aucune configuration de déploiement supplémentaire. La modification se prépare sur la branche dédiée ; **ne pas fusionner vers `main`, pousser vers `main` ou lancer le workflow de publication sans validation préalable**.
+Les chemins sont relatifs et fonctionnent sous le sous-dossier GitHub Pages. Le workflow copie et versionne les pages et les ressources publiques, y compris ce JSON. La modification se prépare sur la branche dédiée ; **ne pas fusionner vers `main`, pousser vers `main` ou lancer le workflow de publication sans validation préalable**.
 
 ## Comprendre le bandeau de préparation
 

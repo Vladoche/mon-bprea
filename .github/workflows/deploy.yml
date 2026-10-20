@@ -26,12 +26,7 @@ jobs:
       - name: Préparer GitHub Pages
         uses: actions/configure-pages@v5
       - name: Préparer les fichiers publics
-        run: |
-          mkdir -p site-public
-          cp ./*.html site-public/
-          cp -R assets site-public/
-          cp -R documents site-public/
-          touch site-public/.nojekyll
+        run: python3 scripts/prepare-pages.py --version "$GITHUB_SHA" --output site-public
       - name: Déposer les fichiers du site
         uses: actions/upload-pages-artifact@v3
         with:
