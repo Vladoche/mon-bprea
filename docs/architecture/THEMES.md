@@ -41,4 +41,4 @@ En l’absence de nouvelle sauvegarde, une ancienne valeur `light` ou `dark` de 
 
 Les changements se propagent entre onglets du même site par l’événement `storage`. L’API commune `window.BpreaAppearance` expose lecture, résolution et modification ; l’interface réagit aux événements `bprea:appearance-change` et `bprea:preferences-change`. Aucun accès en écriture aux clés de cours, QCM, Drill, statistiques ou ITK n’est nécessaire.
 
-Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications réellement effectuées dans [VALIDATION-LOT5.md](VALIDATION-LOT5.md).
+Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications réellement effectuées dans [VALIDATION-LOT5.md](../validations/VALIDATION-LOT5.md).

@@ -24,6 +24,12 @@ export function dateKey(date) {
 
 export const todayKey = () => dateKey(new Date());
 
+/** Prochaines périodes réelles, parmi les événements validés par loadCalendar. */
+export function selectUpcomingExams(events, day = todayKey()) {
+  return events.filter(event => event.type === 'examen' && !event.example && event.end >= day)
+    .sort((a, b) => a.start.localeCompare(b.start) || a.id.localeCompare(b.id));
+}
+
 /** Écart de journées civiles : reste exact lors des changements d'heure. */
 export function daysBetween(start, end) {
   const dayNumber = value => {

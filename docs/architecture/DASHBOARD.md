@@ -83,4 +83,4 @@ Lorsque les copies de questions comportent une association `sourceLesson` exploi
 
 ## Vérification et livraison
 
-Les parcours vérifiés, les données de vérification isolées et les limites de la validation sont consignés dans [VALIDATION-LOT3.md](VALIDATION-LOT3.md). Aucune nouvelle suite de tests automatisés n’est ajoutée. La branche `feature/dashboard-uc` prépare une pull request vers `main` ; fusion et déploiement en production nécessitent la validation de l’utilisateur.
+Les parcours vérifiés, les données de vérification isolées et les limites du lot 3 sont consignés dans [VALIDATION-LOT3.md](../validations/VALIDATION-LOT3.md). Ce lot n’ajoutait pas de suite automatisée ; le lot 5.1 introduit les contrôles décrits dans [../TESTS.md](../TESTS.md). Les observations historiques correspondent à la branche `feature/dashboard-uc`. Fusion et déploiement en production nécessitent la validation de l’utilisateur.

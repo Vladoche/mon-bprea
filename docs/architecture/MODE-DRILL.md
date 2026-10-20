@@ -1,15 +1,15 @@
 # Mode Drill hebdomadaire — lot 2
 
-Le [Mode Drill](drill.html) propose dix exercices distincts par UC et par semaine lorsque sa banque contient au moins dix questions valides. Une série inachevée ou peu réussie ne bloque jamais les suivantes. Chaque première réponse validée donne accès à une correction ; la série peut être interrompue puis reprise dans le même navigateur.
+Le [Mode Drill](../../drill.html) propose dix exercices distincts par UC et par semaine lorsque sa banque contient au moins dix questions valides. Une série inachevée ou peu réussie ne bloque jamais les suivantes. Chaque première réponse validée donne accès à une correction ; la série peut être interrompue puis reprise dans le même navigateur.
 
 ## Banque livrée et portée pédagogique
 
-[assets/drill-bank.json](assets/drill-bank.json) contient **12 QCM UC3**, repris sans changement d’énoncé, d’options, de bonne réponse ou d’explication des quatre cours existants :
+[assets/drill-bank.json](../../assets/drill-bank.json) contient **12 QCM UC3**, repris sans changement d’énoncé, d’options, de bonne réponse ou d’explication des quatre cours existants :
 
-- [Le cycle de la matière organique](cours.html?id=matiere-organique) ;
-- [Le rapport carbone / azote](cours.html?id=rapport-cn) ;
-- [La pédofaune et les vers de terre](cours.html?id=pedofaune) ;
-- [Pédoflore et indicateurs biologiques](cours.html?id=pedoflore).
+- [Le cycle de la matière organique](../../cours.html?id=matiere-organique) ;
+- [Le rapport carbone / azote](../../cours.html?id=rapport-cn) ;
+- [La pédofaune et les vers de terre](../../cours.html?id=pedofaune) ;
+- [Pédoflore et indicateurs biologiques](../../cours.html?id=pedoflore).
 
 Ces contenus de démonstration ne constituent pas un référentiel officiel ni une couverture complète de l’UC3. Les autres UC n’ont pas encore de banque ; leur interface indique explicitement « Banque incomplète ». Aucune question n’est dupliquée pour atteindre dix exercices.
 
@@ -68,13 +68,13 @@ Ce fragment illustre le format ; il ne faut pas remplacer la banque complète pa
 
 Les textes sont affichés comme du texte, sans interpréter de HTML. Le JSON doit rester strict : guillemets doubles, pas de commentaire ni de virgule finale. Ne renseigner une référence ou une correction que si elle est vérifiée. Au moins dix identifiants différents et exploitables sont nécessaires **dans chaque UC** pour ouvrir sa série.
 
-Le chargeur [assets/drill-bank.js](assets/drill-bank.js) vérifie le format, les unités, les identifiants, les options et la réponse attendue. Les entrées invalides et les doublons sont ignorés avec un avertissement visible. Le document vide `{"version":1,"questions":[]}` est accepté ; une banque absente ou illisible produit un état explicite avec possibilité de réessayer. Le numéro `version` à la racine décrit le format du fichier : le conserver à `1` tant que ce schéma est utilisé.
+Le chargeur [assets/drill-bank.js](../../assets/drill-bank.js) vérifie le format, les unités, les identifiants, les options et la réponse attendue. Les entrées invalides et les doublons sont ignorés avec un avertissement visible. Le document vide `{"version":1,"questions":[]}` est accepté ; une banque absente ou illisible produit un état explicite avec possibilité de réessayer. Le numéro `version` à la racine décrit le format du fichier : le conserver à `1` tant que ce schéma est utilisé.
 
 L’architecture sépare la validation du type de question, la sélection, le stockage et le rendu. Ajouter un autre type exigera son validateur, son interface et son traitement de réponse ; changer seulement `type` dans le JSON ne suffit pas.
 
 ## Semaines et sélection des dix exercices
 
-[assets/drill-engine.js](assets/drill-engine.js) utilise les semaines ISO 8601, au format `AAAA-Wnn`. L’année ISO peut différer de l’année civile autour du 1er janvier. La semaine courante dépend du jour en **Europe/Paris**, quel que soit le fuseau horaire de l’appareil. Le changement intervient le lundi à 00 h à Paris, heure d’été comprise, à partir de l’horloge de l’appareil.
+[assets/drill-engine.js](../../assets/drill-engine.js) utilise les semaines ISO 8601, au format `AAAA-Wnn`. L’année ISO peut différer de l’année civile autour du 1er janvier. La semaine courante dépend du jour en **Europe/Paris**, quel que soit le fuseau horaire de l’appareil. Le changement intervient le lundi à 00 h à Paris, heure d’été comprise, à partir de l’horloge de l’appareil.
 
 Pour les règles de numérotation (premier jeudi, année de semaine distincte de l’année civile), voir la [documentation technique du TC39 sur les semaines ISO](https://tc39.es/proposal-temporal/docs/plaindate.html#weekOfYear). Le site effectue ces calculs avec `Date` et `Intl`, sans ajouter de bibliothèque ou de dépendance à Temporal.
 
