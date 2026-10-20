@@ -59,7 +59,7 @@ L’artefact a été inspecté sur disque : seulement les douze HTML, `assets/`,
 
 `.playwright-mcp/` était déjà ignoré et non suivi. `node_modules/`, `test-results/`, `playwright-report/`, `coverage/` et `.vitest/` sont aussi ignorés. Le fichier `download` supprimé était vide (0 octet), sans référence au fichier dans le code et déjà exclu de l’artefact ; les preuves sont consignées dans l’audit. Aucun autre fichier au rôle incertain ni aucune donnée utilisateur supprimé.
 
-Le workflow **Qualité** est limité aux PR vers `main`, avec deux jobs `unit-integration` et `e2e`, `npm ci`, Node 24, Chromium et traces/captures en cas d’échec. Son YAML a été analysé et sa structure contrôlée localement. Son exécution distante sera vérifiée sur la PR ; les résultats locaux ne sont pas présentés comme une réussite GitHub Actions.
+Le workflow **Qualité** est limité aux PR vers `main`, avec deux jobs `unit-integration` et `e2e`, `npm ci`, Node 24, Chromium et traces/captures en cas d’échec. Son YAML a été analysé et sa structure contrôlée localement. L’[exécution GitHub Actions nº 1](https://github.com/Vladoche/mon-bprea/actions/runs/39456012212), déclenchée par la [PR nº 6](https://github.com/Vladoche/mon-bprea/pull/6) sur le commit applicatif `0e8d0ef`, a terminé avec **les deux jobs réussis** sur Ubuntu : installation reproductible, Vitest, installation Chromium et parcours navigateur. L’étape de dépôt des artefacts d’échec a été ignorée comme prévu. Les 19 documents et leurs 45 liens locaux ont aussi été contrôlés après réorganisation, sans lien manquant.
 
 ## Limites
 
