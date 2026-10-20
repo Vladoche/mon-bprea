@@ -8,6 +8,8 @@ import { initDashboard } from './dashboard.js';
 import { initNavigation } from './navigation.js';
 import { renderBreadcrumbs, chapterAnchor } from './breadcrumbs.js';
 import { initCourseHub, initPracticeHub, initToolsHub } from './section-hubs.js';
+import { initAppearance } from './appearance.js';
+import { initDailyFact } from './daily-fact.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -15,7 +17,6 @@ const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const BASE = './';
 const STORE_KEY = 'bprea-demo-progress-v1';
 const ITK_KEY = 'bprea-demo-itk-v1';
-const THEME_KEY = 'bprea-demo-theme-v1';
 const safeRead = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
 function readProgress(fallback = {}) {
   try {
@@ -61,30 +62,11 @@ const icons = {
   search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
 };
 const icon = (name, size=20) => `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]||icons.book}</svg>`;
-function setupThemeToggle() {
-  const button = $('#theme-toggle');
-  function update() {
-    const dark = document.documentElement.dataset.theme === 'dark';
-    button.querySelector('.theme-icon').innerHTML = icon(dark ? 'sun' : 'moon', 18);
-    button.querySelector('.theme-label').textContent = dark ? 'Mode clair' : 'Mode sombre';
-    button.setAttribute('aria-label', dark ? 'Activer le mode clair' : 'Activer le mode sombre');
-    button.setAttribute('aria-pressed', String(dark));
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', dark ? '#101a15' : '#184e39');
-  }
-  button.addEventListener('click', () => {
-    const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem(THEME_KEY, next); } catch {}
-    update();
-  });
-  update();
-}
 function header() {
   const page = document.body.dataset.page;
   const title = document.title;
-  $('#app-header').innerHTML = `<a class="skip-link" href="#app-main">Aller au contenu</a><div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf', 20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="primary-nav" id="primary-navigation" aria-label="Navigation principale"></nav><button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-icon" aria-hidden="true"></span><span class="theme-label"></span></button></div>`;
-  setupThemeToggle();
+  $('#app-header').innerHTML = `<a class="skip-link" href="#app-main">Aller au contenu</a><div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf', 20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="primary-nav" id="primary-navigation" aria-label="Navigation principale"></nav><div class="header-actions"><button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-icon" aria-hidden="true"></span><span class="theme-label"></span></button><button class="appearance-open" id="appearance-open" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" aria-label="Paramètres d’apparence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--white)"/><circle cx="15" cy="17" r="3" fill="var(--white)"/></svg><span class="appearance-label">Apparence</span></button></div></div>`;
+  initAppearance();
   initNavigation($('#primary-navigation'), page);
   $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><span>Contenus de démonstration non officiels · Données conservées sur cet appareil</span></div>`;
   document.title = `${title} · Mon BPREA`;
@@ -163,5 +145,17 @@ function itk(){
   $('#area').addEventListener('input',e=>e.target.setCustomValidity(''));
   form.addEventListener('submit',event=>{event.preventDefault();const raw=Object.fromEntries(new FormData(form));const area=Number(raw.area);if(!Number.isFinite(area)||area<1||area>100000){$('#area').setCustomValidity('Saisis une surface entre 1 et 100 000 m².');$('#area').reportValidity();return;}$('#area').setCustomValidity('');try{localStorage.setItem(ITK_KEY,JSON.stringify(raw));}catch{};const result=$('#itk-output');result.innerHTML=itkResult(raw);result.classList.add('has-result');const crop=crops[raw.crop],date=dateForMonth(Number(raw.month),Number(raw.year));const rows=crop.tasks.map(([name,detail],i)=>[monthLabel(moveWeeks(date,crop.weeks[i])),name,detail]);$('#csv-export').addEventListener('click',()=>{const dataCSV=[['Période','Opération','Description'],...rows].map(row=>row.map(cell=>'"'+String(cell).replaceAll('"','""')+'"').join(';')).join('\r\n');const blob=new Blob(['\uFEFF'+dataCSV],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`itk-${raw.crop}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});$('#print-itk').addEventListener('click',()=>window.print());});
 }
-function init(){header();const page=document.body.dataset.page;({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main'))}[page]||home)();}
+function init(){
+  header();
+  const page=document.body.dataset.page;
+  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main'))}[page]||home)();
+  // Les rendus asynchrones peuvent remplacer main : le bandeau commun reste extérieur.
+  const fact = document.createElement('section');
+  fact.className = 'daily-fact wrap';
+  fact.hidden = true;
+  const exam = $('#exam-preparation');
+  if (exam) exam.after(fact);
+  else $('#app-header').after(fact);
+  initDailyFact(fact);
+}
 init();
