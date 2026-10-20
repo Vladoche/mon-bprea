@@ -1,6 +1,6 @@
 # Mon BPREA — Démonstration fonctionnelle
 
-Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt pour GitHub Pages. Aucun serveur, aucune installation de dépendances et aucun système de suivi de tests requis.
+Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt pour GitHub Pages. Le site publié fonctionne sans Node.js ni dépendance npm à l’exécution. Les outils de développement utilisent Node.js pour les tests unitaires, d’intégration et navigateur.
 
 ## Fonctions incluses
 
@@ -45,7 +45,7 @@ La page **S’exercer** affiche les premières réponses réellement validées p
 
 Les anciennes URL, leurs paramètres et les liens contextuels restent valables : exercices d’un cours, ressources associées, calendrier depuis le bandeau d’examens et liens du Tableau de bord. « Exercices hebdomadaires » est le nouveau libellé du Mode Drill ; son fonctionnement, `drill.html` et ses sauvegardes restent identiques.
 
-Le menu commun est configuré dans `assets/navigation.json`, avec rendu et interactions dans `assets/navigation.js` et styles dans `assets/navigation.css`. Le guide [NAVIGATION.md](NAVIGATION.md) décrit cette configuration, les pages de rubrique et les fils d’Ariane. Le lot 5 ajoute l’apparence et le bandeau quotidien sans changer cette hiérarchie : voir [THEMES.md](THEMES.md), [ANECDOTES.md](ANECDOTES.md) et [VALIDATION-LOT5.md](VALIDATION-LOT5.md).
+Le menu commun est configuré dans `assets/navigation.json`, avec rendu et interactions dans `assets/navigation.js` et styles dans `assets/navigation.css`. Le guide [NAVIGATION.md](docs/architecture/NAVIGATION.md) décrit cette configuration, les pages de rubrique et les fils d’Ariane. Le lot 5 ajoute l’apparence et le bandeau quotidien sans changer cette hiérarchie : voir [THEMES.md](docs/architecture/THEMES.md), [ANECDOTES.md](docs/architecture/ANECDOTES.md) et [VALIDATION-LOT5.md](docs/validations/VALIDATION-LOT5.md).
 
 ## Consulter la démo en local
 
@@ -62,6 +62,38 @@ Puis ouvre <http://localhost:8000>.
 
 Tu peux aussi utiliser l'extension **Live Server** de VS Code.
 
+## Développer et vérifier
+
+Installe **Node.js 24 LTS**, puis exécute depuis la racine du dépôt :
+
+```bash
+npm ci
+npx playwright install chromium
+npm test
+npm run test:e2e
+```
+
+`npm run test:watch` relance Vitest pendant le développement. Playwright Test démarre son serveur HTTP local et utilise des données isolées ; les tests ne doivent jamais viser le site de production. [docs/TESTS.md](docs/TESTS.md) décrit l’installation, les scénarios, les traces d’échec, le workflow **Qualité** et l’ajout de tests. Vitest exerce la logique métier et les interactions avec le stockage ; Playwright Test vérifie les parcours dans Chromium. Playwright MCP reste un outil de vérification visuelle manuelle.
+
+Les pages et ressources publiques gardent leurs chemins. La documentation technique et les outils sont organisés ainsi :
+
+```text
+*.html                  Points d’entrée publics conservés à la racine
+assets/                 Modules JavaScript, styles et données du site
+documents/              PDF publics et guide de classement
+docs/architecture/      Architecture et guides par domaine
+docs/validations/       Comptes rendus historiques et validation du lot 5.1
+docs/TESTS.md           Installation et stratégie de vérification
+tests/unit/             Calculs et règles métier
+tests/integration/      Persistance et cohérence entre modules
+tests/e2e/              Parcours navigateur reproductibles
+tests/fixtures/         Données de test maîtrisées
+scripts/                Préparation Pages et outils locaux
+.github/workflows/      Qualité des PR et publication Pages distinctes
+```
+
+L’[audit d’architecture](docs/architecture/ARCHITECTURE.md) explique les frontières conservées et les risques prioritaires. Les résultats réellement exécutés figurent dans la [validation du lot 5.1](docs/validations/VALIDATION-LOT5-1.md). Les dépendances de développement, tests, rapports et documentation ne sont pas copiés dans l’artefact Pages. Aucune fusion vers `main`, modification des protections ou mise en production ne doit être réalisée sans accord.
+
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
 1. Crée un dépôt GitHub, par exemple **`mon-bprea`**. Pour GitHub Pages sur un compte GitHub Free, le dépôt doit généralement être **public**.
@@ -72,7 +104,7 @@ Tu peux aussi utiliser l'extension **Live Server** de VS Code.
 
 > Tu n'as **pas** besoin de configurer un « base path ». Tous les liens internes sont relatifs. Aucun nom d'utilisateur ou de dépôt n'est codé en dur.
 
-Le workflow prépare les fichiers publics avec `scripts/prepare-pages.py` (Python standard, aucune dépendance) et ajoute `?v=<SHA du commit>` aux ressources CSS/JS/JSON dans la copie publiée, y compris les imports JavaScript transitifs. Les sources restent directement utilisables en local. [CACHE.md](CACHE.md) décrit la vérification de l’artefact et les limites du cache HTML de GitHub Pages : une ancienne page encore en cache peut temporairement continuer à demander ses anciennes ressources. **Ne pas fusionner vers `main` ni lancer la publication sans validation**, car une poussée sur `main` déclenche le workflow.
+Le workflow prépare les fichiers publics avec `scripts/prepare-pages.py` (Python standard, aucune dépendance) et ajoute `?v=<SHA du commit>` aux ressources CSS/JS/JSON dans la copie publiée, y compris les imports JavaScript transitifs. Les sources restent directement utilisables en local. [CACHE.md](docs/architecture/CACHE.md) décrit la vérification de l’artefact et les limites du cache HTML de GitHub Pages : une ancienne page encore en cache peut temporairement continuer à demander ses anciennes ressources. **Ne pas fusionner vers `main` ni lancer la publication sans validation**, car une poussée sur `main` déclenche le workflow.
 
 ### Depuis Git en local (exemple)
 
@@ -111,7 +143,7 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `tableau-de-bord.html` et `assets/dashboard.js` / `assets/dashboard.css` : interface du Tableau de bord ; `assets/dashboard-data.js` : adaptateur de lecture seul, fondé sur la validation/normalisation du stockage Drill ; `assets/dashboard-stats.js` : calculs purs et séries temporelles réutilisables.
 - Les pages `index.html`, `mes-cours.html`, `s-exercer.html`, `outils.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html`, `drill.html` et `tableau-de-bord.html` sont les points d'entrée.
 
-Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. On pourra par la suite passer à un générateur de documentation (Astro/Starlight) si la bibliothèque de cours devient volumineuse. Pour cette V1, la structure sans dépendance évite tout build et fonctionne directement sur GitHub Pages.
+Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. La structure statique évite une compilation applicative et fonctionne directement sur GitHub Pages. Les dépendances npm servent uniquement au développement ; ce lot n’introduit ni framework ni backend.
 
 ## Administrer la bibliothèque documentaire
 
@@ -127,17 +159,17 @@ La bibliothèque présente les filtres UC, thématique et type ; « Préciser pa
 6. **Modifier ou retirer une fiche** : corrige l’objet existant en conservant son `id`, ou retire cet objet de `resources`. Supprimer une fiche ne supprime pas son PDF ; conserve les fichiers déjà liés tant que leur retrait n’a pas été décidé. Après un renommage de cours, corrige les relations par identifiant.
 7. **Vérifier avant publication** : démarre le serveur HTTP local, ouvre la bibliothèque puis le cours associé, combine les filtres et vérifie consultation/téléchargement. Respecte la casse et le nom réel du fichier ; utilise des chemins relatifs sans `/` initial pour conserver le sous-dossier GitHub Pages. Évite espaces et accents pour les nouveaux fichiers et n’encode pas deux fois un nom existant. La mise en production nécessite une validation préalable.
 
-Le guide [RESSOURCES.md](RESSOURCES.md) détaille tous les champs et donne deux exemples concrets : une **fiche personnelle de biologie du sol à créer**, associée à `pedofaune` et `pedoflore`, et le **site GRAB déjà présent**, commun aux UC 02 et UC 03. Ces exemples n’ajoutent aucun PDF tiers au dépôt.
+Le guide [RESSOURCES.md](docs/architecture/RESSOURCES.md) détaille tous les champs et donne deux exemples concrets : une **fiche personnelle de biologie du sol à créer**, associée à `pedofaune` et `pedoflore`, et le **site GRAB déjà présent**, commun aux UC 02 et UC 03. Ces exemples n’ajoutent aucun PDF tiers au dépôt.
 
-La recherche porte sur les métadonnées des fiches, sans indexer le texte intégral des PDF. La disponibilité des PDF locaux est vérifiée automatiquement dès l’affichage de leur fiche, dans la bibliothèque, les cours et les UC. Un fichier introuvable ou ne correspondant pas à un PDF retire ses liens d’action et permet de réessayer la vérification. Une panne ou un délai dépassé de 10 secondes laisse un état « non vérifié », avec la possibilité d’essayer de consulter le document ou de relancer le contrôle. Les liens externes peuvent changer ou devenir indisponibles et ne sont pas vérifiés automatiquement depuis ce site statique. Les dates et organismes absents ne sont pas inventés. Les vérifications réellement réalisées et leurs limites sont consignées dans [VALIDATION-LOT4.md](VALIDATION-LOT4.md).
+La recherche porte sur les métadonnées des fiches, sans indexer le texte intégral des PDF. La disponibilité des PDF locaux est vérifiée automatiquement dès l’affichage de leur fiche, dans la bibliothèque, les cours et les UC. Un fichier introuvable ou ne correspondant pas à un PDF retire ses liens d’action et permet de réessayer la vérification. Une panne ou un délai dépassé de 10 secondes laisse un état « non vérifié », avec la possibilité d’essayer de consulter le document ou de relancer le contrôle. Les liens externes peuvent changer ou devenir indisponibles et ne sont pas vérifiés automatiquement depuis ce site statique. Les dates et organismes absents ne sont pas inventés. Les vérifications réellement réalisées et leurs limites sont consignées dans [VALIDATION-LOT4.md](docs/validations/VALIDATION-LOT4.md).
 
 ## Personnaliser l’apparence
 
 Ouvre **Apparence** dans l’en-tête et choisis une saison (automatique ou fixe) puis une luminosité (automatique selon l’heure, claire ou sombre). Les choix sont indépendants et s’appliquent sans rechargement. Le bouton clair/sombre conserve son accès rapide et fixe la luminosité ; le dialogue permet de revenir en automatique. Le réglage automatique suit les saisons météorologiques de l’hémisphère nord et quatre plages horaires locales conventionnelles (6–10 h, 10–18 h, 18–22 h, 22–6 h), actualisées chaque minute.
 
-Les préférences sont enregistrées dans `bprea-demo-appearance-v1`. Une ancienne préférence `bprea-demo-theme-v1` est migrée en choix manuel, sans supprimer l’ancienne clé. Les cours, résultats et historiques restent intacts. L’impression d’un ITK conserve une présentation claire. [THEMES.md](THEMES.md) explique palettes, horaires et format de sauvegarde.
+Les préférences sont enregistrées dans `bprea-demo-appearance-v1`. Une ancienne préférence `bprea-demo-theme-v1` est migrée en choix manuel, sans supprimer l’ancienne clé. Les cours, résultats et historiques restent intacts. L’impression d’un ITK conserve une présentation claire. [THEMES.md](docs/architecture/THEMES.md) explique palettes, horaires et format de sauvegarde.
 
-Le bandeau **« Tu savais que… ? »** propose un fait sourcé par date civile Europe/Paris et revient le lendemain s’il a été masqué. Sur l’accueil, le bandeau d’examens conserve la première place. [ANECDOTES.md](ANECDOTES.md) explique l’ajout d’un fait et son association à un cours ou à une ressource. Aucun service externe n’est requis à l’exécution.
+Le bandeau **« Tu savais que… ? »** propose un fait sourcé par date civile Europe/Paris et revient le lendemain s’il a été masqué. Sur l’accueil, le bandeau d’examens conserve la première place. [ANECDOTES.md](docs/architecture/ANECDOTES.md) explique l’ajout d’un fait et son association à un cours ou à une ressource. Aucun service externe n’est requis à l’exécution.
 
 ## Modifier les événements et les examens
 
@@ -212,7 +244,7 @@ La clé existante `bprea-demo-progress-v1` reste utilisée. Les champs `done`, `
 
 Les clés `bprea-demo-itk-v1` et `bprea-demo-theme-v1` restent indépendantes. Le calendrier ne modifie aucune donnée utilisateur. Aucun résultat n’est envoyé au serveur. Le stockage reste propre au navigateur et à l’adresse du site ; il n’est pas synchronisé entre appareils. Si l’espace local est indisponible ou saturé, le QCM signale que la tentative ne peut pas être conservée. L’historique grandit au fil des corrections, sans purge automatique.
 
-Les parcours vérifiés et les limites de la vérification sont consignés dans [VALIDATION-LOT1.md](VALIDATION-LOT1.md).
+Les parcours vérifiés et les limites de la vérification sont consignés dans [VALIDATION-LOT1.md](docs/validations/VALIDATION-LOT1.md).
 
 ## Utiliser et enrichir le Mode Drill
 
@@ -224,7 +256,7 @@ Pour ajouter un exercice, modifie **`assets/drill-bank.json`** : un document `{"
 
 La progression utilise **`bprea-demo-drill-v1`**, sans modifier les anciennes clés de cours, QCM, ITK ou thème. Chaque série conserve sa semaine, ses questions versionnées, ses brouillons et ses réponses datées ; la première réponse compte une fois, les entraînements sont historisés à part. Le taux est `bonnes premières réponses / exercices réalisés × 100` ; les questions non réalisées n’entrent pas au dénominateur.
 
-Le schéma complet, un exemple JSON réel, les règles de sélection et les limites sont détaillés dans [MODE-DRILL.md](MODE-DRILL.md). Les vérifications de ce lot sont consignées dans [VALIDATION-LOT2.md](VALIDATION-LOT2.md).
+Le schéma complet, un exemple JSON réel, les règles de sélection et les limites sont détaillés dans [MODE-DRILL.md](docs/architecture/MODE-DRILL.md). Les vérifications de ce lot sont consignées dans [VALIDATION-LOT2.md](docs/validations/VALIDATION-LOT2.md).
 
 ## Lire le Tableau de bord pédagogique
 
@@ -240,7 +272,7 @@ Les catégories descriptives sont configurables dans `DASHBOARD_THRESHOLDS`, au 
 
 Les notions sont regroupées par **UC + chapitre + notion** à partir des copies de questions enregistrées dans chaque série. Les modifications ultérieures de la banque ne réécrivent pas les résultats historiques ; des changements de libellés peuvent séparer des groupes. Le faible volume de la banque, les répétitions de questions et les notions effectivement couvertes limitent l’interprétation. Les liens vers les cours et exercices reposent sur les associations réellement disponibles.
 
-La page ne modifie aucune donnée utilisateur et n’exige pas le chargement de la banque actuelle. Le stockage reste local, sans synchronisation ni backend ; la couche de calcul séparée pourra recevoir plus tard une source synchronisée après adaptation de la lecture. Les règles complètes et les limites figurent dans [DASHBOARD.md](DASHBOARD.md). Les vérifications réellement effectuées et leurs limites sont consignées dans [VALIDATION-LOT3.md](VALIDATION-LOT3.md). Aucun déploiement en production ne doit être lancé sans validation.
+La page ne modifie aucune donnée utilisateur et n’exige pas le chargement de la banque actuelle. Le stockage reste local, sans synchronisation ni backend ; la couche de calcul séparée pourra recevoir plus tard une source synchronisée après adaptation de la lecture. Les règles complètes et les limites figurent dans [DASHBOARD.md](docs/architecture/DASHBOARD.md). Les vérifications réellement effectuées et leurs limites sont consignées dans [VALIDATION-LOT3.md](docs/validations/VALIDATION-LOT3.md). Aucun déploiement en production ne doit être lancé sans validation.
 
 ## Limites explicites
 

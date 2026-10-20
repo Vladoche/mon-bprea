@@ -107,4 +107,4 @@ Toutes les URL précédentes restent utilisables, dont `drill.html`, `tableau-de
 
 Le site reste statique, sans backend ni dépendance supplémentaire. Le chargement des modules et du JSON nécessite un serveur HTTP en local. La synthèse décrit seulement les réponses enregistrées dans ce navigateur ; aucune synchronisation entre appareils n’est ajoutée. Il n’existe ni gamification ni récompense.
 
-Les parcours réellement vérifiés et les limites de validation sont consignés dans [VALIDATION-LOT4-5.md](VALIDATION-LOT4-5.md). Aucune nouvelle suite de tests automatisés n’est créée. La branche `feature/navigation-4-5` prépare une pull request vers `main` ; fusion et déploiement en production nécessitent l’accord de l’utilisateur.
+Les parcours réellement vérifiés et les limites du lot 4.5 sont consignés dans [VALIDATION-LOT4-5.md](../validations/VALIDATION-LOT4-5.md). Ce lot n’ajoutait pas de suite automatisée ; le lot 5.1 introduit les contrôles décrits dans [../TESTS.md](../TESTS.md). Les observations historiques correspondent à la branche `feature/navigation-4-5`. Fusion et déploiement en production nécessitent l’accord de l’utilisateur.

@@ -1,5 +1,5 @@
 import { units, lessons } from './content.js';
-import { loadCalendar, parseDate, todayKey, daysBetween } from './calendar-data.js';
+import { loadCalendar, parseDate, todayKey, daysBetween, selectUpcomingExams } from './calendar-data.js';
 import { getUnitExamStats } from './exam-stats.js';
 import { readDrillState } from './drill-store.js';
 import { getParisWeek, getSeriesStats, getDrillUnitStats } from './drill-engine.js';
@@ -54,8 +54,7 @@ export async function initExamPreparation(root, getProgress) {
       });
       return;
     }
-    const exams = data.events.filter(event => event.type === 'examen' && !event.example && event.end >= displayedDay)
-      .sort((a, b) => a.start.localeCompare(b.start) || a.id.localeCompare(b.id));
+    const exams = selectUpcomingExams(data.events, displayedDay);
     const exam = exams[0];
     const warning = data.warnings.length ? '<p class="exam-data-note">Certaines entrées du calendrier sont incomplètes ou invalides. Les informations affichées peuvent être partielles.</p>' : '';
     if (!exam) {

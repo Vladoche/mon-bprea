@@ -3,3 +3,8 @@
 site-public/
 __pycache__/
 *.pyc
+node_modules/
+test-results/
+playwright-report/
+coverage/
+.vitest/

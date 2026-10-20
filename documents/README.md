@@ -28,4 +28,4 @@ Le nom et sa casse doivent correspondre exactement au fichier. Conserve les anci
 
 Le contrôle démarre dès l’affichage de la fiche : requête `HEAD`, puis si nécessaire `GET` pour examiner au plus 1 024 octets et vérifier la signature PDF avant d’annuler la lecture. Un fichier absent (`404` ou `410`) ou invalide retire les actions de consultation et téléchargement. Une panne ou un délai dépassé de 10 secondes garde un état non vérifié, avec la possibilité d’essayer de consulter le fichier et de réessayer le contrôle. La fiche et le fichier d’origine restent conservés.
 
-Le guide [RESSOURCES.md](../RESSOURCES.md) décrit les champs, les relations et deux exemples d’ajout. L’exemple de fiche personnelle sur la biologie du sol n’est pas un document livré : ne l’ajoute au catalogue qu’après sa création et sa vérification.
+Le guide [RESSOURCES.md](../docs/architecture/RESSOURCES.md) décrit les champs, les relations et deux exemples d’ajout. L’exemple de fiche personnelle sur la biologie du sol n’est pas un document livré : ne l’ajoute au catalogue qu’après sa création et sa vérification.

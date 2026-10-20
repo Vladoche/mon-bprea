@@ -6,7 +6,7 @@ Le workflow `.github/workflows/deploy.yml` exécute `scripts/prepare-pages.py` a
 
 L'artefact `site-public/` contient les pages HTML à la racine, les fichiers publics de `assets/`, les PDF de `documents/` et `.nojekyll`. Les dossiers privés et cachés, Git, la documentation et le script de préparation ne sont pas copiés. Les types de fichiers autorisés sont explicites dans `ASSET_TYPES` : ajouter un type si un futur contenu public le nécessite. N'y placer aucune donnée privée ; le script n'analyse pas le contenu des fichiers autorisés pour y détecter des secrets.
 
-Les sources restent inchangées et peuvent toujours être servies directement avec `python -m http.server 8000`. Aucun manifeste, installation npm ou compilation n'est nécessaire.
+Les sources restent inchangées et peuvent toujours être servies directement avec `python -m http.server 8000`. Servir le site ne nécessite ni installation npm ni compilation applicative ; les dépendances npm du lot 5.1 servent aux vérifications de développement.
 
 ## Références réécrites dans l'artefact
 
