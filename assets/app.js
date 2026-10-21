@@ -10,6 +10,7 @@ import { renderBreadcrumbs, chapterAnchor } from './breadcrumbs.js';
 import { initCourseHub, initPracticeHub, initToolsHub } from './section-hubs.js';
 import { initAppearance } from './appearance.js';
 import { initDailyFact } from './daily-fact.js';
+import { initBotanical } from './botanical.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -148,7 +149,7 @@ function itk(){
 function init(){
   header();
   const page=document.body.dataset.page;
-  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main'))}[page]||home)();
+  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main')),botanical:()=>initBotanical($('#app-main'))}[page]||home)();
   // Les rendus asynchrones peuvent remplacer main : le bandeau commun reste extérieur.
   const fact = document.createElement('section');
   fact.className = 'daily-fact wrap';

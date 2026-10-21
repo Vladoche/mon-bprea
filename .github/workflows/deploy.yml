@@ -22,15 +22,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Récupérer le dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Préparer GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Préparer les fichiers publics
         run: python3 scripts/prepare-pages.py --version "$GITHUB_SHA" --output site-public
       - name: Déposer les fichiers du site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site-public
+          include-hidden-files: true
       - name: Publier
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

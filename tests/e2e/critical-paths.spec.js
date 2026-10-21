@@ -37,17 +37,22 @@ test('navigation à trois rubriques et artefact versionné sous préfixe Pages',
   await nav.getByRole('link', { name: 'Générateur ITK', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique.');
 
+  // A dedicated page keeps late responses from the source-navigation checks out
+  // of the prepared-artifact audit, without filtering away prefix regressions.
+  const publishedPage = await page.context().newPage();
+  await publishedPage.clock.install({ time: now });
   const resources = [];
-  page.on('response', response => {
+  publishedPage.on('response', response => {
     if (/\.(?:css|js|json)(?:\?|$)/.test(response.url())) resources.push(response);
   });
   for (const file of ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3',
     'cours.html?id=matiere-organique', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3',
-    'tableau-de-bord.html', 'calendrier.html', 'itk.html', 'ressources.html']) {
-    const response = await page.goto(`/mon-bprea/${file}`);
+    'tableau-de-bord.html', 'calendrier.html', 'itk.html', 'ressources.html', 'reconnaissance-plantes.html']) {
+    const response = await publishedPage.goto(`/mon-bprea/${file}`);
     expect(response.status(), file).toBe(200);
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Tu savais que… ?' })).toBeVisible();
+    await expect(publishedPage.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(publishedPage.getByRole('region', { name: 'Tu savais que… ?' })).toBeVisible();
+    if (file === 'reconnaissance-plantes.html') await expect(publishedPage.getByRole('group', { name: 'Catégories botaniques' })).toBeVisible();
   }
   expect(resources.length).toBeGreaterThan(0);
   for (const response of resources) {
@@ -58,7 +63,7 @@ test('navigation à trois rubriques et artefact versionné sous préfixe Pages',
   }
   const jsonFiles = new Set(resources.filter(r => new URL(r.url()).pathname.endsWith('.json'))
     .map(r => new URL(r.url()).pathname.split('/').at(-1)));
-  expect([...jsonFiles].sort()).toEqual(['calendar-events.json', 'daily-facts.json', 'drill-bank.json', 'navigation.json', 'resources.json']);
+  expect([...jsonFiles].sort()).toEqual(['botanical-bank.json', 'calendar-events.json', 'daily-facts.json', 'drill-bank.json', 'navigation.json', 'resources.json']);
   // Le périmètre public exclut les nouveaux outils, fixtures et rapports.
   for (const file of ['package.json', 'tests/fixtures/calendar.json', 'node_modules/vitest/package.json', 'docs/TESTS.md']) {
     expect((await request.get(`/mon-bprea/${file}`)).status()).toBe(404);

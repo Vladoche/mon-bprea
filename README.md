@@ -18,6 +18,7 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Préparation aux examens** : prochaine période, compte à rebours et statistiques locales de l’UC, avec un indice indicatif expliqué et des états sans données.
 - **Exercices hebdomadaires** (Mode Drill) : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
 - **Tableau de bord pédagogique** : résultats réels du Mode Drill, volumes et taux hebdomadaires, comparaison des UC et notions à retravailler ; filtres par UC et sur 4, 8, 12 semaines ou tout l’historique, graphiques et tableaux accessibles.
+- **Reconnaissance des plantes** : photographies locales sourcées, modes Découverte et Chrono, corrections botaniques, historique indépendant et révision des erreurs. Prototype : 12 espèces et 12 photographies, trois catégories jouables de quatre questions ; légumineuses explicitement à compléter.
 - Interface responsive (ordinateur et mobile).
 
 ## Se repérer dans le site
@@ -37,6 +38,7 @@ Mes cours — mes-cours.html
 Outils — outils.html
   Générateur ITK — itk.html
   Ressources documentaires — ressources.html
+  Reconnaissance des plantes — reconnaissance-plantes.html
 ```
 
 **S’exercer** appartient exclusivement à **Mes cours**. **Outils** constitue une rubrique principale indépendante. Les liens des titres permettent d’ouvrir les pages de rubrique ; des boutons distincts déplient les destinations. Sur ordinateur, Mes cours regroupe les cours par UC et les trois activités de S’exercer. Le menu mobile conserve les mêmes rubriques et leurs accès directs.
@@ -92,7 +94,7 @@ scripts/                Préparation Pages et outils locaux
 .github/workflows/      Qualité des PR et publication Pages distinctes
 ```
 
-L’[audit d’architecture](docs/architecture/ARCHITECTURE.md) explique les frontières conservées et les risques prioritaires. Les résultats réellement exécutés figurent dans la [validation du lot 5.1](docs/validations/VALIDATION-LOT5-1.md). Les dépendances de développement, tests, rapports et documentation ne sont pas copiés dans l’artefact Pages. Aucune fusion vers `main`, modification des protections ou mise en production ne doit être réalisée sans accord.
+L’[audit d’architecture](docs/architecture/ARCHITECTURE.md) explique les frontières conservées et les risques prioritaires. Les résultats réellement exécutés figurent dans les validations du [lot 5.1](docs/validations/VALIDATION-LOT5-1.md) et du [lot 5.2](docs/validations/VALIDATION-LOT5-2.md). Les dépendances de développement, tests, rapports et documentation ne sont pas copiés dans l’artefact Pages. Aucune fusion vers `main`, modification des protections ou mise en production ne doit être réalisée sans accord.
 
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
@@ -140,6 +142,7 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/exam-stats.js` et `assets/exam-preparation.js` : statistiques des QCM et bandeau d’accueil ; `assets/calendar.css` et `assets/exam-preparation.css` : leurs styles clair/sombre.
 - `drill.html` et `assets/drill.js` / `assets/drill.css` : interface du Mode Drill ; `assets/drill-engine.js` : semaines, sélection et statistiques ; `assets/drill-store.js` : sauvegardes indépendantes.
 - `assets/drill-bank.json` et `assets/drill-bank.js` : banque éditable et validation des questions.
+- `reconnaissance-plantes.html`, `assets/botanical.js` / `assets/botanical.css` : jeu botanique ; `assets/botanical-engine.js` et `assets/botanical-store.js` : calculs, chrono et stockage autonomes ; `assets/botanical-bank.json` et `assets/botanical-photos/` : référentiel et photothèque locale.
 - `tableau-de-bord.html` et `assets/dashboard.js` / `assets/dashboard.css` : interface du Tableau de bord ; `assets/dashboard-data.js` : adaptateur de lecture seul, fondé sur la validation/normalisation du stockage Drill ; `assets/dashboard-stats.js` : calculs purs et séries temporelles réutilisables.
 - Les pages `index.html`, `mes-cours.html`, `s-exercer.html`, `outils.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html`, `drill.html` et `tableau-de-bord.html` sont les points d'entrée.
 
@@ -273,6 +276,14 @@ Les catégories descriptives sont configurables dans `DASHBOARD_THRESHOLDS`, au 
 Les notions sont regroupées par **UC + chapitre + notion** à partir des copies de questions enregistrées dans chaque série. Les modifications ultérieures de la banque ne réécrivent pas les résultats historiques ; des changements de libellés peuvent séparer des groupes. Le faible volume de la banque, les répétitions de questions et les notions effectivement couvertes limitent l’interprétation. Les liens vers les cours et exercices reposent sur les associations réellement disponibles.
 
 La page ne modifie aucune donnée utilisateur et n’exige pas le chargement de la banque actuelle. Le stockage reste local, sans synchronisation ni backend ; la couche de calcul séparée pourra recevoir plus tard une source synchronisée après adaptation de la lecture. Les règles complètes et les limites figurent dans [DASHBOARD.md](docs/architecture/DASHBOARD.md). Les vérifications réellement effectuées et leurs limites sont consignées dans [VALIDATION-LOT3.md](docs/validations/VALIDATION-LOT3.md). Aucun déploiement en production ne doit être lancé sans validation.
+
+## Reconnaissance des plantes
+
+Dans **Outils**, choisis Petits fruits, Fleurs ou Légumes maraîchers, puis Découverte sans limite ou Chrono (30 secondes par défaut, durée configurable). Le nombre de questions disponible est annoncé avant de commencer : quatre par catégorie dans ce prototype. Légumineuses reste désactivée en attendant des photographies vérifiées. Le chrono s’arrête pendant les corrections, se met en pause quand l’onglet est masqué et reprend au retour ; une pause manuelle est aussi disponible. Une image indisponible peut être passée sans compter comme erreur.
+
+Les résultats utilisent uniquement `monbprea.botanical.v1`, séparément du Drill et du Dashboard. Le taux porte sur les questions réalisées, dont les expirations du chrono, sans inclure les images indisponibles. Chaque validation est enregistrée ; après rechargement, une nouvelle session peut commencer et l’historique reste consultable. « Revoir mes erreurs » rejoue les espèces déjà mal reconnues sans effacer les tentatives précédentes.
+
+Les 12 photographies sont conservées localement avec leurs crédits : 6 CC0, 4 CC BY-SA 3.0, 1 CC BY-SA 2.5 et 1 CC BY 2.5. Le registre [BOTANICAL-SOURCES.md](docs/architecture/BOTANICAL-SOURCES.md) donne chaque auteur, fichier d’origine et licence. Le guide [RECONNAISSANCE-PLANTES.md](docs/architecture/RECONNAISSANCE-PLANTES.md) décrit le modèle, les statistiques et l’ajout de contenus. Une seule photo par espèce et aucun mode de confusion avancé pour l’instant. Les actions GitHub ont aussi été vérifiées et mises à jour pour Node.js 24 : [ACTIONS-NODE24.md](docs/architecture/ACTIONS-NODE24.md).
 
 ## Limites explicites
 
