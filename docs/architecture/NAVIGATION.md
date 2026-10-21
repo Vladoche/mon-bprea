@@ -51,7 +51,7 @@ Le document porte `version: 1` et une liste `items` contenant les trois entrées
 | `children` | Destinations du groupe S’exercer ou du menu Outils. |
 | `source: "units"` | Groupe Cours par UC rempli depuis `assets/content.js`, sans recopier les intitulés des sept unités dans le JSON. |
 
-L’entrée `courses` contient `groups` : `course-units`, avec `source: "units"`, et `practice`, avec ses trois `children`. L’entrée `tools` possède ses deux `children`. Le lien `href` d’un groupe reste distinct du bouton qui le déplie.
+L’entrée `courses` contient `groups` : `course-units`, avec `source: "units"`, et `practice`, avec ses trois `children`. L’entrée `tools` possède ses trois `children`. Le lien `href` d’un groupe reste distinct du bouton qui le déplie.
 
 `initNavigation(root, page)`, exporté par `assets/navigation.js`, charge cette configuration et utilise par défaut `document.body.dataset.page`. Si le JSON est inaccessible ou invalide, les trois liens principaux restent proposés pour accéder aux pages de rubrique. Le menu ne lit ni n’écrit la progression locale.
 
@@ -67,7 +67,7 @@ Après une modification, vérifie les liens, les états actifs et les fils d’A
 
 **S’exercer** porte la description « Retrouve tes exercices, tes résultats et ton calendrier de révision. ». La carte principale ouvre les exercices hebdomadaires. Deux cartes secondaires ouvrent le Tableau de bord et le Calendrier. Le fonctionnement interne de ces trois activités reste celui des lots précédents.
 
-**Outils** porte la description « Des ressources pour approfondir tes connaissances et préparer tes cultures. ». Ses cartes ouvrent le Générateur ITK et les Ressources documentaires. La grille peut accueillir de futurs outils sans modifier la hiérarchie principale.
+**Outils** porte la description « Des ressources pour approfondir tes connaissances et préparer tes cultures. ». Ses cartes ouvrent le Générateur ITK, les Ressources documentaires et la Reconnaissance des plantes (`reconnaissance-plantes.html`, page `botanical`). Le jeu possède aussi son entrée dans le sous-menu Outils et le fil **Accueil → Outils → Reconnaissance des plantes**. La grille peut accueillir de futurs outils sans modifier la hiérarchie principale.
 
 ### Synthèse hebdomadaire de S’exercer
 
@@ -92,6 +92,7 @@ Exemples :
 - Accueil → Mes cours → S’exercer → Calendrier.
 - Accueil → Outils → Générateur ITK.
 - Accueil → Outils → Ressources documentaires.
+- Accueil → Outils → Reconnaissance des plantes.
 
 Les ancêtres sont des liens ; la page courante est identifiée avec `aria-current="page"`. Les chapitres pointent vers une ancre de la page UC existante, construite par `chapterAnchor(chapter)`. Aucun fichier de chapitre supplémentaire ni nouvel identifiant de cours n’est créé pour le fil d’Ariane. Pour un QCM classique, le parcours ajoute « Exercices du cours » après le cours associé.
 

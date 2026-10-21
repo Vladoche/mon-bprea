@@ -36,6 +36,7 @@ export function renderBreadcrumbs(page, { unit, lesson } = {}) {
       tools: [home, tools],
       itk: [home, tools, { label: 'Générateur ITK' }],
       resources: [home, tools, { label: 'Ressources documentaires' }],
+      botanical: [home, tools, { label: 'Reconnaissance des plantes' }],
     }[page] || [home];
   }
   return `<nav class="crumbs" aria-label="Fil d’Ariane"><ol>${path.map((item, index) => `<li>${index ? '<span class="crumb-separator" aria-hidden="true">/</span>' : ''}${index === path.length - 1 ? `<span aria-current="page">${clean(item.label)}</span>` : `<a href="${clean(item.href)}">${clean(item.label)}</a>`}</li>`).join('')}</ol></nav>`;

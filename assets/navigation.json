@@ -36,10 +36,11 @@
       "id": "tools",
       "label": "Outils",
       "href": "outils.html",
-      "pages": ["tools", "itk", "resources"],
+      "pages": ["tools", "itk", "resources", "botanical"],
       "children": [
         { "id": "itk", "label": "Générateur ITK", "href": "itk.html", "pages": ["itk"] },
-        { "id": "resources", "label": "Ressources documentaires", "href": "ressources.html", "pages": ["resources"] }
+        { "id": "resources", "label": "Ressources documentaires", "href": "ressources.html", "pages": ["resources"] },
+        { "id": "botanical", "label": "Reconnaissance des plantes", "href": "reconnaissance-plantes.html", "pages": ["botanical"] }
       ]
     }
   ]

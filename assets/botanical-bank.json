@@ -1,0 +1,601 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-21",
+  "scope": "Prototype : quatre espèces et quatre photographies par catégorie jouable. Les identifications sont proposées parmi quatre espèces de la même catégorie ; elles ne constituent pas une clé complète de détermination sur le terrain.",
+  "categories": [
+    {
+      "id": "petits-fruits",
+      "name": "Petits fruits",
+      "icon": "🍓",
+      "description": "Reconnaître quatre cultures à petits fruits à leur stade de fructification."
+    },
+    {
+      "id": "legumineuses",
+      "name": "Légumineuses",
+      "icon": "🫛",
+      "description": "Banque à constituer : quatre espèces photographiées et vérifiées sont nécessaires pour ouvrir cette catégorie."
+    },
+    {
+      "id": "fleurs",
+      "name": "Fleurs",
+      "icon": "🌼",
+      "description": "Observer des fleurs et des capitules de plantes cultivées ou communes."
+    },
+    {
+      "id": "legumes",
+      "name": "Légumes maraîchers",
+      "icon": "🥕",
+      "description": "Comparer feuilles, bulbes, racines et fleurs de quatre cultures maraîchères."
+    }
+  ],
+  "species": [
+    {
+      "id": "fraisier",
+      "commonName": "Fraisier cultivé",
+      "scientificName": "Fragaria × ananassa",
+      "family": "Rosaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Plante vivace cultivée pour ses fraises. La partie charnue est un réceptacle portant de nombreux petits fruits secs, les akènes.",
+      "criteria": [
+        "Fraise charnue portant de petits akènes en surface.",
+        "Feuilles généralement composées de trois folioles dentées ; ce détail n'est pas entièrement visible sur la photo."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Fragaria × ananassa",
+          "url": "https://plants.ces.ncsu.edu/plants/fragaria-x-ananassa/"
+        }
+      ]
+    },
+    {
+      "id": "framboisier",
+      "commonName": "Framboisier",
+      "scientificName": "Rubus idaeus",
+      "family": "Rosaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Arbuste vivace dont les framboises sont formées de nombreuses petites drupes réunies.",
+      "criteria": [
+        "Fruit composé de petites drupes accolées, donnant une surface bosselée.",
+        "Feuilles composées de folioles dentées."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Rubus idaeus",
+          "url": "https://plants.ces.ncsu.edu/plants/rubus-idaeus/"
+        }
+      ]
+    },
+    {
+      "id": "groseillier-rouge",
+      "commonName": "Groseillier à grappes",
+      "scientificName": "Ribes rubrum",
+      "family": "Grossulariaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Arbuste portant des groseilles en grappes. La photographie retenue montre une forme à fruits rouges.",
+      "criteria": [
+        "Petites baies sphériques et lisses réunies en grappes.",
+        "Feuilles simples lobées, à bord denté."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "Royal Botanic Gardens, Kew — Ribes rubrum",
+          "url": "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:792965-1"
+        },
+        {
+          "title": "Photographie identifiée de Luc Viatour — fruits et feuilles",
+          "url": "https://commons.wikimedia.org/wiki/File:Ribes_rubrum_fruit_Luc_Viatour.JPG"
+        }
+      ]
+    },
+    {
+      "id": "myrtillier",
+      "commonName": "Myrtillier en corymbe",
+      "scientificName": "Vaccinium corymbosum",
+      "family": "Ericaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Arbuste cultivé pour ses myrtilles. Les fruits mûrs sont bleus, souvent recouverts d'une pruine claire.",
+      "criteria": [
+        "Baies bleues à pruine claire.",
+        "Cicatrice du calice en petite couronne à l'extrémité du fruit.",
+        "Feuilles simples, ovales."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Vaccinium corymbosum",
+          "url": "https://plants.ces.ncsu.edu/plants/vaccinium-corymbosum/"
+        }
+      ]
+    },
+    {
+      "id": "tournesol",
+      "commonName": "Tournesol",
+      "scientificName": "Helianthus annuus",
+      "family": "Asteraceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Plante annuelle portant des capitules : de nombreuses petites fleurs sont réunies dans ce qui ressemble à une seule grande fleur.",
+      "criteria": [
+        "Capitule avec disque central de fleurs tubulées et fleurs périphériques à ligules.",
+        "Feuilles larges et tige poilue."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Helianthus annuus",
+          "url": "https://plants.ces.ncsu.edu/plants/helianthus-annuus/"
+        }
+      ]
+    },
+    {
+      "id": "souci",
+      "commonName": "Souci officinal",
+      "scientificName": "Calendula officinalis",
+      "family": "Asteraceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Plante cultivée à capitules jaunes ou orangés et à feuilles simples allongées.",
+      "criteria": [
+        "Capitule comportant des ligules jaunes ou orangées.",
+        "Feuilles simples, oblongues à lancéolées, non finement découpées."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Calendula officinalis",
+          "url": "https://plants.ces.ncsu.edu/plants/calendula-officinalis/"
+        }
+      ]
+    },
+    {
+      "id": "capucine",
+      "commonName": "Grande capucine",
+      "scientificName": "Tropaeolum majus",
+      "family": "Tropaeolaceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Plante herbacée cultivée, à feuilles arrondies en forme de parasol et à fleurs munies d'un éperon.",
+      "criteria": [
+        "Feuille arrondie, avec des nervures rayonnant depuis l'insertion du pétiole.",
+        "Fleur à cinq pétales et éperon ; l'éperon n'est pas visible sur cette vue de face."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Tropaeolum majus",
+          "url": "https://plants.ces.ncsu.edu/plants/tropaeolum-majus/"
+        }
+      ]
+    },
+    {
+      "id": "coquelicot",
+      "commonName": "Coquelicot",
+      "scientificName": "Papaver rhoeas",
+      "family": "Papaveraceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Plante annuelle commune, à fleurs généralement rouges et à pétales fins.",
+      "criteria": [
+        "Grande fleur à quatre pétales fins, souvent froissés.",
+        "Nombreuses étamines sombres autour du centre.",
+        "Tiges et boutons floraux poilus."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Papaver rhoeas",
+          "url": "https://plants.ces.ncsu.edu/plants/papaver-rhoeas/"
+        }
+      ]
+    },
+    {
+      "id": "tomate",
+      "commonName": "Tomate",
+      "scientificName": "Solanum lycopersicum",
+      "family": "Solanaceae",
+      "categoryIds": [
+        "legumes"
+      ],
+      "description": "Culture maraîchère dont l'organe récolté est un fruit. La photo montre ici la floraison, sans tomate mûre.",
+      "criteria": [
+        "Fleurs jaunes en étoile, à pétales réfléchis et anthères réunies au centre.",
+        "Tiges et pédoncules poilus ; feuillage découpé."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Solanum lycopersicum",
+          "url": "https://plants.ces.ncsu.edu/plants/solanum-lycopersicum/"
+        }
+      ]
+    },
+    {
+      "id": "carotte",
+      "commonName": "Carotte cultivée",
+      "scientificName": "Daucus carota subsp. sativus",
+      "family": "Apiaceae",
+      "categoryIds": [
+        "legumes"
+      ],
+      "description": "Plante généralement récoltée avant sa deuxième année pour sa racine épaissie. Les feuilles sont finement divisées.",
+      "criteria": [
+        "Feuilles très découpées, en nombreux segments étroits.",
+        "Racine pivotante épaissie ; seule sa partie supérieure est visible sur la photo."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Daucus carota subsp. sativus",
+          "url": "https://plants.ces.ncsu.edu/plants/daucus-carota-subsp-sativus/"
+        }
+      ]
+    },
+    {
+      "id": "oignon",
+      "commonName": "Oignon",
+      "scientificName": "Allium cepa",
+      "family": "Amaryllidaceae",
+      "categoryIds": [
+        "legumes"
+      ],
+      "description": "Plante cultivée pour son bulbe. Les bases charnues des feuilles participent à la formation de ce bulbe.",
+      "criteria": [
+        "Bulbe arrondi à la base de la plante.",
+        "Feuilles longues et étroites, vert bleuté, issues de la base."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Allium cepa",
+          "url": "https://plants.ces.ncsu.edu/plants/allium-cepa/"
+        }
+      ]
+    },
+    {
+      "id": "laitue",
+      "commonName": "Laitue cultivée",
+      "scientificName": "Lactuca sativa",
+      "family": "Asteraceae",
+      "categoryIds": [
+        "legumes"
+      ],
+      "description": "Culture de saison fraîche présentant de nombreuses formes de feuilles. La photo montre une forme à feuilles frisées.",
+      "criteria": [
+        "Feuilles larges réunies en rosette.",
+        "Aspect des feuilles très variable selon les variétés : ne pas généraliser la forme frisée à toutes les laitues."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Lactuca sativa",
+          "url": "https://plants.ces.ncsu.edu/plants/lactuca-sativa/"
+        }
+      ]
+    }
+  ],
+  "photos": [
+    {
+      "id": "fraisier-01",
+      "speciesId": "fraisier",
+      "path": "assets/botanical-photos/fraisier.jpg",
+      "stage": "fructification",
+      "organ": "fruit",
+      "author": "Alpsdake",
+      "sourceTitle": "Fragaria × ananassa.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Fragaria_%C3%97_ananassa.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a1/Fragaria_%C3%97_ananassa.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "attribution": "Alpsdake — Wikimedia Commons — CC BY-SA 3.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Réceptacle rouge charnu.",
+        "Petits akènes jaunes en surface.",
+        "Calice vert persistant au sommet."
+      ],
+      "identification": "Les petits points visibles à la surface sont des akènes, les véritables fruits. Le réceptacle rouge et le calice vert permettent de reconnaître la fraise parmi les quatre cultures proposées. La feuille entière et les stolons ne sont pas montrés.",
+      "alt": "Gros plan d’un fruit rouge couvert de petits points jaunes, avec un calice vert.",
+      "width": 960,
+      "height": 800,
+      "bytes": 175135
+    },
+    {
+      "id": "framboisier-01",
+      "speciesId": "framboisier",
+      "path": "assets/botanical-photos/framboisier.jpg",
+      "stage": "fructification",
+      "organ": "fruits et feuilles",
+      "author": "AnRo0002",
+      "sourceTitle": "20130714Rubus idaeus2.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20130714Rubus_idaeus2.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/b/ba/20130714Rubus_idaeus2.jpg",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "AnRo0002 — Wikimedia Commons — CC0 1.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Fruits rouges composés de petites drupes accolées.",
+        "Folioles à bord denté, à nervures marquées."
+      ],
+      "identification": "La surface formée de petites drupes accolées distingue la framboise des baies lisses de groseille et de myrtille. La cavité laissée par le réceptacle après cueillette n’est pas visible ici : elle ne sert donc pas à cette correction.",
+      "alt": "Fruits rouges bosselés sur une tige, avec des feuilles dentées.",
+      "width": 960,
+      "height": 720,
+      "bytes": 143391
+    },
+    {
+      "id": "groseillier-rouge-01",
+      "speciesId": "groseillier-rouge",
+      "path": "assets/botanical-photos/groseillier-rouge.jpg",
+      "stage": "fructification",
+      "organ": "fruits et feuilles",
+      "author": "Luc Viatour",
+      "sourceTitle": "Ribes rubrum fruit Luc Viatour.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ribes_rubrum_fruit_Luc_Viatour.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Ribes_rubrum_fruit_Luc_Viatour.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "attribution": "Luc Viatour / https://Lucnix.be — Wikimedia Commons — CC BY-SA 3.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Baies rouges lisses et translucides.",
+        "Fruits groupés en grappes pendantes.",
+        "Feuilles simples lobées et dentées."
+      ],
+      "identification": "Les petites baies rouges lisses, portées en grappes, et les feuilles lobées correspondent au groseillier à grappes identifié par la source. La surface lisse des baies contraste avec les petites drupes d’une framboise.",
+      "alt": "Grappes pendantes de petites baies rouges translucides, avec des feuilles lobées.",
+      "width": 960,
+      "height": 720,
+      "bytes": 144533
+    },
+    {
+      "id": "myrtillier-01",
+      "speciesId": "myrtillier",
+      "path": "assets/botanical-photos/myrtillier.jpg",
+      "stage": "fructification",
+      "organ": "fruits et feuilles",
+      "author": "Opioła Jerzy (Poland)",
+      "sourceTitle": "Vaccinium corymbosum a2.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vaccinium_corymbosum_a2.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/0/06/Vaccinium_corymbosum_a2.jpg",
+      "license": "CC BY 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+      "attribution": "Opioła Jerzy (Poland) — Wikimedia Commons — CC BY 2.5. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Baies bleues à pruine claire.",
+        "Calice persistant en couronne au bout des baies.",
+        "Feuilles simples ovales."
+      ],
+      "identification": "La couleur bleue et la pruine claire, associées à la couronne du calice, permettent de reconnaître les myrtilles parmi les propositions. La photo source identifie Vaccinium corymbosum ; elle ne permet pas à elle seule de distinguer toutes les espèces de Vaccinium.",
+      "alt": "Baies bleues couvertes d’un voile clair et terminées par une petite couronne sombre.",
+      "width": 960,
+      "height": 718,
+      "bytes": 137166
+    },
+    {
+      "id": "tournesol-01",
+      "speciesId": "tournesol",
+      "path": "assets/botanical-photos/tournesol.jpg",
+      "stage": "floraison",
+      "organ": "capitule et feuilles",
+      "author": "S.G.S.",
+      "sourceTitle": "Sunflowers public domain helianthus annuus IMG 0815.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Sunflowers_public_domain_helianthus_annuus_IMG_0815.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Sunflowers_public_domain_helianthus_annuus_IMG_0815.jpg",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "S.G.S. — Wikimedia Commons — CC0 1.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Large disque central sombre.",
+        "Ligules périphériques jaunes à base orangée.",
+        "Feuilles larges et poils sur le pédoncule."
+      ],
+      "identification": "Ce capitule associe un large disque central de petites fleurs tubulées à des fleurs périphériques à ligules. Les feuilles larges et le pédoncule poilu complètent l’observation. Il s’agit d’une forme cultivée, dont la couleur ne représente pas toutes les variétés de tournesol.",
+      "alt": "Grand capitule à disque sombre et à ligules jaunes orangées, avec de larges feuilles.",
+      "width": 960,
+      "height": 960,
+      "bytes": 191027
+    },
+    {
+      "id": "souci-01",
+      "speciesId": "souci",
+      "path": "assets/botanical-photos/souci.jpg",
+      "stage": "floraison",
+      "organ": "capitule et feuilles",
+      "author": "AnRo0002",
+      "sourceTitle": "20141003Calendula officinalis5.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20141003Calendula_officinalis5.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a3/20141003Calendula_officinalis5.jpg",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "AnRo0002 — Wikimedia Commons — CC0 1.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Capitule orangé avec plusieurs rangs de ligules.",
+        "Petit centre plus sombre.",
+        "Feuilles simples allongées."
+      ],
+      "identification": "On observe un capitule orangé et des feuilles simples allongées. Ces caractères correspondent au souci identifié par le photographe. L’odeur et la taille réelle ne peuvent pas être évaluées sur cette image.",
+      "alt": "Capitule orangé avec un petit centre sombre et des feuilles allongées.",
+      "width": 960,
+      "height": 720,
+      "bytes": 117335
+    },
+    {
+      "id": "capucine-01",
+      "speciesId": "capucine",
+      "path": "assets/botanical-photos/capucine.jpg",
+      "stage": "floraison",
+      "organ": "fleur et feuille",
+      "author": "AnRo0002",
+      "sourceTitle": "20160813Tropaeolum majus1.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20160813Tropaeolum_majus1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a0/20160813Tropaeolum_majus1.jpg",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "AnRo0002 — Wikimedia Commons — CC0 1.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Cinq pétales orangés disposés autour d’une gorge.",
+        "Feuille arrondie en arrière-plan, à nervures rayonnantes."
+      ],
+      "identification": "La fleur à cinq pétales et la feuille en parasol visible à gauche orientent vers la capucine. Cette fleur est vue de face : son éperon, utile à l’identification sur le terrain, est masqué et n’est pas un critère visible ici.",
+      "alt": "Fleur orangée vue de face, avec une feuille arrondie aux nervures rayonnantes à gauche.",
+      "width": 960,
+      "height": 720,
+      "bytes": 109644
+    },
+    {
+      "id": "coquelicot-01",
+      "speciesId": "coquelicot",
+      "path": "assets/botanical-photos/coquelicot.jpg",
+      "stage": "floraison",
+      "organ": "fleur et bouton",
+      "author": "AnRo0002",
+      "sourceTitle": "20180518Papaver rhoeas1.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20180518Papaver_rhoeas1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e4/20180518Papaver_rhoeas1.jpg",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "AnRo0002 — Wikimedia Commons — CC0 1.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Pétales rouges fins, légèrement froissés.",
+        "Étamines sombres autour du centre.",
+        "Bouton et tige poilus à gauche."
+      ],
+      "identification": "Les pétales rouges fins et les nombreuses étamines sombres caractérisent cette fleur de coquelicot parmi les choix. La photo montre aussi un bouton poilu. Les capsules mûres et les feuilles ne sont pas assez visibles pour être utilisées.",
+      "alt": "Fleur rouge à pétales fins et à étamines sombres, avec un bouton poilu à gauche.",
+      "width": 960,
+      "height": 720,
+      "bytes": 134567
+    },
+    {
+      "id": "tomate-01",
+      "speciesId": "tomate",
+      "path": "assets/botanical-photos/tomate.jpg",
+      "stage": "floraison",
+      "organ": "fleurs, tige et feuilles",
+      "author": "AnRo0002",
+      "sourceTitle": "20240906Solanum lycopersicum.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:20240906Solanum_lycopersicum.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a6/20240906Solanum_lycopersicum.jpg",
+      "license": "CC0 1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "AnRo0002 — Wikimedia Commons — CC0 1.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Fleurs jaunes en étoile, à pétales réfléchis.",
+        "Anthères jaunes réunies au centre.",
+        "Pédoncules et tige nettement poilus."
+      ],
+      "identification": "Les fleurs jaunes en étoile, les anthères centrales et les pédoncules poilus permettent de reconnaître cette tomate parmi les légumes proposés. Aucun fruit n’est visible : sa forme ou sa couleur ne doivent pas être supposées. Le taxon est donné par la photo source.",
+      "alt": "Bouquet de fleurs jaunes en étoile sur des pédoncules poilus.",
+      "width": 960,
+      "height": 720,
+      "bytes": 113550
+    },
+    {
+      "id": "carotte-01",
+      "speciesId": "carotte",
+      "path": "assets/botanical-photos/carotte.jpg",
+      "stage": "développement de la racine",
+      "organ": "feuilles et haut des racines",
+      "author": "Böhringer Friedrich",
+      "sourceTitle": "Daucus carota subsp. sativus,Karotten.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Daucus_carota_subsp._sativus,Karotten.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/ad/Daucus_carota_subsp._sativus%2CKarotten.JPG",
+      "license": "CC BY-SA 2.5",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.5",
+      "attribution": "Böhringer Friedrich — Wikimedia Commons — CC BY-SA 2.5. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Feuillage finement divisé en segments étroits.",
+        "Partie supérieure de racines orange visible au niveau du sol."
+      ],
+      "identification": "L’association du feuillage finement divisé et de la partie orange des racines au collet permet de reconnaître la carotte cultivée parmi ces quatre propositions. Le bas des racines et les fleurs ne sont pas visibles. Cette vue ne sert pas à distinguer les Apiaceae sauvages entre elles.",
+      "alt": "Feuillage finement découpé et haut de racines orange au niveau du sol.",
+      "width": 720,
+      "height": 960,
+      "bytes": 234227
+    },
+    {
+      "id": "oignon-01",
+      "speciesId": "oignon",
+      "path": "assets/botanical-photos/oignon.jpg",
+      "stage": "grossissement du bulbe",
+      "organ": "bulbes et feuilles",
+      "author": "H. Zell",
+      "sourceTitle": "Allium cepa 004.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Allium_cepa_004.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/29/Allium_cepa_004.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "attribution": "H. Zell — Wikimedia Commons — CC BY-SA 3.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Bulbes arrondis visibles au niveau du sol.",
+        "Feuilles longues et étroites, vert bleuté, issues de la base."
+      ],
+      "identification": "Les bulbes arrondis et les longues feuilles vert bleuté orientent vers l’oignon. La photo ne montre ni coupe de feuille ni odeur : le caractère creux ou l’arôme ne doivent pas être déduits de cette seule vue.",
+      "alt": "Bulbes arrondis au niveau du sol, prolongés par de longues feuilles vert bleuté.",
+      "width": 720,
+      "height": 960,
+      "bytes": 330015
+    },
+    {
+      "id": "laitue-01",
+      "speciesId": "laitue",
+      "path": "assets/botanical-photos/laitue.jpg",
+      "stage": "stade végétatif",
+      "organ": "rosettes de feuilles",
+      "author": "Sanja565658",
+      "sourceTitle": "Lactuca sativa 01.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Lactuca_sativa_01.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/5/54/Lactuca_sativa_01.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "attribution": "Sanja565658 — Wikimedia Commons — CC BY-SA 3.0. Image redimensionnée et recompressée en JPEG.",
+      "modifications": "Redimensionnement proportionnel, côté maximal de 960 pixels ; recompression JPEG. Aucun recadrage ni ajout de contenu.",
+      "reviewedAt": "2026-10-21",
+      "visibleCriteria": [
+        "Feuilles larges groupées en rosettes.",
+        "Bords très ondulés et frisés sur cette forme cultivée."
+      ],
+      "identification": "Les rosettes de larges feuilles frisées correspondent à cette laitue cultivée. La forme des feuilles varie beaucoup entre les variétés de Lactuca sativa : ce caractère décrit uniquement le type photographié. Aucune fleur n’est visible.",
+      "alt": "Rang de rosettes vertes à larges feuilles aux bords très frisés.",
+      "width": 960,
+      "height": 638,
+      "bytes": 262312
+    }
+  ],
+  "confusions": []
+}

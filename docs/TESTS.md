@@ -23,6 +23,8 @@ npm run test:e2e
 
 Les commandes doivent être exécutées réellement avant de déclarer la validation réussie. Les résultats, limites d’environnement et éventuelles mesures de couverture figurent dans [validations/VALIDATION-LOT5-1.md](validations/VALIDATION-LOT5-1.md), sans déduire une réussite de la présence d’un fichier de test.
 
+Le lot 5.2 ajoute des tests du moteur botanique (sélection et distracteurs, banques courtes, réponses, statistiques et chrono avec horloge contrôlée), du store autonome (relecture, erreurs de stockage, conservation des clés existantes, révision) et des parcours navigateur dans `tests/e2e/botanical.spec.js`. Les E2E utilisent le catalogue et les JPEG locaux : ils n’appellent aucun service photographique externe. Les cas temporels avancent l’horloge Playwright, sans attente arbitraire. Résultats et limites : [VALIDATION-LOT5-2.md](validations/VALIDATION-LOT5-2.md).
+
 ## Choisir le bon niveau
 
 | Outil | Rôle | Limite |
@@ -71,6 +73,8 @@ Pour rendre les vérifications obligatoires **après accord de l’utilisateur**
 5. Enregistrer uniquement après validation explicite de la modification des protections. Ne pas configurer de fusion automatique.
 
 Ce document prépare la procédure ; il ne modifie aucun réglage distant et ne prouve pas que les checks ont déjà été exécutés sur GitHub.
+
+Le dépôt possède désormais un ruleset actif sur `main` exigeant les contrôles `unit-integration` et `e2e` : conserver leurs noms exacts. Le lot 5.2 met à jour les actions officielles pour Node.js 24, sans toucher à ce ruleset ni lancer de publication. Le registre [ACTIONS-NODE24.md](architecture/ACTIONS-NODE24.md) donne les versions vérifiées et la conservation explicite de `.nojekyll` dans l’artefact Pages.
 
 ## Avant une pull request
 
