@@ -1,6 +1,6 @@
 # Validation du lot 5.2 — Reconnaissance botanique
 
-Date : **21 octobre 2026**. Branche : `feature/reconnaissance-botanique-lot5-2`, créée après `git fetch origin` depuis `origin/main` au commit `3e67656` (fusion de la PR du lot 5.1). L’arbre de travail était propre avant les modifications. Aucun travail direct sur `main`, aucune modification de protection, aucune fusion ni publication Pages.
+Date : **21 octobre 2026**. Branche : `feature/reconnaissance-botanique-lot5-2`, créée après `git fetch origin` depuis `origin/main` au commit `3e67656` (fusion de la PR du lot 5.1). L’arbre de travail était propre avant les modifications. Aucun travail direct sur `main`, aucune modification de protection, aucune fusion ni publication Pages déclenchée par l’agent.
 
 ## Périmètre livré
 
@@ -49,7 +49,11 @@ Captures de contrôle conservées uniquement dans `.tmp/` (ignoré par Git) : s�
 
 Versions majeures officielles vérifiées : `checkout@v7`, `configure-pages@v6`, `deploy-pages@v5`, `upload-pages-artifact@v5`, `setup-node@v7`, `upload-artifact@v7`. Les manifestes JavaScript déclarent Node.js 24 ; l’envoi Pages est composite et utilise Upload Artifact v7. `include-hidden-files: true` conserve `.nojekyll` dans l’artefact préparé. Permissions, déclencheurs, cache npm, SHA de version, chemin de publication et noms requis **`unit-integration`** / **`e2e`** sont conservés. Sources et détails : [ACTIONS-NODE24.md](../architecture/ACTIONS-NODE24.md).
 
-Les workflows n’ont pas été déclenchés manuellement pour valider le déploiement. La préparation locale de l’artefact ne constitue pas un déploiement réel ; la CI Qualité de la PR doit confirmer les versions dans l’environnement GitHub. Le workflow de publication n’a pas été lancé.
+La [PR nº 7](https://github.com/Vladoche/mon-bprea/pull/7) a été créée en brouillon vers `main`. La [CI Qualité nº 3](https://github.com/Vladoche/mon-bprea/actions/runs/39634055188), déclenchée automatiquement par son ouverture sur le commit `d64e5c4`, a réussi dans l’environnement GitHub : **`unit-integration` : 9 fichiers, 60 tests réussis ; `e2e` : 12 scénarios réussis (14,6 s)**. Les résultats et étapes des deux jobs ont été relus, ainsi que les lignes de résultat des journaux. Cela vérifie réellement les actions de Qualité sur les runners GitHub avec Node.js 24.
+
+Les workflows n’ont pas été déclenchés manuellement par l’agent pour valider le déploiement. La préparation locale de l’artefact ne constitue pas un déploiement réel ; les actions du workflow de publication ont été vérifiées dans leurs sources officielles mais l’agent n’a pas lancé ce workflow.
+
+Pendant la finalisation, GitHub a signalé la fusion externe de la PR nº 7 le 21 octobre à **18 h 22 min 54 s Europe/Paris**, commit `7a2c485`. Aucune action de fusion n’a été effectuée par l’agent. Le compte rendu CI, ajouté après cette fusion, fait l’objet d’une PR de documentation distincte ; aucun code applicatif supplémentaire n’y est inclus. Le workflow existant peut se déclencher automatiquement sur une fusion vers `main` ; ce document ne revendique pas une validation du déploiement distant.
 
 ## Limites restantes
 
