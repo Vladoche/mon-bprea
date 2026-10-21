@@ -49,7 +49,9 @@ Captures de contrôle conservées uniquement dans `.tmp/` (ignoré par Git) : s�
 
 Versions majeures officielles vérifiées : `checkout@v7`, `configure-pages@v6`, `deploy-pages@v5`, `upload-pages-artifact@v5`, `setup-node@v7`, `upload-artifact@v7`. Les manifestes JavaScript déclarent Node.js 24 ; l’envoi Pages est composite et utilise Upload Artifact v7. `include-hidden-files: true` conserve `.nojekyll` dans l’artefact préparé. Permissions, déclencheurs, cache npm, SHA de version, chemin de publication et noms requis **`unit-integration`** / **`e2e`** sont conservés. Sources et détails : [ACTIONS-NODE24.md](../architecture/ACTIONS-NODE24.md).
 
-Les workflows n’ont pas été déclenchés manuellement pour valider le déploiement. La préparation locale de l’artefact ne constitue pas un déploiement réel ; la CI Qualité de la PR doit confirmer les versions dans l’environnement GitHub. Le workflow de publication n’a pas été lancé.
+La [PR nº 7](https://github.com/Vladoche/mon-bprea/pull/7) est ouverte en brouillon vers `main`. La [CI Qualité nº 3](https://github.com/Vladoche/mon-bprea/actions/runs/39634055188), déclenchée automatiquement par son ouverture sur le commit `d64e5c4`, a réussi dans l’environnement GitHub : **`unit-integration` : 9 fichiers, 60 tests réussis ; `e2e` : 12 scénarios réussis (14,6 s)**. Les résultats et étapes des deux jobs ont été relus, ainsi que les lignes de résultat des journaux. Cela vérifie réellement les actions de Qualité sur les runners GitHub avec Node.js 24.
+
+Les workflows n’ont pas été déclenchés manuellement pour valider le déploiement. La préparation locale de l’artefact ne constitue pas un déploiement réel ; les actions du workflow de publication ont été vérifiées dans leurs sources officielles mais ce workflow n’a pas été lancé.
 
 ## Limites restantes
 
