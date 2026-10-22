@@ -1,0 +1,76 @@
+name: Sécurité Auth et RLS
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - 'assets/auth*'
+      - 'assets/supabase-client.js'
+      - 'assets/vendor/supabase*'
+      - 'connexion.html'
+      - 'authentification.html'
+      - 'mot-de-passe-oublie.html'
+      - 'profil.html'
+      - 'scripts/test-supabase.mjs'
+      - 'scripts/ci-supabase-env.mjs'
+      - 'tests/e2e-supabase/**'
+      - 'tests/helpers/auth-local.js'
+      - 'playwright.supabase.config.js'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/auth-security.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: auth-security-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  supabase-security:
+    name: supabase-security
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Installer Node.js 24
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Installer les dépendances
+        run: npm ci
+      - name: Démarrer une stack Supabase locale isolée
+        shell: bash
+        run: |
+          # La sortie CLI contient des clés LOCALES : ne jamais la publier.
+          if ! npx --yes supabase@2.121.0 start > "$RUNNER_TEMP/supabase-start.log" 2>&1; then
+            echo '::error::La stack locale Supabase ne démarre pas. Sa sortie sensible reste dans le runner éphémère.'
+            exit 1
+          fi
+      - name: Charger uniquement les clés locales de la stack
+        shell: bash
+        run: |
+          npx --yes supabase@2.121.0 status --output json > "$RUNNER_TEMP/supabase-status.json" 2> "$RUNNER_TEMP/supabase-status.log"
+          node scripts/ci-supabase-env.mjs
+      - name: Vérifier les privilèges PostgreSQL avec pgTAP
+        run: npx --yes supabase@2.121.0 test db
+      - name: Vérifier invitations, récupération, sessions et RLS réels
+        run: node scripts/test-supabase.mjs
+      - name: Installer Chromium pour les parcours avec Supabase réel
+        run: npx playwright install --with-deps chromium
+      - name: Vérifier activation et récupération dans le navigateur
+        env:
+          PYTHON: python3
+        run: npx playwright test --config=playwright.supabase.config.js
+      - name: Arrêter exclusivement la stack éphémère
+        if: always()
+        shell: bash
+        run: |
+          npx --yes supabase@2.121.0 stop --no-backup > "$RUNNER_TEMP/supabase-stop.log" 2>&1

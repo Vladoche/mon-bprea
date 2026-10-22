@@ -1,0 +1,3 @@
+# Le SDK genere contient des blancs significatifs dans des chaines multilignes.
+# Le reconstruire depuis le verrou ; ne pas reformater son contenu tiers.
+assets/vendor/supabase.js -whitespace

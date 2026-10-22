@@ -6,6 +6,7 @@
 - Préserver les fonctionnalités existantes.
 - Éviter les dépendances inutiles.
 - Utiliser des données structurées JSON.
+- Pour l’authentification, suivre [docs/architecture/AUTHENTIFICATION.md](docs/architecture/AUTHENTIFICATION.md) : client/service Supabase partagés, profils identifiés par UUID Auth, aucune synchronisation pédagogique avant les lots dédiés.
 
 ## Pédagogie
 
@@ -33,4 +34,8 @@
 - Vérifier visuellement les fonctionnalités modifiées.
 - Ne jamais supprimer de données utilisateur.
 - Ne jamais publier de clés secrètes.
+- Le défaut `assets/auth-config.json` reste désactivé ; utiliser une configuration publique locale ignorée pour préparer un artefact d’essai. Seules l’URL publique et la clé publishable peuvent être publiées, jamais une clé administrative ou des identifiants SMTP.
+- Les tests JavaScript avec mocks et les E2E HTTP simulés ne valident pas RLS. Exécuter les contrôles réels uniquement dans la stack Supabase locale dédiée ; ne pas les rediriger vers un projet distant ou un compte étudiant. Consigner toute absence de CLI/Docker ou exécution impossible.
+- Préserver les politiques RLS et les privilèges de colonnes de `profiles` ; ne pas considérer le masquage d’une page ou d’un bouton comme une protection. Ne jamais supprimer de progression lors d’une déconnexion.
+- Garder l’inscription publique et les connexions anonymes désactivées ; invitations natives depuis un service de confiance uniquement. L’ouverture aux étudiants attend la validation du lot 6.5 et les préparatifs de confidentialité du lot 6.4.
 - Demander validation avant déploiement en production.

@@ -30,6 +30,10 @@ jobs:
         run: npm ci
       - name: Vérifier les tests unitaires et d’intégration
         run: npm test
+      - name: Vérifier le SDK navigateur verrouillé
+        run: |
+          npm run build:auth-sdk
+          git diff --exit-code -- assets/vendor/supabase.js
 
   e2e:
     name: e2e

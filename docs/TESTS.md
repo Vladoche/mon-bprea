@@ -25,6 +25,8 @@ Les commandes doivent être exécutées réellement avant de déclarer la valida
 
 Le lot 5.2 ajoute des tests du moteur botanique (sélection et distracteurs, banques courtes, réponses, statistiques et chrono avec horloge contrôlée), du store autonome (relecture, erreurs de stockage, conservation des clés existantes, révision) et des parcours navigateur dans `tests/e2e/botanical.spec.js`. Les E2E utilisent le catalogue et les JPEG locaux : ils n’appellent aucun service photographique externe. Les cas temporels avancent l’horloge Playwright, sans attente arbitraire. Résultats et limites : [VALIDATION-LOT5-2.md](validations/VALIDATION-LOT5-2.md).
 
+Le lot 6.1 distingue les tests du compte dans l’application, avec dépendances simulées, des essais réels de Supabase Auth/PostgreSQL/RLS. Le guide [AUTHENTIFICATION.md](architecture/AUTHENTIFICATION.md) donne la configuration, les migrations, les modèles d’e-mails et les limites des sessions ; les résultats et opérations encore nécessaires figurent dans [VALIDATION-LOT6-1.md](validations/VALIDATION-LOT6-1.md). La création de tests ne doit jamais être présentée comme une preuve de sécurité exécutée.
+
 ## Choisir le bon niveau
 
 | Outil | Rôle | Limite |
@@ -32,6 +34,9 @@ Le lot 5.2 ajoute des tests du moteur botanique (sélection et distracteurs, ban
 | Vitest — `tests/unit/` | Fonctions de calcul, dates, sélection et normalisation, en important le vrai code du site. | Ne vérifie pas le rendu du navigateur. |
 | Vitest — `tests/integration/` | Lecture/écriture du stockage et cohérence Drill/Tableau de bord ; environnement DOM simulé quand nécessaire. | Stockage et environnement isolés, sans progression personnelle. |
 | Playwright Test — `tests/e2e/` | Parcours reproductibles dans Chromium, avec serveur local et contextes isolés. | Première suite ciblée ; tous les navigateurs et toutes les interactions ne sont pas couverts. |
+| Supabase CLI — `supabase/tests/database/` | pgTAP sur un vrai PostgreSQL : RLS activée, grants et fonctions privées. | Les contrôles structurels ne remplacent pas les requêtes avec sessions A/B. |
+| Node.js — `scripts/test-supabase.mjs` | Auth, capture SMTP, profils et RLS réels avec deux utilisateurs fictifs et un visiteur. | Exige Docker et la stack Supabase locale dédiée ; refuse les projets hébergés. |
+| Playwright — `tests/e2e-supabase/` | Activation et récupération dans le navigateur avec Supabase local et mails capturés réels. | Suite séparée nécessitant la stack réelle, sans comptes étudiants. |
 | Playwright MCP | Exploration et contrôle visuel manuel par Codex. | Une session manuelle n’est pas une suite Playwright Test exécutée en CI. |
 
 Les fixtures de `tests/fixtures/` sont synthétiques ou issues de la banque publique. Elles doivent garder des identifiants stables, des dates explicites et des résultats prévisibles. Elles ne doivent contenir aucune donnée personnelle. Les dépendances restent des outils de développement, sans import depuis le code public.
@@ -58,6 +63,50 @@ Pour les E2E, privilégier les rôles, noms accessibles, libellés et liens stab
 
 Les rapports et artefacts de Playwright sont placés dans `playwright-report/` et `test-results/`, ignorés par Git. Une trace disponible peut être ouverte avec `npx playwright show-trace chemin/vers/trace.zip` ; un rapport HTML avec `npx playwright show-report`. Ces éléments servent au diagnostic et ne sont pas publiés sur le site.
 
+## Authentification : tests applicatifs et sécurité réelle
+
+Les tests unitaires Auth importent les vrais modules de validation, de configuration et de service, avec un client Supabase simulé. Ils vérifient les champs, états, erreurs compréhensibles, restauration, réponses incohérentes et déconnexion sans modifier les préférences pédagogiques. Les mocks Auth restent réservés à ces unités. `tests/e2e/auth.spec.js` exerce le défaut réellement désactivé du dépôt, les pages publiques, l’absence de données privées et d’inscription libre, le nettoyage des liens, le mobile et les préférences, sans simuler de réponse Supabase. **Cette suite autonome ne fait tourner ni Supabase Auth ni PostgreSQL et ne prouve pas RLS.** Les parcours avec compte connecté, invitation et récupération utilisent la suite distincte reliée au vrai Supabase local.
+
+Les commandes habituelles restent autonomes, sans clé ou service Supabase :
+
+```bash
+npm ci
+npx playwright install chromium
+npm test
+npm run test:e2e
+```
+
+Le SDK versionné provient de `@supabase/supabase-js` 2.118.0, préparé avec esbuild 0.28.2 par `npm run build:auth-sdk`. Le reconstruire lors d’un changement volontaire du SDK, puis vérifier manifeste, verrou et fichier généré ensemble. Les ressources publiques n’exigent pas d’installation npm chez l’étudiant.
+
+Pour exercer la sécurité réelle, démarrer **uniquement** la stack `mon-bprea-lot6-1-local`, avec Docker disponible et les ports locaux libres. Les commandes de référence utilisent la même CLI 2.121.0 que la CI :
+
+```bash
+npx --yes supabase@2.121.0 start
+npx --yes supabase@2.121.0 migration up --local
+npx --yes supabase@2.121.0 test db
+```
+
+Ne pas relancer `supabase init` : la configuration et les migrations sont déjà versionnées. Ne pas réinitialiser une base contenant des données à conserver. `supabase/config.toml` réserve les expirations JWT 120 secondes et OTP 60 secondes aux vérifications locales ; ces durées ne doivent pas être reportées telles quelles en production.
+
+Copier `supabase/tests/.env.example` dans `.env.supabase-test.local` à la racine, puis remplir les clés **de cette stack locale** obtenues via `npx --yes supabase@2.121.0 status`. Le fichier privé est ignoré par Git. Garder la sortie des commandes et les clés hors des journaux partagés. Conserver la confirmation de projet et les endpoints locaux du modèle ; les clés d’un projet hébergé, même DEV, ne sont jamais admises par le runner. Une clé administrative locale n’est utilisée que pour créer les invitations natives et supprimer les seuls comptes fictifs créés pendant cette exécution.
+
+```powershell
+Copy-Item -LiteralPath supabase/tests/.env.example -Destination .env.supabase-test.local
+```
+
+Une fois les valeurs renseignées :
+
+```bash
+npm run test:supabase
+npm run test:e2e:supabase
+```
+
+Le runner de sécurité vérifie les lectures A/B, l’accès anonyme, les UUID arbitraires, le pseudo propre, le refus de modification des autres profils et colonnes techniques, les contraintes, les métadonnées falsifiées, un JWT falsifié et une session invalide. Il exerce aussi le refus d’inscription directe, les invitations natives, les mails capturés, l’activation depuis un contexte neuf, les liens invalides/réutilisés, la récupération et le refresh après déconnexion. L’expiration est réellement attendue avec les durées locales ; réserver plusieurs minutes et ne pas remplacer cette preuve par une horloge JavaScript simulée. Les requêtes étudiant utilisent leurs vrais jetons, jamais la clé administrative.
+
+Les E2E dédiés utilisent `playwright.supabase.config.js` et la même stack locale. Ils complètent le runner par le parcours du navigateur et les e-mails capturés. Les journaux et captures d’un parcours réel peuvent contenir des liens sensibles : ne pas les publier ni conserver des traces contenant des jetons. Aucun test ne doit utiliser un navigateur personnel, une adresse étudiante, le site publié ou une base de production. Ne pas supprimer globalement les comptes ou les messages de la capture SMTP pour préparer un scénario.
+
+Si Docker, la CLI, les clés locales ou les services requis manquent, la sécurité réelle reste **non exécutée / non validée** ; noter le blocage dans la validation. Des suites Vitest/Playwright simulées réussies ne changent pas cet état. Le critère d’acceptation exige les preuves réelles d’invitation, récupération, refus d’inscription et isolation A/B avant toute ouverture.
+
 ## CI et protection de `main`
 
 Le workflow **Qualité**, défini dans `.github/workflows/quality.yml`, s’exécute sur les pull requests vers `main`, à l’ouverture et à chaque nouveau commit. Ses deux jobs sont `unit-integration` et `e2e`. Ils utilisent Node.js 24 LTS, `npm ci` et le cache npm ; le second installe Chromium et conserve les artefacts utiles en cas d’échec. Les permissions se limitent à la lecture du dépôt, sans secret de production. Ce workflow ne déploie pas.
@@ -75,6 +124,8 @@ Pour rendre les vérifications obligatoires **après accord de l’utilisateur**
 Ce document prépare la procédure ; il ne modifie aucun réglage distant et ne prouve pas que les checks ont déjà été exécutés sur GitHub.
 
 Le dépôt possède désormais un ruleset actif sur `main` exigeant les contrôles `unit-integration` et `e2e` : conserver leurs noms exacts. Le lot 5.2 met à jour les actions officielles pour Node.js 24, sans toucher à ce ruleset ni lancer de publication. Le registre [ACTIONS-NODE24.md](architecture/ACTIONS-NODE24.md) donne les versions vérifiées et la conservation explicite de `.nojekyll` dans l’artefact Pages.
+
+Le workflow supplémentaire **Sécurité Auth et RLS**, `.github/workflows/auth-security.yml`, conserve le job distinct `supabase-security`. Sur les changements Auth/Supabase concernés, il démarre une stack Docker éphémère, charge uniquement ses clés locales, exécute pgTAP, les tests réels de sécurité et les parcours navigateur dédiés, puis arrête cette stack. Il n’exige aucun secret de production et ne publie pas les sorties CLI contenant des clés. La présence du workflow ne constitue pas un résultat d’exécution : contrôler son statut sur la PR et consigner ce qui a réellement été vérifié. Les deux checks obligatoires Qualité et le ruleset restent inchangés.
 
 ## Avant une pull request
 
