@@ -57,7 +57,12 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
   async function requireUser() {
     assertClient();
     if (state.status !== 'authenticated') throw new AuthError('Connecte-toi pour accéder à ton profil.', 'invalid_session');
-    try { return await verifyIdentity(revision); }
+    const expectedUserId = state.user?.id;
+    try {
+      const user = await verifyIdentity(revision);
+      if (user.id !== expectedUserId) throw new AuthError('La session a changé. Réessaie.', 'session_changed');
+      return user;
+    }
     catch (error) {
       if (error.code === 'invalid_session') { revision++; passwordLinkUser = null; publish('anonymous'); }
       throw error;

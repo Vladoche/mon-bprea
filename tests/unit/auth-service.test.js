@@ -251,6 +251,20 @@ describe('service auth — logique applicative avec SDK simulé, sans preuve RLS
     expect(query.update).toHaveBeenCalledTimes(1);
   });
 
+  it('refuse une modification démarrée sur A si la vérification découvre B avant son événement Auth', async () => {
+    const { client, query } = mockAuthClient({ session: authSession });
+    const service = createAuthService(client);
+    await service.start();
+    const otherUser = { ...authUser, id: '22222222-2222-4222-8222-222222222222', email: 'eleve-b@example.invalid' };
+    client.auth.getUser.mockResolvedValue({ data: { user: otherUser }, error: null });
+
+    await expect(service.updateProfile('Pseudo saisi sur A')).rejects.toMatchObject({ code: 'session_changed' });
+
+    expect(client.from).not.toHaveBeenCalled();
+    expect(query.update).not.toHaveBeenCalled();
+    expect(service.getState()).toMatchObject({ status: 'authenticated', user: otherUser });
+  });
+
   it('ne transforme pas une erreur de lecture de profil en profil fictif', async () => {
     const { client, query } = mockAuthClient({ session: authSession });
     query.single.mockResolvedValue({ data: null, error: { code: 'PGRST116', message: 'profile-server-fixture' } });

@@ -31,6 +31,7 @@ Poste Windows, Node.js **24.22.0**, npm **10.4.0**, Chromium Playwright. Les tes
 | `npm run test:e2e` | **17 parcours Chromium réussis en 9,2 s**, code 0 ; cinq nouveaux parcours Auth sans mocks réseau |
 | `python scripts/prepare-pages.py --version lot6-1-verification --output .tmp/lot6-1-verification/mon-bprea` | Code 0 : 90 fichiers publics, 190 références versionnées et `.nojekyll` conservé |
 | `git diff --check` et `git check-ignore` | Code 0 ; configuration locale, environnement privé et fichiers temporaires Supabase ignorés |
+| Inspection de l’artefact et recherche de clés secrètes/privées | Aucun secret détecté ; outils, fichiers privés et dossier Supabase absents de la copie publique |
 | CLI `supabase@2.121.0 --version` | Code 0 : **2.121.0** |
 | CLI `supabase@2.121.0 status --output json` | Code 1 : Docker et Podman absents ; aucune stack locale accessible |
 | `npm run test:supabase` | Refus explicite sans confirmation/configuration de stack ; **aucun test Supabase exécuté sur ce poste** |
@@ -39,6 +40,8 @@ Poste Windows, Node.js **24.22.0**, npm **10.4.0**, Chromium Playwright. Les tes
 | Requête HTTP HEAD sur `https://vladoche.github.io/mon-bprea/` | HTTP 200, URL finale identique ; contrôle d’adresse uniquement, aucun test de production |
 
 Un passage intermédiaire a exécuté 23 parcours dont 11 contrats HTTP simulés. Ces contrats ont été remplacés par des tests sans mocks Auth pour respecter l’exigence du lot : les simulations restent réservées aux unités. Les parcours connectés sont dans la suite séparée avec Supabase réel. Ce résultat intermédiaire n’est pas utilisé comme preuve de validation finale ou de sécurité.
+
+Le SDK tiers généré contient des blancs significatifs à l’intérieur de chaînes multilignes ; `.gitattributes` désactive uniquement le contrôle des blancs sur ce fichier pour éviter de modifier ces chaînes. Le contrôle CI de reconstruction depuis les dépendances verrouillées vérifie son contenu exact. `git diff origin/main --check` passe avec cette exception ciblée.
 
 Les unités couvrent champs, réponses SDK incomplètes, erreurs sans détails sensibles, restauration vérifiée par Auth, réseau indisponible, sessions invalides, changements de compte, renouvellement pendant une lecture et absence de réapparition d’une réponse tardive après déconnexion. L’autorisation de changement du mot de passe est liée au compte du lien et ne survit pas à un changement de compte. Les tests d’artefact exécutent réellement le préparateur Python : publication des pages/imports versionnés, configuration locale appliquée seulement à la copie, refus des clés administratives/legacy et champs supplémentaires avant création de sortie.
 
@@ -56,7 +59,9 @@ La suite de sécurité est préparée avec **Supabase CLI 2.121.0** et PostgreSQ
 
 Le workflow distinct **Sécurité Auth et RLS**, job `supabase-security`, utilise une stack Docker éphémère locale au runner. Les seules clés sont générées pour cette stack, capturées hors journaux et masquées avant usage. La clé administrative ne va jamais dans la page. Traces, vidéo et captures des E2E réels sont désactivées ; seul le compte synthétique créé par le run peut être nettoyé. Les comptes étudiants et projets distants sont interdits par les gardes d’environnement.
 
-**État avant lancement de la PR : ces tests réels ne sont pas encore validés.** La réussite des unités et des E2E autonomes ne démontre pas RLS. Les résultats CI doivent être consignés ici avant de lever cette réserve. Les jobs obligatoires `unit-integration` et `e2e` et le ruleset de `main` sont conservés. Aucune fusion ni publication n’est autorisée par cette livraison.
+La [PR nº 9](https://github.com/Vladoche/mon-bprea/pull/9) est ouverte en brouillon vers `main`. **Au lancement de la PR, ces tests réels ne sont pas encore validés.** La réussite des unités et des E2E autonomes ne démontre pas RLS. Les résultats CI doivent être consignés ici avant de lever cette réserve. Les jobs obligatoires `unit-integration` et `e2e` et le ruleset de `main` sont conservés. Aucune fusion ni publication n’est autorisée par cette livraison.
+
+Premier [run de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/39829500314) : stack réelle démarrée, **19 contrôles pgTAP réussis**, refus des inscriptions publiques et connexions anonymes vérifié, deux invitations reçues/activées et liens invalides/réutilisés refusés. La connexion par mot de passe a ensuite échoué : `auth.email.enable_signup=false` désactivait le fournisseur e-mail entier dans cette version CLI. La configuration est corrigée pour conserver ce fournisseur avec `true` tout en gardant `auth.enable_signup=false`. Le runner exige toujours le code exact `signup_disabled` pour une création libre. Ce premier run partiel ne valide pas l’ensemble du lot ; une nouvelle exécution complète est requise.
 
 ## Interventions et limites avant ouverture
 
