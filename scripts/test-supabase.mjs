@@ -272,9 +272,14 @@ try {
     const recovery = await emailToken(b.email, 'recovery');
     const session = accepted(await publicClient().auth.signInWithPassword({ email: a.email, password: a.password }), 'JWT à expirer').session;
     const claims = JSON.parse(Buffer.from(session.access_token.split('.')[1], 'base64url').toString('utf8'));
-    const untilExpiry = Math.max(claims.exp * 1000, expiredInvite.sentAt + 60_000, Date.now() + 60_000) + 2_000;
-    assert.ok(untilExpiry - Date.now() < 150_000, 'La stack active doit appliquer jwt_expiry=120.');
-    console.log('Attente de l’expiration locale réelle (environ 122 secondes, sans modifier auth.users)…');
+    // PostgREST v16.4 (CLI 2.121.0) tolère 30 secondes de dérive d’horloge.
+    // Tester après exp + cette tolérance + 2 s, avec le JWT original signé.
+    // https://docs.postgrest.org/en/v14/references/auth.html#jwt-claims-validation
+    // https://github.com/PostgREST/postgrest/blob/v16.4/src/library/PostgREST/Auth/Jwt.hs
+    const clockSkewMs = 30_000;
+    const untilExpiry = Math.max(claims.exp * 1000 + clockSkewMs, expiredInvite.sentAt + 60_000, Date.now() + 60_000) + 2_000;
+    assert.ok(untilExpiry - Date.now() < 180_000, 'La stack active doit appliquer jwt_expiry=120.');
+    console.log('Attente de l’expiration locale réelle (environ 152 secondes, tolérance PostgREST incluse, sans modifier auth.users)…');
     let nextProgress = Date.now() + 30_000;
     while (Date.now() < untilExpiry) {
       await delay(Math.min(1000, untilExpiry - Date.now()));
@@ -285,7 +290,9 @@ try {
     }
     rejected(await publicClient().auth.verifyOtp({ token_hash: expiredInvite.token, type: 'invite' }), 'Invitation expirée');
     rejected(await publicClient().auth.verifyOtp({ token_hash: recovery, type: 'recovery' }), 'Récupération expirée');
-    assert.ok(!(await rawProfiles(session.access_token)).response.ok, 'Un JWT authentique expiré doit être refusé.');
+    const expired = await rawProfiles(session.access_token);
+    assert.equal(expired.response.status, 401, 'Un JWT authentique périmé au-delà de la tolérance doit être refusé avec HTTP 401.');
+    assert.equal(expired.data?.code, 'PGRST303', 'Le refus doit provenir de la validation des claims JWT par PostgREST.');
   });
 
   console.log(`${passed} groupes de vérifications Supabase réellement exécutés et réussis.`);

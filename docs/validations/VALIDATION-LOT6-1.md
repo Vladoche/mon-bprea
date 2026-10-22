@@ -27,8 +27,8 @@ Poste Windows, Node.js **24.22.0**, npm **10.4.0**, Chromium Playwright. Les tes
 | `npm ci --fetch-retries=0 --fetch-timeout=20000` | Code 0, installation depuis le verrou |
 | `npm run build:auth-sdk` | Code 0, fichier navigateur et licence MIT préparés |
 | `npx playwright install chromium` | Code 0 |
-| `npm test` | Dernier passage : **106 tests, 13 fichiers réussis**, code 0 |
-| `npm run test:e2e` | **17 parcours Chromium réussis en 9,2 s**, code 0 ; cinq nouveaux parcours Auth sans mocks réseau |
+| `npm test` | Dernier passage : **107 tests, 13 fichiers réussis**, code 0 |
+| `npm run test:e2e` | **17 parcours Chromium réussis en 9,7 s**, code 0 ; cinq nouveaux parcours Auth sans mocks réseau |
 | `python scripts/prepare-pages.py --version lot6-1-verification --output .tmp/lot6-1-verification/mon-bprea` | Code 0 : 90 fichiers publics, 190 références versionnées et `.nojekyll` conservé |
 | `git diff --check` et `git check-ignore` | Code 0 ; configuration locale, environnement privé et fichiers temporaires Supabase ignorés |
 | Inspection de l’artefact et recherche de clés secrètes/privées | Aucun secret détecté ; outils, fichiers privés et dossier Supabase absents de la copie publique |
@@ -63,10 +63,12 @@ La [PR nº 9](https://github.com/Vladoche/mon-bprea/pull/9) est ouverte en broui
 
 Premier [run de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/39829500314) : stack réelle démarrée, **19 contrôles pgTAP réussis**, refus des inscriptions publiques et connexions anonymes vérifié, deux invitations reçues/activées et liens invalides/réutilisés refusés. La connexion par mot de passe a ensuite échoué : `auth.email.enable_signup=false` désactivait le fournisseur e-mail entier dans cette version CLI. La configuration est corrigée pour conserver ce fournisseur avec `true` tout en gardant `auth.enable_signup=false`. Le runner exige toujours le code exact `signup_disabled` pour une création libre. Ce premier run partiel ne valide pas l’ensemble du lot ; une nouvelle exécution complète est requise.
 
+Deuxième [run de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/39829999777) : les **19 contrôles SQL et les dix premiers groupes API réels passent**, dont connexion, isolation A/B, pseudo, colonnes techniques, contraintes Unicode/contrôles, JWT falsifié, récupération et révocation du refresh. Le dernier groupe révèle une attente d’expiration trop courte : PostgREST tolère officiellement 30 secondes de décalage sur `exp`. Le test est corrigé pour attendre `exp + 30 s + 2 s`, puis exiger un HTTP 401 avec `PGRST303`, sans accepter un simple échec serveur. Cette marge est documentée et aucun contrôle de signature/RLS n’est assoupli.
+
 ## Interventions et limites avant ouverture
 
 Créer/configurer un projet DEV séparé de PROD, appliquer les migrations versionnées et contrôler ses réglages Auth : inscriptions et connexions anonymes désactivées, minimum de mot de passe, URL exactes sans wildcard et modèles d’e-mail. Le fichier `config.toml` ne modifie aucun projet hébergé. Le workflow Pages continue de publier la configuration désactivée tant qu’une activation n’a pas été autorisée.
 
 Le SMTP Supabase par défaut n’est pas prévu pour accueillir la promotion. Un SMTP adapté, domaine d’envoi et essais contrôlés sont nécessaires. Aucun camarade n’a été invité. Les informations juridiques, durées de conservation, droits et procédures du lot 6.4 restent à finaliser avant comptes réels ; l’ouverture attend la validation du lot 6.5.
 
-La session persistante reste exposée aux risques XSS et appareil partagé. Un access token déjà émis demeure valable jusqu’à son expiration après logout ; le SDK révoque le refresh de la session locale. Le lien à usage unique figure dans la première requête HTTP avant nettoyage JavaScript et peut donc apparaître dans les journaux d’infrastructure. Ces limites sont documentées, sans revendication de révocation JWT instantanée ou de conformité juridique définitive.
+La session persistante reste exposée aux risques XSS et appareil partagé. Un access token déjà émis demeure valable jusqu’à son expiration après logout, avec la tolérance de 30 secondes de PostgREST ; le SDK révoque le refresh de la session locale. Le lien à usage unique figure dans la première requête HTTP avant nettoyage JavaScript et peut donc apparaître dans les journaux d’infrastructure. Ces limites sont documentées, sans revendication de révocation JWT instantanée ou de conformité juridique définitive.
