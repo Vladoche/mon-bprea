@@ -6,6 +6,13 @@
 #app-header .theme-label{display:inline}
 
 .primary-nav{flex:1;min-width:0;margin-left:auto}
+.account-actions{position:relative;display:flex;align-items:center;gap:4px;flex-wrap:wrap;max-width:200px}
+.account-link,.account-signout{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:8px;color:var(--text);font-size:12px;font-weight:700;border:0;border-radius:8px;background:transparent;white-space:nowrap}
+.account-link:hover,.account-signout:hover{background:var(--green-light);color:var(--green)}
+.account-signout{font-weight:500}
+.account-feedback:not(:empty){position:absolute;top:100%;right:0;z-index:25;width:260px;max-width:80vw;padding:12px;background:var(--color-error-bg);color:var(--color-error);border:1px solid var(--color-error-line);border-radius:8px;font-size:12px}
+@media(max-width:1100px){.account-actions{gap:0;max-width:100px}.account-link,.account-signout{min-height:36px;padding:4px 6px}}
+@media(max-width:420px){#app-header .brand-copy small{display:none}#app-header .brand{min-width:0}.account-link,.account-signout{font-size:11px;padding:4px}.account-actions{max-width:78px}#app-header .header-actions{gap:2px}}
 .primary-nav ul{list-style:none;margin:0;padding:0}
 .primary-nav .primary-nav__list{display:flex;justify-content:flex-end;align-items:center;gap:8px}
 .primary-nav .primary-nav__item{min-width:0}

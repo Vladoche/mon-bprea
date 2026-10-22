@@ -7,14 +7,19 @@
     "node": ">=24 <25"
   },
   "scripts": {
+    "build:auth-sdk": "node scripts/build-auth-sdk.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-supabase.mjs",
+    "test:e2e:supabase": "playwright test --config=playwright.supabase.config.js"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",
+    "@supabase/supabase-js": "2.118.0",
+    "esbuild": "0.28.2",
     "vitest": "5.0.5"
   }
 }

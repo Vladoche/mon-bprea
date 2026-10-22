@@ -47,7 +47,8 @@ test('navigation à trois rubriques et artefact versionné sous préfixe Pages',
   });
   for (const file of ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3',
     'cours.html?id=matiere-organique', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3',
-    'tableau-de-bord.html', 'calendrier.html', 'itk.html', 'ressources.html', 'reconnaissance-plantes.html']) {
+    'tableau-de-bord.html', 'calendrier.html', 'itk.html', 'ressources.html', 'reconnaissance-plantes.html',
+    'connexion.html', 'mot-de-passe-oublie.html', 'authentification.html', 'profil.html']) {
     const response = await publishedPage.goto(`/mon-bprea/${file}`);
     expect(response.status(), file).toBe(200);
     await expect(publishedPage.getByRole('heading', { level: 1 })).toBeVisible();
@@ -63,9 +64,10 @@ test('navigation à trois rubriques et artefact versionné sous préfixe Pages',
   }
   const jsonFiles = new Set(resources.filter(r => new URL(r.url()).pathname.endsWith('.json'))
     .map(r => new URL(r.url()).pathname.split('/').at(-1)));
-  expect([...jsonFiles].sort()).toEqual(['botanical-bank.json', 'calendar-events.json', 'daily-facts.json', 'drill-bank.json', 'navigation.json', 'resources.json']);
+  expect([...jsonFiles].sort()).toEqual(['auth-config.json', 'botanical-bank.json', 'calendar-events.json', 'daily-facts.json', 'drill-bank.json', 'navigation.json', 'resources.json']);
   // Le périmètre public exclut les nouveaux outils, fixtures et rapports.
-  for (const file of ['package.json', 'tests/fixtures/calendar.json', 'node_modules/vitest/package.json', 'docs/TESTS.md']) {
+  for (const file of ['package.json', 'tests/fixtures/calendar.json', 'node_modules/vitest/package.json', 'docs/TESTS.md',
+    'supabase/config.toml', 'supabase/tests/.env.example', '.env.supabase-test.local', 'auth-config.local.json']) {
     expect((await request.get(`/mon-bprea/${file}`)).status()).toBe(404);
   }
 });

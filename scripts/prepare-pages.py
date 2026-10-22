@@ -3,6 +3,7 @@
 
 import argparse
 import html
+import json
 import os
 from pathlib import Path
 import re
@@ -70,7 +71,36 @@ def public_files():
     return sorted(files)
 
 
-def prepare(output, version):
+def public_auth_config(path):
+    """Accept only public configuration; never copy arbitrary environment files."""
+    config = json.loads(path.read_text(encoding="utf-8-sig"))
+    allowed = {"enabled", "environment", "url", "publishableKey", "siteUrl"}
+    if not isinstance(config, dict) or set(config) != allowed or type(config.get("enabled")) is not bool:
+        raise ValueError("Configuration Auth invalide : seuls les cinq champs publics du modèle sont autorisés.")
+    if config["environment"] not in {"development", "production"}:
+        raise ValueError("Environnement Auth invalide.")
+    if any(not isinstance(config[key], str) for key in ("url", "publishableKey", "siteUrl")):
+        raise ValueError("Les paramètres publics Auth doivent être des chaînes.")
+    key = config["publishableKey"]
+    if key and not re.fullmatch(r"sb_publishable_[A-Za-z0-9_-]+", key):
+        raise ValueError("Seule une clé publishable est autorisée dans l’artefact public.")
+    if config["enabled"]:
+        local_hosts = {"127.0.0.1", "localhost", "::1"}
+        endpoint, site = urlsplit(config["url"]), urlsplit(config["siteUrl"])
+        if (not key or not endpoint.hostname or endpoint.path not in {"", "/"}
+                or endpoint.query or endpoint.fragment or endpoint.username or endpoint.password
+                or (endpoint.scheme != "https" and not (config["environment"] == "development"
+                    and endpoint.scheme == "http" and endpoint.hostname in local_hosts))):
+            raise ValueError("URL Supabase publique invalide.")
+        if (not site.hostname or not site.path.endswith("/") or site.query or site.fragment
+                or site.username or site.password
+                or (config["environment"] == "development" and (site.hostname not in local_hosts or site.scheme not in {"http", "https"}))
+                or (config["environment"] == "production" and (site.scheme != "https" or site.hostname in local_hosts or endpoint.hostname in local_hosts))):
+            raise ValueError("URL du site incompatible avec l’environnement Auth.")
+    return json.dumps(config, ensure_ascii=False, indent=2) + "\n"
+
+
+def prepare(output, version, auth_config=None):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", version):
         raise ValueError("Version invalide : utiliser le SHA Git ou un identifiant simple (80 caractères maximum).")
     output = output.resolve()
@@ -87,6 +117,8 @@ def prepare(output, version):
         raise ValueError(f"La sortie existe déjà et n'est pas un dossier vide : {output}")
 
     files = public_files()
+    # Always validate even the disabled tracked default before publication.
+    auth_content = public_auth_config(auth_config or ROOT / "assets" / "auth-config.json")
     published = {path.resolve() for path in files}
     updated = 0
 
@@ -141,7 +173,9 @@ def prepare(output, version):
     for source in files:
         destination = output / source.relative_to(ROOT)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        if source in contents:
+        if source == ROOT / "assets" / "auth-config.json":
+            destination.write_text(auth_content, encoding="utf-8", newline="\n")
+        elif source in contents:
             destination.write_text(contents[source], encoding="utf-8", newline="\n")
         else:
             shutil.copyfile(source, destination)
@@ -154,11 +188,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "site-public", help="Dossier neuf ou vide de l'artefact")
     parser.add_argument("--version", default=os.environ.get("GITHUB_SHA"), help="SHA Git du déploiement (ou identifiant local)")
+    parser.add_argument("--auth-config", type=Path, help="Configuration publique locale à copier uniquement dans l’artefact")
     args = parser.parse_args()
     if not args.version:
         parser.error("--version est obligatoire hors GitHub Actions (exemple : --version verification-locale).")
     try:
-        prepare(args.output, args.version)
+        prepare(args.output, args.version, args.auth_config)
     except (OSError, ValueError) as error:
         print(f"Préparation interrompue : {error}", file=sys.stderr)
         return 1

@@ -1,0 +1,82 @@
+# Développement local uniquement. Ce fichier ne configure aucun projet hébergé.
+project_id = "mon-bprea-lot6-1-local"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+enabled = false
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+
+[local_smtp]
+enabled = true
+port = 54324
+
+[storage]
+enabled = false
+
+[realtime]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:4173/mon-bprea/"
+additional_redirect_urls = ["http://127.0.0.1:4173/mon-bprea/authentification.html"]
+# Durées courtes LOCALES pour vérifier réellement l'expiration dans les tests.
+# Pour un projet hébergé : voir le guide d'architecture avant configuration.
+jwt_expiry = 120
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = false
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+
+[auth.rate_limit]
+# Capture SMTP locale uniquement ; aucune livraison à des adresses réelles.
+email_sent = 100
+token_refresh = 1000
+sign_in_sign_ups = 100
+token_verifications = 100
+
+[auth.email]
+enable_signup = false
+double_confirm_changes = true
+enable_confirmations = true
+secure_password_change = true
+max_frequency = "1s"
+otp_length = 8
+otp_expiry = 60
+
+[auth.email.template.invite]
+subject = "Activer votre compte Mon BPREA"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.recovery]
+subject = "Réinitialiser votre mot de passe Mon BPREA"
+content_path = "./supabase/templates/recovery.html"
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+[analytics]
+enabled = false
+
+[edge_runtime]
+enabled = false

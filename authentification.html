@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="referrer" content="no-referrer" />
+  <script>
+    // Remove credentials before any module, image, stylesheet or network request.
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const token = params.get('token_hash');
+      const type = params.get('type');
+      const valid = !location.hash && params.getAll('token_hash').length === 1
+        && params.getAll('type').length === 1 && /^[A-Za-z0-9_-]{20,512}$/.test(token || '')
+        && (type === 'invite' || type === 'recovery');
+      history.replaceState(null, '', location.pathname);
+      Object.defineProperty(window, '__bpreaAuthLink', {
+        value: valid ? { token_hash: token, type } : null,
+        configurable: true
+      });
+    })();
+  </script>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="Active ton compte Mon BPREA ou définis un nouveau mot de passe." />
+  <meta name="theme-color" content="#184e39" />
+  <title>Activation et mot de passe</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <script src="assets/theme-init.js"></script>
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/navigation.css" />
+  <link rel="stylesheet" href="assets/auth.css" />
+  <link rel="stylesheet" href="assets/appearance.css" />
+  <link rel="stylesheet" href="assets/daily-fact.css" />
+  <script type="module" src="assets/app.js"></script>
+</head>
+<body data-page="auth-callback">
+  <header id="app-header"></header>
+  <main id="app-main" tabindex="-1"><noscript>Active JavaScript puis ouvre à nouveau le lien reçu par e-mail.</noscript></main>
+  <footer id="app-footer"></footer>
+</body>
+</html>

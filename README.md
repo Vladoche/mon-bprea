@@ -1,6 +1,6 @@
 # Mon BPREA — Démonstration fonctionnelle
 
-Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt pour GitHub Pages. Le site publié fonctionne sans Node.js ni dépendance npm à l’exécution. Les outils de développement utilisent Node.js pour les tests unitaires, d’intégration et navigateur.
+Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt pour GitHub Pages. Le site publié fonctionne sans Node.js ni installation npm à l’exécution. Le lot 6.1 prépare Supabase Auth et les profils privés, avec un SDK navigateur servi localement et une configuration désactivée par défaut. Les outils de développement utilisent Node.js pour les tests et la préparation de ce SDK.
 
 ## Fonctions incluses
 
@@ -19,6 +19,7 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Exercices hebdomadaires** (Mode Drill) : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
 - **Tableau de bord pédagogique** : résultats réels du Mode Drill, volumes et taux hebdomadaires, comparaison des UC et notions à retravailler ; filtres par UC et sur 4, 8, 12 semaines ou tout l’historique, graphiques et tableaux accessibles.
 - **Reconnaissance des plantes** : photographies locales sourcées, modes Découverte et Chrono, corrections botaniques, historique indépendant et révision des erreurs. Prototype : 12 espèces et 12 photographies, trois catégories jouables de quatre questions ; légumineuses explicitement à compléter.
+- **Compte sur invitation — préparation du lot 6.1** : connexion, activation, récupération du mot de passe et profil avec pseudo facultatif ; Supabase protège les données privées par RLS. Le service reste désactivé tant qu’un environnement n’est pas configuré et validé. Aucun résultat pédagogique n’est synchronisé ; ouverture aux étudiants après validation du lot 6.5.
 - Interface responsive (ordinateur et mobile).
 
 ## Se repérer dans le site
@@ -91,10 +92,28 @@ tests/integration/      Persistance et cohérence entre modules
 tests/e2e/              Parcours navigateur reproductibles
 tests/fixtures/         Données de test maîtrisées
 scripts/                Préparation Pages et outils locaux
+supabase/               Configuration locale, migrations, modèles et tests RLS
 .github/workflows/      Qualité des PR et publication Pages distinctes
 ```
 
 L’[audit d’architecture](docs/architecture/ARCHITECTURE.md) explique les frontières conservées et les risques prioritaires. Les résultats réellement exécutés figurent dans les validations du [lot 5.1](docs/validations/VALIDATION-LOT5-1.md) et du [lot 5.2](docs/validations/VALIDATION-LOT5-2.md). Les dépendances de développement, tests, rapports et documentation ne sont pas copiés dans l’artefact Pages. Aucune fusion vers `main`, modification des protections ou mise en production ne doit être réalisée sans accord.
+
+## Préparer l’authentification sur invitation
+
+Les pages `connexion.html`, `authentification.html`, `mot-de-passe-oublie.html` et `profil.html` partagent un seul service Auth par document. Le header affiche Connexion ou Mon profil / Déconnexion. Les trois rubriques et les contenus publics restent accessibles sans compte. Supabase Auth conserve l’e-mail et gère les mots de passe ; `public.profiles` contient seulement UUID, pseudo facultatif et dates. Seul le pseudo personnel est modifiable. Les migrations et privilèges RLS sont décrits dans [AUTHENTIFICATION.md](docs/architecture/AUTHENTIFICATION.md).
+
+`assets/auth-config.json` reste désactivé et sans identifiants. Pour un essai autorisé, créer une stack locale ou un projet Supabase DEV distinct de PROD ; copier `auth-config.example.json` vers `auth-config.local.json` ignoré, puis renseigner uniquement l’URL publique, la clé **publishable** et `siteUrl`. Ne jamais y mettre de clé `secret`/`service_role`, mot de passe de base ou identifiant SMTP. Préparer ensuite un artefact local neuf :
+
+```bash
+python scripts/prepare-pages.py --version auth-dev --auth-config auth-config.local.json --output .tmp/auth-dev/mon-bprea
+python -m http.server 4173 --directory .tmp/auth-dev
+```
+
+Ouvrir `http://127.0.0.1:4173/mon-bprea/`, identique au `siteUrl` du modèle. Le guide donne les réglages d’inscription fermée, l’invitation native, les modèles d’e-mails, le callback exact, la configuration SMTP et les commandes de migration. Le workflow Pages actuel conserve le défaut désactivé ; activer un projet de production demandera une configuration et une validation distinctes.
+
+Le SDK Supabase 2.118.0 est préparé avec `npm run build:auth-sdk` après `npm ci`, uniquement lors d’une reconstruction volontaire du fichier versionné. Les tests unitaires avec mocks et les E2E sans configuration ne prouvent pas RLS. `npm run test:supabase` et `npm run test:e2e:supabase` exigent une vraie stack locale isolée avec Docker, la CLI et les valeurs du modèle `supabase/tests/.env.example`. Les résultats réellement obtenus et les vérifications encore nécessaires sont consignés dans [VALIDATION-LOT6-1.md](docs/validations/VALIDATION-LOT6-1.md).
+
+Avant toute ouverture réelle : appliquer et vérifier les migrations, prouver le refus d’inscription directe et l’isolation des comptes A/B, tester invitations et récupération avec e-mails contrôlés, confirmer les URL Pages et configurer SMTP. Finaliser les informations juridiques, la conservation et les procédures de droits au lot 6.4 ; l’ouverture de la promotion reste conditionnée au lot 6.5. La session navigateur est persistante et exposée aux risques XSS/appareil partagé ; la déconnexion préserve tous les historiques pédagogiques de l’appareil.
 
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
@@ -134,6 +153,8 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `assets/appearance.js` / `assets/appearance.css` : paramètres visuels et accès rapide clair/sombre.
 - `assets/daily-facts.json` et `assets/daily-fact.js` / `assets/daily-fact.css` : banque sourcée, rotation et bandeau quotidien.
 - `scripts/prepare-pages.py` : préparation des fichiers publics versionnés pour GitHub Pages.
+- `assets/supabase-client.js`, `assets/auth-service.js`, `assets/auth-header.js`, `assets/auth-pages.js` et `assets/auth-validation.js` : configuration publique, session partagée, interface et validations du compte ; `assets/vendor/supabase.js` : SDK local reconstruit par `scripts/build-auth-sdk.mjs`.
+- `supabase/` : migration du profil, RLS, configuration locale et modèles d’invitation/récupération ; [AUTHENTIFICATION.md](docs/architecture/AUTHENTIFICATION.md) : procédure d’installation et limites avant ouverture.
 - `assets/app.js` : navigation, progression, exercices, calcul ITK et export.
 - `assets/navigation.json` et `assets/navigation.js` / `assets/navigation.css` : arborescence commune, menu et interactions ordinateur/mobile ; `assets/breadcrumbs.js` : fils d’Ariane partagés.
 - `mes-cours.html`, `s-exercer.html` et `outils.html` : pages de rubrique ; `assets/section-hubs.js` / `assets/section-hubs.css` : leurs cartes et la synthèse hebdomadaire de S’exercer.
@@ -146,7 +167,7 @@ Crée d'abord le dépôt vide depuis GitHub. La première publication GitHub Pag
 - `tableau-de-bord.html` et `assets/dashboard.js` / `assets/dashboard.css` : interface du Tableau de bord ; `assets/dashboard-data.js` : adaptateur de lecture seul, fondé sur la validation/normalisation du stockage Drill ; `assets/dashboard-stats.js` : calculs purs et séries temporelles réutilisables.
 - Les pages `index.html`, `mes-cours.html`, `s-exercer.html`, `outils.html`, `uc.html`, `cours.html`, `exercices.html`, `itk.html`, `ressources.html`, `calendrier.html`, `drill.html` et `tableau-de-bord.html` sont les points d'entrée.
 
-Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. La structure statique évite une compilation applicative et fonctionne directement sur GitHub Pages. Les dépendances npm servent uniquement au développement ; ce lot n’introduit ni framework ni backend.
+Chaque objet dans `lessons` comprend `id`, `unit`, `chapter`, `title`, `summary`, `body` (HTML pédagogique), `essentials` et `quiz`. La structure statique évite une compilation applicative et fonctionne directement sur GitHub Pages. Les dépendances npm servent aux outils de développement et à la préparation du SDK local ; Supabase constitue le service externe réservé aux comptes et profils, sans framework frontend.
 
 ## Administrer la bibliothèque documentaire
 
@@ -291,7 +312,7 @@ Les 12 photographies sont conservées localement avec leurs crédits : 6 CC0, 4 
 - **ITK simplifié et non prescriptif** : les densités, périodes et durées sont des ordres de grandeur pédagogiques, pas des recommandations agronomiques validées pour une parcelle donnée. Les paramètres sol/eau déclenchent des avertissements mais pas de calcul de fertilisation, d'irrigation ou de rendement. Aucune prise en compte automatique de la météo, de l'analyse de sol, de la région, des résistances variétales ou du marché.
 - **Variétés** : exemples de noms et types, sans base variétale scientifique. Choisir une variété modifie les **points de vigilance**, mais **pas** les dates ni les densités faute de fiches variétales documentées. À développer avec un catalogue sourcé.
 - **Stockage** : progression, score et dernière configuration ITK sont conservés dans `localStorage`, sur ce navigateur uniquement. Pas de synchronisation entre appareils. Effacer les données du navigateur supprime ce suivi.
-- **Confidentialité** : GitHub Pages ne protège pas le site par mot de passe ; ne pas publier de supports sous droits ou de données privées.
+- **Confidentialité** : les fichiers GitHub Pages sont publics, même lorsque leurs liens sont masqués. Les profils privés doivent être protégés par Supabase/RLS ; ne jamais placer de données privées dans le HTML, les assets ou les PDF publiés. Le service de compte reste désactivé par défaut et l’ouverture à la promotion attend les validations prévues.
 - **Polices** : polices système (aucun appel à un service tiers).
 
 ## Références pour poursuivre
