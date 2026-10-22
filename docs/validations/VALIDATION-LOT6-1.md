@@ -2,6 +2,8 @@
 
 Préparation le **22 octobre 2026**, sur `feature/authentification-lot6-1`, créée depuis `origin/main` au commit `f6e99b3`. Ce commit fusionne la PR nº 8 du lot 5.2 ; son intégration a été vérifiée avec `git merge-base --is-ancestor`. Le dépôt était propre avant intervention. Aucune donnée locale préexistante n’a été supprimée.
 
+**Statut : implémentation et validation sur Supabase local de CI réussies.** Le critère principal est vérifié avec comptes fictifs : activation sur invitation, connexion, consultation/modification du pseudo et isolation effective des profils A/B. Aucun projet hébergé DEV/PROD ni SMTP externe n’a été configuré ; le frontend publié reste désactivé par défaut. Ces préparatifs manuels et les lots 6.4/6.5 conditionnent toujours l’utilisation de comptes étudiants.
+
 ## Livraison et périmètre
 
 Le site reste statique, avec ses trois rubriques et toutes ses URL historiques. Quatre pages HTML sont ajoutées : connexion, activation/récupération, mot de passe oublié et profil. Un client Supabase par document et un service partagé avec le header restaurent et contrôlent les sessions. Le SDK **2.118.0**, verrouillé, est servi localement ; `esbuild` **0.28.2** ne sert qu’à sa préparation. La configuration suivie reste désactivée et ne contient aucun identifiant.
@@ -59,11 +61,26 @@ La suite de sécurité est préparée avec **Supabase CLI 2.121.0** et PostgreSQ
 
 Le workflow distinct **Sécurité Auth et RLS**, job `supabase-security`, utilise une stack Docker éphémère locale au runner. Les seules clés sont générées pour cette stack, capturées hors journaux et masquées avant usage. La clé administrative ne va jamais dans la page. Traces, vidéo et captures des E2E réels sont désactivées ; seul le compte synthétique créé par le run peut être nettoyé. Les comptes étudiants et projets distants sont interdits par les gardes d’environnement.
 
-La [PR nº 9](https://github.com/Vladoche/mon-bprea/pull/9) est ouverte en brouillon vers `main`. **Au lancement de la PR, ces tests réels ne sont pas encore validés.** La réussite des unités et des E2E autonomes ne démontre pas RLS. Les résultats CI doivent être consignés ici avant de lever cette réserve. Les jobs obligatoires `unit-integration` et `e2e` et le ruleset de `main` sont conservés. Aucune fusion ni publication n’est autorisée par cette livraison.
+La [PR nº 9](https://github.com/Vladoche/mon-bprea/pull/9) est ouverte en brouillon vers `main`. La validation de sécurité repose sur les essais réels ci-dessous, distincts des unités. Les jobs obligatoires `unit-integration` et `e2e` et le ruleset de `main` sont conservés. Aucune fusion ni publication n’est autorisée par cette livraison.
 
 Premier [run de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/39829500314) : stack réelle démarrée, **19 contrôles pgTAP réussis**, refus des inscriptions publiques et connexions anonymes vérifié, deux invitations reçues/activées et liens invalides/réutilisés refusés. La connexion par mot de passe a ensuite échoué : `auth.email.enable_signup=false` désactivait le fournisseur e-mail entier dans cette version CLI. La configuration est corrigée pour conserver ce fournisseur avec `true` tout en gardant `auth.enable_signup=false`. Le runner exige toujours le code exact `signup_disabled` pour une création libre. Ce premier run partiel ne valide pas l’ensemble du lot ; une nouvelle exécution complète est requise.
 
 Deuxième [run de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/39829999777) : les **19 contrôles SQL et les dix premiers groupes API réels passent**, dont connexion, isolation A/B, pseudo, colonnes techniques, contraintes Unicode/contrôles, JWT falsifié, récupération et révocation du refresh. Le dernier groupe révèle une attente d’expiration trop courte : PostgREST tolère officiellement 30 secondes de décalage sur `exp`. Le test est corrigé pour attendre `exp + 30 s + 2 s`, puis exiger un HTTP 401 avec `PGRST303`, sans accepter un simple échec serveur. Cette marge est documentée et aucun contrôle de signature/RLS n’est assoupli.
+
+Sur le commit corrigé `f3a3816`, les deux jobs du [workflow Qualité](https://github.com/Vladoche/mon-bprea/actions/runs/39830811985) sont **réussis**. Le [troisième run de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/39830812009) est lui aussi **entièrement réussi**, y compris l’arrêt de la stack et le nettoyage ciblé.
+
+| Vérification réelle sur la stack locale éphémère du runner | Résultat |
+| --- | --- |
+| Migrations versionnées et démarrage Supabase CLI 2.121.0 | Réussis |
+| pgTAP sur PostgreSQL | **19/19 contrôles réussis** |
+| Auth, capture mail, invitations, sessions, récupération et RLS A/B | **11/11 groupes réussis**, sans mocks ni clients étudiants privilégiés |
+| Expiration réelle invitation / récupération / JWT | Refus vérifiés, dont HTTP 401 + `PGRST303` après la marge PostgREST |
+| Playwright relié au vrai Supabase local | **1 parcours complet réussi en 6,0 s** |
+| Jobs Qualité `unit-integration` et `e2e` | **107 tests Vitest et 17 parcours autonomes réussis** |
+
+Le parcours navigateur réel confirme l’activation d’un invité depuis un navigateur sans session, distinct du contexte d’envoi, la définition de son mot de passe, le profil créé par trigger, la modification/relecture du pseudo, la restauration après rechargement, la navigation de compte, la déconnexion avec historiques locaux conservés, le refus d’un mauvais mot de passe, l’e-mail de récupération capturé puis le nouveau mot de passe. Les cours restent publics ; le thème hiver sombre est préservé. Le contrôle d’isolation A/B est exercé indépendamment par les requêtes HTTP authentifiées contre PostgreSQL.
+
+Les journaux consultés ne révèlent aucune clé locale : valeurs masquées et sorties CLI brutes conservées seulement dans le runner éphémère. Aucun secret distant n’a été fourni ou ajouté au dépôt. Les comptes fictifs créés par les tests ont été nettoyés ; aucun compte étudiant ni navigateur personnel n’a été utilisé.
 
 ## Interventions et limites avant ouverture
 
