@@ -32,15 +32,17 @@ Utiliser Node.js 24 LTS pour ces outils. Le site publié reste utilisable sans N
 
 ## Séparer développement et production
 
+Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire ; les modèles et la livraison des e-mails restent à configurer et à valider.
+
 | Environnement | Usage | Données |
 | --- | --- | --- |
 | Stack CLI `mon-bprea-lot6-1-local` | Migrations, SMTP capturé, essais automatisés réels et RLS | Comptes fictifs isolés exclusivement |
 | Projet Supabase DEV distinct | Vérification manuelle d’une configuration hébergée, avec frontend local | Comptes d’essai autorisés, jamais les camarades |
 | Projet Supabase PROD distinct | Futur accueil des étudiants au lot 6.5 | Aucun compte étudiant à créer dans ce lot |
 
-Pour créer DEV, ouvrir le Dashboard Supabase avec un compte autorisé, créer un projet nommé explicitement pour les essais et choisir la région après examen des exigences d’hébergement. Conserver le mot de passe de base dans un gestionnaire de secrets. Relever la référence du projet, l’URL publique et la clé **publishable** dans les réglages API. Ne pas créer une table à la main : appliquer la migration versionnée décrite ci-dessous. Configurer ensuite Auth, les URL et les modèles d’e-mails, puis vérifier avec des comptes fictifs.
+Dans le Dashboard Supabase, sélectionner le projet DEV existant et vérifier sa référence exacte à partir du rapport de validation. Conserver le mot de passe de base dans un gestionnaire de secrets. Relever l’URL publique et la clé **publishable** dans les réglages API. Ne pas créer une table à la main : utiliser les migrations versionnées et contrôler leur historique. La migration du lot 6.1 est déjà appliquée sur DEV ; ne pas la rejouer. Vérifier les réglages Auth et les URL, puis résoudre la configuration des modèles d’e-mails avec un SMTP adapté.
 
-Créer ultérieurement PROD comme projet séparé, avec ses propres clés, règles, SMTP, sauvegardes et réglages. Ne pas copier la base d’essai ni ses comptes. Toute opération nécessitant l’accès à un projet ou une modification distante doit être effectuée par une personne autorisée ; ne jamais confondre une préparation locale avec un déploiement.
+Le projet PROD existe séparément, avec ses propres clés, règles, SMTP, sauvegardes et réglages à préparer avant l’ouverture. Ne pas copier la base d’essai ni ses comptes. Toute opération nécessitant l’accès à un projet ou une modification distante doit être effectuée par une personne autorisée ; ne jamais confondre une préparation locale avec un déploiement. Aucune opération de préparation DEV ne doit modifier PROD.
 
 ## Configuration publique du frontend
 
