@@ -115,6 +115,8 @@ Le SDK Supabase 2.118.0 est préparé avec `npm run build:auth-sdk` après `npm 
 
 Avant toute ouverture réelle : appliquer et vérifier les migrations, prouver le refus d’inscription directe et l’isolation des comptes A/B, tester invitations et récupération avec e-mails contrôlés, confirmer les URL Pages et configurer SMTP. Finaliser les informations juridiques, la conservation et les procédures de droits au lot 6.4 ; l’ouverture de la promotion reste conditionnée au lot 6.5. La session navigateur est persistante et exposée aux risques XSS/appareil partagé ; la déconnexion préserve tous les historiques pédagogiques de l’appareil.
 
+Les projets DEV et PROD existent déjà. Le [rapport de vérification et finalisation Supabase DEV](docs/validations/VALIDATION-SUPABASE-DEV.md), actualisé le 24 octobre 2026, confronte les traces de la session précédente à l'état hébergé, aux réglages Auth et aux résultats CI. DEV est prêt pour développer le lot 6.2 ; l'installation des modèles et les parcours depuis un e-mail reçu restent à valider avec un SMTP adapté, conformément au choix actuel de n'envoyer aucun message. Aucun projet supplémentaire ni déploiement public n'est nécessaire.
+
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
 1. Crée un dépôt GitHub, par exemple **`mon-bprea`**. Pour GitHub Pages sur un compte GitHub Free, le dépôt doit généralement être **public**.
