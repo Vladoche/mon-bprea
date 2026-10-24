@@ -3,23 +3,6 @@ name: Sécurité Auth et RLS
 on:
   pull_request:
     branches: [main]
-    paths:
-      - 'supabase/**'
-      - 'assets/auth*'
-      - 'assets/supabase-client.js'
-      - 'assets/vendor/supabase*'
-      - 'connexion.html'
-      - 'authentification.html'
-      - 'mot-de-passe-oublie.html'
-      - 'profil.html'
-      - 'scripts/test-supabase.mjs'
-      - 'scripts/ci-supabase-env.mjs'
-      - 'tests/e2e-supabase/**'
-      - 'tests/helpers/auth-local.js'
-      - 'playwright.supabase.config.js'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/auth-security.yml'
   workflow_dispatch:
 
 permissions:
