@@ -98,8 +98,11 @@ Une fois les valeurs renseignées :
 
 ```bash
 npm run test:supabase
+npm run test:drill:supabase
 npm run test:e2e:supabase
 ```
+
+Le lot 6.2.1 ajoute `scripts/test-drill-supabase.mjs`, exécuté par `npm run test:drill:supabase` et dans le même job `supabase-security`. Il réutilise les gardes strictes de la stack locale et deux invitations Auth fictives ; ses requêtes étudiantes emploient de vrais JWT et la clé publishable. Il vérifie les snapshots, les privilèges, les opérations idempotentes, l'immutabilité, RLS A/B et les écritures réellement concurrentes par PostgREST, puis relit les lignes gagnantes. Les tests pgTAP complémentaires restent distincts de ceux des profils. Le [contrat backend](architecture/DRILL-SYNCHRONISATION-BACKEND.md) et la [validation du lot](validations/VALIDATION-LOT6-2-1.md) précisent le périmètre et les résultats exécutés. Aucun de ces runners ne peut viser un projet hébergé, même DEV.
 
 Le runner de sécurité vérifie les lectures A/B, l’accès anonyme, les UUID arbitraires, le pseudo propre, le refus de modification des autres profils et colonnes techniques, les contraintes, les métadonnées falsifiées, un JWT falsifié et une session invalide. Il exerce aussi le refus d’inscription directe, les invitations natives, les mails capturés, l’activation depuis un contexte neuf, les liens invalides/réutilisés, la récupération et le refresh après déconnexion. L’expiration est réellement attendue avec les durées locales ; réserver plusieurs minutes et ne pas remplacer cette preuve par une horloge JavaScript simulée. Les requêtes étudiant utilisent leurs vrais jetons, jamais la clé administrative.
 
@@ -123,9 +126,9 @@ Pour rendre les vérifications obligatoires **après accord de l’utilisateur**
 
 Ce document prépare la procédure ; il ne modifie aucun réglage distant et ne prouve pas que les checks ont déjà été exécutés sur GitHub.
 
-Le dépôt possède désormais un ruleset actif sur `main` exigeant les contrôles `unit-integration` et `e2e` : conserver leurs noms exacts. Le lot 5.2 met à jour les actions officielles pour Node.js 24, sans toucher à ce ruleset ni lancer de publication. Le registre [ACTIONS-NODE24.md](architecture/ACTIONS-NODE24.md) donne les versions vérifiées et la conservation explicite de `.nojekyll` dans l’artefact Pages.
+Le ruleset actif sur `main`, relu le 24 octobre 2026, exige les trois contrôles `unit-integration`, `e2e` et `supabase-security` : conserver leurs noms exacts. Cette lecture ne modifie aucune protection. Le registre [ACTIONS-NODE24.md](architecture/ACTIONS-NODE24.md) donne les versions vérifiées et la conservation explicite de `.nojekyll` dans l’artefact Pages.
 
-Le workflow supplémentaire **Sécurité Auth et RLS**, `.github/workflows/auth-security.yml`, conserve le job distinct `supabase-security`. Sur les changements Auth/Supabase concernés, il démarre une stack Docker éphémère, charge uniquement ses clés locales, exécute pgTAP, les tests réels de sécurité et les parcours navigateur dédiés, puis arrête cette stack. Il n’exige aucun secret de production et ne publie pas les sorties CLI contenant des clés. La présence du workflow ne constitue pas un résultat d’exécution : contrôler son statut sur la PR et consigner ce qui a réellement été vérifié. Les deux checks obligatoires Qualité et le ruleset restent inchangés.
+Le workflow supplémentaire **Sécurité Auth et RLS**, `.github/workflows/auth-security.yml`, conserve le job distinct `supabase-security`. Il s’exécute sur toutes les PR vers `main`, y compris les PR documentaires, sans filtre de chemins. Il démarre une stack Docker éphémère, charge uniquement ses clés locales, exécute pgTAP, les tests réels de sécurité Auth et Drill ainsi que les parcours navigateur dédiés, puis arrête cette stack. Il n’exige aucun secret de production et ne publie pas les sorties CLI contenant des clés. La présence du workflow ne constitue pas un résultat d’exécution : contrôler son statut sur la PR et consigner ce qui a réellement été vérifié. Ce lot ne modifie ni le ruleset ni les noms des checks.
 
 ## Avant une pull request
 
