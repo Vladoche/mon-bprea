@@ -46,6 +46,8 @@ jobs:
         run: npx --yes supabase@2.121.0 test db
       - name: Vérifier invitations, récupération, sessions et RLS réels
         run: node scripts/test-supabase.mjs
+      - name: Vérifier le backend Drill, les conflits et RLS réels
+        run: node scripts/test-drill-supabase.mjs
       - name: Installer Chromium pour les parcours avec Supabase réel
         run: npx playwright install --with-deps chromium
       - name: Vérifier activation et récupération dans le navigateur

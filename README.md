@@ -117,6 +117,8 @@ Avant toute ouverture réelle : appliquer et vérifier les migrations, prouver l
 
 Les projets DEV et PROD existent déjà. Le [rapport de vérification et finalisation Supabase DEV](docs/validations/VALIDATION-SUPABASE-DEV.md), actualisé le 24 octobre 2026, confronte les traces de la session précédente à l'état hébergé, aux réglages Auth et aux résultats CI. DEV est prêt pour développer le lot 6.2 ; l'installation des modèles et les parcours depuis un e-mail reçu restent à valider avec un SMTP adapté, conformément au choix actuel de n'envoyer aucun message. Aucun projet supplémentaire ni déploiement public n'est nécessaire.
 
+Le lot **6.2.1** prépare le [backend PostgreSQL du Mode Drill](docs/architecture/DRILL-SYNCHRONISATION-BACKEND.md) : snapshots historiques, premières réponses immuables, entraînements dédupliqués et isolation par RLS. Le frontend et le Dashboard continuent d'utiliser leurs données locales ; la synchronisation est réservée aux lots 6.2.2 et 6.2.3. Les exécutions et l'état d'application sur DEV sont consignés dans la [validation du lot 6.2.1](docs/validations/VALIDATION-LOT6-2-1.md).
+
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
 1. Crée un dépôt GitHub, par exemple **`mon-bprea`**. Pour GitHub Pages sur un compte GitHub Free, le dépôt doit généralement être **public**.
