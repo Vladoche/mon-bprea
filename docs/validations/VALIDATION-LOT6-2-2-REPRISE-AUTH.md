@@ -43,9 +43,12 @@ Le scheduler borne explicitement le nombre de cycles et vérifie qu'aucun timer 
 | `npm test` | **149 tests réussis dans 19 fichiers**, aucun échec |
 | `npm run test:e2e` | **17 parcours Chromium autonomes réussis**, aucun échec ; serveur local et contextes isolés |
 | Supabase réel sur ce poste | Docker absent ; aucune exécution locale réelle revendiquée |
-| CI éphémère | À exécuter sur la PR corrective : les trois checks et le nouveau parcours réel restent à valider |
+| Qualité CI | [`unit-integration`](https://github.com/Vladoche/mon-bprea/actions/runs/40102273548/job/120896691981) et [`e2e`](https://github.com/Vladoche/mon-bprea/actions/runs/40102273548/job/120896692073) réussis sur le commit correctif `21d1e05739be1629590cfcdc857c18c1927d4d8f` |
+| Sécurité CI éphémère | [`supabase-security`](https://github.com/Vladoche/mon-bprea/actions/runs/40102273545/job/120896691915) réussi sur le même commit : **108 assertions pgTAP**, **11 groupes Auth/profils/RLS**, **22 groupes backend Drill**, **4 parcours Chromium Supabase réels** |
 
-Les tests simulés ci-dessus prouvent le comportement du client dans leurs scénarios ; ils ne remplacent pas les contrôles RLS et Auth réels de CI. Aucun HTML, CSS ou renderer n'est modifié : le nouveau parcours navigateur doit vérifier les changements d'état et la correction déjà visible, sans nouvelle mise en page.
+Le nouveau parcours **« reprise du même compte après panne Auth sans événement online » a réussi en 1,3 s**. Il a effectivement vérifié zéro événement `online`, le même UUID et le même payload RPC persisté, une seule requête de première réponse, une unique ligne PostgreSQL et aucun entraînement créé. La correction est restée visible après synchronisation. Les quatre parcours réels ont terminé en **15,5 s** et l'arrêt de la stack éphémère a réussi. Les tests existants n'ont été ni affaiblis ni retirés.
+
+Les tests simulés ci-dessus prouvent le comportement du client dans leurs scénarios ; les contrôles RLS et Auth réels ont été exécutés séparément en CI. Aucun HTML, CSS ou renderer n'est modifié : le nouveau parcours navigateur a vérifié les changements d'état et la correction déjà visible, sans nouvelle mise en page.
 
 ## Périmètre et limites
 
@@ -53,4 +56,4 @@ Aucune migration, politique RLS, RPC, configuration Supabase ou SMTP n'est modif
 
 Les limites de cache non chiffré et de disponibilité des pages hors connexion restent celles du [guide client](../architecture/DRILL-SYNCHRONISATION-CLIENT.md). Une identité réellement rejetée exige toujours une connexion valide ; cette correction ne l'autorise pas à synchroniser.
 
-La livraison attend la réussite des trois contrôles sur la PR corrective. Aucune fusion automatique ni publication n'est prévue.
+Les trois contrôles de la [PR corrective #14](https://github.com/Vladoche/mon-bprea/pull/14) ont réussi sur le commit correctif ; les preuves ajoutées au rapport sont documentaires et provoquent une nouvelle vérification automatique du head. Aucune fusion automatique ni publication n'est effectuée. Le défaut reste présent dans le commit `main` audité tant que cette correction n'y est pas intégrée ; la fusion de la PR #14 reste donc le seul préalable identifié au développement du lot 6.2.3 depuis `main`.
