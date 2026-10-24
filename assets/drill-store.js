@@ -108,9 +108,18 @@ function loadDocument() {
 /** Read saved snapshots even when the current question bank cannot be loaded. */
 export function readDrillState() {
   const loaded = loadDocument();
-  const result = { series: {}, error: loaded.error, warnings: [] };
-  if (!loaded.document) return result;
-  for (const [id, series] of Object.entries(loaded.document.series)) {
+  return readDrillDocument(loaded.document, loaded.error);
+}
+
+/** Shared read-only validator for visitor documents and personal IndexedDB caches. */
+export function readDrillDocument(document, error = null) {
+  const result = { series: {}, error, warnings: [] };
+  if (error) return result;
+  if (!isRecord(document) || document.version !== 1 || !isRecord(document.series)) {
+    result.error = 'Le document Drill est illisible. Ses données sont conservées sans modification.';
+    return result;
+  }
+  for (const [id, series] of Object.entries(document.series)) {
     if (!validSnapshot(series, id)) {
       result.warnings.push(`Une série enregistrée (${id}) est illisible. Ses données sont conservées sans modification.`);
       continue;
@@ -163,9 +172,13 @@ async function mutate(change) {
 
 /** Starting a series saves its complete versioned questions before the first answer. */
 export async function ensureSeries(unitId, weekId, questions, nowISO = new Date().toISOString()) {
+  return mutate(document => applySeries(document, unitId, weekId, questions, nowISO));
+}
+
+/** Pure document changes; the caller owns the persistence transaction. */
+export function applySeries(document, unitId, weekId, questions, nowISO) {
   if (!isId(unitId) || !isWeek(weekId)) return failure('L’UC ou la semaine de cette série est invalide.');
   const id = `${unitId}__${weekId}`;
-  return mutate(document => {
     if (hasOwn(document.series, id)) {
       const series = document.series[id];
       return validSnapshot(series, id)
@@ -183,7 +196,6 @@ export async function ensureSeries(unitId, weekId, questions, nowISO = new Date(
     const series = { id, unit: unitId, week: weekId, startedAt: nowISO, questions: snapshot, answers: {}, drafts: {}, trainingDrafts: {} };
     document.series[id] = series;
     return { series, changed: true };
-  });
 }
 
 function findQuestion(document, seriesId, questionId, optionId) {
@@ -199,8 +211,11 @@ function findQuestion(document, seriesId, questionId, optionId) {
 }
 
 export async function saveDraft(seriesId, questionId, optionId, { training = false } = {}) {
+  return mutate(document => applyDraft(document, seriesId, questionId, optionId, { training }));
+}
+
+export function applyDraft(document, seriesId, questionId, optionId, { training = false } = {}) {
   if (typeof training !== 'boolean') return failure('Le mode du brouillon est invalide.');
-  return mutate(document => {
     const found = findQuestion(document, seriesId, questionId, optionId);
     if (found.error) return found;
     const { series, question } = found;
@@ -216,7 +231,6 @@ export async function saveDraft(seriesId, questionId, optionId, { training = fal
     if (exists && drafts[questionId] === optionId) return { series, changed: false };
     drafts[questionId] = optionId;
     return { series, changed: true };
-  });
 }
 
 /**
@@ -224,8 +238,11 @@ export async function saveDraft(seriesId, questionId, optionId, { training = fal
  * attempts document practice volume without changing completion or the series success rate.
  */
 export async function submitAnswer(seriesId, questionId, optionId, { training = false, nowISO = new Date().toISOString() } = {}) {
+  return mutate(document => applyAnswer(document, seriesId, questionId, optionId, { training, nowISO }));
+}
+
+export function applyAnswer(document, seriesId, questionId, optionId, { training = false, nowISO = new Date().toISOString(), deduplicate = true } = {}) {
   if (typeof training !== 'boolean' || !isTimestamp(nowISO)) return failure('La tentative exige un mode et une date valides.');
-  return mutate(document => {
     const found = findQuestion(document, seriesId, questionId, optionId);
     if (found.error) return found;
     const { series, question } = found;
@@ -250,7 +267,7 @@ export async function submitAnswer(seriesId, questionId, optionId, { training = 
       // A duplicate event with the same timestamp is idempotent, including between tabs.
       const duplicate = previous.attempts.some(attempt => isRecord(attempt) && attempt.training === true &&
         attempt.answer === optionId && attempt.answeredAt === nowISO);
-      if (duplicate) return { series, changed: false };
+      if (deduplicate && duplicate) return { series, changed: false };
       previous.attempts.push({ ...response, training: true });
       if (!hasOwn(series, 'trainingDrafts')) series.trainingDrafts = {};
       series.trainingDrafts[questionId] = null;
@@ -258,5 +275,4 @@ export async function submitAnswer(seriesId, questionId, optionId, { training = 
       series.answers[questionId] = { ...response, attempts: [{ ...response, training: false }] };
     }
     return { series, changed: true };
-  });
 }

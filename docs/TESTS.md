@@ -132,6 +132,8 @@ Le workflow supplémentaire **Sécurité Auth et RLS**, `.github/workflows/auth-
 
 ## Avant une pull request
 
+Le lot 6.2.2 ajoute les suites Vitest `drill-personal-store`, `drill-sync-service`, `drill-sync-model`, `drill-sync-transport` et `auth-local-identity`. `fake-indexeddb` est réservé aux tests des transactions et de la concurrence locale. Les E2E `tests/e2e-supabase/drill-sync.spec.js` utilisent le vrai IndexedDB Chromium, les vrais JWT et PostgreSQL locaux pour les parcours multi-appareils, les conflits et les pannes. La perte d'acquittement est produite après `route.fetch()` réel, sans remplacer la réponse métier par un mock. Le [guide client](architecture/DRILL-SYNCHRONISATION-CLIENT.md) et la [validation du lot](validations/VALIDATION-LOT6-2-2.md) détaillent les frontières et preuves.
+
 Exécuter les suites, vérifier visuellement les pages touchées sur ordinateur et mobile, conserver le mode sombre et les préférences, contrôler les chemins relatifs et l’artefact Pages. Vérifier que les clés locales et historiques restent intacts, que les fichiers générés sont ignorés et qu’aucun secret n’est suivi. Résumer les résultats réels et les limites dans la validation du lot ; ne pas présenter une vérification impossible comme réussie.
 
 La priorité porte sur les calculs, la persistance et les transitions calendaires. Aucun seuil global de couverture n’est imposé ; une mesure éventuelle est informative et doit préciser son périmètre ainsi que les zones critiques non couvertes.

@@ -1,5 +1,7 @@
 # Authentification et profils — lot 6.1
 
+Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill](DRILL-SYNCHRONISATION-CLIENT.md), avec vérification de session avant chaque accès distant et JWT fixé par requête. Il ajoute un état `offline` limité à une identité locale déjà vérifiée (UUID/session_id correspondants), sans autorisation distante ; toute identité incertaine masque le cache. La déconnexion invalide immédiatement les vues et requêtes, puis appelle le SDK, sans effacer la progression. Les profils, RLS et flux d'invitation ci-dessous restent inchangés.
+
 Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
 
 La configuration versionnée est **désactivée**. Aucun projet, identifiant ou secret n’est fourni par le dépôt. La présence du code et des tests ne vaut pas validation de Supabase. Les opérations réellement exécutées et les blocages sont consignés dans [VALIDATION-LOT6-1.md](../validations/VALIDATION-LOT6-1.md). L’ouverture aux étudiants attend le lot 6.5 et une validation explicite ; la préparation juridique et les procédures de droits attendent notamment le lot 6.4.

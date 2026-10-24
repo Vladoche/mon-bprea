@@ -2,7 +2,8 @@ import { units } from './content.js';
 import { renderBreadcrumbs } from './breadcrumbs.js';
 import { loadDrillBank } from './drill-bank.js';
 import { getParisWeek, parseWeek, shiftWeek, nextParisWeekAt, selectWeeklyQuestions, getSeriesStats, getDrillUnitStats } from './drill-engine.js';
-import { readDrillState, ensureSeries, saveDraft, submitAnswer } from './drill-store.js';
+import { getDrillSyncService } from './drill-sync-service.js';
+import { syncPanelMarkup } from './drill-sync-ui.js';
 
 const clean = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
@@ -18,8 +19,10 @@ function statsMarkup(stats, className = '') {
 
 export async function initDrill(root) {
   root.innerHTML = `<section class="page-top wrap">${renderBreadcrumbs('drill')}<h1>Exercices hebdomadaires</h1><p role="status">Chargement des exercices de la semaine…</p></section>`;
-  let bank = await loadDrillBank();
-  let state = readDrillState();
+  const [loadedBank, store] = await Promise.all([loadDrillBank(), getDrillSyncService()]);
+  let bank = loadedBank;
+  let state = store.getState().view;
+  let renderedData = '';
   let currentWeek = getParisWeek();
   const query = new URLSearchParams(location.search);
   const selectedUnit = units.find(unit => unit.id === query.get('unit')) || units.find(unit => bank.questions.filter(question => question.unit === unit.id).length >= 10) || units[2];
@@ -73,7 +76,11 @@ export async function initDrill(root) {
   }
 
   function render() {
-    state = readDrillState();
+    const focused = root.contains(document.activeElement) ? document.activeElement : null;
+    const focusQuestion = focused?.closest('.drill-answer-form')?.dataset;
+    const focusValue = focused?.type === 'radio' ? focused.value : null;
+    state = store.getState().view;
+    renderedData = JSON.stringify(state);
     const series = storedSeries();
     const questions = series?.questions || selectWeeklyQuestions(bank.questions, selectedUnit.id, selectedWeek.id);
     const stats = series ? getSeriesStats(series) : { planned: 10, completed: 0, correct: 0, incorrect: 0, successRate: null };
@@ -87,9 +94,11 @@ export async function initDrill(root) {
     <section class="wrap drill-workspace" aria-labelledby="drill-session-title"><div class="drill-session-top"><div><span class="eyebrow">${clean(selectedUnit.code)} · ${selectedWeek.id === currentWeek.id ? 'SÉRIE ACTUELLE' : 'SÉRIE PRÉCÉDENTE'}</span><h2 id="drill-session-title">${clean(selectedUnit.title)}</h2><p>${periodLabel(selectedWeek)} · ${selectedWeek.id}</p></div><label class="drill-week-select">Choisir une semaine<select id="drill-week-select">${[...choices.values()].sort((a, b) => b.ordinal - a.ordinal).map(week => `<option value="${week.id}" ${week.id === selectedWeek.id ? 'selected' : ''}>${week.id}${week.id === currentWeek.id ? ' · actuelle' : ''}</option>`).join('')}</select></label></div>
     <div id="drill-week-notice" role="status">${selectedWeek.id !== currentWeek.id ? `<p class="drill-notice">Tu consultes une série précédente. <a class="text-link" href="${pageUrl(selectedUnit.id, currentWeek.id)}">Ouvrir la semaine actuelle →</a></p>` : ''}</div>
     ${state.error ? `<p class="drill-notice drill-notice-error" role="alert">${clean(state.error)} Les anciennes données restent conservées.</p>` : ''}${bank.error ? `<div class="drill-notice drill-notice-error"><p>${clean(bank.error)} ${series ? 'Ta série commencée reste accessible grâce aux questions sauvegardées.' : ''}</p><button class="btn btn-outline" type="button" data-drill-retry>Réessayer le chargement</button></div>` : ''}${bank.warnings.length || state.warnings.length ? `<details class="drill-notice"><summary>Certaines données ne peuvent pas être utilisées (${bank.warnings.length + state.warnings.length})</summary><ul>${[...bank.warnings, ...state.warnings].map(warning => `<li>${clean(warning)}</li>`).join('')}</ul></details>` : ''}
+    <div id="drill-sync-panel">${syncPanelMarkup(store.getState())}</div>
     <p class="drill-save-status ${errorMessage ? 'drill-notice-error' : ''}" id="drill-save-status" role="status" aria-live="polite">${clean(errorMessage || latestMessage)}</p>
     ${questions.length === 10 ? `${statsMarkup(stats)}<p class="drill-score-method">Réussite = bonnes réponses comptabilisées ÷ exercices réalisés. Les entraînements suivants restent séparés. Ce taux ne prédit pas la réussite à l’examen.</p>${sessionMarkup(series, questions)}` : `<div class="drill-incomplete"><span class="eyebrow">${bank.error ? 'BANQUE INDISPONIBLE' : 'BANQUE INCOMPLÈTE'}</span><h3>${bank.error ? 'Les exercices ne sont pas accessibles pour le moment.' : 'Les questions prennent encore racine.'}</h3><p>${bank.error ? 'Réessaie le chargement pour retrouver les questions disponibles.' : `${bankCount} question${bankCount > 1 ? 's' : ''} exploitable${bankCount > 1 ? 's' : ''} pour cette UC. Il en faut au moins 10 différentes pour composer une série.`}</p><p>Aucune question n’est dupliquée pour compléter artificiellement une série. Les séries déjà commencées restent accessibles dans ton historique.</p></div>`}
-    </section><section class="wrap drill-history" aria-labelledby="drill-history-title"><span class="eyebrow">CONSERVER LE FIL</span><h2 id="drill-history-title">Tes séries · ${clean(selectedUnit.code)}</h2>${historyMarkup()}</section><aside class="wrap drill-storage-note"><p>Réponses et historique conservés dans ce navigateur, sur cet appareil. Les séries commencées gardent leur version des questions. Tu peux aussi commencer une série des huit semaines précédentes, même sans avoir terminé les autres.</p><p>Les questions actuelles reprennent les cours de démonstration. Elles ne remplacent pas les supports de ton centre de formation.</p></aside>`;
+    </section><section class="wrap drill-history" aria-labelledby="drill-history-title"><span class="eyebrow">CONSERVER LE FIL</span><h2 id="drill-history-title">Tes séries · ${clean(selectedUnit.code)}</h2>${historyMarkup()}</section><aside class="wrap drill-storage-note"><p>${store.getState().mode === 'personal' ? 'Réponses sauvegardées d’abord sur cet appareil, puis sur ton compte quand la synchronisation est confirmée. Le cache personnel n’est pas chiffré : sur un appareil partagé, la déconnexion masque les données mais conserve les réponses en attente. Une personne ayant accès au navigateur peut lire ce cache. Hors connexion, seules les séries déjà enregistrées ici restent disponibles.' : 'Réponses et historique conservés dans ce navigateur, sur cet appareil.'} Les séries commencées gardent leur version des questions. Tu peux aussi commencer une série des huit semaines précédentes, même sans avoir terminé les autres.</p><p>Les questions actuelles reprennent les cours de démonstration. Elles ne remplacent pas les supports de ton centre de formation.</p></aside>`;
+    if (focusQuestion && focusValue) root.querySelector(`form[data-question="${CSS.escape(focusQuestion.question)}"][data-training="${focusQuestion.training}"] input[value="${CSS.escape(focusValue)}"]`)?.focus({ preventScroll: true });
   }
 
   function showMessage(message, error = false) {
@@ -108,7 +117,9 @@ export async function initDrill(root) {
     const form = event.target.closest('.drill-answer-form');
     if (!form || event.target.type !== 'radio') return;
     form.querySelector('button[type="submit"]').disabled = false;
-    const result = await saveDraft(seriesId(selectedUnit.id, selectedWeek.id), form.dataset.question, event.target.value, { training: form.dataset.training === 'true' });
+    const currentScope = store.getState().scope;
+    const result = await store.saveDraft(seriesId(selectedUnit.id, selectedWeek.id), form.dataset.question, event.target.value, { training: form.dataset.training === 'true' });
+    if (currentScope !== store.getState().scope) return;
     showMessage(result.error || 'Choix enregistré sur cet appareil. Valide ta réponse pour consulter la correction.', !!result.error);
   });
 
@@ -121,8 +132,10 @@ export async function initDrill(root) {
     if (!value) return;
     pending = true;
     form.querySelector('button[type="submit"]').disabled = true;
-    const result = await submitAnswer(seriesId(selectedUnit.id, selectedWeek.id), form.dataset.question, value, { training: form.dataset.training === 'true', nowISO: new Date().toISOString() });
+    const currentScope = store.getState().scope;
+    const result = await store.submitAnswer(seriesId(selectedUnit.id, selectedWeek.id), form.dataset.question, value, { training: form.dataset.training === 'true', nowISO: new Date().toISOString() });
     pending = false;
+    if (currentScope !== store.getState().scope) { activeTraining.clear(); render(); return; }
     if (result.error) { showMessage(result.error, true); form.querySelector('button[type="submit"]').disabled = false; return; }
     const questionId = form.dataset.question;
     activeTraining.delete(questionId);
@@ -133,14 +146,28 @@ export async function initDrill(root) {
   });
 
   root.addEventListener('click', async event => {
+    if (event.target.closest('[data-drill-sync-retry]')) {
+      event.target.closest('button').disabled = true;
+      try { await store.retry(); } catch { showMessage('La synchronisation reste indisponible. Les données locales sont conservées.', true); }
+      return;
+    }
+    const resolve = event.target.closest('[data-drill-resolve]');
+    if (resolve) {
+      resolve.disabled = true;
+      try { await store.resolveConflict(resolve.dataset.drillResolve); render(); }
+      catch { showMessage('Le conflit n’a pas pu être résolu. Ses données restent conservées.', true); resolve.disabled = false; }
+      return;
+    }
     if (event.target.closest('[data-drill-start]')) {
       if (pending) return;
       pending = true;
       const button = event.target.closest('[data-drill-start]');
       button.disabled = true;
       const selected = selectWeeklyQuestions(bank.questions, selectedUnit.id, selectedWeek.id);
-      const result = await ensureSeries(selectedUnit.id, selectedWeek.id, selected, new Date().toISOString());
+      const currentScope = store.getState().scope;
+      const result = await store.ensureSeries(selectedUnit.id, selectedWeek.id, selected, new Date().toISOString());
       pending = false;
+      if (currentScope !== store.getState().scope) { activeTraining.clear(); render(); return; }
       if (result.error) { showMessage(result.error, true); button.disabled = false; return; }
       latestMessage = 'Série enregistrée. Tes choix sont sauvegardés à chaque sélection.';
       errorMessage = '';
@@ -160,10 +187,21 @@ export async function initDrill(root) {
     timer = setTimeout(checkWeek, Math.max(1000, nextParisWeekAt().getTime() - Date.now() + 50));
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { checkWeek(); render(); } });
-  window.addEventListener('pageshow', () => { checkWeek(); render(); });
+  window.addEventListener('pageshow', event => { if (event.persisted) { location.reload(); return; } checkWeek(); render(); });
+  window.addEventListener('pagehide', () => { store.stop(); clearTimeout(timer); if (store.getState().mode !== 'visitor') root.replaceChildren(); });
   window.addEventListener('storage', event => {
-    if (event.key === 'bprea-demo-drill-v1' || event.key === null) { latestMessage = 'Historique actualisé depuis un autre onglet.'; render(); }
+    if (store.getState().mode === 'visitor' && (event.key === 'bprea-demo-drill-v1' || event.key === null)) { latestMessage = 'Historique actualisé depuis un autre onglet.'; render(); }
   });
   render();
+  let displayedScope = store.getState().scope;
+  store.subscribe(next => {
+    if (next.scope !== displayedScope) { displayedScope = next.scope; activeTraining.clear(); latestMessage = ''; errorMessage = ''; render(); return; }
+    if (!pending && JSON.stringify(next.view) !== renderedData) render();
+    else {
+      const panel = root.querySelector('#drill-sync-panel');
+      const markup = syncPanelMarkup(next);
+      if (panel && panel.innerHTML !== markup) panel.innerHTML = markup;
+    }
+  });
   checkWeek();
 }

@@ -119,6 +119,8 @@ Les projets DEV et PROD existent déjà. Le [rapport de vérification et finalis
 
 Le lot **6.2.1** prépare le [backend PostgreSQL du Mode Drill](docs/architecture/DRILL-SYNCHRONISATION-BACKEND.md) : snapshots historiques, premières réponses immuables, entraînements dédupliqués et isolation par RLS. Le frontend et le Dashboard continuent d'utiliser leurs données locales ; la synchronisation est réservée aux lots 6.2.2 et 6.2.3. Les exécutions et l'état d'application sur DEV sont consignés dans la [validation du lot 6.2.1](docs/validations/VALIDATION-LOT6-2-1.md).
 
+Le lot **6.2.2** ajoute la [synchronisation personnelle du Drill](docs/architecture/DRILL-SYNCHRONISATION-CLIENT.md), disponible dans un environnement d'essai Auth configuré : cache IndexedDB distinct par compte/projet/environnement, réponses et file d'envoi atomiques, retries idempotents, récupération sur un autre appareil et conflits conservés avec reprise explicite. Le visiteur garde son historique local sans import automatique. Les brouillons restent locaux et le Dashboard affiche toujours les données visiteur de cet appareil ; sa synchronisation appartient au lot 6.2.3. Le défaut publié reste désactivé. Les [preuves du lot 6.2.2](docs/validations/VALIDATION-LOT6-2-2.md) précisent les tests réellement exécutés et les limites du hors ligne et du cache personnel sur appareil partagé.
+
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
 1. Crée un dépôt GitHub, par exemple **`mon-bprea`**. Pour GitHub Pages sur un compte GitHub Free, le dépôt doit généralement être **public**.
