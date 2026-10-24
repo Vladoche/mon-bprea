@@ -15,6 +15,7 @@ export function createDrillSyncService({ auth, configuration, repositoryFactory 
   let generation = 0; let scope = null; let repository = null; let transport = null;
   let mode = 'blocked'; let view = emptyView('Vérification du compte…'); let document = null;
   let ready; let run = null; let abort; let timer; let syncState = 'loading'; let syncError = null;
+  let lastAuthStatus = null;
   let stopped = false; let lastPull = 0; let pullRequired = true; let runFailures = 0;
   const subscribers = new Set();
   const listeners = [];
@@ -32,11 +33,13 @@ export function createDrillSyncService({ auth, configuration, repositoryFactory 
   }
   function invalidate() { generation++; abort?.abort(); cancel(timer); timer = null; run = null; }
   async function changeIdentity(state) {
+    const previousAuthStatus = lastAuthStatus;
+    lastAuthStatus = state.status;
     const userId = ['authenticated', 'offline'].includes(state.status) ? state.user?.id : null;
     const next = userId && configuration.client ? personalScope({ ...configuration, userId }) : null;
     if (next && next === scope && mode === 'personal') {
       if (state.status === 'offline') { invalidate(); syncState = 'offline'; notify(); return; }
-      if (state.status === 'authenticated' && syncState === 'session') { syncState = 'pending'; requestSync(true); }
+      if (state.status === 'authenticated' && (previousAuthStatus === 'offline' || syncState === 'session')) { syncState = 'pending'; requestSync(true); }
       return;
     }
     invalidate(); scope = next; document = null; syncError = null; lastPull = 0; pullRequired = true;

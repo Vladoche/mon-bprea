@@ -1,5 +1,7 @@
 # Validation — synchronisation du Mode Drill (lot 6.2.2)
 
+Après fusion de la PR #13, la [revue corrective de reprise Auth](VALIDATION-LOT6-2-2-REPRISE-AUTH.md) complète ce compte rendu historique : elle documente le cas `offline → authenticated` sans événement `online`, sa reproduction et sa correction ciblée.
+
 Préparation du **24 octobre 2026**, branche `feature/lot6-2-2-sync-drill` créée depuis `origin/main` **`f7fc1b7b6da1d5b5fc6a6bc14c3b946777c25501`**. La fusion de la [PR #12](https://github.com/Vladoche/mon-bprea/pull/12) a été confirmée par GitHub et les références Git actualisées. L'arbre de travail initial était propre. Aucun autre lot n'est commencé.
 
 ## Fonctionnalités et fichiers
