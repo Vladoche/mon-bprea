@@ -11,7 +11,7 @@ export async function initAuthHeader(root) {
     link.href = state.status === 'authenticated' ? 'profil.html' : 'connexion.html';
     link.textContent = state.status === 'authenticated' ? 'Mon profil' : 'Connexion';
     root.append(link);
-    if (state.status === 'authenticated') {
+    if (['authenticated', 'offline'].includes(state.status)) {
       const button = document.createElement('button');
       button.type = 'button'; button.className = 'account-signout'; button.textContent = 'Déconnexion';
       button.addEventListener('click', async () => {

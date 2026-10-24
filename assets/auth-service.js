@@ -1,5 +1,6 @@
 import { getSupabaseClient } from './supabase-client.js';
 import { validateCredentials, validateEmail, validatePassword, validatePseudo } from './auth-validation.js';
+import { createLocalIdentityMarker } from './auth-local-identity.js';
 
 const unavailable = 'L’espace compte n’est pas encore configuré. Les cours et outils restent accessibles.';
 const network = 'Le service est injoignable. Vérifie ta connexion puis réessaie.';
@@ -23,7 +24,9 @@ function safeError(error, operation) {
 const publicUser = user => user?.id ? Object.freeze({ id: user.id, email: user.email || '', created_at: user.created_at || null }) : null;
 
 // Seule frontière applicative avec Auth et profiles. Aucun résultat pédagogique.
-export function createAuthService(client, { configurationError, siteUrl } = {}) {
+export function createAuthService(client, { configurationError, siteUrl, environment, url } = {}) {
+  const marker = createLocalIdentityMarker({ environment, url, siteUrl });
+  let localSession = null;
   const unavailableMessage = configurationError === 'network' ? 'Le service de compte est injoignable. Vérifie ta connexion puis recharge la page.' : unavailable;
   let state = Object.freeze({ status: client ? 'loading' : 'unavailable', user: null, error: client ? null : unavailableMessage });
   let started;
@@ -33,6 +36,12 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
   function publish(status, user = null, error = null) {
     state = Object.freeze({ status, user: publicUser(user), error });
     for (const listener of subscribers) listener(state);
+  }
+  function sessionFailure(error, session) {
+    if (error.code === 'invalid_session') { marker.clear(); publish('anonymous'); return; }
+    const identity = error.code === 'network' && marker.restore(session);
+    if (identity) publish('offline', identity, 'Identité locale reconnue. La connexion au compte doit être vérifiée avant toute synchronisation.');
+    else publish('error', null, error.message);
   }
   const assertClient = () => { if (!client || configurationError) throw new AuthError(unavailableMessage, 'unavailable'); };
   async function run(operation, callback) {
@@ -49,9 +58,11 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
     if (revision !== expectedRevision) throw new AuthError('La session a changé. Réessaie.', 'session_changed');
     if (state.user && state.user.id !== data.user.id) {
       revision++;
+      marker.clear();
       passwordLinkUser = null;
     }
     publish('authenticated', data.user);
+    marker.remember(localSession, data.user.id);
     return data.user;
   }
   async function requireUser() {
@@ -64,7 +75,7 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
       return user;
     }
     catch (error) {
-      if (error.code === 'invalid_session') { revision++; passwordLinkUser = null; publish('anonymous'); }
+      if (error.code === 'invalid_session') { revision++; passwordLinkUser = null; marker.clear(); publish('anonymous'); }
       throw error;
     }
   }
@@ -83,7 +94,8 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
         client.auth.onAuthStateChange((event, session) => {
           // Callback synchrone : aucune attente d'appel Auth dans son verrou.
           if (event === 'INITIAL_SESSION') return;
-          if (event === 'SIGNED_OUT' || !session?.user) { revision++; passwordLinkUser = null; publish('anonymous'); return; }
+          if (event === 'SIGNED_OUT' || !session?.user) { revision++; passwordLinkUser = null; localSession = null; marker.clear(); publish('anonymous'); return; }
+          localSession = session;
           if (passwordLinkUser && passwordLinkUser !== session.user.id) passwordLinkUser = null;
           // Un renouvellement pour le même UUID ne change pas le propriétaire
           // d'une requête en cours, y compris s'il est déclenché par getUser().
@@ -91,7 +103,7 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
           if (state.user?.id !== session.user.id) publish('loading');
           setTimeout(() => {
             verifyIdentity(current).catch(error => {
-              if (current === revision) publish(error.code === 'invalid_session' ? 'anonymous' : 'error', null, error.message);
+              if (current === revision) sessionFailure(error, session);
             });
           }, 0);
         });
@@ -99,27 +111,49 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
         try {
           const data = await run('session', () => client.auth.getSession());
           if (current !== revision) return state;
+          localSession = data?.session;
           if (data?.session) await verifyIdentity(current);
-          else publish('anonymous');
+          else { marker.clear(); publish('anonymous'); }
         } catch (error) {
-          if (current === revision) publish(error.code === 'invalid_session' ? 'anonymous' : 'error', null, error.message);
+          if (current === revision) sessionFailure(error, localSession);
         }
         return state;
       })();
       return started;
     },
-    async retry() { assertClient(); const data = await run('session', () => client.auth.getSession()); if (data?.session) await verifyIdentity(revision); else publish('anonymous'); },
+    async retry() {
+      assertClient(); const current = revision;
+      try {
+        const data = await run('session', () => client.auth.getSession());
+        if (current !== revision) throw new AuthError('La session a changé. Réessaie.', 'session_changed');
+        localSession = data?.session;
+        if (data?.session) await verifyIdentity(current); else { marker.clear(); publish('anonymous'); }
+      } catch (error) {
+        if (current === revision && error.code !== 'session_changed') { if (error.code === 'invalid_session') revision++; sessionFailure(error, localSession); }
+        throw error;
+      }
+    },
+    async verifiedSession(expectedUserId) {
+      if (state.status === 'offline') await service.retry();
+      const user = await requireUser();
+      const current = revision;
+      const data = await run('session', () => client.auth.getSession());
+      if (current !== revision || state.status !== 'authenticated' || user.id !== expectedUserId || data?.session?.user?.id !== user.id || !data.session.access_token)
+        throw new AuthError('La session a changé. Réessaie.', 'session_changed');
+      return { userId: user.id, accessToken: data.session.access_token };
+    },
     async signIn(email, password) {
       const problem = validateCredentials(email, password);
       if (problem) throw new AuthError(problem, 'validation');
       const data = await run('login', () => client.auth.signInWithPassword({ email: email.trim(), password }));
       if (!data?.user?.id || !data?.session) throw new AuthError('Connexion impossible. Réessaie.', 'invalid_credentials');
-      revision++; passwordLinkUser = null; publish('authenticated', data.user);
+      revision++; passwordLinkUser = null; localSession = data.session; marker.remember(localSession, data.user.id); publish('authenticated', data.user);
       return state.user;
     },
     async signOut() {
-      await run('logout', () => client.auth.signOut({ scope: 'local' }));
-      revision++; passwordLinkUser = null; publish('anonymous');
+      revision++; passwordLinkUser = null; localSession = null; marker.clear(); publish('loading');
+      try { await run('logout', () => client.auth.signOut({ scope: 'local' })); publish('anonymous'); }
+      catch (error) { publish('error', null, error.message); throw error; }
     },
     async requestPasswordReset(email) {
       const problem = validateEmail(email);
@@ -132,7 +166,7 @@ export function createAuthService(client, { configurationError, siteUrl } = {}) 
         throw new AuthError('Ce lien est invalide, expiré ou déjà utilisé. Demande un nouveau lien.', 'invalid_link');
       const data = await run('link', () => client.auth.verifyOtp({ token_hash, type }));
       if (!data?.session || !data?.user?.id) throw new AuthError('Ce lien est invalide ou expiré.', 'invalid_link');
-      revision++; passwordLinkUser = data.user.id; publish('authenticated', data.user);
+      revision++; passwordLinkUser = data.user.id; localSession = data.session; marker.remember(localSession, data.user.id); publish('authenticated', data.user);
       return state.user;
     },
     async updatePassword(password) {

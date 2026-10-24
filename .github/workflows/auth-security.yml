@@ -50,7 +50,7 @@ jobs:
         run: node scripts/test-drill-supabase.mjs
       - name: Installer Chromium pour les parcours avec Supabase réel
         run: npx playwright install --with-deps chromium
-      - name: Vérifier activation et récupération dans le navigateur
+      - name: Vérifier Auth et synchronisation Drill multi-appareils dans le navigateur
         env:
           PYTHON: python3
         run: npx playwright test --config=playwright.supabase.config.js

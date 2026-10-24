@@ -1,5 +1,7 @@
 # Mode Drill — contrat PostgreSQL et sécurité du lot 6.2.1
 
+L'implémentation du client au lot 6.2.2 est décrite dans [DRILL-SYNCHRONISATION-CLIENT.md](DRILL-SYNCHRONISATION-CLIENT.md). Le périmètre ci-dessous est celui du backend validé au lot 6.2.1 ; ses RPC et son schéma restent inchangés.
+
 Ce lot prépare le stockage distant des séries hebdomadaires, premières réponses et entraînements. Il ne branche aucun écran sur Supabase : le Drill et le Dashboard continuent d'utiliser leurs données locales, et `assets/auth-config.json` reste désactivé. Le client de synchronisation, la file d'attente hors ligne et la gestion des conflits à l'écran appartiennent au lot 6.2.2 ; le Dashboard distant appartient au lot 6.2.3.
 
 Les résultats réellement exécutés et l'état de l'application de la migration sur DEV sont consignés dans [VALIDATION-LOT6-2-1.md](../validations/VALIDATION-LOT6-2-1.md). La présence d'un fichier SQL ne prouve pas son installation sur un projet hébergé. L'application distante exige une vérification de la cible puis une autorisation explicite ; aucun accès à PROD n'est nécessaire au client ni aux tests locaux.

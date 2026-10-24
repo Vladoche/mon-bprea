@@ -36,5 +36,5 @@ async function initialize() {
       flowType: 'pkce', storageKey: `bprea-auth-${new URL(config.url).hostname}-${new URL(config.siteUrl).pathname}` },
     global: { fetch: (url, options = {}) => fetch(url, { ...options, signal: options.signal || AbortSignal.timeout(15000) }) },
   });
-  return { client, siteUrl: config.siteUrl };
+  return { client, siteUrl: config.siteUrl, environment: config.environment, url: config.url };
 }
