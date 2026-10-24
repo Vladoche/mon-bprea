@@ -42,4 +42,13 @@ describe('continuité locale Auth, sans autorisation distante', () => {
     const next = mockAuthClient({ session: session() }); next.client.auth.getUser.mockRejectedValue(new TypeError('network'));
     const offline = createAuthService(next.client, configuration); await offline.start(); expect(offline.getState().user).toBeNull();
   });
+
+  it('masque le cache hors ligne si la vérification de reprise rejette explicitement la session', async () => {
+    vi.stubGlobal('localStorage', new MemoryStorage());
+    const first = mockAuthClient({ session: session() }); await createAuthService(first.client, configuration).start();
+    const next = mockAuthClient({ session: session() }); next.client.auth.getUser.mockRejectedValueOnce(new TypeError('network'));
+    const service = createAuthService(next.client, configuration); await service.start(); expect(service.getState().status).toBe('offline');
+    next.client.auth.getUser.mockResolvedValue({ data: { user: null }, error: { status: 401, code: 'bad_jwt' } });
+    await expect(service.verifiedSession(authUser.id)).rejects.toThrow(); expect(service.getState()).toMatchObject({ status: 'anonymous', user: null });
+  });
 });

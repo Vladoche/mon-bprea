@@ -26,7 +26,9 @@ export function createDrillTransport(client, auth, userId) {
   }
   async function checked(query, token, signal, active) {
     if (!active()) throw new DrillSyncError('session_changed');
-    const result = await query.setHeader('Authorization', `Bearer ${token}`).abortSignal(signal);
+    const timeout = AbortSignal.timeout(15000);
+    const bounded = signal ? AbortSignal.any([signal, timeout]) : timeout;
+    const result = await query.setHeader('Authorization', `Bearer ${token}`).abortSignal(bounded);
     if (!active()) throw new DrillSyncError('session_changed');
     if (result.error) throw result.error;
     return result.data;

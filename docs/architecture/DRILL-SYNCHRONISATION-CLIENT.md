@@ -65,6 +65,8 @@ L'ordre est série → première réponse → entraînements. Un entraînement e
 
 Le bouton « Réessayer la synchronisation », l'ouverture de la page, le retour réseau et le retour sur un onglet permettent la reprise. Le retry manuel ne régénère aucun UUID et ne relance pas aveuglément les opérations en erreur permanente. Une intervention reste nécessaire pour corriger une donnée refusée ; aucune modification du backend n'est effectuée pour contourner son refus.
 
+Chaque requête PostgREST combine l'annulation de génération avec un timeout de 15 secondes. Une transaction locale sans changement ne réécrit pas le document et n'émet aucune notification, ce qui évite les boucles entre onglets au repos.
+
 ## Lecture distante et réconciliation
 
 À l'ouverture identifiée : lecture du cache, scan distant, réconciliation transactionnelle, puis envoi des opérations possibles. Le transport lit `drill_series`, `drill_answers` et `drill_training_attempts` avec filtre personnel, ordre total par UUID (`id` ou `operation_id`) et curseur `gt`, par pages demandées de 200 lignes. Il continue jusqu'à une page vide, même si le serveur impose une taille inférieure. Une erreur sur une page invalide le scan entier ; elle n'efface pas le cache ni ne devient un historique vide.

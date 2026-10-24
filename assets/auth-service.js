@@ -121,7 +121,18 @@ export function createAuthService(client, { configurationError, siteUrl, environ
       })();
       return started;
     },
-    async retry() { assertClient(); const data = await run('session', () => client.auth.getSession()); localSession = data?.session; if (data?.session) await verifyIdentity(revision); else { marker.clear(); publish('anonymous'); } },
+    async retry() {
+      assertClient(); const current = revision;
+      try {
+        const data = await run('session', () => client.auth.getSession());
+        if (current !== revision) throw new AuthError('La session a changé. Réessaie.', 'session_changed');
+        localSession = data?.session;
+        if (data?.session) await verifyIdentity(current); else { marker.clear(); publish('anonymous'); }
+      } catch (error) {
+        if (current === revision && error.code !== 'session_changed') { if (error.code === 'invalid_session') revision++; sessionFailure(error, localSession); }
+        throw error;
+      }
+    },
     async verifiedSession(expectedUserId) {
       if (state.status === 'offline') await service.retry();
       const user = await requireUser();

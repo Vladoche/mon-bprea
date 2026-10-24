@@ -74,8 +74,12 @@ function snapshotConflict(document, key, remoteSeries) {
 
 function answerConflict(document, operation, row) {
   const local = document.drill.series[operation.seriesKey].answers[operation.payload.p_question_id];
+  const question = document.drill.series[operation.seriesKey].questions.find(item => item.id === operation.payload.p_question_id);
   archiveConflict(document, { id: `answer:${operation.id}`, kind: 'answer', seriesKey: operation.seriesKey,
-    questionId: operation.payload.p_question_id, local, operation, remote: row });
+    questionId: operation.payload.p_question_id, questionPrompt: question?.prompt,
+    localChoice: question?.options.find(option => option.id === local?.answer)?.text,
+    remoteChoice: question?.options.find(option => option.id === row.answer)?.text,
+    local, operation, remote: row });
   blockDependents(document, operation.seriesKey, operation.payload.p_question_id);
   operation.state = 'conflict';
 }

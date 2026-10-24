@@ -27,7 +27,10 @@ test('Drill réel : multi-appareils, insertion non acquittée, hors ligne persis
       localStorage.setItem('bprea-demo-appearance-v1', '{"version":1,"season":"winter","brightness":"dark"}'); }, visitor);
     stage = 'connexion A et création de série'; await signInDrill(page, a);
     await page.getByRole('button', { name: 'Commencer cette série' }).click(); await synced(page);
-    stage = 'première réponse, entraînement et rechargement'; await respond(page); await synced(page); await respond(page, 0, true); await synced(page);
+    stage = 'première réponse, entraînement et rechargement'; await respond(page); await synced(page);
+    await expect(page.locator('.drill-correction').first()).toBeFocused();
+    await respond(page, 0, true); await synced(page);
+    await expect(page.locator('.drill-correction').first()).toBeFocused();
     await page.reload(); await expect(page.locator('.drill-correction')).toHaveCount(1); await synced(page);
 
     stage = 'deuxième contexte avec le même compte';

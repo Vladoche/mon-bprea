@@ -19,7 +19,7 @@ Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt po
 - **Exercices hebdomadaires** (Mode Drill) : dix questions par UC chaque semaine ISO à partir du lundi 00 h Europe/Paris, corrections, brouillons, entraînements séparés et historique. Banque initiale de 12 questions pour l’UC 03 ; autres UC explicitement incomplètes.
 - **Tableau de bord pédagogique** : résultats réels du Mode Drill, volumes et taux hebdomadaires, comparaison des UC et notions à retravailler ; filtres par UC et sur 4, 8, 12 semaines ou tout l’historique, graphiques et tableaux accessibles.
 - **Reconnaissance des plantes** : photographies locales sourcées, modes Découverte et Chrono, corrections botaniques, historique indépendant et révision des erreurs. Prototype : 12 espèces et 12 photographies, trois catégories jouables de quatre questions ; légumineuses explicitement à compléter.
-- **Compte sur invitation — préparation du lot 6.1** : connexion, activation, récupération du mot de passe et profil avec pseudo facultatif ; Supabase protège les données privées par RLS. Le service reste désactivé tant qu’un environnement n’est pas configuré et validé. Aucun résultat pédagogique n’est synchronisé ; ouverture aux étudiants après validation du lot 6.5.
+- **Compte sur invitation et Drill personnel** : connexion, activation, récupération du mot de passe et profil avec pseudo facultatif ; Supabase protège les données privées par RLS. Dans un environnement d’essai configuré, le Drill utilise un cache personnel atomique et synchronise les séries, premières réponses et entraînements. Le défaut public reste désactivé ; ouverture aux étudiants après validation du lot 6.5.
 - Interface responsive (ordinateur et mobile).
 
 ## Se repérer dans le site

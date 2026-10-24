@@ -50,7 +50,7 @@ export function createDrillSyncService({ auth, configuration, repositoryFactory 
     mode = 'personal'; syncState = state.status === 'offline' ? 'offline' : 'loading';
     view = emptyView('Chargement de ton cache personnel…'); notify();
     const current = generation;
-    repository = repositoryFactory(scope, { onCommit: () => broadcast?.postMessage(scope) });
+    repository = repositoryFactory(next, { onCommit: () => broadcast?.postMessage(next) });
     transport = transportFactory(configuration.client, auth, userId);
     try {
       await refresh(current);

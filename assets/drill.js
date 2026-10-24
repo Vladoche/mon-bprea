@@ -77,6 +77,7 @@ export async function initDrill(root) {
 
   function render() {
     const focused = root.contains(document.activeElement) ? document.activeElement : null;
+    const focusId = focused?.id;
     const focusQuestion = focused?.closest('.drill-answer-form')?.dataset;
     const focusValue = focused?.type === 'radio' ? focused.value : null;
     state = store.getState().view;
@@ -99,6 +100,7 @@ export async function initDrill(root) {
     ${questions.length === 10 ? `${statsMarkup(stats)}<p class="drill-score-method">Réussite = bonnes réponses comptabilisées ÷ exercices réalisés. Les entraînements suivants restent séparés. Ce taux ne prédit pas la réussite à l’examen.</p>${sessionMarkup(series, questions)}` : `<div class="drill-incomplete"><span class="eyebrow">${bank.error ? 'BANQUE INDISPONIBLE' : 'BANQUE INCOMPLÈTE'}</span><h3>${bank.error ? 'Les exercices ne sont pas accessibles pour le moment.' : 'Les questions prennent encore racine.'}</h3><p>${bank.error ? 'Réessaie le chargement pour retrouver les questions disponibles.' : `${bankCount} question${bankCount > 1 ? 's' : ''} exploitable${bankCount > 1 ? 's' : ''} pour cette UC. Il en faut au moins 10 différentes pour composer une série.`}</p><p>Aucune question n’est dupliquée pour compléter artificiellement une série. Les séries déjà commencées restent accessibles dans ton historique.</p></div>`}
     </section><section class="wrap drill-history" aria-labelledby="drill-history-title"><span class="eyebrow">CONSERVER LE FIL</span><h2 id="drill-history-title">Tes séries · ${clean(selectedUnit.code)}</h2>${historyMarkup()}</section><aside class="wrap drill-storage-note"><p>${store.getState().mode === 'personal' ? 'Réponses sauvegardées d’abord sur cet appareil, puis sur ton compte quand la synchronisation est confirmée. Le cache personnel n’est pas chiffré : sur un appareil partagé, la déconnexion masque les données mais conserve les réponses en attente. Une personne ayant accès au navigateur peut lire ce cache. Hors connexion, seules les séries déjà enregistrées ici restent disponibles.' : 'Réponses et historique conservés dans ce navigateur, sur cet appareil.'} Les séries commencées gardent leur version des questions. Tu peux aussi commencer une série des huit semaines précédentes, même sans avoir terminé les autres.</p><p>Les questions actuelles reprennent les cours de démonstration. Elles ne remplacent pas les supports de ton centre de formation.</p></aside>`;
     if (focusQuestion && focusValue) root.querySelector(`form[data-question="${CSS.escape(focusQuestion.question)}"][data-training="${focusQuestion.training}"] input[value="${CSS.escape(focusValue)}"]`)?.focus({ preventScroll: true });
+    else if (focusId) root.querySelector(`#${CSS.escape(focusId)}`)?.focus({ preventScroll: true });
   }
 
   function showMessage(message, error = false) {

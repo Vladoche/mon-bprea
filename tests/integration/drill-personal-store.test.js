@@ -3,6 +3,7 @@ import { IDBFactory, IDBObjectStore } from 'fake-indexeddb';
 import { createPersonalRepository, personalChange, personalScope } from '../../assets/drill-personal-store.js';
 import { makeSeries } from '../fixtures/drill.js';
 import { MemoryStorage } from '../helpers/memory-storage.js';
+import { DrillSyncError } from '../../assets/drill-sync-model.js';
 
 const userId = '11111111-1111-4111-8111-111111111111';
 const identity = { environment: 'development', url: 'https://fixture.invalid', userId };
@@ -13,6 +14,12 @@ let indexedDB;
 beforeEach(() => { indexedDB = new IDBFactory(); });
 
 describe('IndexedDB personnel — données et file dans une seule transaction', () => {
+  it('ne notifie pas les autres onglets pour une transaction sans changement', async () => {
+    const onCommit = vi.fn(); const repo = createPersonalRepository(scope, { indexedDB, onCommit });
+    await repo.change(start); expect(onCommit).toHaveBeenCalledTimes(1);
+    await repo.change(start); await repo.change(() => null); await repo.read();
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });
   it('isole comptes et environnements et ne touche jamais le JSON visiteur', async () => {
     const storage = new MemoryStorage(); storage.setItem('bprea-demo-drill-v1', '{"version":1,"series":{},"archive":"préserver"}');
     vi.stubGlobal('localStorage', storage);
@@ -42,6 +49,12 @@ describe('IndexedDB personnel — données et file dans une seule transaction', 
     const put = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementationOnce(() => { throw new DOMException('fixture', 'QuotaExceededError'); });
     await expect(repo.change(saved => personalChange(saved, 'submitAnswer', [series.id, series.questions[0].id, 'a', {}]))).rejects.toMatchObject({ code: 'local_storage' });
     put.mockRestore(); expect(await repo.read()).toEqual(before);
+  });
+
+  it('conserve une erreur de réconciliation transitoire et annule toute modification', async () => {
+    const repo = createPersonalRepository(scope, { indexedDB }); await repo.change(start); const before = await repo.read();
+    await expect(repo.change(saved => { saved.operations = []; throw new DrillSyncError('40001'); })).rejects.toMatchObject({ code: '40001' });
+    expect(await repo.read()).toEqual(before);
   });
 
   it('sérialise les actions concurrentes sans perdre une réponse ou son opération', async () => {

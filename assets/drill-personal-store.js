@@ -73,12 +73,12 @@ export function createPersonalRepository(scope, { indexedDB = globalThis.indexed
     const db = await open();
     if (!active()) throw new LocalDrillError('Le compte a changé. Aucune action n’a été enregistrée.');
     return new Promise((resolve, reject) => {
-      let tx; let value; let failure;
+      let tx; let value; let failure; let changed = false;
       try { tx = db.transaction('accounts', change ? 'readwrite' : 'readonly'); }
       catch { reject(new LocalDrillError()); return; }
       tx.onabort = () => reject(failure || new LocalDrillError());
       tx.onerror = () => {}; // onabort is the only failure completion.
-      tx.oncomplete = () => { if (change) try { onCommit(); } catch { /* The write is already committed; notification is optional. */ } resolve(value); };
+      tx.oncomplete = () => { if (changed) try { onCommit(); } catch { /* The write is already committed; notification is optional. */ } resolve(value); };
       const store = tx.objectStore('accounts');
       const request = store.get(scope);
       request.onsuccess = () => {
@@ -86,12 +86,19 @@ export function createPersonalRepository(scope, { indexedDB = globalThis.indexed
           if (!active()) throw new LocalDrillError('Le compte a changé. Aucune action n’a été enregistrée.');
           const document = validatePersonalDocument(request.result === undefined ? emptyPersonalDocument(scope) : request.result, scope);
           if (change) {
+            const original = JSON.stringify(document);
             value = change(document);
             if (value?.then) throw new LocalDrillError('Une transaction locale ne peut pas attendre le réseau.');
             validatePersonalDocument(document, scope);
-            store.put(document, scope);
+            changed = JSON.stringify(document) !== original;
+            if (changed) store.put(document, scope);
           } else value = document;
-        } catch (error) { failure = error instanceof LocalDrillError ? error : new LocalDrillError(); tx.abort(); }
+        } catch (error) {
+          // Keep reconciliation/protocol errors distinct from an actual IDB
+          // failure (notably 40001 when paginated history changed mid-scan).
+          failure = error instanceof Error && typeof error.code === 'string' ? error : new LocalDrillError();
+          tx.abort();
+        }
       };
     });
   }
