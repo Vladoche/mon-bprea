@@ -34,7 +34,7 @@ Le nouveau runner `scripts/test-drill-supabase.mjs` est intégré au job existan
 
 ## Supabase hébergé
 
-**Migration DEV non appliquée ; simulation réussie après les tests réels.** Le connecteur a confirmé le projet **Mon BPREA DEV**, référence `wcckbyhrtroittbfophv`, région `eu-west-1`, état `ACTIVE_HEALTHY`, PostgreSQL 17.11. L'historique contient uniquement `20261022000100 / profiles` et les trois tables Drill sont absentes. Aucun test RLS n'a été redirigé vers DEV.
+**Migration DEV appliquée avec succès le 24 octobre 2026, après accord explicite de l'utilisateur.** Le connecteur a confirmé le projet **Mon BPREA DEV**, référence `wcckbyhrtroittbfophv`, région `eu-west-1`, état `ACTIVE_HEALTHY`, PostgreSQL 17.11. Avant l'application, l'historique contenait uniquement `20261022000100 / profiles` et les trois tables Drill étaient absentes. Aucun runner de tests RLS n'a été redirigé vers DEV.
 
 Après consultation de `db push --help`, la CLI **2.121.0** a exécuté avec code 0 :
 
@@ -42,12 +42,31 @@ Après consultation de `db push --help`, la CLI **2.121.0** a exécuté avec cod
 supabase db push --project-ref wcckbyhrtroittbfophv --dry-run --skip-vault
 ```
 
-La sortie confirme `dryRun:true` et exactement **`20261024083417_create_drill_sync_schema.sql`**, sans seed ni rôles supplémentaires. Vault est explicitement exclu. Une nouvelle lecture de l'historique après simulation confirme que seule la migration des profils reste appliquée.
+La sortie a confirmé `dryRun:true` et exactement **`20261024083417_create_drill_sync_schema.sql`**, sans seed ni rôles supplémentaires. Vault est explicitement exclu. Une nouvelle lecture de l'historique après cette simulation a confirmé que seule la migration des profils était alors appliquée.
 
-Les conseillers DEV ne signalent aucun lint de performance. Le seul avertissement sécurité est celui déjà connu, [protection contre les mots de passe divulgués désactivée](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) ; aucun réglage Auth ni achat n'a été effectué.
+L'utilisateur a ensuite autorisé l'application de cette seule migration sur DEV. Une dernière simulation identique a précédé la commande effective, exécutée avec **code 0**, sans seed ni rôles supplémentaires :
 
-L'application effective reste soumise à l'accord explicite prévu par le [contrat du lot](../architecture/DRILL-SYNCHRONISATION-BACKEND.md). La commande préparée est `supabase db push --project-ref wcckbyhrtroittbfophv --skip-vault --yes`, depuis cette branche et après une dernière relecture de la simulation. Aucun changement de PROD, d'Auth/SMTP ou des comptes fictifs existants n'a été réalisé.
+```text
+supabase db push --project-ref wcckbyhrtroittbfophv --skip-vault --yes
+```
+
+Les vérifications après application sont des lectures de l'historique et des catalogues DEV ; les preuves comportementales A/B et concurrence restent celles de la stack locale éphémère de CI.
+
+| Contrôle DEV après application | Résultat observé |
+| --- | --- |
+| Historique | `20261022000100 / profiles` et **`20261024083417 / create_drill_sync_schema`** |
+| Nouvelle simulation | `upToDate:true`, `dryRun:true`, `migrations:[]` |
+| Tables Drill | Trois tables présentes et vides ; aucune progression importée |
+| RLS et politiques | Activée sur les trois tables ; deux politiques par table, SELECT et INSERT, liées à `(select auth.uid()) = user_id` pour `authenticated` |
+| Droits visiteurs | Aucun droit de table ou de colonne pour `anon` |
+| Droits étudiants | SELECT et INSERT sur les seules colonnes métier prévues ; aucun UPDATE/DELETE/TRUNCATE ni INSERT de propriétaire/date serveur/correction |
+| RPC | Trois fonctions `SECURITY INVOKER`, `VOLATILE`, `search_path` vide ; EXECUTE uniquement pour `authenticated`, absent pour PUBLIC/anon/service_role |
+| Guards et contraintes | Trois triggers actifs, fonctions privées invoker non exécutables par les rôles clients ; contraintes validées, clés uniques et FK composites conformes |
+| Profils du lot 6.1 | RLS et politiques conservées ; seule la colonne `pseudo` reste modifiable ; schéma privé inaccessible aux étudiants |
+| Données existantes | Deux comptes Auth et deux profils conservés ; aucun compte ni historique supprimé |
+
+Les conseillers après application ne relèvent aucun problème SQL/RLS de sécurité. Le seul avertissement sécurité reste celui déjà connu, [protection contre les mots de passe divulgués désactivée](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). Le conseiller performance relève seulement deux informations [index encore inutilisés](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index), `drill_training_history_idx` et `drill_answers_activity_idx`, sur les tables neuves sans activité ; ils sont conservés pour les lectures prévues. Aucun réglage Auth/SMTP, achat ou changement de PROD n'a été effectué.
 
 ## Livraison et actions restantes
 
-Les preuves SQL/API/concurrence et la simulation DEV sont obtenues ; la PR reste en brouillon. Prochaine étape : obtenir l'autorisation d'appliquer cette seule migration sur DEV, puis relire son historique, les tables, RLS, privilèges et conseillers. Cette validation ne constitue pas une autorisation de fusion, de modification du ruleset ou de publication publique. La synchronisation frontend reste au lot 6.2.2.
+Les preuves SQL/API/concurrence sont obtenues et la migration DEV autorisée est appliquée puis auditée. Le lot 6.2.1 est livré dans la PR #12, qui reste en brouillon pour revue. Aucune fusion, modification du ruleset ni publication publique n'est effectuée. La prochaine étape de développement est la synchronisation frontend du lot 6.2.2 ; les limites Auth/e-mails des lots ultérieurs restent consignées dans les validations correspondantes.
