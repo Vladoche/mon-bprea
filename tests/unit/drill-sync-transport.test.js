@@ -32,6 +32,20 @@ describe('transport partagé, pagination et JWT fixé par requête', () => {
     f.auth.verifiedSession.mockImplementation(async () => { active = false; return { userId, accessToken: 'synthetic-unit-only' }; });
     await expect(f.transport.readHistory({ active: () => active })).rejects.toThrow(); expect(f.calls).toEqual([]);
   });
+  it('fixe le JWT A avant la requête et rejette sa réponse tardive après passage à B', async () => {
+    let release; let active = true;
+    const response = new Promise(resolve => { release = resolve; });
+    const query = { setHeader: vi.fn().mockReturnThis(), abortSignal: vi.fn().mockReturnThis(), then: resolve => response.then(resolve) };
+    const client = { rpc: vi.fn().mockReturnValue(query) };
+    const auth = { verifiedSession: vi.fn().mockResolvedValue({ userId, accessToken: 'synthetic-token-A' }) };
+    const transport = createDrillTransport(client, auth, userId);
+    const sending = transport.send({ type: 'answer', rpcPayload: { p_operation_id: ids[0] } }, { signal: new AbortController().signal, active: () => active });
+    await vi.waitFor(() => expect(query.setHeader).toHaveBeenCalledWith('Authorization', 'Bearer synthetic-token-A'));
+    active = false; auth.verifiedSession.mockResolvedValue({ userId: ids[1], accessToken: 'synthetic-token-B' });
+    release({ data: { status: 'inserted', row: {} }, error: null });
+    await expect(sending).rejects.toMatchObject({ code: 'session_changed' });
+    expect(query.setHeader).toHaveBeenCalledTimes(1); expect(client.rpc).toHaveBeenCalledTimes(1);
+  });
   it('distingue contraintes permanentes, expiration et erreurs transitoires', () => {
     for (const code of ['42501', '23514', '23503', '23505', 'protocol']) expect(classifySyncError({ code }).kind).toBe('permanent');
     expect(classifySyncError({ code: '40001' }).kind).toBe('transient'); expect(classifySyncError({ code: 'PGRST303' }).kind).toBe('session');
