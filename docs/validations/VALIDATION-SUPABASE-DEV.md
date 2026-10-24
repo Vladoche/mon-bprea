@@ -1,4 +1,111 @@
-# Supabase DEV — migration et recette du lot 6.1
+# VÉRIFICATION ET FINALISATION — SUPABASE DEV LOT 6.1
+
+Reprise auditée le **24 octobre 2026**. **Supabase DEV est prêt pour développer le lot 6.2**, avec la limite explicite des e-mails : aucun SMTP personnalisé actif, modèles versionnés non installés et aucun parcours depuis un message reçu validé. Cette conclusion n'autorise ni l'ouverture aux étudiants ni un déploiement en production.
+
+## A. État retrouvé après interruption
+
+La branche active est bien `chore/supabase-dev-setup`, au commit `159cc626c7e8aa0d7314040821c1f4bd71d097a6` du 23 octobre, identique au head de la [PR #10](https://github.com/Vladoche/mon-bprea/pull/10), ouverte en brouillon. L'arbre de travail était propre au début de la reprise. `main` est toujours `d782c6121d7dc7c1ee08a24a65a3b0660b1db164`. Les trois fichiers de la branche concernent uniquement le README, le guide Auth et ce rapport ; aucune modification applicative interrompue n'a été retrouvée.
+
+Les journaux Codex du 23 octobre sont accessibles sous le répertoire local `sessions/2026/10/23` ; le journal principal est `rollout-2026-10-23T17-02-06-01a16948-939c-7ad3-aaee-2e3c3ed35a8a.jsonl`. Leur lecture ciblée retrouve les autorisations explicites de migration DEV, **« aucun envoi »**, puis **« Oui, comptes fictifs sans envoi »**. Ces choix sont conservés ; aucun identifiant ni journal brut n'est ajouté au dépôt.
+
+Les traces, le reflog et les artefacts concordent : simulation puis application de la migration, préparation du frontend local, recette réelle sans e-mail réussie à 17 h 19, déconnexion des comptes, rapport, commit à 17 h 23 et création de la PR à 17 h 24. Le dernier message de suivi annonçait la finalisation documentaire. **L'interruption se situe donc après les opérations techniques réussies et autour de la livraison ; aucune migration ou recette encore en cours n'a été trouvée.** L'absence de réponse finale ne prouve pas un échec de ces opérations.
+
+## B. État réel de Supabase DEV
+
+Les statuts ci-dessous distinguent les lectures distantes du 24 octobre des parcours réellement exécutés le 23. Aucun succès historique n'est présenté comme une nouvelle exécution.
+
+| Opération | État | Preuve | Action restante |
+| --- | --- | --- | --- |
+| Identification DEV / PROD | Terminé et vérifié | API projets du 24 : DEV `wcckbyhrtroittbfophv`, Ireland `eu-west-1` ; PROD `oqoqrxwfbkhtpksqimgd`, `eu-central-1` ; tous deux `ACTIVE_HEALTHY`, PostgreSQL 17.11 | Aucune |
+| Migration PostgreSQL | Terminé et vérifié | Historique distant du 24 : seule version `20261022000100`, nom `profiles`, 21 instructions ; source cohérente avec le fichier versionné | Ne pas réexécuter |
+| Table `profiles` | Terminé et vérifié | Catalogues PostgreSQL du 24 : UUID Auth, pseudo facultatif, dates serveur et contraintes conformes ; deux profils, aucun manquant | Aucune |
+| Politiques RLS | Terminé et vérifié | Catalogues et privilèges du 24 conformes ; recette réelle A/B du 23 réussie | Aucune |
+| Restrictions d'inscription | Terminé et vérifié | Refus réels du 23 ; Dashboard et GET `/auth/v1/settings` du 24 : inscriptions et anonymes désactivés | Aucune |
+| Configuration Auth | Terminé et vérifié | E-mail seul fournisseur actif, confirmations actives ; minimum 12 caractères lu visuellement dans le Dashboard du 24 | Aucune |
+| URL de redirection | Terminé et vérifié | Dashboard du 24 : Site URL exacte et unique callback exact, sans wildcard | Aucune |
+| Modèles e-mails | Bloqué | Dashboard du 24 : sujets anglais par défaut et liens `ConfirmationURL`, édition désactivée faute de SMTP personnalisé | Après décision SMTP, installer les deux modèles versionnés puis relire les corps et sujets |
+| SMTP personnalisé | Non réalisé | Dashboard du 24 : `Enable custom SMTP` désactivé | Aucune action nécessaire pour développer le lot 6.2 |
+| Configuration locale | Terminé et vérifié | Cinq champs publics valides ; configuration et artefact ignorés ; GET DEV du 24 avec la clé locale : HTTP 200 | Aucune |
+| Invitation de test | Partiellement terminé | Deux liens natifs générés et activés sans envoi le 23 ; résultat de recette `passed:true` | Livraison et parcours depuis un e-mail reçu non réalisés |
+| Connexion et profil | Terminé et vérifié | Recette du 23 : connexion, pseudo, rechargement, déconnexion et historique local conservé ; résultat et captures retrouvés | Aucune répétition nécessaire |
+| Isolation entre étudiants | Terminé et vérifié | Vrais JWT A/B et colonnes protégées vérifiés le 23 ; structure relue le 24 ; visiteur refusé de nouveau par HTTP 401 / `42501` | Aucune répétition nécessaire |
+| Tests CI | Terminé et vérifié | Qualité de la PR #10 réussie ; dernier `supabase-security` du lot 6.1 réussi, avec SHAs distincts détaillés en D | Signaler que `supabase-security` n'est pas requis par le ruleset |
+
+### SQL installé et cohérence de la migration
+
+Le 24 octobre, lecture de `supabase_migrations.schema_migrations`, `pg_attribute`, `pg_constraint`, `pg_class`, `pg_policies`, `pg_trigger`, `pg_proc`, `pg_namespace` et des privilèges effectifs. La concaténation des 21 instructions enregistrées, terminée par un point-virgule, et le fichier local donnent le même MD5 après retrait des espaces : `9ff6408fb4959d22b796206267775db2`. Il s'agit d'un contrôle de cohérence du texte normalisé, complété par l'inspection des effets SQL, pas d'une signature cryptographique.
+
+`public.profiles` appartient à `postgres`, avec RLS active. `id` est la PK UUID et référence `auth.users(id) ON DELETE CASCADE` ; les dates sont obligatoires avec défaut `now()` ; la contrainte du pseudo reste conforme. Seules les politiques personnelles `profiles_select_own` et `profiles_update_own` existent, avec `auth.uid() = id`, `USING` et `WITH CHECK` pour UPDATE. `authenticated` dispose de SELECT et d'UPDATE sur **`pseudo` seulement** ; aucun INSERT/DELETE ni modification d'UUID ou de dates. `anon` n'a aucun droit sur la table ou ses colonnes.
+
+Les deux triggers applicatifs sont actifs. Les fonctions privées appartiennent à `postgres`, ont un `search_path` vide et les corps attendus ; seule la création du profil est `SECURITY DEFINER`. Aucun EXECUTE pour `anon`, `authenticated` ou `service_role` ; schéma privé réservé à `postgres`. Comptages actuels : **2 utilisateurs Auth, 2 profils, 0 profil manquant, 0 session, 0 refresh token**. Aucune donnée n'a été supprimée ou réinitialisée.
+
+### Auth, e-mails et frontend
+
+Le GET réel du 24 octobre à **09 h 44 min 59 s, Europe/Paris**, avec la clé publishable locale, confirme HTTP 200, `disable_signup:true`, `mailer_autoconfirm:false`, `external.email:true`, `external.anonymous_users:false` et aucun autre fournisseur actif. Le Dashboard confirme minimum **12 caractères**, OTP e-mail **3 600 secondes / 8 chiffres** et les deux URL exactes :
+
+```text
+Site URL : http://127.0.0.1:4173/mon-bprea/
+Redirect : http://127.0.0.1:4173/mon-bprea/authentification.html
+```
+
+Les modèles effectivement affichés restent **`You've been invited`** et **`Reset your password`**, avec liens `{{ .ConfirmationURL }}`. Ils ne sont pas les modèles versionnés `TokenHash` attendus par le callback ; leur présence locale et le précédent `config diff` ne prouvent aucune installation. L'écran SMTP confirme qu'aucun SMTP personnalisé n'est actif. La [restriction officielle des nouveaux projets Free](https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier) reste applicable. Aucun `config push`, changement de fournisseur, achat ou envoi n'a été tenté.
+
+`auth-config.local.json` et la copie de l'artefact existant `.tmp/auth-dev-20261023/mon-bprea` sont identiques : `enabled:true`, `environment:development`, URL publique DEV exacte, clé de format publishable uniquement et Site URL ci-dessus. Ils sont ignorés par Git. L'artefact conserve **90 fichiers publics plus `.nojekyll` et 190 références versionnées**. `prepare-pages.py` refuse les champs supplémentaires, les clés administratives et une sortie non vide ; le cache busting est conservé.
+
+Le callback local attend `token_hash` et `type=invite|recovery`, nettoie l'URL avant les modules, utilise `no-referrer` et `verifyOtp`, puis affiche le formulaire autorisé. Les preuves de communication du frontend connecté à DEV restent la recette et les captures du 23 octobre, relues pendant la reprise ; le GET du 24 confirme séparément que la clé locale est toujours acceptée. Aucun nouveau parcours connecté n'a été lancé. Un GET seul du [JSON public Pages](https://vladoche.github.io/mon-bprea/assets/auth-config.json) confirme HTTP 200, `enabled:false`, URL, clé et Site URL vides. Aucun E2E ne vise la production.
+
+### Journaux et intégrations
+
+Les journaux des 24 dernières heures ont été interrogés en lecture seule. Auth ne présente aucune entrée `error`, `fatal` ou `panic` ; les avertissements correspondent aux dépréciations GoTrue et aux refus attendus des essais (`signup_disabled`, `anonymous_provider_disabled`, `invalid_credentials`, `otp_expired`, refresh/session introuvables). PostgreSQL contient des erreurs historiques : objets Realtime absents et connexions interrompues au démarrage du projet, historique de migration absent avant application, une requête d'audit mal formée le 23 à 17 h 13, puis les refus `42501` de la recette et du GET visiteur du 24. Les objets attendus et l'état Healthy sont vérifiés actuellement ; aucun correctif SQL n'est justifié par ces seules traces. Le conseiller sécurité ne relève que `auth_leaked_password_protection` désactivé, décrit en E.
+
+Les intégrations GitHub ont été relues dans les Dashboards DEV **et PROD**, sans enregistrement : répertoire `.`, **Deploy to production désactivé**, **Automatic branching désactivé**. Les workflows distants ont été lus : seuls Qualité, Sécurité Auth/RLS et Pages existent ; aucun n'applique de migration Supabase distante. Dans cette configuration observée, une fusion ne déclenche donc pas de migration GitHub/Supabase sur PROD. Cela ne préjuge pas d'un changement futur de ces réglages.
+
+## C. Travail repris le 24 octobre
+
+Reconstitution ciblée des journaux Codex, du reflog, du commit, de la PR et des résultats conservés ; audit SQL distant, réglages Dashboard, journaux, lectures HTTP publiques et état GitHub/CI. La migration et la recette déjà réussies n'ont pas été relancées. Aucun projet, compte, lien natif ou session supplémentaire n'a été créé ; aucune configuration hébergée n'a été modifiée.
+
+Ce rapport et son lien README sont actualisés sur la branche existante, pour compléter **la PR #10 existante**, sans duplication de PR ni fusion. Le script ponctuel de GET se trouve seulement dans `.tmp/audit-local-get-20261024.mjs`, ignoré. Le refus réseau initial du bac à sable a été résolu par une relance explicitement autorisée ; les sorties ne contiennent ni clé ni jeton. Aucun changement applicatif ou de dépendance, aucune réinstallation.
+
+## D. Résultats des tests et portée
+
+| Vérification | Exécution et preuve | Résultat |
+| --- | --- | --- |
+| Vitest local | 23 octobre ; cache de 13 fichiers sans échec et rapport conservés | **107 réussis**, aucun échec déclaré dans le rapport |
+| E2E locaux classiques | Rapport Playwright du 23, début 17 h 04 min 56 s Paris, relu | **17 réussis, 0 échec, 0 flaky, 0 ignoré** |
+| Qualité PR #10 | SHA `159cc626…`, [run 39977973243](https://github.com/Vladoche/mon-bprea/actions/runs/39977973243), logs relus le 24 | [107 tests / 13 fichiers](https://github.com/Vladoche/mon-bprea/actions/runs/39977973243/job/120497476335) et [17 E2E](https://github.com/Vladoche/mon-bprea/actions/runs/39977973243/job/120497476750), succès |
+| Supabase local sur ce poste | Non exécuté : Docker absent ; aucune redirection de runner vers DEV | **Non validé sur ce poste** |
+| Dernier `supabase-security` CI | SHA `f3bade171534a5a59a7409897f2a112b2a74f759`, [job 120009863515](https://github.com/Vladoche/mon-bprea/actions/runs/39831883824/job/120009863515), logs relus | **19 pgTAP, 11 groupes Auth/RLS, 1 E2E réel réussis** dans une stack locale éphémère |
+| Recette DEV hébergée | 23 octobre, résultat `.tmp/recipe-dev-no-mail-result.json` et script relus | **8 contrôles réussis**, `passed:true`, aucun e-mail, comptes conservés et sessions déconnectées |
+| HTTP réel de reprise | 24 octobre, GET settings DEV, profiles visiteur DEV et JSON Pages | **3 lectures conformes** : HTTP 200, HTTP 401 / `42501`, HTTP 200 désactivé |
+| Audit SQL et Dashboard de reprise | 24 octobre, lectures directes décrites en B | Migration, profils, privilèges, Auth, redirections et intégrations conformes ; blocage modèles confirmé |
+
+La recette DEV du 23 couvre les refus d'inscription libre/anonyme, invitations natives sans livraison, activation et mots de passe via API, connexion, profil personnel, pseudo persistant, vrais JWT A/B, refus des colonnes techniques, frontend/rechargement, récupération native et révocation du refresh. L'administration n'y sert qu'à `generateLink`, jamais à représenter les droits d'un étudiant.
+
+Les suites réussies ne sont pas réexécutées pendant cette reprise, conformément à la demande de ne pas répéter les opérations validées. Les mocks ne prouvent pas RLS et la CI locale ne prouve pas les réglages DEV : les preuves hébergées restent identifiées séparément. Les captures desktop 1 280 px et mobile 390 px du 23 ont été réinspectées : mode sombre et rendu sans débordement conservés. Aucun rendu applicatif n'est modifié ici.
+
+**Non vérifiés :** livraison/réception d'e-mails, callback et formulaires complets depuis un message reçu, installation effective des modèles personnalisés et expiration hébergée après une heure. Aucun de ces scénarios n'est déclaré réussi.
+
+## E. Sécurité
+
+**PROD n'a pas été modifié.** L'identité et l'intégration y ont seulement été consultées. Aucun déploiement Pages, changement de ruleset, fusion, achat ou suppression de données. La configuration publiée reste désactivée ; aucun secret n'a été ajouté aux fichiers suivis ou au frontend. Le contrôle ciblé des fichiers suivis ne relève aucune clé administrative/private ; les faux formats des tests de rejet ne sont pas des credentials. Les deux comptes synthétiques restent conservés et sans session.
+
+Le [ruleset actif #25489814](https://github.com/Vladoche/mon-bprea/rules/25489814) exige une PR, interdit suppression/force push et ne prévoit aucun bypass. Il impose **`unit-integration` et `e2e` seulement : `supabase-security` n'est pas obligatoire**. Aucun réglage modifié. Le dernier job sécurité est réussi ; l'absence d'un nouveau run sur la PR documentaire correspond au filtre de chemins du workflow. La protection classique de branche reste inaccessible au connecteur (403), tandis que le ruleset explicite est lisible.
+
+Risque résiduel relevé par le conseiller : [protection contre les mots de passe divulgués désactivée](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), fonctionnalité réservée à Pro et offres supérieures dans le Dashboard actuel ; aucun achat effectué. Restent aussi les limites documentées des JWT après déconnexion, de la session persistante sur appareil partagé/XSS et des liens présents dans la première requête HTTP. Le SMTP et les parcours e-mails ne sont pas validés. Les préparatifs de confidentialité du lot 6.4 et l'ouverture du lot 6.5 demeurent distincts.
+
+## F. Actions personnelles restantes
+
+**Aucune intervention personnelle indispensable pour commencer le développement du lot 6.2.** Le choix « aucun envoi » reste respecté et aucune nouvelle autorisation n'est demandée pour rejouer un travail réussi.
+
+Pour valider ultérieurement les parcours e-mails : choisir un SMTP adapté existant ou gratuit, fournir ses paramètres uniquement dans une interface sécurisée officielle, et désigner une adresse de réception avec autorisation d'envoi. L'installation des deux modèles et les essais complets pourront alors être repris sur DEV. Aucun service payant ne sera engagé sans accord.
+
+## G. Conclusion
+
+**Supabase DEV est prêt pour le lot 6.2 : migration, profils, RLS, Auth par API et frontend local disposent des preuves attendues.** La configuration e-mail reste partielle et ne permet pas de qualifier les invitations/récupérations reçues comme validées. Ce point devra être levé avant l'ouverture réelle, sans bloquer le développement du lot 6.2. La PR documentaire reste en brouillon, sans fusion ni publication.
+
+## Historique conservé — intervention du 23 octobre 2026
+
+Le compte rendu ci-dessous conserve les détails de l'intervention précédente. Ses mentions de serveur ou navigateur prêt décrivent le 23 octobre, sans garantir qu'un processus soit encore actif le 24. Pour l'état courant et les seules actions restantes, se reporter à A–G ci-dessus.
 
 État final du **23 octobre 2026**, branche `chore/supabase-dev-setup`. **La migration, Auth par API, les profils, RLS et les parcours connectés du frontend local sont validés sur DEV avec deux comptes fictifs.** Les modèles d'e-mails restent ceux par défaut : aucun e-mail envoyé ou reçu, aucun parcours complet depuis un e-mail ni callback correspondant validé. DEV est utilisable pour développer le lot 6.2 avec cette limite explicite.
 
