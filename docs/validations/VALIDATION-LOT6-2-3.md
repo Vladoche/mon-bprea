@@ -1,6 +1,6 @@
 # Validation — Dashboard synchronisé et recette finale du lot 6.2.3
 
-Reprise du **25 octobre 2026**. Ce rapport distingue le travail retrouvé après interruption, les compléments de la reprise et les validations réellement exécutées. Les résultats finaux et les contrôles du dernier commit doivent être renseignés après leur exécution ; les cases en attente ne constituent pas une réussite.
+Reprise du **25 octobre 2026**. Ce rapport distingue le travail retrouvé après interruption, les compléments de la reprise et les validations réellement exécutées. Le commit fonctionnel `bb6a156b365827a6a916c3211df4793af43ff231` a réussi les trois contrôles obligatoires, dont la recette Supabase réelle complète.
 
 ## État retrouvé avant modification
 
@@ -41,7 +41,7 @@ Fichiers de livraison concernés :
 | Régressions | `tests/integration/dashboard-data.test.js`, `tests/e2e/dashboard-sync.spec.js`, `tests/e2e-supabase/dashboard-sync.spec.js` |
 | Navigation de recette réelle | `tests/helpers/drill-local.js` attend la fin de la redirection profil avant d’ouvrir le Drill. |
 
-La liste définitive doit être relue dans le diff de la PR après les validations. Aucun changement de migration, RPC ou politique RLS n’est attendu pour ce lot.
+Ces quatorze fichiers constituent le diff de livraison. Aucune migration, RPC ou politique RLS n’est modifiée.
 
 ## Tests réellement exécutés
 
@@ -53,30 +53,32 @@ La liste définitive doit être relue dans le diff de la PR après les validatio
 | `npm test` au début de la reprise | **154 tests réussis dans 20 fichiers**, aucun échec ; comprend les cinq tests non commités retrouvés |
 | Tests ciblés après compléments | **23 tests réussis dans 3 fichiers** : Dashboard data, reprise Auth et statistiques ; **4 E2E renderer réussis** |
 | `npm test` après compléments | **159 tests réussis dans 20 fichiers**, aucun échec |
-| `npm run test:e2e` après compléments | **21 parcours Chromium réussis**, aucun échec, en 11,0 s lors de la dernière exécution après correction du focus |
+| `npm run test:e2e` après compléments | **21 parcours Chromium réussis**, aucun échec, en 10,0 s lors de la dernière exécution locale |
 | `npm run build:auth-sdk` puis comparaison Git | **Réussi**, aucun changement du SDK versionné |
 | `git diff --check` | **Réussi** |
 | `npm run test:e2e:supabase` sur ce poste | **Arrêt avant collecte**, garde `SUPABASE_TEST_CONFIRM_LOCAL` absente ; Docker et fichier `.env.supabase-test.local` absents. Aucun test Supabase local exécuté et aucune stack hébergée utilisée en remplacement |
 
-Les tests unitaires et d’intégration utilisent une horloge contrôlée et des données isolées. Les tests du renderer avec service synthétique vérifient le client et le DOM ; ils ne valident ni Auth ni PostgreSQL/RLS. Aucun test existant ne doit être retiré ou affaibli pour obtenir un résultat vert.
+Les tests unitaires et d’intégration utilisent une horloge contrôlée et des données isolées. Les tests du renderer avec service synthétique vérifient le client et le DOM ; ils ne valident ni Auth ni PostgreSQL/RLS. Aucun test existant n’a été retiré ou affaibli.
 
 ## Recette multi-appareils et contrôles CI
 
-Les scénarios réels sont réservés à la stack `mon-bprea-lot6-1-local`, avec comptes fictifs et capture SMTP locale. Deux contextes Chromium isolés représentent les appareils d’un même compte. Les réponses Auth, PostgREST et RPC doivent provenir du vrai Supabase local ; les interruptions de transport servent seulement à reproduire une panne.
+Les scénarios réels ont été exécutés dans la stack éphémère `mon-bprea-lot6-1-local` du runner CI, avec comptes fictifs et capture SMTP locale. Deux contextes Chromium isolés représentent les appareils d’un même compte. Les réponses Auth, PostgREST et RPC proviennent du vrai Supabase local ; les interruptions de transport servent seulement à reproduire une panne.
 
-La recette attendue vérifie la cohérence des totaux et taux entre les deux contextes, cinq entraînements sans nouveau comptage, une réponse ajoutée ailleurs puis visible après actualisation, le cache durant une panne API, la reprise réseau, l’isolation A/B, la déconnexion et un conflit conservé sans double comptage. L’exécution et les résultats exacts restent **en attente de la CI** tant que les jobs n’ont pas terminé.
+La recette a vérifié la cohérence des totaux et taux entre les deux contextes, cinq entraînements sans nouveau comptage, une réponse ajoutée ailleurs puis visible après actualisation, le cache durant une panne API et après rechargement, la reprise réseau, l’isolation A/B/A, la déconnexion et un conflit conservé sans double comptage. Le visiteur est resté à **1 réponse incorrecte / 0 %**, sans import ; A est passé de **1/1/0/100 %** à **2/1/1/50 %**, puis **3/2/1/67 %** sur les deux appareils. PostgreSQL contient exactement **3 premières réponses et 5 entraînements**. B reste vide et ne peut lire les lignes A. Le conflit retient une seule réponse incorrecte, conserve le choix local en archive et garde le même total après résolution explicite.
 
-| Check obligatoire | État du dernier commit du lot |
+| Check obligatoire | Preuve sur le commit fonctionnel `bb6a156` |
 | --- | --- |
-| `unit-integration` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40181831836/job/121134323399), commit `facd689fd7e7571ef0a380d84d7f4003fb9b0fdf` |
-| `e2e` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40181831836/job/121134323153), même commit |
-| `supabase-security` | Première exécution sur `facd689` : **échec des deux nouveaux E2E**, quatre parcours antérieurs réussis ; pgTAP, Auth/RLS et backend réussis. [Job](https://github.com/Vladoche/mon-bprea/actions/runs/40181831871/job/121134393297). Nouvelle exécution après correction des sélecteurs en attente. |
+| `unit-integration` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40184414034/job/121142050296), 159 tests et SDK verrouillé sans diff |
+| `e2e` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40184414034/job/121142050442), 21 parcours Chromium autonomes |
+| `supabase-security` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40184414014/job/121142050297), 108 assertions pgTAP, 11 groupes Auth/profils/RLS, 22 groupes backend Drill et 6 parcours navigateur réels |
 
-La première recette réelle a révélé une erreur de sélecteur dans les deux nouveaux tests : `exact: true` cherchait « Commencer cette série » alors que le bouton accessible s’intitule « Commencer cette série → ». Les tests restaient en attente et atteignaient chacun 90 secondes ; aucune validation de leurs étapes suivantes n’est revendiquée sur ce run. Les libellés ont été corrigés et les attentes d’action bornées à 10 secondes, sans retrait de scénario ni modification de l’application.
+Les **6 parcours réels ont réussi en 28,1 s** : Auth/profil/récupération (4,5 s), Dashboard multi-appareils et comptes isolés (7,1 s), Dashboard en conflit (2,4 s), reprise Auth sans `online` de la PR #14 (1,5 s), Drill multi-appareils (7,8 s) et conflits Drill (2,2 s). L’arrêt exclusif de la stack éphémère a réussi. Cette mise à jour documentaire relance les mêmes contrôles ; les [checks du dernier commit de la PR](https://github.com/Vladoche/mon-bprea/pull/15/checks) permettent de vérifier sa réexécution.
+
+La première [recette réelle sur `facd689`](https://github.com/Vladoche/mon-bprea/actions/runs/40181831871/job/121134393297) avait échoué sur une erreur de sélecteur dans les deux nouveaux tests : `exact: true` cherchait « Commencer cette série » alors que le bouton accessible s’intitule « Commencer cette série → ». Les tests restaient en attente et atteignaient chacun 90 secondes ; aucune validation de leurs étapes suivantes n’est revendiquée sur ce run. Les libellés ont été corrigés et les attentes d’action bornées à 10 secondes, sans retrait de scénario ni modification de l’application.
 
 Une deuxième [exécution réelle](https://github.com/Vladoche/mon-bprea/actions/runs/40182563041/job/121136515087), sur `8f83e34`, a atteint l’actualisation du deuxième appareil et la résolution du conflit, puis échoué dans ces étapes ; les quatre parcours antérieurs et les contrôles de sécurité restaient réussis. La recette partage désormais un même instant contrôlé entre les deux contextes (les dates HTTP arrondies indépendantes pouvaient placer une réponse dans le futur du lecteur) et attend le statut de conflit stable avant d’ouvrir le panneau remplacé par la synchronisation initiale. Ces ajustements ne changent ni l’exclusion métier des dates futures ni le service de synchronisation. Un diagnostic limité aux statuts UI et aux totaux fictifs précise toute nouvelle panne, sans DOM, requête Auth ou jeton.
 
-Sur `f47f5eb`, la [recette réelle suivante](https://github.com/Vladoche/mon-bprea/actions/runs/40183265147/job/121138688260) a réussi **5 parcours sur 6**, dont le conflit Dashboard. Le scénario multi-appareils a confirmé les trois réponses, les cinq entraînements séparés, les totaux 3/2/1/67 %, le cache hors ligne et la reprise sur les deux contextes, avant un échec pendant les changements A/B/A. Le helper de connexion attendait le lien du header, publié avant la redirection asynchrone vers le profil ; il attend désormais la fin de cette navigation avant d’ouvrir le Drill. L’horloge commune est avancée au retour réseau pour rendre les `retryAt` éligibles sans altérer les dates des réponses. L’isolation en fin de ce scénario attend la nouvelle exécution ; les tests d’intégration d’isolation restent réussis.
+Sur `f47f5eb`, la [recette réelle suivante](https://github.com/Vladoche/mon-bprea/actions/runs/40183265147/job/121138688260) avait réussi **5 parcours sur 6**, dont le conflit Dashboard. Le scénario multi-appareils avait confirmé les trois réponses, les cinq entraînements séparés, les totaux 3/2/1/67 %, le cache hors ligne et la reprise sur les deux contextes, avant un échec pendant les changements A/B/A. Le helper de connexion attendait le lien du header, publié avant la redirection asynchrone vers le profil ; il attend désormais la fin de cette navigation avant d’ouvrir le Drill. L’horloge commune est avancée au retour réseau pour rendre les `retryAt` éligibles sans altérer les dates des réponses. L’isolation complète a ensuite réussi sur `bb6a156`.
 
 Le [run sur `0057eaf`](https://github.com/Vladoche/mon-bprea/actions/runs/40183865988/job/121140409881) a également réussi 5/6 parcours ; le diagnostic a situé l’attente sur le profil lors de la connexion de B. Le saut synthétique de 60 secondes entrait dans la marge de refresh de 90 secondes du SDK avec les JWT locaux de 120 secondes. La recette avance désormais l’horloge jusqu’au seul `retryAt` réellement persisté, au lieu d’imposer ce décalage. Les expirations du vrai serveur et les règles Auth applicatives restent inchangées.
 
@@ -107,7 +109,7 @@ Le défaut `assets/auth-config.json` reste **désactivé**, avec URL, clé et si
 | 6.2.1 — backend Drill | Tables, snapshots et opérations idempotentes avec protections PostgreSQL/RLS ; [validation dédiée](VALIDATION-LOT6-2-1.md), contrôles réels repris par `supabase-security`. |
 | 6.2.2 — client Drill | Cache personnel IndexedDB atomique, outbox, réconciliation, conflits conservés, isolation de l’identité et reprise réseau ; [validation dédiée](VALIDATION-LOT6-2-2.md). |
 | Correction PR #14 | Reprise du même compte `offline → authenticated` sans événement `online`, avec invalidation des retours tardifs ; [preuves de reproduction et de correction](VALIDATION-LOT6-2-2-REPRISE-AUTH.md). |
-| 6.2.3 — Dashboard | Réutilisation de la vue du service, statistiques personnelles et cache fiable, états et actualisation multi-appareils ; travail repris et complété, validation finale et CI à renseigner dans ce rapport. |
+| 6.2.3 — Dashboard | Raccordement préexistant conservé, régressions et mentions complétées, défaut de focus corrigé ; 159 tests, 21 E2E autonomes et 6 E2E Supabase réels réussis, trois contrôles CI verts sur `bb6a156`. PR #15 ouverte pour revue. |
 
 Le lot ne crée aucune métrique, gamification ou classement. Il ne promet pas le chargement intégral du site hors connexion ni la disponibilité distante d’une réponse encore en attente. L’inscription publique et les connexions anonymes restent désactivées ; l’ouverture aux étudiants attend les lots 6.4 et 6.5.
 
