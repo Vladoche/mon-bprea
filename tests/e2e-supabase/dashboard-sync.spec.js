@@ -17,6 +17,8 @@ async function safeDiagnostics(page) {
   try {
     // Only fixed UI statuses and synthetic counts; never dump DOM/Auth/network.
     return JSON.stringify(await page.evaluate(() => ({
+      page: document.body.dataset.page,
+      authMessage: document.querySelector('[data-auth-message]')?.textContent || null,
       dashboard: document.querySelector('#dashboard-sync-status')?.textContent || null,
       drill: document.querySelector('#drill-sync-status')?.textContent || null,
       totals: [...document.querySelectorAll('.dashboard-metrics dd')].map(el => el.textContent),
@@ -134,11 +136,17 @@ test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne 
     expect(answers.error).toBeNull(); expect(answers.data).toHaveLength(3);
     expect(training.error).toBeNull(); expect(training.data).toHaveLength(5);
 
-    stage = 'A déconnecté, B vide, retour A et historique visiteur préservé';
+    stage = 'déconnexion A et retour à l’historique visiteur';
     await signOut(page); await verifyTotals(page, 1, 0, 0);
-    await signInDrill(page, b); await page.goto(dashboardUrl); await dashboardSynced(page); await verifyTotals(page, 0, 0, null);
+    stage = 'connexion B après A'; await signInDrill(page, b);
+    stage = 'Dashboard B vide et synchronisé';
+    await page.goto(dashboardUrl); await dashboardSynced(page); await verifyTotals(page, 0, 0, null);
+    stage = 'déconnexion B et retour à l’historique visiteur';
     await signOut(page); await verifyTotals(page, 1, 0, 0);
-    await signInDrill(page, a); await page.goto(dashboardUrl); await dashboardSynced(page); await verifyTotals(page, 3, 2, 67);
+    stage = 'reconnexion A après B'; await signInDrill(page, a);
+    stage = 'Dashboard A retrouvé après B';
+    await page.goto(dashboardUrl); await dashboardSynced(page); await verifyTotals(page, 3, 2, 67);
+    stage = 'conservation du visiteur et refus RLS B vers A';
     expect(await page.evaluate(() => localStorage.getItem('bprea-demo-drill-v1'))).toBe(visitor);
     await b.refresh();
     const inaccessible = await b.client.from('drill_answers').select('operation_id').eq('user_id', a.userId);

@@ -33,6 +33,9 @@ export async function signInDrill(page, student) {
   await page.getByLabel('Mot de passe', { exact: true }).fill(student.password);
   await page.getByRole('button', { name: 'Se connecter', exact: true }).click();
   await page.locator('header').getByRole('link', { name: 'Mon profil', exact: true }).waitFor();
+  // Auth publishes the header before the login handler navigates to the
+  // profile. Finish that navigation before opening Drill in this context.
+  await page.waitForURL(`${LOCAL_SITE}profil.html`);
   await page.goto(DRILL_LOCAL_URL);
 }
 
