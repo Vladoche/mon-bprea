@@ -80,7 +80,7 @@ async function raw(student, path, method = 'GET', body = undefined, token = stud
 
 function deniedRaw(result, label, code = null) {
   assert.equal(result.ok, false, `${label} : PostgREST devait refuser l’écriture directe.`);
-  if (code) assert.equal(result.data?.code, code, `${label} : code PostgreSQL inattendu.`);
+  if (code) assert.equal(result.data?.code, code, `${label} : code PostgreSQL inattendu (${result.data?.code}, HTTP ${result.status}).`);
 }
 
 const tables = ['course_states', 'quiz_attempts', 'botanical_sessions', 'botanical_answers', 'itk_settings', 'appearance_preferences'];
@@ -451,8 +451,8 @@ try {
       deniedRaw(await raw(self, `${table}?user_id=eq.${neighbor.id}`, 'DELETE'), 'Suppression voisine interdite', '42501');
       assert.deepEqual(await rows(neighbor, table), before);
     }
-    deniedRaw(await raw(a, 'quiz_attempts', 'PATCH', { score: 0 }), 'QCM propre immuable', '42501');
-    deniedRaw(await raw(a, 'botanical_answers', 'PATCH', { correct: false }), 'Réponse botanique propre immuable', '42501');
+    deniedRaw(await raw(a, `quiz_attempts?attempt_id=eq.${quiz.attempt_id}`, 'PATCH', { score: 0 }), 'QCM propre immuable', '42501');
+    deniedRaw(await raw(a, `botanical_answers?answer_id=eq.${answer.answer_id}`, 'PATCH', { correct: false }), 'Réponse botanique propre immuable', '42501');
   });
 
   await check('Propriétaire, dates serveur, version et révision interdits sur les écritures directes', async () => {
@@ -460,11 +460,11 @@ try {
       const before = await rows(a, table);
       for (const field of [{ user_id: b.id }, { created_at: timestamp }]) {
         deniedRaw(await raw(a, table, 'POST', field), 'Insertion technique interdite', '42501');
-        deniedRaw(await raw(a, table, 'PATCH', field), 'Modification technique interdite', '42501');
+        deniedRaw(await raw(a, `${table}?user_id=eq.${a.id}`, 'PATCH', field), 'Modification technique interdite', '42501');
       }
       if (mutableTables.includes(table)) for (const field of [{ revision: 50 }, { updated_at: timestamp }, { schema_version: 2 }]) {
         deniedRaw(await raw(a, table, 'POST', field), 'Insertion technique état interdite', '42501');
-        deniedRaw(await raw(a, table, 'PATCH', field), 'Modification technique état interdite', '42501');
+        deniedRaw(await raw(a, `${table}?user_id=eq.${a.id}`, 'PATCH', field), 'Modification technique état interdite', '42501');
       }
       assert.deepEqual(await rows(a, table), before);
     }
@@ -472,10 +472,10 @@ try {
 
   await check('Écritures directes : le trigger impose CAS, aucune protection réservée aux RPC', async () => {
     const before = await one(a, 'itk_settings');
-    deniedRaw(await raw(a, 'itk_settings', 'PATCH', { parameters: { ...itkParameters, area: '444' } }), 'PATCH sans révision/opération');
-    deniedRaw(await raw(a, 'itk_settings', 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision - 1, operation_id: randomUUID() }), 'PATCH révision obsolète');
+    deniedRaw(await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' } }), 'PATCH sans révision/opération', '40001');
+    deniedRaw(await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision - 1, operation_id: randomUUID() }), 'PATCH révision obsolète', '40001');
     assert.deepEqual(await one(a, 'itk_settings'), before);
-    const valid = await raw(a, 'itk_settings', 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision, operation_id: randomUUID() });
+    const valid = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision, operation_id: randomUUID() });
     assert.equal(valid.status, 200);
     assert.equal(valid.data.length, 1);
     assert.equal(valid.data[0].revision, before.revision + 1);
@@ -497,7 +497,7 @@ try {
     for (const table of tables) {
       const visitor = await raw(null, `${table}?select=*`);
       deniedRaw(visitor, 'Lecture visiteur'); assert.ok([401, 403].includes(visitor.status));
-      for (const method of ['POST', 'PATCH', 'DELETE']) deniedRaw(await raw(null, table, method, method === 'DELETE' ? undefined : {}), 'Écriture visiteur');
+      for (const method of ['POST', 'PATCH', 'DELETE']) deniedRaw(await raw(null, method === 'POST' ? table : `${table}?user_id=eq.${a.id}`, method, method === 'DELETE' ? undefined : {}), 'Écriture visiteur');
       assert.equal((await raw(a, `${table}?select=*`, 'GET', undefined, forged)).status, 401);
     }
     for (const [name, input] of calls) {
