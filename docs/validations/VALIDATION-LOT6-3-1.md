@@ -41,7 +41,7 @@ Les modules `assets/`, pages HTML, feuilles de style, calculs pédagogiques et c
 | Préflight du runner personnel | Refus explicite, exit 1, configuration/stack locale indisponible ; aucun résultat RLS validé et aucun compte créé |
 | Docker sur ce poste | Commande indisponible ; stack Supabase réelle non démarrée sur ce poste |
 | `supabase test db --local` | Tentative réellement exécutée, exit 1 : connexion refusée à `127.0.0.1:54322` ; aucune cible distante |
-| pgTAP et Auth/RLS réels | Preuves à recueillir dans la stack Docker locale éphémère de GitHub Actions, pas sur DEV |
+| pgTAP et Auth/RLS réels | Non exécutés sur ce poste ; preuves réussies dans la stack Docker locale éphémère GitHub Actions, détaillées ci-dessous |
 | Inspection visuelle de régression | Cours et ITK à 1 280 px clair, Dashboard et botanique à 390 px sombre ; captures locales isolées relues, aucun débordement horizontal |
 
 Les E2E autonomes conservent les parcours Drill, Dashboard, botanique, Auth désactivée, ITK, apparence et progression. Leur réussite ne prouve pas RLS. Le SDK navigateur, les mécanismes Auth, le client Drill et le moteur Dashboard n'ont pas été modifiés. Les captures de contrôle restent ignorées dans `.tmp/lot631-*.png`, sans compte réel. Une première tentative visuelle séparée avait rencontré les restrictions réseau du sandbox ; le serveur et Chromium lancés ensemble ont permis le contrôle final réussi. Ce contrôle porte sur le rendu existant, aucun nouveau parcours frontend n'étant livré.
@@ -68,9 +68,36 @@ PR [#16](https://github.com/Vladoche/mon-bprea/pull/16), commit initial `8bee694
 
 Relance sur `2b201916aae30bece2e3bae95e646f0006491113` : [Qualité réussi](https://github.com/Vladoche/mon-bprea/actions/runs/40204508995). La [stack réelle de sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/40204509022) valide les **350 assertions pgTAP**, les **11 groupes Auth/profils** et les **22 groupes Drill**. Les 22 premiers groupes personnels réussissent, notamment toutes les courses métier et l'isolation des six tables. Le groupe suivant s'arrête sur le code exact de refus d'un PATCH sans filtre. Les écritures directes du runner ont été rendues explicitement ciblées sur la PK ou le propriétaire, comme celles du runner Drill, pour exercer les droits de colonnes et CAS sans dépendre d'un refus préalable de requête globale. Les diagnostics affichent désormais le code et le statut HTTP sans payload ou token. Les refus CAS directs exigent aussi le code `40001`. Aucune politique ou permission n'a été assouplie.
 
-Statut final à compléter après relance : **non validé à cette étape** pour la suite personnelle entière, les parcours Supabase navigateur et les trois checks du dernier commit. Aucun résultat n'est déduit de la seule présence des tests.
+La recette complète réussit sur **`277a76b48f2799bcfab3e8a2ef3855bfc079603c`** :
+
+| Contrôle | Preuve exécutée |
+| --- | --- |
+| [unit-integration](https://github.com/Vladoche/mon-bprea/actions/runs/40204947126/job/121203779827) | Réussi : 159 tests, SDK navigateur reconstruit sans diff |
+| [e2e](https://github.com/Vladoche/mon-bprea/actions/runs/40204947126/job/121203779620) | Réussi : 21 parcours Chromium autonomes |
+| [supabase-security](https://github.com/Vladoche/mon-bprea/actions/runs/40204947085/job/121203779691) | Réussi sur la stack locale éphémère, arrêt final réussi |
+
+Ce dernier job valide **350 assertions pgTAP** (242 nouvelles personnelles et 108 profils/Drill conservées), **11 groupes Auth/profils**, **22 groupes backend Drill**, les **26 groupes personnels PostgreSQL/Auth/PostgREST**, puis **6 parcours Chromium avec Supabase réel** (29,1 s). La création initiale sur base vierge, les accès A/B/visiteur/JWT falsifié, les refus des champs techniques et les courses CAS sont réellement exécutés, pas déduits de mocks. Les PATCH ciblés refusent les historiques avec `42501` et les bases de révision invalides avec `40001`, puis acceptent le remplacement légitime avec une seule révision supplémentaire.
+
+Les six parcours réels conservés couvrent invitation/activation/profil/récupération, Dashboard multi-appareils avec cache/hors ligne et entraînements exclus, conflit Dashboard sans double comptage, reprise Auth de la PR #14 sans événement online, Drill multi-appareils avec perte d'acquittement et conflit de snapshots. Les nouveaux domaines n'ont pas de client à tester dans un navigateur au lot 6.3.1 : leurs écritures sont testées directement avec de vrais JWT et PostgREST.
+
+Les preuves ci-dessus concernent exactement le commit fonctionnel indiqué. Le commit suivant ne modifie que ce rapport et un libellé du contrat (arguments RPC tous présents, null explicite autorisé). Les trois mêmes checks doivent aussi être contrôlés sur le head documentaire de la [PR #16](https://github.com/Vladoche/mon-bprea/pull/16) avant livraison ; une réussite sur un ancien commit ne remplace pas ce contrôle. Aucun résultat n'est déduit de la seule présence des tests.
+
+Contrôles finaux locaux : 64 liens Markdown locaux vérifiés, aucune cible manquante ; `git diff --check` sans erreur ; recherche ciblée de clés/tokens privés dans les nouveaux fichiers sans correspondance. Le diff final reste limité aux dix fichiers listés et ne touche aucune ressource frontend ou migration antérieure.
 
 ## Limites et interventions suivantes
+
+Les critères d'acceptation sont reliés aux preuves suivantes ; un statut de CI incomplet dans la section précédente reste incomplet pour les critères correspondants.
+
+| Critères | Preuve et portée |
+| --- | --- |
+| 1–3 : audit réel, adéquation du modèle et quatre domaines | Inventaire des lecteurs/écritures dans le guide, six tables correspondant aux états/historiques/singletons, formats anciens et absences de dates explicités |
+| 4–7 : RLS, visiteurs, A/B et relations | pgTAP des grants/policies/FK et requêtes avec JWT réels ; accès croisés testés même lorsque les comptes connaissent les mêmes IDs |
+| 8–11 : immutabilité, concurrence, retry et décochage | Guards communs aux RPC/écritures directes, courses HTTP des quatre mutables et des historiques, reprise exacte/divergente/supersédée, `done:false` persistant |
+| 12 : invalidités sans destruction locale | Refus serveur testés ; aucun importeur ou code local modifié, sources/archives à conserver selon contrat |
+| 13 : contrats utilisables par 6.3.2–6.3.4 | Paramètres et champs JSON, retours dont conflits sans ligne, erreurs, pagination, manifestes QCM, outbox et isolation Auth documentés |
+| 14–15 : pgTAP et sessions Auth réelles | Voir exécutions détaillées ci-dessus ; seules les étapes effectivement réussies font preuve |
+| 16–17 : régressions et trois contrôles | Résultats Vitest/Chromium locaux et jobs du commit concerné ; preuve finale à vérifier sur le head de PR, sans réutiliser un check ancien |
+| 18–20 : frontend et sources inchangés, DEV/PROD préservés | Diff limité aux dix fichiers listés, configuration Auth désactivée, aucune commande ou cible hébergée, aucune fusion/publication |
 
 Les QCM anciens n'ont pas d'ID ni, pour le meilleur score ancien, de date. Le contrat impose un manifeste d'import durable sans déduplication incertaine de copies indépendantes. Les réponses botaniques orphelines et données invalides/futures restent dans la source, refusées sans session ou timestamp inventés. Les mutables ne gardent que le dernier reçu d'opération ; un retry supersédé retourne conflit. La pagination multi-requêtes n'est pas un snapshot global. Les résultats déclarés par le navigateur ne sont pas certifiés.
 

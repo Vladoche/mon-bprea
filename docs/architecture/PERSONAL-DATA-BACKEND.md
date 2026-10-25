@@ -202,7 +202,7 @@ Botanique : `answer_id` reprend exactement le `questionId` local ; il n'existe p
 
 Toutes les écritures se font avec une session Auth valide du compte propriétaire et une clé publique publishable. Le résultat normal est un **objet JSON** `{status,row}`, sans tableau enveloppant : `status` vaut `inserted`, `updated` (mutables seulement), `replayed` ou `conflict` ; `row` contient les colonnes SQL en snake_case et uniquement la ligne visible du compte courant. Pour un conflit sans ligne à la clé demandée (base non nulle sur création absente ou UUID d'opération déjà utilisé sur une autre clé personnelle), `row` vaut **null**. Le client conserve son intention et examine ses opérations, sans considérer null comme une autorisation de créer ou de réattribuer. Il vérifie son UUID et sa génération Auth avant de consommer une ligne.
 
-| RPC et lot | Paramètres nommés PostgREST, tous obligatoires sauf nullable explicitement indiqué | Opération |
+| RPC et lot | Paramètres nommés PostgREST, tous présents ; null autorisé là où indiqué | Opération |
 | --- | --- | --- |
 | `personal_save_course` — 6.3.2 | `p_lesson_id:text`, `p_done:boolean`, `p_best_score:bigint|null`, `p_legacy_score:bigint|null`, `p_legacy_total:bigint|null`, `p_operation_id:uuid`, `p_expected_revision:bigint` | Créer/remplacer l'état complet d'un cours ; la paire legacy est nulle ensemble ; ne jamais fabriquer une date de case ou de score ancien |
 | `personal_record_quiz` — 6.3.2 | `p_attempt_id:uuid`, `p_lesson_id:text`, `p_score:bigint`, `p_total:bigint`, `p_completed_at:timestamptz` | Ajouter une tentative classique avec sa date réellement conservée |
