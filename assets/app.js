@@ -2,7 +2,9 @@ import { units, lessons, crops } from './content.js';
 import { initResources, initCourseResources, initUnitResources } from './resource-library.js';
 import { initExamPreparation } from './exam-preparation.js';
 import { initCalendar } from './calendar.js';
-import { recordQuizAttempt } from './exam-stats.js';
+import { getCourseQuizService } from './course-quiz-service.js';
+import { initCourseQuizPanel } from './course-quiz-ui.js';
+import { validAttempt } from './course-quiz-model.js';
 import { initDrill } from './drill.js';
 import { initDashboard } from './dashboard.js';
 import { initNavigation } from './navigation.js';
@@ -18,23 +20,15 @@ const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
 const BASE = './';
-const STORE_KEY = 'bprea-demo-progress-v1';
 const ITK_KEY = 'bprea-demo-itk-v1';
 const safeRead = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; } };
-function readProgress(fallback = {}) {
-  try {
-    const raw = localStorage.getItem(STORE_KEY);
-    if (raw === null) return {};
-    try {
-      const saved = JSON.parse(raw);
-      if (saved && typeof saved === 'object' && !Array.isArray(saved)) return saved;
-    } catch {}
-    // Conserver même une ancienne sauvegarde illisible lors du prochain enregistrement.
-    return { progressArchive: [raw] };
-  } catch { return fallback; }
-}
-let progress = readProgress();
-const saveProgress = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); return true; } catch { return false; } };
+let progress = {};
+let courseQuizService;
+let progressState = { mode: 'blocked', scope: null, view: { progress: {}, error: 'Vérification de la source des cours et QCM…' }, sync: { state: 'loading' } };
+let progressEpoch = 0;
+let refreshProgressUI = () => {};
+const progressAvailable = () => progressState.mode !== 'blocked' && !progressState.view.error && progressState.sync.state !== 'session';
+const progressSource = () => progressState.mode === 'personal' ? 'Historique personnel du compte' : 'Historique local de cet appareil';
 const clean = value => String(value).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
 const unitUrl = id => `uc.html?id=${encodeURIComponent(id)}`;
 const lessonUrl = id => `cours.html?id=${encodeURIComponent(id)}`;
@@ -81,18 +75,18 @@ function header() {
 }
 function unitCard(u) {
   const ls = lessons.filter(l=>l.unit===u.id), done = ls.filter(l=>isDone(l.id)).length;
-  return `<a class="unit-card" href="${unitUrl(u.id)}"><span class="unit-icon tone-${u.tone}">${icon(u.icon,24)}</span><div class="unit-card-meta"><span class="eyebrow">${u.code}</span>${ls.length?'<span class="pill status-ready">Cours disponibles</span>':'<span class="pill">À compléter</span>'}</div><h3>${clean(u.title)}</h3><p>${clean(u.short)}</p><div class="unit-card-bottom"><span>${ls.length ? `${ls.length} cours · ${done} terminé${done>1?'s':''}` : 'En attente des cours'}</span><span class="arrow-disc">${icon('arrow',17)}</span></div>${ls.length?`<div class="thin-track"><span style="width:${pct(done,ls.length)}%"></span></div>`:''}</a>`;
+  return `<a class="unit-card" href="${unitUrl(u.id)}"><span class="unit-icon tone-${u.tone}">${icon(u.icon,24)}</span><div class="unit-card-meta"><span class="eyebrow">${u.code}</span>${ls.length?'<span class="pill status-ready">Cours disponibles</span>':'<span class="pill">À compléter</span>'}</div><h3>${clean(u.title)}</h3><p>${clean(u.short)}</p><div class="unit-card-bottom"><span>${ls.length ? `${ls.length} cours · <span data-unit-done="${u.id}">${progressAvailable()?done:'—'}</span> terminé${done>1?'s':''}` : 'En attente des cours'}</span><span class="arrow-disc">${icon('arrow',17)}</span></div>${ls.length?`<div class="thin-track"><span data-unit-track="${u.id}" style="width:${progressAvailable()?pct(done,ls.length):0}%"></span></div>`:''}</a>`;
 }
 function home() {
   const total = lessons.length, done = countDone();
   $('#app-main').innerHTML = `<section class="exam-preparation wrap" id="exam-preparation" aria-labelledby="exam-heading"></section><section class="hero wrap"><div class="hero-content"><div class="section-kicker"><span class="kicker-line"></span> TON CARNET DE RÉVISION</div><h1>Faire pousser<br><em>ses connaissances.</em></h1><p>Un espace clair pour retrouver tes cours de BPREA, tester ce que tu as retenu et préparer des itinéraires techniques.</p><div class="hero-actions"><a class="btn btn-primary" href="mes-cours.html">Parcourir mes cours ${icon('arrow',18)}</a><a class="btn btn-outline" href="s-exercer.html">M’exercer cette semaine ${icon('flask',18)}</a></div></div><div class="hero-visual" aria-hidden="true"><div class="soil-panel"><span class="diagram-label top-label">LE SAVOIR PREND RACINE</span><svg viewBox="0 0 410 340" fill="none" xmlns="http://www.w3.org/2000/svg"><g stroke="#aecdb4" stroke-width="1"><path d="M0 178H410" stroke-dasharray="5 7"/><path d="M0 226H410M0 274H410" opacity=".33"/></g><path d="M205 182C207 131 200 86 197 39" stroke="#255f42" stroke-width="7" stroke-linecap="round"/><path d="M201 139C160 132 126 112 113 75c48 0 81 21 88 64Z" fill="#87ae74"/><path d="M207 110c28-45 51-56 88-57-10 44-40 67-88 57Z" fill="#52875b"/><path d="M199 71c-13-15-17-31-16-52 24 13 30 30 16 52Z" fill="#afca94"/><path d="M207 179c-19 23-20 36-26 57m25-57c21 24 32 36 45 57m-46-56c-1 55-8 91-17 121m17-81c-29 6-46 29-55 48m54-29c23 3 38 23 46 54m-63-33c-20-3-34 6-45 21m111-19c14 1 29 11 35 25" stroke="#b88652" stroke-width="4" stroke-linecap="round"/><g fill="#b88652"><circle cx="150" cy="269" r="4"/><circle cx="241" cy="291" r="4"/><circle cx="187" cy="300" r="4"/></g></svg><span class="diagram-label bottom-label">SOL • CULTURE • PRATIQUE</span></div><div class="hero-float">${icon('book',21)}<span><b>04</b><small>Cours pour commencer</small></span></div></div></section>
-  <section class="wrap summary-row"><div class="summary-intro"><span class="eyebrow">SUIVI DES COURS</span><h2>Ton parcours, à ton rythme.</h2></div><div class="summary-stat"><span class="summary-number">${done}<span>/${total}</span></span><span>Cours terminés</span></div><div class="summary-stat"><span class="summary-number">${pct(done,total)}<span>%</span></span><span>Progression de la démo</span></div><div class="summary-progress"><div class="progress-ring" style="--value:${pct(done,total)}"><div>${pct(done,total)}%</div></div></div></section>
+  <section class="wrap summary-row"><div class="summary-intro"><span class="eyebrow">SUIVI DES COURS</span><h2>Ton parcours, à ton rythme.</h2></div><div class="summary-stat"><span class="summary-number"><span data-progress-total-done>${progressAvailable()?done:'—'}</span><span>/${total}</span></span><span>Cours terminés</span></div><div class="summary-stat"><span class="summary-number"><span data-progress-total-percent>${progressAvailable()?pct(done,total):'—'}</span><span>%</span></span><span>Progression de la démo</span></div><div class="summary-progress"><div class="progress-ring" data-progress-ring style="--value:${progressAvailable()?pct(done,total):0}"><div data-progress-ring-value>${progressAvailable()?pct(done,total)+'%':'—'}</div></div></div></section>
   <section class="wrap units-section"><div class="section-heading"><div><span class="eyebrow">TON PROGRAMME</span><h2>Les unités capitalisables</h2><p>5 UC nationales et 2 UCARE. Commence par l’UC 03 : elle contient les cours de démonstration.</p></div><span class="section-count">7 unités</span></div><div class="unit-grid">${units.map(unitCard).join('')}</div></section>
   <section class="wrap resource-spotlight"><div class="resource-spotlight-icon">${icon('book',29)}</div><div><span class="eyebrow">BIBLIOTHÈQUE BPREA</span><h2>Ressources documentaires</h2><p>Liens utiles, sites de référence et fiches PDF réunis au même endroit.</p></div><a href="ressources.html" class="btn btn-outline">Parcourir les ressources ${icon('arrow',17)}</a></section>
   <section class="wrap next-section"><div class="next-panel"><div><span class="eyebrow">PASSER DE LA THÉORIE AU TERRAIN</span><h2>Un légume, une contrainte, un itinéraire.</h2><p>Teste le prototype ITK sur la tomate, la laitue, la carotte ou la courgette. Calendrier indicatif et opérations exportables.</p><a href="itk.html" class="btn btn-primary">Explorer le générateur ${icon('arrow',17)}</a></div><div class="next-art" aria-hidden="true"><span class="crop-circle">🍅</span><span class="crop-circle">🥬</span><span class="crop-circle">🥕</span><span class="crop-circle">🥒</span></div></div></section>`;
-  initExamPreparation($('#exam-preparation'), () => readProgress());
+  initExamPreparation($('#exam-preparation'), courseQuizService);
 }
-function lessonsList(list) {return list.map((l,i)=>`<a href="${lessonUrl(l.id)}" class="lesson-row"><span class="lesson-number">${String(i+1).padStart(2,'0')}</span><div class="lesson-details"><strong>${clean(l.title)}</strong><span>${clean(l.summary)}</span></div><div class="lesson-right"><span>${l.minutes} min</span>${isDone(l.id)?'<span class="completed-label">✓ Terminé</span>':''}${icon('arrow',18)}</div></a>`).join('');}
+function lessonsList(list) {return list.map((l,i)=>`<a href="${lessonUrl(l.id)}" class="lesson-row"><span class="lesson-number">${String(i+1).padStart(2,'0')}</span><div class="lesson-details"><strong>${clean(l.title)}</strong><span>${clean(l.summary)}</span></div><div class="lesson-right"><span>${l.minutes} min</span><span class="completed-label" data-lesson-completed="${l.id}" ${isDone(l.id)&&progressAvailable()?'':'hidden'}>✓ Terminé</span>${icon('arrow',18)}</div></a>`).join('');}
 function chapterList(list) {
   const chapters = new Map();
   list.forEach(lesson => { if (!chapters.has(lesson.chapter)) chapters.set(lesson.chapter, []); chapters.get(lesson.chapter).push(lesson); });
@@ -100,23 +94,108 @@ function chapterList(list) {
 }
 function unit() {
   const u=units.find(x=>x.id===params.get('id'))||units[2];const list=lessons.filter(x=>x.unit===u.id);
-  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('uc', { unit: u })}<div class="page-eyebrow">${u.code} · BPREA</div><h1>${clean(u.title)}</h1><p>${clean(u.short)}. <span class="soft-text">Démo indépendante à adapter à ta formation.</span></p></section><section class="wrap content-layout"><div class="content-panel"><div class="panel-heading"><div><span class="eyebrow">SOMMAIRE DES COURS</span><h2>${list.length?'Chapitres et leçons':'Contenu à construire'}</h2></div><span class="pill">${list.length} cours</span></div>${list.length?`<p class="panel-subtitle">Notions introductives sur la biologie du sol, avec exercices interactifs.</p>${chapterList(list)}`:`<div class="empty-state"><div class="empty-icon">${icon(u.icon,32)}</div><h3>Cette unité attend tes ressources.</h3><p>La navigation est prête. Tu pourras y ajouter chapitres, cours, schémas et exercices lorsque tu auras rassemblé les supports.</p><a class="text-link" href="${unitUrl('uc3')}">Voir un exemple de cours ${icon('arrow',17)}</a></div>`}<section id="unit-resources" aria-label="Ressources associées à cette UC"></section></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">MON AVANCEMENT</span><div class="big-ratio">${list.filter(l=>isDone(l.id)).length}<span> / ${list.length} cours</span></div><div class="thick-track"><span style="width:${pct(list.filter(l=>isDone(l.id)).length,list.length)}%"></span></div><p>La progression est enregistrée sur cet appareil.</p></div><div class="aside-card"><span class="eyebrow">À SAVOIR</span><h3>Ce n’est pas un support officiel.</h3><p>Les intitulés nationaux correspondent au BPREA, mais les chapitres de la démo sont libres et doivent être ajustés à ta formation.</p></div></aside></section>`;
+  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('uc', { unit: u })}<div class="page-eyebrow">${u.code} · BPREA</div><h1>${clean(u.title)}</h1><p>${clean(u.short)}. <span class="soft-text">Démo indépendante à adapter à ta formation.</span></p></section><section class="wrap content-layout"><div class="content-panel"><div class="panel-heading"><div><span class="eyebrow">SOMMAIRE DES COURS</span><h2>${list.length?'Chapitres et leçons':'Contenu à construire'}</h2></div><span class="pill">${list.length} cours</span></div>${list.length?`<p class="panel-subtitle">Notions introductives sur la biologie du sol, avec exercices interactifs.</p>${chapterList(list)}`:`<div class="empty-state"><div class="empty-icon">${icon(u.icon,32)}</div><h3>Cette unité attend tes ressources.</h3><p>La navigation est prête. Tu pourras y ajouter chapitres, cours, schémas et exercices lorsque tu auras rassemblé les supports.</p><a class="text-link" href="${unitUrl('uc3')}">Voir un exemple de cours ${icon('arrow',17)}</a></div>`}<section id="unit-resources" aria-label="Ressources associées à cette UC"></section></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">MON AVANCEMENT</span><div class="big-ratio"><span data-unit-done="${u.id}">${progressAvailable()?list.filter(l=>isDone(l.id)).length:'—'}</span><span> / ${list.length} cours</span></div><div class="thick-track"><span data-unit-track="${u.id}" style="width:${progressAvailable()?pct(list.filter(l=>isDone(l.id)).length,list.length):0}%"></span></div><p data-progress-source>${clean(progressSource())}</p></div><div class="aside-card"><span class="eyebrow">À SAVOIR</span><h3>Ce n’est pas un support officiel.</h3><p>Les intitulés nationaux correspondent au BPREA, mais les chapitres de la démo sont libres et doivent être ajustés à ta formation.</p></div></aside></section>`;
   initUnitResources($('#unit-resources'), u);
 }
 function course() {
   const l=lessons.find(x=>x.id===params.get('id'))||lessons[0], index=lessons.indexOf(l), next=lessons[index+1];
-  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('course', { lesson: l })}<div class="page-eyebrow">UC 03 <span class="dot-spacer">·</span> ${clean(l.chapter)} <span class="dot-spacer">·</span> ${l.minutes} min</div><h1>${clean(l.title)}</h1><p>${clean(l.summary)}</p><div class="course-labels"><span class="pill status-ready">Cours de démonstration</span><span class="pill">${clean(l.level)}</span></div></section><section class="wrap content-layout course-layout"><article class="content-panel course-article">${l.body}<section id="course-resources" aria-label="Ressources associées à ce cours"></section><div class="finish-box"><div><span class="eyebrow">PRÊT À VÉRIFIER TES ACQUIS ?</span><h3>Passer aux exercices</h3><p>Trois questions corrigées sur ce cours, avec un résultat conservé localement.</p></div><a class="btn btn-primary" href="${quizUrl(l.id)}">Faire le QCM ${icon('arrow',17)}</a></div><div class="done-box"><label class="done-toggle"><input type="checkbox" id="mark-done" ${isDone(l.id)?'checked':''}/><span class="check-visual">${icon('check',14)}</span><span>Marquer ce cours comme terminé</span></label><span class="mini-muted" id="done-state">${isDone(l.id)?'Terminé ✓':'Pas encore terminé'}</span></div>${next?`<a class="next-lesson" href="${lessonUrl(next.id)}"><span>PROCHAIN COURS <strong>${clean(next.title)}</strong></span>${icon('arrow',19)}</a>`:''}</article><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">L’ESSENTIEL</span><ul class="essentials">${l.essentials.map(x=>`<li>${icon('check',16)}<span>${clean(x)}</span></li>`).join('')}</ul></div><div class="aside-card"><span class="eyebrow">OUTILS DE RÉVISION</span><a class="aside-link" href="${quizUrl(l.id)}">${icon('flask',18)} Exercices de ce cours ${icon('arrow',16)}</a><a class="aside-link" href="${unitUrl('uc3')}">${icon('book',18)} Tous les cours UC 03 ${icon('arrow',16)}</a></div></aside></section>`;
+  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('course', { lesson: l })}<div class="page-eyebrow">UC 03 <span class="dot-spacer">·</span> ${clean(l.chapter)} <span class="dot-spacer">·</span> ${l.minutes} min</div><h1>${clean(l.title)}</h1><p>${clean(l.summary)}</p><div class="course-labels"><span class="pill status-ready">Cours de démonstration</span><span class="pill">${clean(l.level)}</span></div></section><section class="wrap content-layout course-layout"><article class="content-panel course-article">${l.body}<section id="course-resources" aria-label="Ressources associées à ce cours"></section><div class="finish-box"><div><span class="eyebrow">PRÊT À VÉRIFIER TES ACQUIS ?</span><h3>Passer aux exercices</h3><p>Trois questions corrigées sur ce cours, avec un historique de tes tentatives.</p></div><a class="btn btn-primary" href="${quizUrl(l.id)}">Faire le QCM ${icon('arrow',17)}</a></div><div class="done-box"><label class="done-toggle"><input type="checkbox" id="mark-done" ${isDone(l.id)?'checked':''}/><span class="check-visual">${icon('check',14)}</span><span>Marquer ce cours comme terminé</span></label><span class="mini-muted" id="done-state">${isDone(l.id)?'Terminé ✓':'Pas encore terminé'}</span></div>${next?`<a class="next-lesson" href="${lessonUrl(next.id)}"><span>PROCHAIN COURS <strong>${clean(next.title)}</strong></span>${icon('arrow',19)}</a>`:''}</article><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">L’ESSENTIEL</span><ul class="essentials">${l.essentials.map(x=>`<li>${icon('check',16)}<span>${clean(x)}</span></li>`).join('')}</ul></div><div class="aside-card"><span class="eyebrow">OUTILS DE RÉVISION</span><a class="aside-link" href="${quizUrl(l.id)}">${icon('flask',18)} Exercices de ce cours ${icon('arrow',16)}</a><a class="aside-link" href="${unitUrl('uc3')}">${icon('book',18)} Tous les cours UC 03 ${icon('arrow',16)}</a></div></aside></section>`;
   initCourseResources($('#course-resources'), l);
-  $('#mark-done').addEventListener('change',event=>{progress=readProgress(progress);const previous=progress[l.id];const saved=previous&&typeof previous==='object'&&!Array.isArray(previous)?previous:previous===undefined?{}:{progressArchive:[previous]};progress[l.id]={...saved,done:event.target.checked};saveProgress();$('#done-state').textContent=event.target.checked?'Terminé ✓':'Pas encore terminé';});
+  const checkbox = $('#mark-done');
+  let savingCourse = false, requestedDone = null, savingEpoch = null;
+  refreshProgressUI = () => {
+    const saving = savingCourse && savingEpoch === progressEpoch && progressAvailable();
+    checkbox.checked = saving ? requestedDone : progressAvailable() && isDone(l.id);
+    checkbox.disabled = saving || !progressAvailable();
+    $('#done-state').textContent = !progressAvailable() ? 'Progression indisponible' : isDone(l.id) ? 'Terminé ✓' : 'Pas encore terminé';
+    if (saving) $('#done-state').textContent = 'Enregistrement sur cet appareil…';
+  };
+  refreshProgressUI();
+  checkbox.addEventListener('change', async event => {
+    const epoch = progressEpoch;
+    const restoreFocus = document.activeElement === checkbox;
+    savingCourse = true; requestedDone = event.target.checked; savingEpoch = epoch;
+    checkbox.disabled = true;
+    $('#done-state').textContent = 'Enregistrement sur cet appareil…';
+    const result = await courseQuizService.setCourseDone(l.id, requestedDone);
+    savingCourse = false;
+    if (epoch !== progressEpoch) return;
+    refreshProgressUI();
+    if (result.error) $('#done-state').textContent = `Erreur de sauvegarde : ${result.error}`;
+    if (restoreFocus && [document.body,checkbox].includes(document.activeElement)) checkbox.focus({ preventScroll: true });
+  });
 }
 function quizzes() {
-  const l=lessons.find(x=>x.id===params.get('id'))||lessons[0];
-  let answers={};let submitted=false;
-  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('quiz', { lesson: l })}<div class="page-eyebrow">TEST DE CONNAISSANCES · 3 QUESTIONS</div><h1>Vérifie ce que tu as retenu.</h1><p>${clean(l.title)} — réponds aux questions, puis découvre le corrigé et les explications.</p></section><section class="wrap content-layout quiz-layout"><div class="content-panel"><div id="quiz-questions">${l.quiz.map((q,i)=>`<fieldset class="question" data-question="${i}"><legend><span>QUESTION ${String(i+1).padStart(2,'0')}</span>${clean(q.q)}</legend>${q.options.map((option,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}"/><span class="option-letter">${String.fromCharCode(65+j)}</span><span>${clean(option)}</span></label>`).join('')}<div class="explanation" id="explain-${i}" hidden></div></fieldset>`).join('')}</div><div class="quiz-controls"><button id="check-quiz" class="btn btn-primary" disabled>Corriger mes réponses ${icon('check',18)}</button><button id="retry-quiz" class="btn btn-outline" hidden>Recommencer</button></div><div id="quiz-result" aria-live="polite"></div></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">CONSEIL</span><h3>Ne révise pas en pilotage automatique.</h3><p>Essaie de justifier ta réponse avant de regarder la correction. C’est plus utile que de mémoriser seulement la lettre.</p></div><div class="aside-card"><span class="eyebrow">MEILLEUR SCORE</span><div class="big-ratio">${progress[l.id]?.score===undefined?'—':progress[l.id].score}<span> / ${l.quiz.length}</span></div><p>Ton meilleur score est conservé sur ce navigateur.</p></div></aside></section>`;
-  const form=$('#quiz-questions'), check=$('#check-quiz'), retry=$('#retry-quiz');
-  form.addEventListener('change',e=>{if(submitted)return;let match=e.target.name?.match(/^q(\d+)$/);if(match)answers[Number(match[1])]=Number(e.target.value);check.disabled=Object.keys(answers).length!==l.quiz.length;});
-  check.addEventListener('click',()=>{if(submitted)return;submitted=true;let score=0;l.quiz.forEach((q,i)=>{const ok=answers[i]===q.answer;if(ok)score++;const fs=$(`[data-question="${i}"]`);$$('.option',fs).forEach((el,j)=>{if(j===q.answer)el.classList.add('correct');if(j===answers[i]&&!ok)el.classList.add('incorrect');});let expl=$(`#explain-${i}`);expl.hidden=false;expl.innerHTML=`<strong>${ok?'Bonne réponse':'À corriger'}</strong> — ${clean(q.why)}`;});$$('input',form).forEach(x=>x.disabled=true);check.hidden=true;retry.hidden=false;progress=readProgress(progress);progress[l.id]=recordQuizAttempt(progress[l.id],{score,total:l.quiz.length,completedAt:new Date().toISOString()});const saved=saveProgress();$('#quiz-result').innerHTML=`<div class="quiz-result-box">${icon('check',28)}<div><strong>${score} / ${l.quiz.length} bonnes réponses</strong><p>${score===l.quiz.length?'Sans faute ! Cours marqué comme terminé.':'Relis les corrections et recommence quand tu veux.'}</p>${saved?'':'<p role="status">Le stockage local est indisponible : cette tentative ne pourra pas être conservée après avoir quitté la page.</p>'}</div></div>`;});
-  retry.addEventListener('click',()=>{answers={};submitted=false;$$('input',form).forEach(x=>{x.checked=false;x.disabled=false;});$$('.option',form).forEach(x=>x.classList.remove('correct','incorrect'));$$('.explanation',form).forEach(x=>x.hidden=true);check.hidden=false;check.disabled=true;retry.hidden=true;$('#quiz-result').innerHTML='';});
+  const l = lessons.find(x => x.id === params.get('id')) || lessons[0];
+  let answers = {}, submitted = false, saving = false, attempt = null;
+  let source = `${progressState.mode}:${progressState.scope}`;
+  $('#app-main').innerHTML = `<section class="page-top wrap">${renderBreadcrumbs('quiz', { lesson: l })}<div class="page-eyebrow">TEST DE CONNAISSANCES · ${l.quiz.length} QUESTIONS</div><h1>Vérifie ce que tu as retenu.</h1><p>${clean(l.title)} — réponds aux questions, puis découvre le corrigé et les explications.</p></section><section class="wrap content-layout quiz-layout"><div class="content-panel"><div id="quiz-questions">${l.quiz.map((q,i)=>`<fieldset class="question" data-question="${i}"><legend><span>QUESTION ${String(i+1).padStart(2,'0')}</span>${clean(q.q)}</legend>${q.options.map((option,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}"/><span class="option-letter">${String.fromCharCode(65+j)}</span><span>${clean(option)}</span></label>`).join('')}<div class="explanation" id="explain-${i}" hidden></div></fieldset>`).join('')}</div><div class="quiz-controls"><button id="check-quiz" class="btn btn-primary" disabled>Corriger mes réponses ${icon('check',18)}</button><button id="retry-quiz" class="btn btn-outline" hidden>Recommencer</button></div><div id="quiz-result" aria-live="polite"></div><section class="quiz-history-panel" aria-labelledby="quiz-history-title"><h2 id="quiz-history-title">Mes tentatives QCM</h2><p id="quiz-history-source"></p><div id="quiz-history"></div></section></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">CONSEIL</span><h3>Ne révise pas en pilotage automatique.</h3><p>Essaie de justifier ta réponse avant de regarder la correction. C’est plus utile que de mémoriser seulement la lettre.</p></div><div class="aside-card"><span class="eyebrow">MEILLEUR SCORE</span><div class="big-ratio"><span id="quiz-best-score">—</span><span> / ${l.quiz.length}</span></div><p data-progress-source></p></div></aside></section>`;
+  const form = $('#quiz-questions'), check = $('#check-quiz'), retry = $('#retry-quiz');
+  const date = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+  let historyMarkup;
+  function reset() {
+    answers = {}; submitted = false; saving = false; attempt = null;
+    $$('input',form).forEach(x => { x.checked = false; x.disabled = !progressAvailable(); });
+    $$('.option',form).forEach(x => x.classList.remove('correct','incorrect'));
+    $$('.explanation',form).forEach(x => x.hidden = true);
+    check.hidden = false; check.disabled = true; retry.hidden = true; $('#quiz-result').replaceChildren();
+  }
+  refreshProgressUI = () => {
+    const nextSource = `${progressState.mode}:${progressState.scope}`;
+    if (source !== nextSource || !progressAvailable() && progressState.sync.state === 'session') { source = nextSource; reset(); }
+    const available = progressAvailable();
+    $$('input',form).forEach(input => input.disabled = submitted || !available);
+    check.disabled = submitted || !available || Object.keys(answers).length !== l.quiz.length;
+    const saved = progress[l.id];
+    $('#quiz-best-score').textContent = available && saved?.score !== undefined ? saved.score : '—';
+    $('#quiz-history-source').textContent = available ? progressSource() : progressState.view.error || 'La progression doit être vérifiée.';
+    const rows = available && Array.isArray(saved?.quizAttempts) ? saved.quizAttempts : [];
+    const valid = rows.filter(validAttempt);
+    const markup = !available ? '<p>Historique indisponible pour le moment. Les données enregistrées sont conservées.</p>' : valid.length ? `<ol class="quiz-attempt-list">${valid.map(row => `<li ${row.attemptId || row.id ? `data-attempt-id="${clean(row.attemptId || row.id)}"` : ''}><strong>${row.score} / ${row.total}</strong><time datetime="${clean(row.completedAt)}">${clean(date.format(new Date(row.completedAt)))}</time></li>`).join('')}</ol>` : '<p>Aucune tentative QCM historisée pour ce cours.</p>';
+    if (markup !== historyMarkup) { $('#quiz-history').innerHTML = markup; historyMarkup = markup; }
+  };
+  refreshProgressUI();
+  form.addEventListener('change', event => {
+    if (submitted || !progressAvailable()) return;
+    const match = event.target.name?.match(/^q(\d+)$/);
+    if (match) answers[Number(match[1])] = Number(event.target.value);
+    check.disabled = Object.keys(answers).length !== l.quiz.length;
+  });
+  async function saveAttempt() {
+    if (saving || !attempt) return;
+    saving = true;
+    const epoch = progressEpoch;
+    const pending = attempt;
+    $('#quiz-result').innerHTML = `<div class="quiz-result-box"><div><strong>${pending.score} / ${pending.total} bonnes réponses</strong><p role="status">Enregistrement sur cet appareil…</p></div></div>`;
+    $('#quiz-result').tabIndex = -1;
+    $('#quiz-result').focus({ preventScroll: true });
+    if (courseQuizService.getState().sync.state === 'storage-error') await courseQuizService.retry();
+    if (epoch !== progressEpoch) return;
+    const result = await courseQuizService.recordQuiz(l.id, pending);
+    if (epoch !== progressEpoch) return;
+    saving = false;
+    $('#quiz-result').innerHTML = `<div class="quiz-result-box">${icon('check',28)}<div><strong>${pending.score} / ${pending.total} bonnes réponses</strong><p>${pending.score === pending.total && !result.error ? 'Sans faute ! Ton choix de terminer le cours a été enregistré sur cet appareil.' : 'Relis les corrections et recommence quand tu veux.'}</p>${result.error ? `<p role="alert">Erreur de sauvegarde : ${clean(result.error)} Cette tentative n’est pas annoncée comme enregistrée.</p><button class="btn btn-outline" type="button" id="retry-quiz-save">Réessayer l’enregistrement</button>` : `<p>Progression enregistrée sur cet appareil.${progressState.mode === 'personal' ? ' Le suivi de synchronisation précise son envoi au compte.' : ' Mode visiteur : sauvegarde locale uniquement.'}</p>`}</div></div>`;
+    $('#retry-quiz-save')?.addEventListener('click', saveAttempt);
+    refreshProgressUI();
+  }
+  check.addEventListener('click', async () => {
+    if (submitted || !progressAvailable()) return;
+    submitted = true;
+    let score = 0;
+    l.quiz.forEach((q,i) => {
+      const ok = answers[i] === q.answer;
+      if (ok) score++;
+      const fs = $(`[data-question="${i}"]`);
+      $$('.option',fs).forEach((el,j) => { if (j === q.answer) el.classList.add('correct'); if (j === answers[i] && !ok) el.classList.add('incorrect'); });
+      const explanation = $(`#explain-${i}`); explanation.hidden = false;
+      explanation.innerHTML = `<strong>${ok ? 'Bonne réponse' : 'À corriger'}</strong> — ${clean(q.why)}`;
+    });
+    $$('input',form).forEach(x => x.disabled = true);
+    check.hidden = true; retry.hidden = false;
+    attempt = { score, total: l.quiz.length, completedAt: new Date().toISOString() };
+    await saveAttempt();
+  });
+  retry.addEventListener('click', () => { if (!saving) { reset(); $('input',form)?.focus({ preventScroll: true }); } });
 }
 function selectOptions(options,selected){return options.map(x=>`<option value="${clean(x)}" ${selected===x?'selected':''}>${clean(x)}</option>`).join('');}
 function dateForMonth(month,year){return new Date(year,month-1,15,12);}
@@ -164,10 +243,54 @@ function dashboard(){
     panel.append(title,message);root.replaceChildren(panel);
   });
 }
-function init(){
+function updateProgressElements() {
+  const available = progressAvailable();
+  const totalDone = countDone();
+  $$('[data-progress-total-done]').forEach(node => node.textContent = available ? totalDone : '—');
+  $$('[data-progress-total-percent]').forEach(node => node.textContent = available ? pct(totalDone, lessons.length) : '—');
+  $$('[data-progress-ring]').forEach(node => node.style.setProperty('--value', available ? pct(totalDone, lessons.length) : 0));
+  $$('[data-progress-ring-value]').forEach(node => node.textContent = available ? `${pct(totalDone, lessons.length)}%` : '—');
+  for (const u of units) {
+    const list = lessons.filter(lesson => lesson.unit === u.id);
+    const done = list.filter(lesson => isDone(lesson.id)).length;
+    $$(`[data-unit-done="${u.id}"]`).forEach(node => node.textContent = available ? done : '—');
+    $$(`[data-unit-track="${u.id}"]`).forEach(node => node.style.width = `${available ? pct(done,list.length) : 0}%`);
+  }
+  $$('[data-lesson-completed]').forEach(node => node.hidden = !available || !isDone(node.dataset.lessonCompleted));
+  $$('[data-progress-source]').forEach(node => node.textContent = available ? progressSource() : 'Progression indisponible : les données doivent être vérifiées.');
+  const footer = $('#app-footer .footer-in > span:last-child');
+  if (footer) footer.textContent = `Contenus de démonstration non officiels · ${available ? progressSource() : 'Source des cours et QCM à vérifier'}`;
+  refreshProgressUI();
+}
+async function init(){
   header();
   const page=document.body.dataset.page;
+  const usesProgress = ['home', 'courses', 'uc', 'course', 'quiz'].includes(page);
+  if (usesProgress) {
+    $('#app-main').innerHTML = '<section class="page-top wrap"><h1>Chargement des cours et QCM</h1><p role="status">Vérification de la source de progression…</p></section>';
+    try { courseQuizService = await getCourseQuizService(); progressState = courseQuizService.getState(); }
+    catch { progressState.view.error = 'La source de progression est indisponible. Les données enregistrées sont conservées.'; }
+    progress = progressAvailable() ? progressState.view.progress : {};
+  }
   ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
+  if (usesProgress) {
+    const panel = document.createElement('section');
+    panel.className = 'wrap course-quiz-sync'; panel.setAttribute('aria-label', 'Sauvegarde des cours et QCM');
+    const intro = $('#app-main > .page-top');
+    if (intro) intro.after(panel); else $('#app-main').prepend(panel);
+    if (courseQuizService) {
+      initCourseQuizPanel(panel, courseQuizService);
+      const unsubscribe = courseQuizService.subscribe(state => {
+        if (`${state.mode}:${state.scope}` !== `${progressState.mode}:${progressState.scope}` || state.sync.state === 'session' && progressState.sync.state !== 'session') progressEpoch++;
+        progressState = state;
+        progress = progressAvailable() ? state.view.progress : {};
+        updateProgressElements();
+      });
+      window.addEventListener('pagehide', () => { unsubscribe(); courseQuizService.stop(); }, { once: true });
+      window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
+    } else panel.textContent = progressState.view.error;
+    updateProgressElements();
+  }
   // Les rendus asynchrones peuvent remplacer main : le bandeau commun reste extérieur.
   const fact = document.createElement('section');
   fact.className = 'daily-fact wrap';

@@ -52,7 +52,7 @@ jobs:
         run: node scripts/test-personal-data-supabase.mjs
       - name: Installer Chromium pour les parcours avec Supabase réel
         run: npx playwright install --with-deps chromium
-      - name: Vérifier Auth et synchronisation Drill multi-appareils dans le navigateur
+      - name: Vérifier Auth, Drill et cours/QCM multi-appareils dans le navigateur
         env:
           PYTHON: python3
         run: npx playwright test --config=playwright.supabase.config.js

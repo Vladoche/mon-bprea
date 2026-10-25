@@ -4,6 +4,7 @@ import { readDashboardData } from './dashboard-data.js';
 import { createDashboardModel } from './dashboard-stats.js';
 import { getParisWeek } from './drill-engine.js';
 import { DRILL_STORAGE_KEY } from './drill-store.js';
+import { getDrillSyncService } from './drill-sync-service.js';
 
 const clean = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const number = value => new Intl.NumberFormat('fr-FR').format(value);
@@ -36,15 +37,15 @@ function linkCard({ href, title, description, symbol, action, primary = false, k
 export function initCourseHub(root) {
   root.innerHTML = `${intro('courses', 'Mes cours', 'Retrouve les cours de ta formation par unité capitalisable, puis passe aux activités de révision à ton rythme.', 'COMPRENDRE, PUIS METTRE EN PRATIQUE')}<section class="wrap hub-unit-section" aria-labelledby="hub-units-heading"><div class="hub-section-heading"><div><h2 id="hub-units-heading">Cours par UC</h2><p>Choisis une unité pour accéder à ses chapitres et à ses leçons.</p></div><span class="hub-count">${units.length} unités</span></div><div class="hub-unit-grid">${units.map(unit => {
     const count = lessons.filter(lesson => lesson.unit === unit.id).length;
-    return `<a class="hub-unit-card" href="uc.html?id=${encodeURIComponent(unit.id)}"><span class="unit-icon tone-${clean(unit.tone)}">${icon(unit.icon)}</span><span class="eyebrow">${clean(unit.code)}</span><h3>${clean(unit.title)}</h3><p>${clean(unit.short)}</p><div class="hub-unit-bottom"><span>${count ? `${count} cours disponible${count > 1 ? 's' : ''}` : 'Cours à venir'}</span><span class="hub-unit-arrow" aria-hidden="true">→</span></div></a>`;
+    return `<a class="hub-unit-card" href="uc.html?id=${encodeURIComponent(unit.id)}"><span class="unit-icon tone-${clean(unit.tone)}">${icon(unit.icon)}</span><span class="eyebrow">${clean(unit.code)}</span><h3>${clean(unit.title)}</h3><p>${clean(unit.short)}</p><div class="hub-unit-bottom"><span>${count ? `${count} cours disponible${count > 1 ? 's' : ''} · <span data-unit-done="${unit.id}">—</span> terminé(s)` : 'Cours à venir'}</span><span class="hub-unit-arrow" aria-hidden="true">→</span></div></a>`;
   }).join('')}</div></section><section class="wrap hub-next-panel" aria-labelledby="hub-practice-heading"><div><span class="eyebrow">DANS MES COURS</span><h2 id="hub-practice-heading">S’exercer</h2><p>Retrouve les exercices hebdomadaires, tes résultats et ton calendrier de révision.</p></div><a class="btn btn-primary" href="s-exercer.html">Accéder à S’exercer <span aria-hidden="true">→</span></a></section>`;
 }
 
-function weeklySummary(now) {
+function weeklySummary(now, snapshot) {
   const currentWeek = getParisWeek(now);
   // Reuse Dashboard accounting and activity dates; do not aggregate a second time.
   // Four weeks is the shortest supported model window; only the current one is shown.
-  const model = createDashboardModel(readDashboardData(), { period: '4', now });
+  const model = createDashboardModel(readDashboardData(snapshot), { period: '4', now });
   const week = model.weeks.find(item => item.id === currentWeek.id);
   const heading = `<div class="hub-section-heading"><div><span class="eyebrow">TON ACTIVITÉ DE RÉVISION</span><h2 id="hub-weekly-heading">Cette semaine</h2><p>Du ${dateLabel(currentWeek.start)} au ${dateLabel(currentWeek.end)} · ${clean(currentWeek.id)} · Europe/Paris</p></div></div>`;
   if (model.error) {
@@ -59,12 +60,14 @@ export function initPracticeHub(root) {
   const controller = new AbortController();
   practiceControllers.set(root, controller);
   const { signal } = controller;
+  let service;
+  let snapshot = { mode: 'blocked', sync: { state: 'loading' } };
   root.innerHTML = `${intro('practice', 'S’exercer', 'Retrouve tes exercices, tes résultats et ton calendrier de révision.', 'DANS MES COURS')}<section class="wrap hub-weekly" aria-labelledby="hub-weekly-heading"><div id="hub-weekly-content" aria-live="polite" aria-atomic="false"></div></section><section class="wrap hub-practice-grid" aria-label="Activités de révision">${linkCard({ href: 'drill.html', title: 'Exercices hebdomadaires', description: 'Retrouve les séries de dix exercices par UC, renouvelées chaque semaine, et reprends celles déjà commencées à ton rythme.', symbol: 'exercise', action: 'Ouvrir les exercices', primary: true, kicker: 'POUR METTRE EN PRATIQUE' })}${linkCard({ href: 'tableau-de-bord.html', title: 'Tableau de bord', description: 'Consulte ton activité, tes résultats et les notions à retravailler à partir de tes réponses enregistrées.', symbol: 'chart', action: 'Consulter mes résultats' })}${linkCard({ href: 'calendrier.html', title: 'Calendrier', description: 'Retrouve ton emploi du temps annuel et les périodes d’examen pour organiser tes révisions.', symbol: 'calendar', action: 'Ouvrir le calendrier' })}</section>`;
   const summary = root.querySelector('#hub-weekly-content');
   let lastMarkup = '';
   function refresh() {
     if (!root.isConnected) return;
-    const markup = weeklySummary(new Date());
+    const markup = weeklySummary(new Date(), snapshot);
     if (markup !== lastMarkup) {
       summary.innerHTML = markup;
       lastMarkup = markup;
@@ -81,6 +84,14 @@ export function initPracticeHub(root) {
   }, { signal });
   const timer = window.setInterval(() => { if (!document.hidden) refresh(); }, 60000);
   signal.addEventListener('abort', () => window.clearInterval(timer), { once: true });
+  getDrillSyncService().then(value => {
+    if (signal.aborted) { value.stop(); return; }
+    service = value;
+    const unsubscribe = service.subscribe(state => { snapshot = state; refresh(); });
+    signal.addEventListener('abort', () => { unsubscribe(); service.stop(); }, { once: true });
+  }).catch(() => { snapshot = { mode: 'blocked', sync: { state: 'session' } }; refresh(); });
+  window.addEventListener('pagehide', () => controller.abort(), { once: true });
+  window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); }, { signal });
   refresh();
 }
 

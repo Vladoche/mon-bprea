@@ -122,6 +122,14 @@ npm run test:personal:supabase
 
 Ce runner réutilise les gardes `auth-local`, les invitations fictives capturées localement et de vrais JWT/PostgREST. Il vérifie l'isolation A/B, les privilèges directs, les données invalides, les retries, le décochage d'un cours, les historiques immuables, la complétion botanique et les courses de révision ITK/apparence/cours/sessions. Les fixtures `tests/fixtures/personal-data.js` représentent les formats audités et ne contiennent pas de donnée étudiante. Le job `supabase-security` l'exécute sans remplacer les tests antérieurs. L'absence de Docker ou de configuration locale reste une non-exécution, jamais une réussite déduite de tests frontend.
 
+## Cours et QCM personnels (lot 6.3.2)
+
+Les suites `course-quiz-*` vérifient le modèle réellement utilisé par le site, le cache IndexedDB transactionnel, les dépendances de cours, les UUID de tentatives, les manifestes d’import, le transport paginé et les générations Auth. `fake-indexeddb` isole les données et permet de vérifier l’annulation d’une transaction ; il ne démontre pas la sécurité RLS.
+
+`tests/e2e/course-quiz-sync.spec.js` exerce les écrans avec HTTP simulé et des contextes Chromium isolés. `tests/e2e-supabase/course-quiz-sync.spec.js` utilise exclusivement les comptes fictifs et endpoints gardés par `auth-local.js`, les vrais JWT, les RPC et PostgreSQL de la stack éphémère. La perte d’acquittement y suit `route.fetch()` réel ; une assertion SELECT avec le JWT étudiant vérifie l’unicité après retry. Les scénarios couvrent deux appareils, décochage, meilleur score, isolation A/B, outbox rechargée, conflit CAS indépendant d’une tentative parfaite et import volontaire sans doublon.
+
+Les runners SQL/Node des lots précédents restent présents et exécutés par `supabase-security`. L’absence de Docker ou de configuration locale interdit une validation locale réelle et doit être consignée. Voir [architecture client](architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) et [validation](validations/VALIDATION-LOT6-3-2.md).
+
 ## CI et protection de `main`
 
 Le workflow **Qualité**, défini dans `.github/workflows/quality.yml`, s’exécute sur les pull requests vers `main`, à l’ouverture et à chaque nouveau commit. Ses deux jobs sont `unit-integration` et `e2e`. Ils utilisent Node.js 24 LTS, `npm ci` et le cache npm ; le second installe Chromium et conserve les artefacts utiles en cas d’échec. Les permissions se limitent à la lecture du dépôt, sans secret de production. Ce workflow ne déploie pas.

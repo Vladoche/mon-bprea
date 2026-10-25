@@ -1,5 +1,6 @@
 import { DrillSyncError } from './drill-sync-model.js';
 import { uuidPattern } from './drill-personal-store.js';
+export { classifySyncError } from './sync-runtime.js';
 
 const names = { series: 'drill_create_series', answer: 'drill_record_answer', training: 'drill_record_training' };
 const tables = { series: 'drill_series', answers: 'drill_answers', training: 'drill_training_attempts' };
@@ -8,13 +9,6 @@ const fields = {
   answers: 'user_id,operation_id,series_id,question_id,answer,correct,answered_at,created_at',
   training: 'user_id,operation_id,series_id,question_id,answer,correct,answered_at,created_at',
 };
-
-export function classifySyncError(error) {
-  const code = error?.code;
-  if (['invalid_session', 'session_changed', 'PGRST301', 'PGRST302', 'PGRST303'].includes(code) || error?.status === 401) return { kind: 'session', code: 'session', message: 'Reconnecte-toi au même compte pour synchroniser. Les réponses restent sur cet appareil.' };
-  if (['42501', '23514', '23503', '23505', '23502', '22P02', 'protocol'].includes(code)) return { kind: 'permanent', code, message: 'Une opération ne peut pas être synchronisée. Ses données sont conservées ; vérifie les détails ou contacte la personne qui gère le site.' };
-  return { kind: 'transient', code: code === '40001' ? '40001' : 'network', message: 'En attente de connexion. Les réponses sont enregistrées sur cet appareil.' };
-}
 
 /** Shared SDK, but a verified JWT pinned to EVERY request. A switch to B can
  * never cause an operation captured for A to be sent with B's new SDK session. */

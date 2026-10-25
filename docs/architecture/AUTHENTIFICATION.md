@@ -1,5 +1,7 @@
 # Authentification et profils — lot 6.1
 
+Le lot 6.3.2 réutilise cette même frontière Auth pour la [synchronisation personnelle des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md), en complément du Drill. Les comptes ont des caches distincts par environnement/projet/UUID ; la clé visiteur n’est importée qu’après confirmation explicite. Une déconnexion conserve les données et outboxes tout en masquant les vues privées. Les descriptions du périmètre initial 6.1 ci-dessous restent historiques ; les procédures d’invitation, les privilèges profils et le défaut public désactivé ne changent pas.
+
 Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill](DRILL-SYNCHRONISATION-CLIENT.md), avec vérification de session avant chaque accès distant et JWT fixé par requête. Il ajoute un état `offline` limité à une identité locale déjà vérifiée (UUID/session_id correspondants), sans autorisation distante ; toute identité incertaine masque le cache. La déconnexion invalide immédiatement les vues et requêtes, puis appelle le SDK, sans effacer la progression. Les profils, RLS et flux d'invitation ci-dessous restent inchangés.
 
 Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
