@@ -19,6 +19,7 @@ async function safeDiagnostics(page) {
     return JSON.stringify(await page.evaluate(() => ({
       page: document.body.dataset.page,
       authMessage: document.querySelector('[data-auth-message]')?.textContent || null,
+      accountLink: document.querySelector('.account-link')?.textContent || null,
       dashboard: document.querySelector('#dashboard-sync-status')?.textContent || null,
       drill: document.querySelector('#drill-sync-status')?.textContent || null,
       totals: [...document.querySelectorAll('.dashboard-metrics dd')].map(el => el.textContent),
@@ -122,9 +123,11 @@ test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne 
 
     stage = 'retour réseau, synchronisation et totaux cohérents sur les deux appareils';
     await page.unroute(`${a.environment.url}/**`, outage);
-    // Advance the shared Date beyond the bounded retryAt backoff. Keeping
-    // Date frozen forever would prevent pending operations from becoming due.
-    const resumedAt = new Date(anchor.getTime() + 60000);
+    // Advance only to the persisted due date. A synthetic +60s jump would
+    // put the browser inside the SDK's refresh margin for real 120s JWTs.
+    const waiting = await personalRecord(page);
+    const resumedAt = new Date(Math.max(anchor.getTime(), ...waiting.operations
+      .filter(operation => operation.state === 'pending').map(operation => operation.retryAt || 0)));
     await page.clock.setFixedTime(resumedAt); await second.clock.setFixedTime(resumedAt);
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await dashboardSynced(page); await verifyTotals(page, 3, 2, 67);

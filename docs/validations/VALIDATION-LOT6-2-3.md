@@ -28,11 +28,14 @@ La reprise complète les régressions de la projection service Drill → adaptat
 
 L’inspection a révélé une mention de pied de page inadaptée au compte personnel : « Données pédagogiques conservées sur cet appareil ». Pour le Dashboard, elle renvoie désormais à la source des résultats explicitée dans la page. Un scénario de réponse réseau différée a aussi reproduit une perte de focus sur « Actualiser les données » : le passage natif à `disabled` pendant la requête faisait perdre le focus au navigateur. Pendant le réessai, `aria-disabled` et `aria-busy` indiquent désormais l’attente, tandis que la garde existante empêche les doubles requêtes. Le focus est conservé sans le déplacer après coup. Le test a échoué avant correction puis réussi après ; le raccordement préexistant reste conservé.
 
+L’aide commune des pages compte affirmait encore que le compte ne synchronisait aucun exercice. Elle distingue maintenant le visiteur local de l’espace personnel activé, en précisant que les réponses en attente ne sont pas encore confirmées sur les autres appareils.
+
 Fichiers de livraison concernés :
 
 | Groupe | Fichiers |
 | --- | --- |
 | Raccordement préexistant conservé | `assets/dashboard-data.js`, `assets/dashboard.js`, `assets/dashboard.css`, `assets/app.js` |
+| Mention de source des pages compte | `assets/auth-pages.js` |
 | Documentation préexistante complétée | `README.md`, `docs/architecture/DRILL-SYNCHRONISATION-CLIENT.md`, `docs/architecture/DASHBOARD.md` |
 | Validation et conventions | `docs/validations/VALIDATION-LOT6-2-3.md`, `docs/TESTS.md` |
 | Régressions | `tests/integration/dashboard-data.test.js`, `tests/e2e/dashboard-sync.spec.js`, `tests/e2e-supabase/dashboard-sync.spec.js` |
@@ -75,6 +78,8 @@ Une deuxième [exécution réelle](https://github.com/Vladoche/mon-bprea/actions
 
 Sur `f47f5eb`, la [recette réelle suivante](https://github.com/Vladoche/mon-bprea/actions/runs/40183265147/job/121138688260) a réussi **5 parcours sur 6**, dont le conflit Dashboard. Le scénario multi-appareils a confirmé les trois réponses, les cinq entraînements séparés, les totaux 3/2/1/67 %, le cache hors ligne et la reprise sur les deux contextes, avant un échec pendant les changements A/B/A. Le helper de connexion attendait le lien du header, publié avant la redirection asynchrone vers le profil ; il attend désormais la fin de cette navigation avant d’ouvrir le Drill. L’horloge commune est avancée au retour réseau pour rendre les `retryAt` éligibles sans altérer les dates des réponses. L’isolation en fin de ce scénario attend la nouvelle exécution ; les tests d’intégration d’isolation restent réussis.
 
+Le [run sur `0057eaf`](https://github.com/Vladoche/mon-bprea/actions/runs/40183865988/job/121140409881) a également réussi 5/6 parcours ; le diagnostic a situé l’attente sur le profil lors de la connexion de B. Le saut synthétique de 60 secondes entrait dans la marge de refresh de 90 secondes du SDK avec les JWT locaux de 120 secondes. La recette avance désormais l’horloge jusqu’au seul `retryAt` réellement persisté, au lieu d’imposer ce décalage. Les expirations du vrai serveur et les règles Auth applicatives restent inchangées.
+
 Le workflow de sécurité existant inclut les tests Dashboard placés dans `tests/e2e-supabase/`, ainsi que les contrôles pgTAP, Auth/profils/RLS et backend Drill des lots précédents. Les résultats historiques de [6.2.1](VALIDATION-LOT6-2-1.md), [6.2.2](VALIDATION-LOT6-2-2.md) et de la [correction PR #14](VALIDATION-LOT6-2-2-REPRISE-AUTH.md) ne valident pas le dernier commit de ce lot.
 
 ## Inspection visuelle
@@ -84,6 +89,8 @@ Le script préparatoire retrouvé `.tmp/visual-dashboard623.mjs` a été exécut
 Captures inspectées : `.tmp/lot623-empty-light.png`, `lot623-history-light.png`, `lot623-history-dark-mobile.png`, `lot623-pending-light.png`, `lot623-pending-dark-mobile.png`, `lot623-offline-dark.png`, `lot623-conflict-light.png`, `lot623-conflict-dark-mobile.png`, `lot623-session-dark-mobile.png`, `lot623-empty-offline-light.png`, ainsi que les détails `lot623-weekly-table.png`, `lot623-charts-desktop.png` et `lot623-charts-mobile.png` dans le même dossier. Les filtres s’empilent sur mobile, les boutons restent contenus et les graphiques/tableaux défilent dans leur cadre. Les totaux synthétiques 9/6/3/67 % concordent avec les trois semaines actives ; l’état session ne montre aucune métrique, le cache hors ligne vide ne prétend pas un compte sans activité. Le focus et les tableaux ouverts sont aussi vérifiés par E2E. Les captures ont été régénérées après la correction du pied de page.
 
 Les captures préparées avec un service synthétique servent à inspecter la mise en page, le contraste, les messages, les graphiques, les tableaux et le focus. Elles ne doivent pas être présentées comme preuve d’une synchronisation Supabase réelle. Les artefacts locaux de diagnostic restent ignorés par Git et ne contiennent pas de session réelle.
+
+La mention des pages compte a aussi été inspectée réellement dans `.tmp/lot623-auth-light.png` (1 280 px) et `.tmp/lot623-auth-dark-mobile.png` (390 px), après exécution de `.tmp/visual-auth623.mjs`, avec Auth désactivée. Le texte reste lisible dans l’encadré sans débordement.
 
 ## Confidentialité et environnements
 
