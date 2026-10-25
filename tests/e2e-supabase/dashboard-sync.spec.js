@@ -120,6 +120,10 @@ test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne 
 
     stage = 'retour réseau, synchronisation et totaux cohérents sur les deux appareils';
     await page.unroute(`${a.environment.url}/**`, outage);
+    // Advance the shared Date beyond the bounded retryAt backoff. Keeping
+    // Date frozen forever would prevent pending operations from becoming due.
+    const resumedAt = new Date(anchor.getTime() + 60000);
+    await page.clock.setFixedTime(resumedAt); await second.clock.setFixedTime(resumedAt);
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await dashboardSynced(page); await verifyTotals(page, 3, 2, 67);
     await second.getByRole('button', { name: 'Actualiser les données', exact: true }).click();
