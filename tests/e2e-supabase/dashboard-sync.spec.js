@@ -13,6 +13,18 @@ const dashboardSynced = page => expect(page.locator('#dashboard-sync-status')).t
 const metric = (page, label) => page.getByRole('term').filter({ hasText: new RegExp(`^${label}$`) })
   .locator('..').getByRole('definition');
 
+async function safeDiagnostics(page) {
+  try {
+    // Only fixed UI statuses and synthetic counts; never dump DOM/Auth/network.
+    return JSON.stringify(await page.evaluate(() => ({
+      dashboard: document.querySelector('#dashboard-sync-status')?.textContent || null,
+      drill: document.querySelector('#drill-sync-status')?.textContent || null,
+      totals: [...document.querySelectorAll('.dashboard-metrics dd')].map(el => el.textContent),
+      focusedRefresh: document.activeElement?.hasAttribute('data-dashboard-refresh') || false,
+    })));
+  } catch { return 'page indisponible'; }
+}
+
 async function verifyTotals(page, completed, correct, successRate) {
   await expect(metric(page, 'Exercices réalisés')).toHaveText(String(completed));
   await expect(metric(page, 'Réponses correctes')).toHaveText(String(correct));
@@ -43,11 +55,16 @@ async function signOut(page) {
 test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne et comptes isolés', async ({ page, browser }) => {
   test.setTimeout(90000);
   const students = []; const contexts = [];
-  let stage = 'comptes fictifs locaux'; let failure;
+  let stage = 'comptes fictifs locaux'; let failure; let secondPage = null;
   try {
     const a = await createDrillStudent(); students.push(a);
     const b = await createDrillStudent(); students.push(b);
     await configureDrillPage(page, a.environment);
+    // Shared deterministic Date for both devices: HTTP Date is rounded to the
+    // second and two independent health reads can put a new answer in the
+    // viewer's future. Timers and the real Auth server keep running normally.
+    const anchor = new Date(await page.evaluate(() => Date.now()));
+    await page.clock.setFixedTime(anchor);
     const visitorSeries = makeSeries();
     const answeredAt = new Date(await page.evaluate(() => Date.now()) - 60000).toISOString();
     visitorSeries.answers[visitorSeries.questions[0].id] = answerFor(visitorSeries.questions[0], { correct: false, answeredAt });
@@ -72,14 +89,19 @@ test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne 
 
     stage = 'deuxième appareil et statistiques personnelles distantes';
     const context = await browser.newContext({ timezoneId: 'Europe/Paris', locale: 'fr-FR' }); contexts.push(context);
-    const second = await context.newPage(); await configureDrillPage(second, a.environment); await signInDrill(second, a);
+    const second = await context.newPage(); secondPage = second; await configureDrillPage(second, a.environment);
+    await second.clock.setFixedTime(anchor); await signInDrill(second, a);
     await second.goto(dashboardUrl); await dashboardSynced(second); await verifyTotals(second, 1, 1, 100);
     await expect(second.locator('#dashboard-source')).toHaveText('Historique personnel synchronisé');
 
-    stage = 'nouvelle réponse sur le premier appareil et actualisation du second';
-    await respond(page, 1, { correct: false }); await drillSynced(page);
+    stage = 'nouvelle réponse incorrecte sur le premier appareil';
+    await respond(page, 1, { correct: false });
+    stage = 'confirmation de la nouvelle réponse sur le premier appareil'; await drillSynced(page);
+    stage = 'actualisation du deuxième appareil';
     await second.getByRole('button', { name: 'Actualiser les données', exact: true }).click();
+    stage = 'deuxième appareil : totaux actualisés 2/1/1/50';
     await dashboardSynced(second); await verifyTotals(second, 2, 1, 50);
+    stage = 'deuxième appareil : filtres et focus préservés';
     await expect(second.locator('#dashboard-unit')).toHaveValue('uc3');
     await expect(second.locator('#dashboard-period')).toHaveValue('4');
     await expect(second.getByRole('button', { name: 'Actualiser les données', exact: true })).toBeFocused();
@@ -117,7 +139,7 @@ test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne 
     await b.refresh();
     const inaccessible = await b.client.from('drill_answers').select('operation_id').eq('user_id', a.userId);
     expect(inaccessible.error).toBeNull(); expect(inaccessible.data).toEqual([]);
-  } catch { failure = new Error(`Dashboard Supabase local non validé : ${stage}. Aucun identifiant, mot de passe ou jeton n’est journalisé.`); }
+  } catch { failure = new Error(`Dashboard Supabase local non validé : ${stage}. États sûrs des appareils : ${await safeDiagnostics(page)} ; ${await safeDiagnostics(secondPage)}. Aucun identifiant, mot de passe ou jeton n’est journalisé.`); }
   finally {
     for (const context of contexts) await context.close();
     for (const student of students.toReversed()) try { await student.cleanup(); } catch { failure = new Error('Nettoyage des seuls comptes fictifs Dashboard incomplet.'); }
@@ -162,12 +184,17 @@ test('Dashboard réel : conflit de première réponse conservé sans double comp
 
     stage = 'résolution explicite dans le Drill sans modification des totaux';
     await page.goto(DRILL_LOCAL_URL);
+    // The freshly opened page first publishes its cached conflict, then
+    // replaces the sync panel during the initial pull. Open it once settled.
+    await expect(page.locator('#drill-sync-status')).toContainText('Conflit');
     await page.locator('.drill-sync-conflict').first().locator('summary').first().click();
+    stage = 'validation du choix de résolution dans le Drill';
     await page.getByRole('button', { name: 'Continuer avec la réponse du compte', exact: true }).click(); await drillSynced(page);
+    stage = 'Dashboard après résolution : totaux inchangés';
     await page.goto(dashboardUrl); await dashboardSynced(page); await verifyTotals(page, 1, 0, 0);
     const archived = await personalRecord(page);
     expect(archived.conflicts.find(item => item.id === conflict.id)).toMatchObject({ resolved: true, local: conflict.local });
-  } catch { failure = new Error(`Conflit Dashboard Supabase local non validé : ${stage}. Aucune réponse Auth brute n’est journalisée.`); }
+  } catch { failure = new Error(`Conflit Dashboard Supabase local non validé : ${stage}. État sûr : ${await safeDiagnostics(page)}. Aucune réponse Auth brute n’est journalisée.`); }
   finally { release(); if (student) try { await student.cleanup(); } catch { failure = new Error('Nettoyage du seul compte fictif de conflit Dashboard incomplet.'); } }
   if (failure) throw failure;
 });
