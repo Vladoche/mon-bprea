@@ -48,6 +48,8 @@ jobs:
         run: node scripts/test-supabase.mjs
       - name: Vérifier le backend Drill, les conflits et RLS réels
         run: node scripts/test-drill-supabase.mjs
+      - name: Vérifier les données personnelles, la concurrence et RLS réels
+        run: node scripts/test-personal-data-supabase.mjs
       - name: Installer Chromium pour les parcours avec Supabase réel
         run: npx playwright install --with-deps chromium
       - name: Vérifier Auth et synchronisation Drill multi-appareils dans le navigateur

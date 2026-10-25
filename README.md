@@ -123,6 +123,8 @@ Le lot **6.2.2** ajoute la [synchronisation personnelle du Drill](docs/architect
 
 Le lot **6.2.3** branche le [Tableau de bord](docs/architecture/DASHBOARD.md) sur la même vue personnelle réconciliée. Les résultats visiteurs restent locaux et séparés. Les réponses personnelles en attente comptent dans les données disponibles sur cet appareil avec un état de synchronisation explicite ; les entraînements et conflits ne doublent pas les premières réponses. Une identité incertaine masque les données privées, et une panne avec cache vide n'est pas présentée comme un compte sans activité. Les filtres, les calculs et les tableaux accessibles sont conservés. Les preuves et limites de la recette multi-appareils figurent dans [VALIDATION-LOT6-2-3.md](docs/validations/VALIDATION-LOT6-2-3.md).
 
+Le lot **6.3.1** prépare le [backend des autres données personnelles](docs/architecture/PERSONAL-DATA-BACKEND.md) : états de cours réversibles, historiques QCM et botaniques, derniers paramètres ITK et choix d'apparence. Il fournit une migration, RLS, concurrence par révision et tests réels dédiés, sans synchronisation frontend nouvelle. Le [rapport de validation](docs/validations/VALIDATION-LOT6-3-1.md) distingue les exécutions locales des preuves de CI. Les clients restent réservés aux lots 6.3.2 à 6.3.4 ; aucune application DEV/PROD n'est autorisée par ce lot.
+
 ## Déployer sur GitHub Pages (préparation légère des fichiers publics)
 
 1. Crée un dépôt GitHub, par exemple **`mon-bprea`**. Pour GitHub Pages sur un compte GitHub Free, le dépôt doit généralement être **public**.

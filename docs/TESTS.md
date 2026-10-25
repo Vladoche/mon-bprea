@@ -112,6 +112,16 @@ Les E2E dédiés utilisent `playwright.supabase.config.js` et la même stack loc
 
 Si Docker, la CLI, les clés locales ou les services requis manquent, la sécurité réelle reste **non exécutée / non validée** ; noter le blocage dans la validation. Des suites Vitest/Playwright simulées réussies ne changent pas cet état. Le critère d’acceptation exige les preuves réelles d’invitation, récupération, refus d’inscription et isolation A/B avant toute ouverture.
 
+## Backend des données personnelles (lot 6.3.1)
+
+Le [contrat personnel](architecture/PERSONAL-DATA-BACKEND.md) et la [validation du lot](validations/VALIDATION-LOT6-3-1.md) couvrent les six nouvelles tables. `personal_data_backend.test.sql` complète les tests pgTAP profils/Drill. Sur la même stack locale dédiée seulement, exécuter aussi :
+
+```bash
+npm run test:personal:supabase
+```
+
+Ce runner réutilise les gardes `auth-local`, les invitations fictives capturées localement et de vrais JWT/PostgREST. Il vérifie l'isolation A/B, les privilèges directs, les données invalides, les retries, le décochage d'un cours, les historiques immuables, la complétion botanique et les courses de révision ITK/apparence/cours/sessions. Les fixtures `tests/fixtures/personal-data.js` représentent les formats audités et ne contiennent pas de donnée étudiante. Le job `supabase-security` l'exécute sans remplacer les tests antérieurs. L'absence de Docker ou de configuration locale reste une non-exécution, jamais une réussite déduite de tests frontend.
+
 ## CI et protection de `main`
 
 Le workflow **Qualité**, défini dans `.github/workflows/quality.yml`, s’exécute sur les pull requests vers `main`, à l’ouverture et à chaque nouveau commit. Ses deux jobs sont `unit-integration` et `e2e`. Ils utilisent Node.js 24 LTS, `npm ci` et le cache npm ; le second installe Chromium et conserve les artefacts utiles en cas d’échec. Les permissions se limitent à la lecture du dépôt, sans secret de production. Ce workflow ne déploie pas.
