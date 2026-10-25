@@ -7,6 +7,7 @@ import { LOCAL_SITE } from '../helpers/auth-local.js';
 import { answerFor, bankQuestions, makeSeries } from '../fixtures/drill.js';
 
 const dashboardUrl = `${LOCAL_SITE}tableau-de-bord.html?unit=uc3&period=4`;
+test.use({ actionTimeout: 10000 });
 const drillSynced = page => expect(page.locator('#drill-sync-status')).toHaveText('Synchronisé');
 const dashboardSynced = page => expect(page.locator('#dashboard-sync-status')).toHaveText('Historique personnel synchronisé');
 const metric = (page, label) => page.getByRole('term').filter({ hasText: new RegExp(`^${label}$`) })
@@ -65,7 +66,7 @@ test('Dashboard réel : deux appareils, entraînements exclus, cache hors ligne 
 
     stage = 'première réponse et cinq entraînements enregistrés séparément';
     await page.goto(DRILL_LOCAL_URL);
-    await page.getByRole('button', { name: 'Commencer cette série', exact: true }).click(); await drillSynced(page);
+    await page.getByRole('button', { name: 'Commencer cette série →', exact: true }).click(); await drillSynced(page);
     await respond(page, 0); await drillSynced(page);
     for (let attempt = 0; attempt < 5; attempt++) { await respond(page, 0, { training: true }); await drillSynced(page); }
 
@@ -129,7 +130,7 @@ test('Dashboard réel : conflit de première réponse conservé sans double comp
   let student; let release = () => {}; let failure; let stage = 'compte fictif local';
   try {
     student = await createDrillStudent(); await configureDrillPage(page, student.environment); await signInDrill(page, student);
-    await page.getByRole('button', { name: 'Commencer cette série', exact: true }).click(); await drillSynced(page);
+    await page.getByRole('button', { name: 'Commencer cette série →', exact: true }).click(); await drillSynced(page);
     stage = 'réponse concurrente réellement acceptée par PostgreSQL';
     const pending = new Promise(resolve => { release = resolve; }); let waiting = false;
     const hold = async route => { waiting = true; await pending; await route.continue(); };

@@ -49,7 +49,7 @@ La liste définitive doit être relue dans le diff de la PR après les validatio
 | `npm test` au début de la reprise | **154 tests réussis dans 20 fichiers**, aucun échec ; comprend les cinq tests non commités retrouvés |
 | Tests ciblés après compléments | **23 tests réussis dans 3 fichiers** : Dashboard data, reprise Auth et statistiques ; **4 E2E renderer réussis** |
 | `npm test` après compléments | **159 tests réussis dans 20 fichiers**, aucun échec |
-| `npm run test:e2e` après compléments | **21 parcours Chromium réussis**, aucun échec, en 10,9 s lors de la dernière exécution |
+| `npm run test:e2e` après compléments | **21 parcours Chromium réussis**, aucun échec, en 11,0 s lors de la dernière exécution après correction du focus |
 | `npm run build:auth-sdk` puis comparaison Git | **Réussi**, aucun changement du SDK versionné |
 | `git diff --check` | **Réussi** |
 | `npm run test:e2e:supabase` sur ce poste | **Arrêt avant collecte**, garde `SUPABASE_TEST_CONFIRM_LOCAL` absente ; Docker et fichier `.env.supabase-test.local` absents. Aucun test Supabase local exécuté et aucune stack hébergée utilisée en remplacement |
@@ -64,9 +64,11 @@ La recette attendue vérifie la cohérence des totaux et taux entre les deux con
 
 | Check obligatoire | État du dernier commit du lot |
 | --- | --- |
-| `unit-integration` | **En attente** — lien et SHA à renseigner après exécution |
-| `e2e` | **En attente** — lien et SHA à renseigner après exécution |
-| `supabase-security` | **En attente** — lien, SHA et résultats réels à renseigner après exécution |
+| `unit-integration` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40181831836/job/121134323399), commit `facd689fd7e7571ef0a380d84d7f4003fb9b0fdf` |
+| `e2e` | **Réussi** — [job](https://github.com/Vladoche/mon-bprea/actions/runs/40181831836/job/121134323153), même commit |
+| `supabase-security` | Première exécution sur `facd689` : **échec des deux nouveaux E2E**, quatre parcours antérieurs réussis ; pgTAP, Auth/RLS et backend réussis. [Job](https://github.com/Vladoche/mon-bprea/actions/runs/40181831871/job/121134393297). Nouvelle exécution après correction des sélecteurs en attente. |
+
+La première recette réelle a révélé une erreur de sélecteur dans les deux nouveaux tests : `exact: true` cherchait « Commencer cette série » alors que le bouton accessible s’intitule « Commencer cette série → ». Les tests restaient en attente et atteignaient chacun 90 secondes ; aucune validation de leurs étapes suivantes n’est revendiquée sur ce run. Les libellés ont été corrigés et les attentes d’action bornées à 10 secondes, sans retrait de scénario ni modification de l’application.
 
 Le workflow de sécurité existant inclut les tests Dashboard placés dans `tests/e2e-supabase/`, ainsi que les contrôles pgTAP, Auth/profils/RLS et backend Drill des lots précédents. Les résultats historiques de [6.2.1](VALIDATION-LOT6-2-1.md), [6.2.2](VALIDATION-LOT6-2-2.md) et de la [correction PR #14](VALIDATION-LOT6-2-2-REPRISE-AUTH.md) ne valident pas le dernier commit de ce lot.
 
@@ -99,4 +101,4 @@ Le lot ne crée aucune métrique, gamification ou classement. Il ne promet pas l
 
 ## Livraison
 
-Branche conservée : `feature/lot6-2-3-dashboard-sync`. **PR unique et liens de checks à renseigner après publication des commits.** La livraison vise `main` sans fusion automatique, sans modification des protections et sans déploiement public. Toute fusion et tout déploiement de production restent soumis à l’accord de l’utilisateur.
+Branche conservée : `feature/lot6-2-3-dashboard-sync`. [PR unique #15](https://github.com/Vladoche/mon-bprea/pull/15) vers `main`, ouverte, sans fusion automatique, sans modification des protections et sans déploiement public. Toute fusion et tout déploiement de production restent soumis à l’accord de l’utilisateur.
