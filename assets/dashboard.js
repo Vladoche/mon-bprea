@@ -186,7 +186,11 @@ export async function initDashboard(root) {
     setText(syncDetail, `${description.detail}${extra}${source.message ? ` ${source.message}` : ''}${retryError ? ` ${retryError}` : ''}`);
     root.querySelector('#dashboard-conflict-note').hidden = !source.conflicts;
     loginLink.hidden = !source.blocked || source.loading;
-    refreshButton.disabled = starting || retryBusy || source.loading;
+    // Keep the initiating keyboard focus during a network retry. The retry
+    // guard prevents duplicate requests while aria-disabled conveys the wait.
+    refreshButton.disabled = starting || source.loading;
+    refreshButton.setAttribute('aria-disabled', String(refreshButton.disabled || retryBusy));
+    refreshButton.setAttribute('aria-busy', String(retryBusy));
     setText(root.querySelector('#dashboard-source-method'), source.mode === 'visitor'
       ? 'Le mode visiteur lit seulement l’historique local de cet appareil, sans envoi ni import dans un compte.'
       : 'Les résultats personnels utilisent uniquement l’historique de l’identité courante. Les données en attente restent visibles lorsqu’elles sont lisibles ; la synchronisation est nécessaire pour les retrouver ailleurs. Les conflits se résolvent dans les exercices hebdomadaires.');

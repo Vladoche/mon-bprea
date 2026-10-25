@@ -26,7 +26,7 @@ Ces fonctionnalités étaient implémentées mais ne disposaient pas d’une pre
 
 La reprise complète les régressions de la projection service Drill → adaptateur Dashboard → moteur statistique, les parcours du vrai renderer et la recette Supabase locale multi-contextes. Le [guide Dashboard](../architecture/DASHBOARD.md) décrit désormais les deux sources, les états d’attente, les limites du cache personnel, le réessai et la continuité des interactions.
 
-L’inspection a révélé une mention de pied de page inadaptée au compte personnel : « Données pédagogiques conservées sur cet appareil ». Pour le Dashboard, elle renvoie désormais à la source des résultats explicitée dans la page. C’est le seul complément applicatif apporté pendant la reprise ; le raccordement préexistant reste conservé.
+L’inspection a révélé une mention de pied de page inadaptée au compte personnel : « Données pédagogiques conservées sur cet appareil ». Pour le Dashboard, elle renvoie désormais à la source des résultats explicitée dans la page. Un scénario de réponse réseau différée a aussi reproduit une perte de focus sur « Actualiser les données » : le passage natif à `disabled` pendant la requête faisait perdre le focus au navigateur. Pendant le réessai, `aria-disabled` et `aria-busy` indiquent désormais l’attente, tandis que la garde existante empêche les doubles requêtes. Le focus est conservé sans le déplacer après coup. Le test a échoué avant correction puis réussi après ; le raccordement préexistant reste conservé.
 
 Fichiers de livraison concernés :
 

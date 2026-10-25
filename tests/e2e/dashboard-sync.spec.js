@@ -58,10 +58,12 @@ test('cache personnel, attente et conflits restent comptés ; un réessai récup
   await page.getByRole('button', { name: 'Actualiser les données' }).click();
   await expect(page.locator('#dashboard-sync-detail')).toContainText('actualisation reste indisponible');
   await expect(completed(page)).toHaveText('2');
-  await page.evaluate(next => Object.assign(window.dashboardFixture, { fail: false, next }), personal('synced', { count: 3 }));
+  await page.evaluate(next => Object.assign(window.dashboardFixture, { fail: false, deferred: true, next }), personal('synced', { count: 3 }));
   await page.getByRole('button', { name: 'Actualiser les données' }).click();
+  await page.evaluate(() => window.dashboardFixture.finish());
   await expect(completed(page)).toHaveText('3');
   await expect(page.locator('#dashboard-sync-status')).toHaveText('Historique personnel synchronisé');
+  await expect(page.getByRole('button', { name: 'Actualiser les données' })).toBeFocused();
   await expect(page.getByRole('link', { name: /Résoudre dans les exercices/ })).toBeHidden();
   expect(await page.evaluate(() => window.dashboardFixture.retries)).toBe(2);
 });
