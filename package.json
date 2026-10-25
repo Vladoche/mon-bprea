@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "test:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-supabase.mjs",
     "test:drill:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-drill-supabase.mjs",
+    "test:personal:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-personal-data-supabase.mjs",
     "test:e2e:supabase": "playwright test --config=playwright.supabase.config.js"
   },
   "devDependencies": {
