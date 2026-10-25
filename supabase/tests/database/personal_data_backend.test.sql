@@ -119,8 +119,8 @@ select ok(exists(select 1 from pg_index i where i.indexrelid=to_regclass('public
   'Index historique valide et colonnes exactes : '||name)
   from (values
     ('quiz_attempts_history_idx','quiz_attempts',array['user_id','created_at','attempt_id']),
-    ('quiz_attempts_lesson_idx','quiz_attempts',array['user_id','lesson_id','completed_at','attempt_id']),
-    ('botanical_sessions_history_idx','botanical_sessions',array['user_id','started_at','session_id']),
+    ('quiz_attempts_lesson_idx','quiz_attempts',array['user_id','lesson_id','created_at','attempt_id']),
+    ('botanical_sessions_history_idx','botanical_sessions',array['user_id','created_at','session_id']),
     ('botanical_answers_history_idx','botanical_answers',array['user_id','created_at','answer_id'])
   ) expected(name,table_name,columns);
 select is((select count(*)::integer from pg_trigger where not tgisinternal and tgenabled='O' and tgname in

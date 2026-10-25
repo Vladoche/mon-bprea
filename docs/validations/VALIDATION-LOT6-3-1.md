@@ -40,9 +40,11 @@ Les modules `assets/`, pages HTML, feuilles de style, calculs pédagogiques et c
 | `node --check scripts/test-personal-data-supabase.mjs` | Réussi |
 | Préflight du runner personnel | Refus explicite, exit 1, configuration/stack locale indisponible ; aucun résultat RLS validé et aucun compte créé |
 | Docker sur ce poste | Commande indisponible ; stack Supabase réelle non démarrée sur ce poste |
+| `supabase test db --local` | Tentative réellement exécutée, exit 1 : connexion refusée à `127.0.0.1:54322` ; aucune cible distante |
 | pgTAP et Auth/RLS réels | Preuves à recueillir dans la stack Docker locale éphémère de GitHub Actions, pas sur DEV |
+| Inspection visuelle de régression | Cours et ITK à 1 280 px clair, Dashboard et botanique à 390 px sombre ; captures locales isolées relues, aucun débordement horizontal |
 
-Les E2E autonomes conservent les parcours Drill, Dashboard, botanique, Auth désactivée, ITK, apparence et progression. Leur réussite ne prouve pas RLS. Le SDK navigateur, les mécanismes Auth, le client Drill et le moteur Dashboard n'ont pas été modifiés.
+Les E2E autonomes conservent les parcours Drill, Dashboard, botanique, Auth désactivée, ITK, apparence et progression. Leur réussite ne prouve pas RLS. Le SDK navigateur, les mécanismes Auth, le client Drill et le moteur Dashboard n'ont pas été modifiés. Les captures de contrôle restent ignorées dans `.tmp/lot631-*.png`, sans compte réel. Une première tentative visuelle séparée avait rencontré les restrictions réseau du sandbox ; le serveur et Chromium lancés ensemble ont permis le contrôle final réussi. Ce contrôle porte sur le rendu existant, aucun nouveau parcours frontend n'étant livré.
 
 ## Scénarios et revue avant CI
 
@@ -62,7 +64,9 @@ Revue indépendante effectuée sur schéma et tests. Corrections apportées avan
 
 ## Preuves CI du lot
 
-Statut à compléter après exécution de la PR : **non validé à cette étape** pour pgTAP, les nouvelles requêtes Auth/RLS réelles et les trois checks du dernier commit. Aucun résultat n'est déduit de la seule présence des tests.
+PR [#16](https://github.com/Vladoche/mon-bprea/pull/16), commit initial `8bee6949cacadcd4112802ec4a0a56f4181cf9e9` : [unit-integration et e2e réussis](https://github.com/Vladoche/mon-bprea/actions/runs/40204289581). La stack Supabase a démarré et les trois migrations se sont appliquées sur la base éphémère vierge. [Première exécution sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/40204289616) : 350 assertions pgTAP exécutées, dont 242 personnelles ; deux attentes d'index personnelles restées sur `completed_at`/`started_at` au lieu de `created_at` ont échoué. Les 240 autres assertions personnelles et les 108 antérieures ont réussi. Les deux attentes ont été alignées sur le contrat de pagination sans modifier la migration. La stack a été arrêtée avec succès ; les étapes Auth/API/navigateur ont été ignorées après cet échec, elles ne sont donc pas validées par ce run.
+
+Statut final à compléter après relance : **non validé à cette étape** pour pgTAP complet, les nouvelles requêtes Auth/RLS réelles et les trois checks du dernier commit. Aucun résultat n'est déduit de la seule présence des tests.
 
 ## Limites et interventions suivantes
 
