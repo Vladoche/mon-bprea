@@ -1,4 +1,4 @@
-# Tableau de bord pédagogique — Lot 3
+# Tableau de bord pédagogique — Lots 3 et 6.2.3
 
 ## Périmètre et architecture
 
@@ -6,16 +6,20 @@
 
 - `assets/drill-store.js` : `readDrillState()` lit et valide les copies historiques des séries, sans écriture.
 - `assets/drill-engine.js` : règles existantes de comptabilisation et semaines ISO Europe/Paris, réutilisées par le Tableau de bord.
-- `assets/dashboard-data.js` : `readDashboardData()` adapte en lecture seule l’état validé et normalisé par `readDrillState()` ; cette frontière pourra recevoir une autre source.
+- `assets/dashboard-data.js` : `readDashboardData(snapshot)` sélectionne en lecture seule la source visiteur ou la vue personnelle déjà normalisée par le service Drill. Son descripteur `source` distingue disponibilité, identité, chargement, attente et conflits.
 - `assets/dashboard-stats.js` : calculs purs des agrégats et préparation des séries temporelles à partir de cet état, séparés du DOM et du stockage ; la validation et la normalisation restent celles du lecteur Drill.
-- `assets/dashboard.js` : filtres, rendu, interactions et alternatives tabulaires.
+- `assets/dashboard.js` : initialisation asynchrone, abonnement au service Drill, filtres, rendu, interactions et alternatives tabulaires.
 - `assets/dashboard.css` : graphiques et mise en page responsive en modes clair et sombre.
 
-Cette séparation permet de remplacer ultérieurement la lecture locale par une source synchronisée, par exemple Supabase, en conservant les règles de calcul. Aucun service, compte, dépendance ou mécanisme de synchronisation n’est ajouté dans ce lot.
+Le lot 6.2.3 raccorde cette frontière au service du [lot 6.2.2](DRILL-SYNCHRONISATION-CLIENT.md), en conservant `createDashboardModel()` et les règles de calcul du lot 3. Un seul service Drill est créé pour la page ; le Dashboard ne crée ni client Supabase, ni transport, ni lecteur IndexedDB supplémentaire. Aucune dépendance de production n’est ajoutée.
 
 ## Source des données et comptabilisation
 
-La source exclusive est `bprea-demo-drill-v1`, lue par `readDrillState()` derrière l’adaptateur `readDashboardData()`. Les QCM classiques, les cours marqués comme terminés et l’indice du bandeau d’examen ne sont pas additionnés aux résultats du Tableau de bord.
+En visiteur, la source reste `bprea-demo-drill-v1`, lue par `readDrillState()` derrière l’adaptateur `readDashboardData()`. Cette clé et son contenu sont préservés ; aucune connexion n’est nécessaire et aucun historique visiteur n’est importé automatiquement dans un compte.
+
+Pour un compte identifié, la source exclusive est `getDrillSyncService().getState().view`, qui contient `{series,error,warnings}` pour l’espace personnel courant. Le service reste responsable de la validation, de la réconciliation, du cache et des opérations en attente. Un appel sans snapshot conserve le contrat visiteur des autres lecteurs du site ; un snapshot explicitement inaccessible ne revient jamais aux statistiques visiteur.
+
+Les QCM classiques, les cours marqués comme terminés et l’indice du bandeau d’examen ne sont pas additionnés aux résultats du Tableau de bord.
 
 Pour chaque série valide, la première réponse enregistrée dans `answers[questionId]` représente un exercice réalisé. Son identité est le couple **identifiant de série + identifiant de question**. Le Tableau de bord réutilise les résultats comptabilisés du moteur Drill ; les entrées `attempts`, les entraînements et les brouillons ne créent pas de réponses supplémentaires. La même question réutilisée dans une autre série représente une nouvelle occurrence hebdomadaire, sans être présentée comme une nouvelle question unique de la banque.
 
@@ -24,6 +28,35 @@ Une série incomplète contribue seulement à hauteur des réponses déjà valid
 Le lecteur du Drill valide les réponses par rapport aux copies complètes des questions de chaque série. Il exclut les données illisibles et renvoie des avertissements ; la page les rend visibles sans effacer les valeurs originales. Si le stockage est bloqué ou illisible, un état explicite signale le problème. La banque courante n’est pas nécessaire pour consulter les résultats historiques.
 
 Le calcul écarte aussi les réponses dont la date `answeredAt` est strictement postérieure à l’instant de calcul (`now`), y compris si leur semaine ISO est la semaine courante. Les réponses rattachées à une UC inconnue sont exclues. Ces exclusions et les avertissements de lecture apparaissent sous **« Bilan partiel »** ; aucune valeur source n’est modifiée. Une date future invite à vérifier l’horloge de l’appareil et ne devient comptabilisable qu’une fois l’instant correspondant atteint.
+
+## Synchronisation, attente et confidentialité
+
+Le rendu attend d’abord la détermination de la source. Il s’abonne ensuite aux snapshots du service : une réponse locale validée, une confirmation distante ou une réconciliation recalcule les résultats disponibles. Les premières réponses personnelles en attente sont comptabilisées avec leur identité série/question ; leur confirmation ne crée pas un deuxième exercice. Les entraînements et les archives de conflits ne sont jamais additionnés aux premières réponses retenues.
+
+| État | Comportement du Dashboard |
+| --- | --- |
+| Visiteur | Historique local et mention explicite de sa portée ; aucun envoi ni import automatique. |
+| Chargement | Message d’attente, sans statistiques personnelles provisoires. |
+| Personnel local, en attente ou en cours de synchronisation | Vue personnelle disponible et nombre d’éléments en attente ; aucune promesse de disponibilité sur un autre appareil avant confirmation. |
+| Synchronisé | Vue confirmée à la dernière synchronisation ; invitation à actualiser pour rechercher une activité d’un autre appareil. |
+| Hors ligne ou erreur de synchronisation | Cache du compte reconnu conservé à l’écran lorsqu’il est lisible ; indication que l’historique peut être incomplet. |
+| Conflit | Une seule vue réconciliée alimente les statistiques ; avertissement et lien vers la résolution dans les exercices hebdomadaires. |
+| Cache inaccessible | Erreur explicite, sans remplacer l’échec par des totaux nuls. |
+| Identité incertaine, session rejetée ou vérification requise | Historique personnel masqué et lien de connexion ; aucune donnée d’une identité précédente affichée. |
+
+Un cache personnel vide pendant une récupération incomplète affiche **« Historique personnel encore incomplet »**. Il n’est pas assimilé à un compte sans activité. Seule une vue accessible et synchronisée sans réponse donne l’état pédagogique vide avec taux non calculable.
+
+La consultation hors ligne repose sur les garanties d’identité du service Auth partagé : session locale correspondant au marqueur d’un compte déjà vérifié et au bon espace environnement/projet/UUID. Un échec réseau ne vérifie pas à lui seul une identité. Un rejet explicite masque les données ; une déconnexion préserve le cache et l’outbox, sans afficher les résultats du compte déconnecté. Les requêtes tardives sont invalidées par les générations du service. Le renderer efface immédiatement le DOM privé lors d’un changement d’identité et ignore les retours d’actualisation devenus obsolètes.
+
+Le cache IndexedDB n’est pas chiffré. Le masquage de l’interface ne protège pas contre une personne contrôlant le profil du navigateur, une extension ou une faille XSS ; les garanties d’accès distant restent celles de JWT/RLS. Le Dashboard n’affiche pas les identifiants techniques du cache. Les limites d’appareil partagé et d’accès hors ligne restent celles du [guide client](DRILL-SYNCHRONISATION-CLIENT.md#identité-déconnexion-et-cache-hors-ligne).
+
+## Actualisation et continuité des interactions
+
+**« Actualiser les données »** appelle réellement `service.retry()`, qui force une relecture distante et permet la reprise des opérations éligibles déjà enregistrées. Le Dashboard ne modifie aucune réponse et ne résout aucun conflit ; le service peut confirmer et réconcilier les opérations existantes. Une erreur laisse un message et permet un nouvel essai sans effacer le cache.
+
+Le service relit à l’ouverture, au retour réseau, au retry manuel et au retour sur la page lorsque le dernier scan date d’au moins une minute. Il n’ajoute pas de diffusion temps réel Supabase. L’activité d’un deuxième appareil devient visible après cette relecture. Les filtres et le recalcul statistique par minute ne déclenchent pas de scan supplémentaire.
+
+Dans la même identité, les mises à jour conservent les filtres et leurs paramètres d’URL, la fenêtre graphique consultée, les tableaux dépliés, le défilement horizontal et le focus encore applicable. Un changement de statut seul ne remplace pas les graphiques. Un changement d’identité retire les anciennes vues avant de calculer les nouvelles ; le retour par le cache de navigation recharge la page pour revérifier le compte.
 
 ## Indicateurs et formules
 
@@ -77,10 +110,13 @@ Lorsque les copies de questions comportent une association `sourceLesson` exploi
 - Le nombre de réponses, la couverture de la banque et les questions répétées limitent l’interprétation. Cinq observations ne garantissent pas la maîtrise d’une notion.
 - Les résultats reflètent uniquement les exercices réalisés ; les notions jamais rencontrées ne peuvent pas être évaluées. La pratique et l’oral ne sont pas mesurés.
 - Les copies des questions conservent les corrections et libellés historiques. Une correction ultérieure de la banque ne recalcule pas les réponses anciennes. Un renommage de chapitre ou de notion peut produire des groupes séparés ; aucune fusion sémantique n’est inventée.
-- Les données sont propres à l’origine du site et au navigateur. Il n’existe pas de synchronisation entre appareils ni de sauvegarde distante.
-- La page ne migre, ne purge et n’écrit aucune progression. Les clés de cours, QCM, ITK et thème restent indépendantes.
+- L’historique visiteur est propre à l’origine du site et au navigateur. Seul l’espace personnel configuré utilise la synchronisation existante ; les opérations en attente ne sont pas garanties sur un autre appareil.
+- La page ne migre ni ne purge la progression et ne crée aucune nouvelle réponse. Les clés de cours, QCM, ITK et thème restent indépendantes.
+- Les pages, modules et configuration doivent rester accessibles pour ouvrir le site ; aucun service worker ou cache intégral du site n’est ajouté.
 - Aucun jeu de démonstration n’est injecté dans la progression réelle ou publié comme résultat utilisateur.
 
 ## Vérification et livraison
 
-Les parcours vérifiés, les données de vérification isolées et les limites du lot 3 sont consignés dans [VALIDATION-LOT3.md](../validations/VALIDATION-LOT3.md). Ce lot n’ajoutait pas de suite automatisée ; le lot 5.1 introduit les contrôles décrits dans [../TESTS.md](../TESTS.md). Les observations historiques correspondent à la branche `feature/dashboard-uc`. Fusion et déploiement en production nécessitent la validation de l’utilisateur.
+Les parcours vérifiés, les données de vérification isolées et les limites historiques du lot 3 sont consignés dans [VALIDATION-LOT3.md](../validations/VALIDATION-LOT3.md). Ce lot n’ajoutait pas de suite automatisée ; le lot 5.1 introduit les contrôles décrits dans [../TESTS.md](../TESTS.md). Les observations historiques correspondent à la branche `feature/dashboard-uc`.
+
+La reprise du lot 6.2.3, ses tests de sélection et d’isolation, ses parcours navigateur et les résultats effectivement exécutés figurent dans [VALIDATION-LOT6-2-3.md](../validations/VALIDATION-LOT6-2-3.md). Les tests simulés du client et l’inspection visuelle ne constituent pas une preuve Auth/PostgreSQL/RLS ; cette dernière exige la stack Supabase locale dédiée. Le défaut `assets/auth-config.json` reste désactivé. Fusion et déploiement en production nécessitent la validation de l’utilisateur.

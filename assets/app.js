@@ -76,7 +76,7 @@ function header() {
   $('.header-actions').prepend(account);
   initAuthHeader(account);
   initNavigation($('#primary-navigation'), page);
-  $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><span>Contenus de démonstration non officiels · Données pédagogiques conservées sur cet appareil</span></div>`;
+  $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><span>Contenus de démonstration non officiels · ${page === 'dashboard' ? 'Source des résultats précisée dans le Tableau de bord' : 'Données pédagogiques conservées sur cet appareil'}</span></div>`;
   document.title = `${title} · Mon BPREA`;
 }
 function unitCard(u) {
@@ -153,10 +153,21 @@ function itk(){
   $('#area').addEventListener('input',e=>e.target.setCustomValidity(''));
   form.addEventListener('submit',event=>{event.preventDefault();const raw=Object.fromEntries(new FormData(form));const area=Number(raw.area);if(!Number.isFinite(area)||area<1||area>100000){$('#area').setCustomValidity('Saisis une surface entre 1 et 100 000 m².');$('#area').reportValidity();return;}$('#area').setCustomValidity('');try{localStorage.setItem(ITK_KEY,JSON.stringify(raw));}catch{};const result=$('#itk-output');result.innerHTML=itkResult(raw);result.classList.add('has-result');const crop=crops[raw.crop],date=dateForMonth(Number(raw.month),Number(raw.year));const rows=crop.tasks.map(([name,detail],i)=>[monthLabel(moveWeeks(date,crop.weeks[i])),name,detail]);$('#csv-export').addEventListener('click',()=>{const dataCSV=[['Période','Opération','Description'],...rows].map(row=>row.map(cell=>'"'+String(cell).replaceAll('"','""')+'"').join(';')).join('\r\n');const blob=new Blob(['\uFEFF'+dataCSV],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`itk-${raw.crop}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});$('#print-itk').addEventListener('click',()=>window.print());});
 }
+function dashboard(){
+  const root=$('#app-main');
+  return initDashboard(root).catch(()=>{
+    const panel=document.createElement('section');
+    panel.className='wrap dashboard-empty';
+    panel.setAttribute('role','alert');
+    const title=document.createElement('h1');title.textContent='Tableau de bord indisponible';
+    const message=document.createElement('p');message.textContent='La source des résultats ne peut pas être vérifiée. Recharge la page pour réessayer. Les données enregistrées sont conservées.';
+    panel.append(title,message);root.replaceChildren(panel);
+  });
+}
 function init(){
   header();
   const page=document.body.dataset.page;
-  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard:()=>initDashboard($('#app-main')),botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
+  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
   // Les rendus asynchrones peuvent remplacer main : le bandeau commun reste extérieur.
   const fact = document.createElement('section');
   fact.className = 'daily-fact wrap';
