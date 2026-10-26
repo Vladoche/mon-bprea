@@ -33,7 +33,7 @@ Les opérations conservent leur UUID, type cours/tentative, intention, payload R
 
 Une nouvelle intention conserve un UUID et un payload complet figé dans la transaction de création, avant tout envoi. La première création utilise la révision attendue 0. Les suivantes utilisent une révision serveur connue ou, en présence d’une intention précédente, sa révision attendue augmentée de un et une dépendance explicite. Le retry ne change ni UUID, ni base, ni contenu.
 
-Les mutations locales successives d’un cours forment une chaîne. Une intention dépendante ne part pas comme une opération indépendante avec la même base. Après confirmation vérifiée, le client exige que la révision obtenue corresponde exactement à sa base déjà persistée. Si le prédécesseur est en conflit, ses dépendants sont conservés et suspendus. Le choix explicite de résolution crée une nouvelle intention sur la base actualisée avec un nouvel UUID.
+Les mutations locales successives d’un cours forment une chaîne. Une intention dépendante ne part pas comme une opération indépendante avec la même base. Après confirmation vérifiée, le client exige que la révision obtenue corresponde exactement à sa base déjà persistée. Si le prédécesseur est en conflit, ses dépendants sont conservés et suspendus. « Conserver mon choix » crée une nouvelle intention sur la base actualisée avec un nouvel UUID. « Garder la version du compte » résout le conflit sans nouvelle mutation distante ; les anciennes intentions restent archivées.
 
 La ligne serveur et sa révision font autorité lors d’un conflit ; l’intention locale incompatible reste dans une archive consultable. Une réponse d’UUID/payload/propriétaire/base incohérente n’acquitte jamais l’opération. `done:false` est une intention explicite : aucun OR des états terminés et aucune priorité donnée à l’horloge de l’appareil. Un score parfait ancien n’est pas une nouvelle action de complétion.
 
@@ -41,7 +41,7 @@ Les singletons backend conservent seulement leur dernier reçu : une opération 
 
 ## Tentatives et scores
 
-Chaque correction effective crée un UUID durable et une tentative immuable contenant uniquement cours, score, total et date réelle de validation. Deux corrections avec valeurs identiques gardent deux UUID. Un retry exact ne crée aucun doublon ; un UUID réutilisé avec un autre contenu est refusé et archivé.
+Chaque correction effective crée un UUID durable et une tentative immuable contenant uniquement cours, score, total et date réelle de validation. Deux corrections avec valeurs identiques gardent deux UUID. Un retry exact ne crée aucun doublon. Une collision d’UUID détectée localement est refusée en annulant la transaction, sans nouvelle archive ; un conflit distant avec un contenu différent conserve l’opération d’origine dans une archive.
 
 Le meilleur score absolu ne diminue pas. La base ancienne `legacy_score/legacy_total` reste distincte des tentatives. Un ancien score sans date n’engendre ni tentative, ni date inventée, ni snapshot de questions ou réponses individuelles. Le moteur statistique existant garde ses dénominateurs et ses avertissements d’historique partiel.
 

@@ -68,7 +68,17 @@ test('une perte d’acquittement et un rechargement hors réseau gardent une seu
   await expect(page.locator('#quiz-history li')).toHaveCount(1);
   await expect(page.locator('#quiz-best-score')).toHaveText('2');
   await expect(page.locator('#course-quiz-sync-status')).toContainText('Connexion indisponible');
+  await page.setViewportSize({ width: 1280, height: 900 }); await setTheme(page,'light');
   await capture(page,'personal-offline-desktop');
+  await setTheme(page,'dark');
+  await expect(page.locator('#course-quiz-sync-status')).toContainText('Connexion indisponible');
+  await capture(page,'personal-offline-desktop-dark');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.locator('#course-quiz-sync-status')).toContainText('Connexion indisponible');
+  await capture(page,'personal-offline-mobile-dark');
+  await setTheme(page,'light');
+  await expect(page.locator('#course-quiz-sync-status')).toContainText('Connexion indisponible');
+  await capture(page,'personal-offline-mobile-light');
   api.restOffline = false; await refresh(page);
   await expect(page.locator('#quiz-history li')).toHaveCount(1); expect(api.attempts.size).toBe(1);
   const calls = api.sent.filter(item => item.url.endsWith('/personal_record_quiz'));
