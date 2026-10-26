@@ -37,10 +37,10 @@ Moteur, `calculateStats()`, catalogue, photos, crédits, store visiteur, modules
 | `npx playwright install chromium` | Réussi |
 | `npm test` | **279 tests réussis, 28 fichiers**, dont les 222 antérieurs conservés |
 | `npm run build:auth-sdk` puis comparaison Git | Réussi, aucun diff du SDK verrouillé |
-| `npm run test:e2e` | **39 parcours Chromium réussis**, 23,4 s ; les 28 antérieurs sont conservés |
+| `npm run test:e2e` | **39 parcours Chromium réussis**, dernière passe 21,1 s ; les 28 antérieurs sont conservés |
 | Docker / stack réelle sur ce poste | Docker absent ; aucune stack Supabase démarrée ici |
 | Préflight `npm run test:e2e:supabase -- --list` | Refus explicite : confirmation/configuration locale dédiée absente ; aucun essai distant substitué |
-| Supabase réel | Validation réservée à la stack locale éphémère de CI, preuves ci-dessous |
+| Supabase réel | **Réussi dans la stack locale éphémère CI**, preuves ci-dessous ; non exécuté sur ce poste |
 
 Une première passe complète a réussi 35 parcours. Après extension, une passe a réussi 36/37 et révélé une fin de session dépendant indéfiniment d’une réponse conflictuelle déjà résolue. La correction distingue les dépendances actives des archives explicitement acceptées ; les anciennes opérations restent immuables. Les régressions modèle/service vérifient une nouvelle fin à révision 2, sans double réponse ni réapplication de l’ancienne intention.
 
@@ -68,11 +68,21 @@ Choix et photo lisibles, correction et crédits visibles, messages et boutons ad
 
 ## CI et Supabase réel
 
-Les liens des trois jobs et leurs résultats sur le commit fonctionnel puis le dernier commit de la PR seront consignés après leur exécution. Aucun succès n’est déduit d’une ancienne PR ou d’un mock.
+PR [#18](https://github.com/Vladoche/mon-bprea/pull/18), commit fonctionnel **`df084e90d5d8796b566a7bd1509c9839f9105b0c`** : les trois contrôles ont réellement réussi.
+
+| Contrôle | Résultat et preuve |
+| --- | --- |
+| [unit-integration](https://github.com/Vladoche/mon-bprea/actions/runs/40281675155/job/121436133266) | Réussi : 279 tests, SDK reconstruit sans diff |
+| [e2e](https://github.com/Vladoche/mon-bprea/actions/runs/40281675155/job/121436132984) | Réussi : 39 parcours Chromium autonomes |
+| [supabase-security](https://github.com/Vladoche/mon-bprea/actions/runs/40281675381/job/121436133591) | Réussi : 350 assertions pgTAP, 11 groupes Auth/profils, 22 groupes Drill, 26 groupes personnels, 16 parcours Chromium réels et arrêt réussi de la stack |
+
+Les logs de ce dernier job confirment les six recettes A–F réussies séparément (4,7 ; 6,9 ; 7,4 ; 8,1 ; 3,5 ; 2,6 secondes) et les dix parcours antérieurs, soit **16 réussis en 1,3 minute**. Les écritures, conflits et assertions de totaux passent par les vrais JWT et PostgreSQL ; la perte d’acquittement est produite après `route.fetch()` réel. Aucun mock n’est présenté comme une preuve RLS.
+
+La livraison ajoute ensuite uniquement la conservation du focus des résumés pendant une mise à jour, sa régression Chromium et les présentes preuves. La passe locale complète a été réexécutée : 279 tests et 39 parcours réussis. Les trois mêmes checks sont relancés sur ce dernier commit et doivent être vérifiés sur [les contrôles de la PR](https://github.com/Vladoche/mon-bprea/pull/18/checks) au moment de la remise ; une réussite sur le seul commit fonctionnel ne la remplace pas. Aucun merge ni déploiement.
 
 Les six nouvelles recettes utilisent uniquement les fixtures gardées de la stack `mon-bprea-lot6-1-local` :
 
-| Recette | Assertions prévues dans le navigateur et PostgreSQL |
+| Recette réussie | Assertions exécutées dans le navigateur et PostgreSQL |
 | --- | --- |
 | A | Deux appareils, deux réponses puis révision distincte, historique et taux identiques |
 | B | Session complète hors réseau, reload, UUID durables, perte HTTP après commit réel, fin CAS et zéro doublon |
@@ -81,7 +91,7 @@ Les six nouvelles recettes utilisent uniquement les fixtures gardées de la stac
 | E | Deux sessions importées volontairement, orpheline/brut conservés, interruption/reprise et second appareil |
 | F | Réponse gagnante réellement inscrite sous la même identité, archive divergente, décision explicite et résultats réconciliés |
 
-Les suites antérieures pgTAP, Auth/profils, backend Drill/personnel et les dix recettes Supabase navigateur sont conservées. Leur résultat effectif est à relever dans le même job `supabase-security`.
+Les suites antérieures pgTAP, Auth/profils, backend Drill/personnel et les dix recettes Supabase navigateur sont conservées et réussissent dans le même job `supabase-security`.
 
 ## Limites et environnements
 

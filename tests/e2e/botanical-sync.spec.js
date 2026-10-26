@@ -202,6 +202,7 @@ test('botanique : les réglages restent verrouillés pendant une création local
   expect(saved[0]).toMatchObject({ session_id: requested.id, category_id: requested.categoryId, mode: 'chrono', duration_seconds: 30, is_revision: false });
   await answerBotanical(page); await finishBotanical(page); await botanicalSynced(page);
   expect(api.sessions.size).toBe(1); expect(api.answers.size).toBe(1);
+
 });
 
 test('botanique : les résultats déjà affichés se réconcilient sans déplacer le focus', async ({ page }) => {
@@ -229,6 +230,16 @@ test('botanique : les résultats déjà affichés se réconcilient sans déplace
   await expect(nextSession).toBeFocused();
   await expectBotanicalHistory(page, { attempted: 1, correct: 0, incorrect: 1, rate: '0 %' });
   expect(api.sessions.size).toBe(1); expect(api.answers.size).toBe(1);
+  const historySummary = page.locator('#bot-history summary'); await historySummary.focus();
+  const anotherId = `${original.sessionId}-another-question`;
+  api.answers.set(`${accounts.A.id}:${anotherId}`, answerRow({ ...original, id: anotherId, questionId: anotherId }, accounts.A.id));
+  await page.evaluate(async () => {
+    const app = new URL(document.querySelector('script[type="module"][src]').src);
+    const url = new URL('./botanical-sync-service.js', app); url.search = app.search;
+    await (await (await import(url.href)).getBotanicalService()).retry();
+  });
+  await expectBotanicalHistory(page, { attempted: 2, correct: 1, incorrect: 1, rate: '50 %' });
+  await expect(historySummary).toBeFocused();
 });
 
 test('botanique visiteur sans Supabase : historique indépendant et rendu clair/sombre sur deux écrans', async ({ page }) => {

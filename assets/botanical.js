@@ -108,9 +108,11 @@ export async function initBotanical(root) {
   }
   function renderHistory() {
     const opened = historyRoot.querySelector('details')?.open;
+    const summaryFocused = document.activeElement === historyRoot.querySelector('summary');
     const stats = calculateStats(answers);
     historyRoot.innerHTML = `<details class="bot-panel bot-history"><summary>Mon historique botanique${stats.attempted ? ` · ${stats.attempted} question${stats.attempted > 1 ? 's' : ''}` : ''}</summary>${stats.attempted ? `${metrics(stats)}${breakdown(stats)}<div class="bot-history-details"><div class="bot-table-wrap"><table class="bot-table"><caption>Résultats par thématique</caption><thead><tr><th scope="col">Thématique</th><th scope="col">Réalisées</th><th scope="col">Reconnaissance</th></tr></thead><tbody>${stats.byCategory.map(item => `<tr><th scope="row">${clean(category(item.id)?.name || item.id)}</th><td>${item.attempted}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody></table></div><div class="bot-table-wrap"><table class="bot-table"><caption>Évolution quotidienne (UTC)</caption><thead><tr><th scope="col">Date</th><th scope="col">Réalisées</th><th scope="col">Reconnaissance</th></tr></thead><tbody>${stats.timeline.map(item => `<tr><th scope="row">${day(item.date)}</th><td>${item.attempted}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody></table></div></div><h3>Confusions observées</h3><ul class="bot-help">${confusionsObserved()}</ul><p class="bot-help">Le taux porte sur les réponses validées et les temps écoulés. Les photographies indisponibles sont exclues. Chaque tentative reste dans l’historique, y compris après une révision réussie.</p>` : '<p class="bot-empty">Aucune question réalisée pour le moment. Ton historique se construira à partir de tes réponses.</p>'}</details>`;
     if (opened) historyRoot.querySelector('details').open = true;
+    if (summaryFocused) historyRoot.querySelector('summary')?.focus({ preventScroll: true });
   }
   function confusionsObserved() {
     const pairs = new Map();

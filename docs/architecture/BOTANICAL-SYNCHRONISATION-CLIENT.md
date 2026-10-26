@@ -24,7 +24,7 @@ Le lot réutilise la transaction `createScopedRepository()`, la portée `[enviro
 
 En visiteur, seule la clé `monbprea.botanical.v1` contient `{schemaVersion:1,answers:[],sessions:[]}`. La connexion ne lit pas cette clé pour remplir le compte. Chaque compte utilise IndexedDB `mon-bprea-botanical-personal-v1`, version 1, store `accounts`, avec la portée validée comme clé.
 
-Le record conserve `version`, `scope`, `sessions`, `answers`, `remote`, `operations`, `conflicts`, `imports` et `lastReconciledAt`. Les lignes SQL reçues restent distinctes des données pédagogiques projetées. Les tableaux d’opérations et archives ne sont pas purgés à la déconnexion.
+Le record conserve `version`, `scope`, `sessions`, `answers`, `remote`, `operations`, `conflicts`, `imports`, `importArchives` et `lastReconciledAt`. Les lignes SQL reçues restent distinctes des données pédagogiques projetées. Les tableaux d’opérations et archives ne sont pas purgés à la déconnexion. Les copies d’import ambiguës sont archivées avec leur source brute ; l’interface expose seulement un résumé lisible.
 
 Chaque mutation relit le record sous transaction `readwrite`, valide sa version, applique l’intention et ajoute son opération avant un seul `put`. Le succès est rendu seulement après `transaction.oncomplete`. Un échec de validation, quota ou transaction annule l’ensemble. Une réponse ne peut donc pas exister sans son opération durable. Les transactions sérialisent les onglets ; BroadcastChannel annonce uniquement la portée à relire, jamais des réponses ou des tokens. Un record futur/corrompu est conservé sans réinitialisation.
 

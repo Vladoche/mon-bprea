@@ -38,9 +38,11 @@ export function initBotanicalSyncPanel(root, service, { signal } = {}) {
       const archives = select('botanical-sync-archives');
       const opened = new Set([...archives.querySelectorAll('details[open]')].map(item => item.dataset.conflict));
       const focusedId = archives.contains(document.activeElement) ? document.activeElement.dataset.botanicalResolve : null;
+      const focusedSummary = document.activeElement?.tagName === 'SUMMARY' && archives.contains(document.activeElement) ? document.activeElement.closest('[data-conflict]')?.dataset.conflict : null;
       archives.innerHTML = fullMarkup; markup = fullMarkup;
       archives.querySelectorAll('details').forEach(item => { item.open = opened.has(item.dataset.conflict); });
       if (focusedId) archives.querySelector(`[data-botanical-resolve="${CSS.escape(focusedId)}"]`)?.focus({ preventScroll: true });
+      else if (focusedSummary) archives.querySelector(`[data-conflict="${CSS.escape(focusedSummary)}"] > summary`)?.focus({ preventScroll: true });
     }
   });
   refresh.addEventListener('click', async () => {
