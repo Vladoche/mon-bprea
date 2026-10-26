@@ -139,8 +139,17 @@ test('visiteur : génération et apparence conservées, erreurs de stockage anno
 
 test('compte vide : rendu sombre de l’appareil conservé après récupération sans préférence personnelle inventée', async ({ page }) => {
   const source = '{"version":1,"season":"winter","brightness":"dark"}';
-  const api = createSettingsAPI(); await api.install(page.context(), 'B', { 'bprea-demo-appearance-v1': source });
+  const api = createSettingsAPI(); await api.install(page.context(), 'A', { 'bprea-demo-appearance-v1': source });
   await page.goto(itkPath); await settingsSynced(page);
+  await settingsAction(page, 'save', 'appearance', { version: 1, season: 'summer', brightness: 'light' }); await settingsSynced(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.evaluate(async email => {
+    const app = new URL(document.querySelector('script[type="module"][src]').src);
+    const url = new URL('./auth-service.js', app); url.search = app.search;
+    const auth = await (await import(url.href)).getAuthService();
+    await auth.signOut(); await auth.signIn(email, 'synthetic-password');
+  }, accounts.B.email);
+  await settingsSynced(page);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect((await settingsAction(page, 'state')).view.appearance).toBeNull();
   await settingsAction(page, 'retry'); await settingsSynced(page);
@@ -148,6 +157,6 @@ test('compte vide : rendu sombre de l’appareil conservé après récupération
   expect(await page.evaluate(() => window.BpreaAppearance.getPreferences())).toMatchObject({ season: 'auto', brightness: 'auto' });
   await page.reload(); await settingsSynced(page);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  expect(api.rows.appearance.size).toBe(0);
+  expect(api.rows.appearance.has(accounts.B.id)).toBe(false);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-v1'))).toBe(source);
 });

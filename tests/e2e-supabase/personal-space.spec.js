@@ -25,25 +25,45 @@ async function quiz(page, score) {
   for (const [index, item] of lesson.quiz.entries()) await page.locator(`input[name="q${index}"][value="${index < score ? item.answer : (item.answer + 1) % item.options.length}"]`).check();
   await page.locator('#check-quiz').click(); await expect(page.locator('#quiz-result')).toContainText(`${score} / 3`);
 }
-async function domainStep(label, action) {
-  try { return await test.step(label, action, { timeout: 40000 }); }
-  catch { throw Object.assign(new Error(`La recette a échoué à l’étape ${label}.`), { recipeStep: label }); }
+async function offlineIdentity(page, userId, retry = false) {
+  const identity = await page.evaluate(async ({ expected, retry }) => {
+    const app = new URL(document.querySelector('script[type="module"][src]').src);
+    const url = new URL('./auth-service.js', app); url.search = app.search;
+    const auth = await (await import(url.href)).getAuthService();
+    if (retry) try { await auth.retry(); } catch { /* Assert the actual rejected transport state below. */ }
+    return { status: auth.getState().status, correctOwner: auth.getState().user?.id === expected };
+  }, { expected: userId, retry });
+  expect(identity, 'La panne conserve uniquement l’identité locale fiable du compte fictif.').toEqual({ status: 'offline', correctOwner: true });
 }
-async function fillAllDomains(page, { index = 0, score = 2, area = '100', season = 'winter', brightness = 'dark', online = true } = {}) {
-  await domainStep('Drill : démarrage/reprise et première réponse', async () => {
-    await page.goto(DRILL_LOCAL_URL); if (online) await drillSynced(page); await drillAnswer(page, index); if (online) await drillSynced(page);
+async function domainStep(page, label, action) {
+  try { return await test.step(label, action, { timeout: 40000 }); }
+  catch {
+    const diagnostic = await page.evaluate(() => ({
+      ready: document.readyState,
+      sync: document.getElementById('drill-sync-status')?.textContent?.slice(0, 250),
+      save: document.getElementById('drill-save-status')?.textContent?.slice(0, 250),
+      questions: document.querySelectorAll('.drill-question').length,
+      forms: document.querySelectorAll('.drill-answer-form').length,
+      startDisabled: document.querySelector('[data-drill-start]')?.disabled
+    })).catch(() => ({ ready: 'unavailable' }));
+    throw Object.assign(new Error(`La recette a échoué à l’étape ${label}.`), { recipeStep: label, recipeDiagnostic: diagnostic });
+  }
+}
+async function fillAllDomains(page, { index = 0, score = 2, area = '100', season = 'winter', brightness = 'dark', online = true, userId = null } = {}) {
+  await domainStep(page, 'Drill : démarrage/reprise et première réponse', async () => {
+    await page.goto(DRILL_LOCAL_URL); if (online) await drillSynced(page); else await offlineIdentity(page, userId); await drillAnswer(page, index); if (online) await drillSynced(page);
   });
-  await domainStep('QCM : correction et sauvegarde de la tentative', async () => {
-    await page.goto(quizPath); if (online) await courseSynced(page); await quiz(page, score); if (online) await courseSynced(page);
+  await domainStep(page, 'QCM : correction et sauvegarde de la tentative', async () => {
+    await page.goto(quizPath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await quiz(page, score); if (online) await courseSynced(page);
   });
-  await domainStep('Cours : enregistrement de la case terminé', async () => {
-    await page.goto(coursePath); if (online) await courseSynced(page); await page.locator('#mark-done').check({ timeout: 10000 }); if (online) await courseSynced(page);
+  await domainStep(page, 'Cours : enregistrement de la case terminé', async () => {
+    await page.goto(coursePath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await page.locator('#mark-done').check({ timeout: 10000 }); if (online) await courseSynced(page);
   });
-  await domainStep('Botanique : session, réponse et fin', async () => {
-    await page.goto(botanicalPath); if (online) await botanicalSynced(page); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); if (online) await botanicalSynced(page);
+  await domainStep(page, 'Botanique : session, réponse et fin', async () => {
+    await page.goto(botanicalPath); if (online) await botanicalSynced(page); else await offlineIdentity(page, userId); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); if (online) await botanicalSynced(page);
   });
-  await domainStep('ITK et apparence : paramètres générés et choix persistants', async () => {
-    await page.goto(itkPath); if (online) await settingsSynced(page); await generateItk(page, { ...itkParameters, area });
+  await domainStep(page, 'ITK et apparence : paramètres générés et choix persistants', async () => {
+    await page.goto(itkPath); if (online) await settingsSynced(page); else await offlineIdentity(page, userId); await generateItk(page, { ...itkParameters, area });
     await chooseAppearance(page, season, brightness); if (online) await settingsSynced(page); await closeAppearance(page);
   });
 }
@@ -123,8 +143,9 @@ test('Espace personnel réel : panne API transversale, rechargements et reprise 
     // Static pages/modules remain served: this is an API outage, not a claim
     // that an uncached site works offline without a service worker.
     const pattern = `${a.environment.url}/**`, outage = route => route.abort('failed'); await page.route(pattern, outage);
+    await offlineIdentity(page, a.userId, true);
     stage = 'nouvelles intentions dans les six domaines hors API';
-    await fillAllDomains(page, { index: 1, score: 1, area: '444', season: 'auto', brightness: 'auto', online: false });
+    await fillAllDomains(page, { index: 1, score: 1, area: '444', season: 'auto', brightness: 'auto', online: false, userId: a.userId });
     await page.reload(); await expectItk(page, { ...itkParameters, area: '444' });
     expect((await settingsAction(page, 'state')).view.appearance).toMatchObject({ season: 'auto', brightness: 'auto' });
     await page.goto(DRILL_LOCAL_URL); await expect(page.locator('.drill-correction')).toHaveCount(2);
@@ -136,7 +157,7 @@ test('Espace personnel réel : panne API transversale, rechargements et reprise 
     await verifyDatabase(a, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
     stage = 'second passage sans nouvelle intention'; await verifyBrowser(page, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
     await verifyDatabase(a, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
-  } catch (issue) { failure = new Error(`Reprise transversale PostgreSQL non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}.`); }
+  } catch (issue) { failure = new Error(`Reprise transversale PostgreSQL non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}.${issue.recipeDiagnostic ? ` État non sensible : ${JSON.stringify(issue.recipeDiagnostic)}.` : ''}`); }
   finally { await cleanup(students, [], failure); }
 });
 
