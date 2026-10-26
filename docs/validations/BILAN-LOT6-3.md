@@ -21,6 +21,10 @@ Les services partagent Auth/client Supabase, `personal-idb.js` et `sync-runtime.
 
 Les preuves historiques des lots [6.3.1](VALIDATION-LOT6-3-1.md), [6.3.2](VALIDATION-LOT6-3-2.md) et [6.3.3](VALIDATION-LOT6-3-3.md) sont distinctes de la [validation 6.3.4](VALIDATION-LOT6-3-4.md), qui consigne les commandes réellement exécutées et les trois contrôles sur le dernier commit livré.
 
+**Clôture fonctionnelle en branche :** les six tables personnelles du 6.3.1 et les clients cours/QCM, botanique, ITK et apparence des 6.3.2 à 6.3.4 sont implémentés, avec imports volontaires, persistance locale et règles de conflit décrites ci-dessus. Drill, Dashboard, Auth et profils restent intégrés à la recette commune. La PR #19 est ouverte pour revue, sans fusion ni publication.
+
+**Preuve CI du périmètre :** le commit fonctionnel `7d82340f37b25c53d2e1d23d9e9661b33b0f87bf` a réussi les trois jobs, avec 322 tests unitaires/intégration, 53 parcours autonomes, 350 assertions pgTAP, 59 groupes Auth/API et 24 parcours avec Supabase éphémère réel. Les quatre recettes transversales et les quatre ITK/apparence sont toutes vertes ; les données gagnantes et les historiques sont relus dans PostgreSQL. Le rapport 6.3.4 lie les exécutions exactes et distingue les relances d’environnement des preuves réussies. Les contrôles du dernier commit documentaire sont à vérifier sur la PR après chaque poussée.
+
 | Niveau | Ce qu’il démontre | Ce qu’il ne démontre pas |
 | --- | --- | --- |
 | Vitest modèle/store/service/transport | Validation, transactions, UUID/payload, CAS, reprises, imports, comptes et retours tardifs avec données isolées | Auth distant, PostgreSQL ou RLS réels |

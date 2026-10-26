@@ -28,15 +28,31 @@ Comparaison réellement effectuée avec `origin/main` : migrations/RPC/RLS et le
 
 | Vérification | Résultat |
 | --- | --- |
-| `npm test` complet | **322 tests réussis, 34 fichiers**, dont les 279 antérieurs conservés ; dernière passe 1,81 s |
-| `npm run test:e2e -- --workers=2` complet | **53 parcours réussis**, dont les 39 antérieurs ; dernière passe 51,6 s ; démarrage/reprise Drill, rendu provisoire de compte vide et stockage personnel refusé couverts |
+| `npm test` complet | **322 tests réussis, 34 fichiers**, dont les 279 antérieurs conservés ; dernière passe 2,19 s |
+| `npm run test:e2e -- --workers=2` complet | **53 parcours réussis**, dont les 39 antérieurs ; dernière passe 51,0 s ; démarrage/reprise Drill, rendu provisoire de compte vide et stockage personnel refusé couverts |
 | `npm run build:auth-sdk` puis comparaison | Réussi ; aucun diff du SDK verrouillé |
 | Inspection visuelle | Captures synthétiques 1280/390 px clair/sombre et dialogues inspectés ; détails ci-dessous |
 | Supabase local sur ce poste | Docker absent ; aucune recette PostgreSQL locale déclarée réussie |
 | Préflight réel `npm run test:e2e:supabase -- --list` | Refus explicite de la configuration locale absente ; aucune cible distante substituée |
-| CI | PR [#19](https://github.com/Vladoche/mon-bprea/pull/19) créée et suivie ; détails des passages réels ci-dessous, validation finale encore requise |
+| CI | PR [#19](https://github.com/Vladoche/mon-bprea/pull/19) ouverte ; **trois jobs verts** sur le commit fonctionnel `7d82340`, preuves ci-dessous |
 
-## Scénarios et limites à établir
+## Résultat de clôture fonctionnelle et preuves CI
+
+Le commit fonctionnel **`7d82340f37b25c53d2e1d23d9e9661b33b0f87bf`** a réellement réussi les trois contrôles obligatoires :
+
+| Job GitHub | Résultat vérifié |
+| --- | --- |
+| [unit-integration](https://github.com/Vladoche/mon-bprea/actions/runs/40378077857/job/121772511951) | **322 tests**, 34 fichiers ; reconstruction du SDK verrouillé sans diff |
+| [e2e](https://github.com/Vladoche/mon-bprea/actions/runs/40378077857/job/121772508002) | **53 parcours Chromium**, 1,2 min ; les 39 antérieurs restent présents |
+| [supabase-security](https://github.com/Vladoche/mon-bprea/actions/runs/40378077830/job/121767063447) | **350 assertions pgTAP**, **11 groupes Auth/profils**, **22 groupes Drill**, **26 groupes personnels**, puis **24/24 parcours Chromium réels** en 2,0 min ; arrêt ciblé de la stack réussi |
+
+Les quatre recettes transversales ont réussi : historiques multi-appareils, séparation A/B et outbox, panne API avec rechargements et reprise sans doublon, conflits simultanés isolés. Elles contrôlent aussi les lignes réellement stockées dans PostgreSQL avec les JWT des comptes fictifs. Les quatre recettes ITK/apparence et les seize parcours réels antérieurs ont réussi dans la même exécution.
+
+La recette hors API réussit en 10,6 s après correction de ses attentes : identité locale fiable, cache prêt puis transaction terminée avant navigation. Aucun contrôle Auth, propriétaire, donnée ou doublon n’a été retiré. Le job E2E autonome avait d’abord atteint sa limite de dix minutes pendant le téléchargement Ubuntu des dépendances, avant tout test ; sa relance sur le même SHA a réussi. Les résultats d’exécution des derniers commits documentaires restent consultables dans les contrôles de la PR ; toute nouvelle poussée doit conserver les trois jobs verts.
+
+Le développement fonctionnel du lot est terminé dans la branche dédiée, pour revue. Aucun déploiement ni fusion n’en découle. Les essais DEV hébergés restent distincts et non exécutés, comme précisé ci-dessous.
+
+## Scénarios validés et limites
 
 Les tests exécutés couvrent ITK et apparence sur deux contextes, reprise API hors ligne et rechargement, acquittement perdu, CAS et résolution explicite, formulaire/dialogue actif et focus, imports séparés avec source inchangée, refus des anciennes données invalides, erreurs de stockage, bascules A/B et réponse tardive. Le thème classique est observé réellement avant livraison des CSS, avec une horloge contrôlée, y compris choix `auto`, transitions de saison et changements d’heure locale.
 
