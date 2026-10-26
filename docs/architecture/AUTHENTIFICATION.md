@@ -1,5 +1,7 @@
 # Authentification et profils — lot 6.1
 
+Le lot 6.3.2 réutilise cette même frontière Auth pour la [synchronisation personnelle des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md), en complément du Drill. Les comptes ont des caches distincts par environnement/projet/UUID ; la clé visiteur n’est importée qu’après confirmation explicite. Une déconnexion conserve les données et outboxes tout en masquant les vues privées. Les descriptions du périmètre initial 6.1 ci-dessous restent historiques ; les procédures d’invitation, les privilèges profils et le défaut public désactivé ne changent pas.
+
 Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill](DRILL-SYNCHRONISATION-CLIENT.md), avec vérification de session avant chaque accès distant et JWT fixé par requête. Il ajoute un état `offline` limité à une identité locale déjà vérifiée (UUID/session_id correspondants), sans autorisation distante ; toute identité incertaine masque le cache. La déconnexion invalide immédiatement les vues et requêtes, puis appelle le SDK, sans effacer la progression. Les profils, RLS et flux d'invitation ci-dessous restent inchangés.
 
 Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
@@ -207,7 +209,7 @@ Remplacer la référence par celle du projet DEV ; vérifier l’environnement l
 
 ## Niveaux de vérification et CI
 
-`npm test` valide la logique applicative avec mocks réservés aux unités et contrôle la préparation réelle des artefacts. `npm run test:e2e` exerce les pages avec la configuration désactivée du dépôt, sans simuler de réponse Supabase, y compris le préfixe `/mon-bprea/`, l’absence d’accès privé, les liens et le mobile. Ces suites n’exercent pas PostgreSQL et ne démontrent pas RLS. `npm run test:e2e:supabase` utilise un vrai service Auth, PostgreSQL et les e-mails capturés pour les parcours connectés. Les détails figurent dans [TESTS.md](../TESTS.md).
+`npm test` valide la logique applicative avec mocks et contrôle la préparation réelle des artefacts. `npm run test:e2e` conserve les parcours Auth avec la configuration désactivée du dépôt, y compris le préfixe `/mon-bprea/`, l’absence d’accès privé, les liens et le mobile ; les parcours cours/QCM ajoutés au lot 6.3.2 simulent HTTP pour exercer le SDK, le service et IndexedDB sans stack externe. Ces suites n’exercent pas PostgreSQL et ne démontrent pas RLS. `npm run test:e2e:supabase` utilise un vrai service Auth, PostgreSQL et les e-mails capturés pour les parcours connectés. Les détails figurent dans [TESTS.md](../TESTS.md).
 
 Le workflow **Qualité** conserve les jobs obligatoires `unit-integration` et `e2e`, sans secrets Supabase ni déploiement. Le workflow distinct `auth-security.yml`, job `supabase-security`, prépare une stack locale jetable et exécute les vérifications réelles. Il ne modifie pas le ruleset de `main` et n’utilise aucun compte étudiant ou projet distant. Sa configuration ne prouve pas qu’une exécution a réussi : contrôler le résultat de la PR et le consigner dans la validation.
 

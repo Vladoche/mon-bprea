@@ -1,3 +1,4 @@
+import { createScopedRepository } from './personal-idb.js';
 import { applySeries, applyDraft, applyAnswer, readDrillDocument } from './drill-store.js';
 
 export const PERSONAL_DRILL_DB = 'mon-bprea-drill-personal-v1';
@@ -52,57 +53,8 @@ export function validatePersonalDocument(document, scope) {
 
 /** One record per identity. Read/change/queue/put share ONE IndexedDB transaction. */
 export function createPersonalRepository(scope, { indexedDB = globalThis.indexedDB, databaseName = PERSONAL_DRILL_DB, onCommit = () => {} } = {}) {
-  let opening;
-  function open() {
-    if (!opening) opening = new Promise((resolve, reject) => {
-      if (!indexedDB) { reject(new LocalDrillError()); return; }
-      let request;
-      try { request = indexedDB.open(databaseName, 1); } catch { reject(new LocalDrillError()); return; }
-      request.onupgradeneeded = () => request.result.createObjectStore('accounts');
-      request.onerror = () => reject(new LocalDrillError());
-      request.onblocked = () => reject(new LocalDrillError('Le cache personnel est ouvert dans un ancien onglet. Ferme cet onglet puis recharge.'));
-      request.onsuccess = () => {
-        const db = request.result;
-        db.onversionchange = () => { db.close(); opening = null; };
-        resolve(db);
-      };
-    });
-    return opening;
-  }
-  async function transaction(change, active = () => true) {
-    const db = await open();
-    if (!active()) throw new LocalDrillError('Le compte a changé. Aucune action n’a été enregistrée.');
-    return new Promise((resolve, reject) => {
-      let tx; let value; let failure; let changed = false;
-      try { tx = db.transaction('accounts', change ? 'readwrite' : 'readonly'); }
-      catch { reject(new LocalDrillError()); return; }
-      tx.onabort = () => reject(failure || new LocalDrillError());
-      tx.onerror = () => {}; // onabort is the only failure completion.
-      tx.oncomplete = () => { if (changed) try { onCommit(); } catch { /* The write is already committed; notification is optional. */ } resolve(value); };
-      const store = tx.objectStore('accounts');
-      const request = store.get(scope);
-      request.onsuccess = () => {
-        try {
-          if (!active()) throw new LocalDrillError('Le compte a changé. Aucune action n’a été enregistrée.');
-          const document = validatePersonalDocument(request.result === undefined ? emptyPersonalDocument(scope) : request.result, scope);
-          if (change) {
-            const original = JSON.stringify(document);
-            value = change(document);
-            if (value?.then) throw new LocalDrillError('Une transaction locale ne peut pas attendre le réseau.');
-            validatePersonalDocument(document, scope);
-            changed = JSON.stringify(document) !== original;
-            if (changed) store.put(document, scope);
-          } else value = document;
-        } catch (error) {
-          // Keep reconciliation/protocol errors distinct from an actual IDB
-          // failure (notably 40001 when paginated history changed mid-scan).
-          failure = error instanceof Error && typeof error.code === 'string' ? error : new LocalDrillError();
-          tx.abort();
-        }
-      };
-    });
-  }
-  return { scope, read: () => transaction(), change: transaction, async close() { (await open()).close(); opening = null; } };
+  return createScopedRepository(scope, { indexedDB, databaseName, onCommit,
+    empty: emptyPersonalDocument, validate: validatePersonalDocument, ErrorType: LocalDrillError });
 }
 
 export function newOperation(type, seriesKey, payload, id = globalThis.crypto.randomUUID()) {

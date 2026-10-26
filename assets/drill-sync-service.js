@@ -4,9 +4,9 @@ import { getSupabaseClient } from './supabase-client.js';
 import { createPersonalRepository, personalChange, personalScope, clone } from './drill-personal-store.js';
 import { acknowledgeOperation, prepareNextOperation, reconcileHistory, resolveDrillConflict } from './drill-sync-model.js';
 import { createDrillTransport, classifySyncError } from './drill-sync-transport.js';
+import { delayFor } from './sync-runtime.js';
 
 const emptyView = error => ({ series: {}, error, warnings: [] });
-const delayFor = count => Math.min(60000, 1000 * 2 ** Math.min(count - 1, 6));
 function openBroadcast() { try { return globalThis.BroadcastChannel ? new BroadcastChannel('mon-bprea-drill-personal-v1') : null; } catch { return null; } }
 
 export function createDrillSyncService({ auth, configuration, repositoryFactory = createPersonalRepository,
