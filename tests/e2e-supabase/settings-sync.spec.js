@@ -6,7 +6,9 @@ import { itkPath, itkParameters, settingsAction, settingsSynced, generateItk, ex
 // Only the guarded local fixture provisions accounts. Pedagogical assertions
 // below read PostgreSQL through the fictitious student's actual JWT.
 async function rows(student, table) {
-  await student.refresh();
+  const session = await student.client.auth.getSession();
+  expect(session.error).toBeNull();
+  if (!Number.isFinite(session.data.session?.expires_at) || session.data.session.expires_at * 1000 < Date.now() + 30000) await student.refresh();
   const result = await student.client.from(table).select('*').eq('user_id', student.userId);
   expect(result.error).toBeNull(); return result.data;
 }

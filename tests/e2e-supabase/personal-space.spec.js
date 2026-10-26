@@ -14,7 +14,10 @@ const courseSynced = page => expect(page.locator('#course-quiz-sync-status')).to
 const drillSynced = page => expect(page.locator('#drill-sync-status')).toHaveText('Synchronisé');
 const tables = ['drill_series', 'drill_answers', 'drill_training_attempts', 'course_states', 'quiz_attempts', 'botanical_sessions', 'botanical_answers', 'itk_settings', 'appearance_preferences'];
 async function rows(student, table) {
-  await student.refresh(); const result = await student.client.from(table).select('*').eq('user_id', student.userId);
+  const session = await student.client.auth.getSession();
+  expect(session.error).toBeNull();
+  if (!Number.isFinite(session.data.session?.expires_at) || session.data.session.expires_at * 1000 < Date.now() + 30000) await student.refresh();
+  const result = await student.client.from(table).select('*').eq('user_id', student.userId);
   expect(result.error).toBeNull(); return result.data;
 }
 async function drillAnswer(page, index = 0) {
