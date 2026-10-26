@@ -30,6 +30,20 @@ Les preuves historiques des lots [6.3.1](VALIDATION-LOT6-3-1.md), [6.3.2](VALIDA
 
 Le statut du lot 6.3.4 et le détail de la recette transversale sont établis uniquement par son rapport de validation et les exécutions CI correspondantes. Une suite ajoutée ou un job configuré ne vaut jamais un résultat réussi. Les suites des lots précédents restent incluses ; aucune réduction des 350 assertions de référence n’est autorisée par ce bilan.
 
+Les assertions propres à chaque domaine sont repérables dans les fichiers suivants. Leurs résultats exécutés restent ceux du rapport de validation ; les suites autonomes ne prouvent pas RLS.
+
+| Domaine | Modèle, persistance ou interface | Navigateur avec Auth/PostgreSQL locaux réels |
+| --- | --- | --- |
+| Auth et profils | [Service Auth](../../tests/unit/auth-service.test.js), [identité locale](../../tests/unit/auth-local-identity.test.js), [interface](../../tests/e2e/auth.spec.js) | [Parcours Auth](../../tests/e2e-supabase/auth.spec.js), [runner Auth/RLS](../../scripts/test-supabase.mjs) |
+| Drill | [Modèle](../../tests/unit/drill-sync-model.test.js), [service](../../tests/integration/drill-sync-service.test.js), [persistance](../../tests/integration/drill-personal-store.test.js) | [Synchronisation](../../tests/e2e-supabase/drill-sync.spec.js), [reprise Auth](../../tests/e2e-supabase/drill-auth-recovery.spec.js) |
+| Dashboard | [Calculs](../../tests/unit/dashboard-stats.test.js), [source personnelle](../../tests/integration/dashboard-data.test.js), [interface](../../tests/e2e/dashboard-sync.spec.js) | [Dashboard personnel](../../tests/e2e-supabase/dashboard-sync.spec.js) |
+| Cours et QCM | [Modèle](../../tests/unit/course-quiz-model.test.js), [service](../../tests/integration/course-quiz-service.test.js), [interface](../../tests/e2e/course-quiz-sync.spec.js) | [Cours/QCM multi-appareils](../../tests/e2e-supabase/course-quiz-sync.spec.js) |
+| Botanique | [Modèle](../../tests/unit/botanical-sync-model.test.js), [service](../../tests/integration/botanical-sync-service.test.js), [interface](../../tests/e2e/botanical-sync.spec.js) | [Botanique personnelle](../../tests/e2e-supabase/botanical-sync.spec.js) |
+| ITK et apparence | [Modèle](../../tests/unit/settings-model.test.js), [service](../../tests/integration/settings-service.test.js), [thème initial](../../tests/integration/settings-appearance.test.js), [interface](../../tests/e2e/settings-sync.spec.js) | [Singletons, conflits et imports](../../tests/e2e-supabase/settings-sync.spec.js) |
+| Transversal | [Helper de démarrage/reprise Drill](../../tests/e2e/personal-recipe-helpers.spec.js) : contrôle de recette uniquement | [Tous les domaines](../../tests/e2e-supabase/personal-space.spec.js) : historiques, A/B, panne API, conflits isolés |
+
+Le [socle pgTAP personnel](../../supabase/tests/database/personal_data_backend.test.sql) et le [runner personnel](../../scripts/test-personal-data-supabase.mjs) vérifient les tables et RPC partagées par cours/QCM, botanique, ITK et apparence. Les suites profils et Drill restent exécutées avec eux.
+
 ## DEV hébergé restant à préparer
 
 Le 26 octobre 2026, l’outil Supabase `list_migrations` a été appelé en lecture seule pour DEV `wcckbyhrtroittbfophv`. Il retourne seulement `20261022000100 profiles` et `20261024083417 create_drill_sync_schema`. **La migration personnelle 6.3.1 `20261025143831` n’y est pas présente.** Aucun parcours hébergé des nouveaux domaines n’est donc déclaré validé. Aucune migration n’est appliquée dans cette mission.

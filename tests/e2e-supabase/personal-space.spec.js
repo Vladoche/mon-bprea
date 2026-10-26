@@ -148,11 +148,20 @@ test('Espace personnel réel : panne API transversale, rechargements et reprise 
     await offlineIdentity(page, a.userId, true);
     stage = 'nouvelles intentions dans les six domaines hors API';
     await fillAllDomains(page, { index: 1, score: 1, area: '444', season: 'auto', brightness: 'auto', online: false, userId: a.userId });
-    await page.reload(); await expectItk(page, { ...itkParameters, area: '444' });
-    expect((await settingsAction(page, 'state')).view.appearance).toMatchObject({ season: 'auto', brightness: 'auto' });
-    await page.goto(DRILL_LOCAL_URL); await expect(page.locator('.drill-correction')).toHaveCount(2);
-    await page.goto(quizPath); await expect(page.locator('#quiz-history li')).toHaveCount(2);
-    await page.goto(botanicalPath); await expectBotanicalHistory(page, { attempted: 2, correct: 2, rate: '100 %' });
+    stage = 'relecture des caches personnels après rechargement hors API';
+    await domainStep(page, 'ITK et apparence : rechargement du cache hors API', async () => {
+      await page.reload(); await offlineIdentity(page, a.userId); await expectItk(page, { ...itkParameters, area: '444' });
+      expect((await settingsAction(page, 'state')).view.appearance).toMatchObject({ season: 'auto', brightness: 'auto' });
+    });
+    await domainStep(page, 'Drill : deux réponses conservées après navigation hors API', async () => {
+      await page.goto(DRILL_LOCAL_URL); await offlineIdentity(page, a.userId); await expect(page.locator('.drill-correction')).toHaveCount(2);
+    });
+    await domainStep(page, 'QCM : deux tentatives conservées après navigation hors API', async () => {
+      await page.goto(quizPath); await offlineIdentity(page, a.userId); await expect(page.locator('#quiz-history li')).toHaveCount(2);
+    });
+    await domainStep(page, 'Botanique : deux réponses conservées après navigation hors API', async () => {
+      await page.goto(botanicalPath); await offlineIdentity(page, a.userId); await expectBotanicalHistory(page, { attempted: 2, correct: 2, rate: '100 %' });
+    });
     stage = 'retour Auth/API et réconciliation de tous les domaines'; await page.unroute(pattern, outage);
     await page.evaluate(async () => { const app = new URL(document.querySelector('script[type="module"][src]').src); const url = new URL('./auth-service.js', app); url.search = app.search; await (await (await import(url.href)).getAuthService()).retry(); window.dispatchEvent(new Event('online')); });
     await verifyBrowser(page, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
