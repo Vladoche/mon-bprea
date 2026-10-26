@@ -60,13 +60,22 @@ async function fillAllDomains(page, { index = 0, score = 2, area = '100', season
     await page.goto(quizPath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await quiz(page, score); if (online) await courseSynced(page);
   });
   await domainStep(page, 'Cours : enregistrement de la case terminé', async () => {
-    await page.goto(coursePath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await page.locator('#mark-done').check({ timeout: 10000 }); await expect(page.locator('#mark-done')).toBeEnabled(); if (online) await courseSynced(page);
+    await page.goto(coursePath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await page.locator('#mark-done').check({ timeout: 10000 }); await expect(page.locator('#mark-done')).toBeEnabled(); await expect(page.locator('#done-state')).toHaveText('Terminé ✓'); if (online) await courseSynced(page);
   });
   await domainStep(page, 'Botanique : session, réponse et fin', async () => {
-    await page.goto(botanicalPath); if (online) await botanicalSynced(page); else await offlineIdentity(page, userId); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); if (online) await botanicalSynced(page);
+    await page.goto(botanicalPath); if (online) await botanicalSynced(page); else await offlineIdentity(page, userId); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); await expect(page.locator('#bot-save-message')).toHaveText('Fin de session enregistrée sur cet appareil.'); if (online) await botanicalSynced(page);
   });
   await domainStep(page, 'ITK et apparence : paramètres générés et choix persistants', async () => {
-    await page.goto(itkPath); if (online) await settingsSynced(page); else await offlineIdentity(page, userId); await generateItk(page, { ...itkParameters, area });
+    await page.goto(itkPath);
+    if (online) await settingsSynced(page);
+    else {
+      await offlineIdentity(page, userId);
+      await expect.poll(async () => {
+        const saved = await settingsAction(page, 'state');
+        return { mode: saved.mode, error: saved.view.error, owner: saved.scope ? JSON.parse(saved.scope)[2] : null };
+      }).toEqual({ mode: 'personal', error: null, owner: userId });
+    }
+    await generateItk(page, { ...itkParameters, area });
     await chooseAppearance(page, season, brightness);
     if (online) await settingsSynced(page);
     else await expect.poll(async () => await settingsAction(page, 'state')).toMatchObject({
