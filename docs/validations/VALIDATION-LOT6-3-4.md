@@ -1,0 +1,63 @@
+# Validation du lot 6.3.4 — ITK, apparence et recette transversale
+
+Date : 26 octobre 2026. Le [contrat client](../architecture/ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) et le [bilan 6.3](BILAN-LOT6-3.md) décrivent le périmètre et les limites. Ce rapport doit être lu avec les preuves réellement exécutées ; une suite écrite ne vaut pas une validation.
+
+## État initial
+
+- Répertoire propre, branche initiale `feature/lot6-3-3-sync-botanique`, HEAD `89d70fad1809b3de6d40b89cf3e4dc0fea10e75b`, aucune modification non commitée à préserver.
+- `AGENTS.md`, rapports 6.3.1/6.3.2/6.3.3, contrats backend et clients, Auth, thèmes et conventions de tests lus. Modules existants audités avant intégration ; primitives partagées conservées.
+- `git fetch origin` réellement exécuté. Dernier `origin/main` initial : **`611daa7a9a4b5c9389e611b78134e3c50b2e7933`**.
+- PR [#16](https://github.com/Vladoche/mon-bprea/pull/16), [#17](https://github.com/Vladoche/mon-bprea/pull/17) et [#18](https://github.com/Vladoche/mon-bprea/pull/18) confirmées fusionnées via GitHub. Commits de fusion respectifs `6ff540aa53a10d82b09c945b9ee5abc26e2615b0`, `b647a71609b82cdb2dfcfa415def246b4f6400cb`, `611daa7a9a4b5c9389e611b78134e3c50b2e7933`.
+- Branche créée avant modification : **`feature/lot6-3-4-sync-itk-appearance`**, depuis ce dernier `origin/main`. Aucune écriture sur main, modification du ruleset, fusion ou déploiement.
+- Node.js **24.22.0** ; `npm ci` et `npx playwright install chromium` exécutés avec succès.
+- Changelog Supabase officiel et documentation `getUser/getSession` consultés. Aucun changement de SDK, dépendance ou API hébergée requis.
+
+## Périmètre des fichiers
+
+| Fichiers | Objet |
+| --- | --- |
+| `assets/settings-model.js`, `settings-store.js`, `settings-transport.js`, `settings-service.js` | Validation, cache personnel partagé des deux singletons, opérations CAS durables et identité |
+| `assets/itk-personal-ui.js`, `app.js`, `style.css` | Formulaire conservé, suivi, restauration explicite, import et résolution |
+| `assets/theme-init.js`, `appearance.js`, `appearance.css` | Initialisation classique conservée, source personnelle asynchrone, dialogue et messages |
+| Suites `settings-*`, parcours transversaux | Modèle, persistance, service, transport, navigateur et PostgreSQL réel |
+| Guides, README, `docs/TESTS.md`, bilan et ce rapport | Architecture, procédure et preuves |
+
+Comparaison réellement effectuée avec `origin/main` : migrations/RPC/RLS et leurs 350 assertions de référence, profils, catalogue, moteurs pédagogiques, services antérieurs, primitives partagées, dépendances/verrou et configuration Auth publique inchangés. Le workflow conserve ses jobs et ne change que le libellé de l’étape navigateur.
+
+## Vérifications exécutées
+
+| Vérification | Résultat |
+| --- | --- |
+| `npm test` complet | **322 tests réussis, 34 fichiers**, dont les 279 antérieurs conservés ; dernière passe 1,59 s |
+| `npm run test:e2e` complet | **50 parcours réussis**, dont les 39 antérieurs ; dernière passe 29,1 s |
+| `npm run build:auth-sdk` puis comparaison | Réussi ; aucun diff du SDK verrouillé |
+| Inspection visuelle | Captures synthétiques 1280/390 px clair/sombre et dialogues inspectés ; détails ci-dessous |
+| Supabase local sur ce poste | Docker absent ; aucune recette PostgreSQL locale déclarée réussie |
+| Préflight réel `npm run test:e2e:supabase -- --list` | Refus explicite de la configuration locale absente ; aucune cible distante substituée |
+| CI dernier commit | En attente de la création de PR et des trois jobs ; aucune preuve PostgreSQL déduite des mocks |
+
+## Scénarios et limites à établir
+
+Les tests exécutés couvrent ITK et apparence sur deux contextes, reprise API hors ligne et rechargement, acquittement perdu, CAS et résolution explicite, formulaire/dialogue actif et focus, imports séparés avec source inchangée, refus des anciennes données invalides, erreurs de stockage, bascules A/B et réponse tardive. Le thème classique est observé réellement avant livraison des CSS, avec une horloge contrôlée, y compris choix `auto`, transitions de saison et changements d’heure locale.
+
+Les transactions IndexedDB sont testées avec rollback d’un `put`, réouverture, deux repositories/onglets sérialisés et BroadcastChannel. UUID/base/payload sont stables ; les intentions non envoyées sont compactées avec diagnostic, les livraisons incertaines sont chaînées et conservées. Les conflits ne bloquent pas l’autre singleton. Une source modifiée pendant le GET d’import est de nouveau vérifiée dans la transaction, avec la base distante ; aucune importation n’est créée sans décision compatible avec l’aperçu.
+
+La première passe complète a exposé un rechargement intempestif du visiteur botanique sur `pageshow persisted`, une intention récente créée pendant la fin d’un cycle et une attente de test pré-CSS reposant sur un frame non disponible. Les corrections préservent le parcours antérieur, reprennent immédiatement la file éligible et observent le script sans attendre un rendu. Une seconde passe a révélé un retry manuel pendant une requête encore en panne : il attend maintenant ce cycle avant de remettre à zéro l’échéance, en revérifiant identité/génération. Les régressions ciblées puis les suites complètes sont vertes. Aucun test antérieur n’a été affaibli.
+
+Les huit nouvelles recettes réelles sont écrites, syntaxiquement vérifiées et incluses dans `supabase-security` : quatre ITK/apparence (deux appareils et A/B ; hors ligne/reload/acquittement perdu ; CAS concurrents/résolution ; imports séparés) et quatre transversales (historiques multi-appareils ; A/B et outbox ; panne API de tous les domaines ; conflits simultanés cours/ITK/apparence/botanique avec QCM et Drill restant synchronisables). Elles relisent les tables avec les JWT des comptes fictifs, y compris `profiles`. Leur présence ne vaut pas encore réussite PostgreSQL ; le résultat CI doit être ajouté après exécution.
+
+## Inspection visuelle et contrôles de livraison
+
+Les matrices synthétiques `.tmp/settings-visual/` couvrent personnel, formulaire modifié, hors ligne, apparence, conflit, import, visiteur et erreur de stockage à 1280/390 px, en clair/sombre. Quatre vues de dialogue visiteur supplémentaires sont sous `.tmp/appearance-visual/`. Le formulaire, le résultat et les exports restent cohérents ; les messages distinguent formulaire modifié et dernier enregistrement confirmé. Les tests vérifient l’absence de débordement global et la conservation du focus. Les captures de dialogues sont interprétées dans leur viewport : un backdrop natif ne couvre pas la partie hors viewport d’une capture de page entière.
+
+Une première capture prise après défilement faisait apparaître artificiellement le lien d’évitement au milieu de la page entière. Les diagnostics ont confirmé son rectangle hors écran, son absence de focus et la conservation du focus de saisie ; les vues ont été reprises depuis le haut sans changer le CSS. Les captures ne contiennent que des fixtures synthétiques, sans session réelle ni preuve RLS.
+
+`git diff --check` réussi. Recherche ciblée de motifs de clés privées/tokens dans les **29 fichiers modifiés**, et **74 liens Markdown locaux** contrôlés sans anomalie. Les captures, diagnostics, rapports et outils temporaires restent ignorés ; aucun secret ni configuration locale privée n’est ajouté à la livraison.
+
+## Environnements et exclusions
+
+DEV `wcckbyhrtroittbfophv` a été interrogé **en lecture seule**, exclusivement avec `list_migrations` : seules `20261022000100 profiles` et `20261024083417 create_drill_sync_schema` sont retournées. **La migration 6.3.1 `20261025143831` est absente de DEV.** Aucun test hébergé des nouveaux domaines n’est déclaré réussi, aucune migration n’a été appliquée et aucune donnée hébergée n’a été écrite.
+
+PROD `oqoqrxwfbkhtpksqimgd` n’est ni modifié ni utilisé pour les recettes. Aucun nouveau projet, changement SMTP/Auth hébergé, e-mail externe, invitation étudiante, activation sur GitHub Pages, secret publié ou suppression d’historique. `assets/auth-config.json` reste `enabled:false`, URL et clé vides. La livraison attend une revue ; aucune fusion automatique.
+
+Les caches restent non chiffrés et conservés à la déconnexion. Sans service worker, pages/modules doivent être disponibles pendant une panne API. Seuls les huit paramètres ITK sont synchronisés, sans document calculé ; les années contractuelles restent 2026–2033. Les modes automatiques gardent leur valeur et sont interprétés localement. Les procédures RGPD, l’ouverture étudiante et l’ITK avancé restent respectivement aux lots 6.4, 6.5 et 7.
