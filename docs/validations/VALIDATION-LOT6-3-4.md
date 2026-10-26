@@ -28,13 +28,13 @@ Comparaison réellement effectuée avec `origin/main` : migrations/RPC/RLS et le
 
 | Vérification | Résultat |
 | --- | --- |
-| `npm test` complet | **322 tests réussis, 34 fichiers**, dont les 279 antérieurs conservés ; dernière passe 1,59 s |
-| `npm run test:e2e` complet | **50 parcours réussis**, dont les 39 antérieurs ; dernière passe 29,1 s |
+| `npm test` complet | **322 tests réussis, 34 fichiers**, dont les 279 antérieurs conservés ; dernière passe 1,81 s |
+| `npm run test:e2e -- --workers=2` complet | **53 parcours réussis**, dont les 39 antérieurs ; dernière passe 51,6 s ; démarrage/reprise Drill, rendu provisoire de compte vide et stockage personnel refusé couverts |
 | `npm run build:auth-sdk` puis comparaison | Réussi ; aucun diff du SDK verrouillé |
 | Inspection visuelle | Captures synthétiques 1280/390 px clair/sombre et dialogues inspectés ; détails ci-dessous |
 | Supabase local sur ce poste | Docker absent ; aucune recette PostgreSQL locale déclarée réussie |
 | Préflight réel `npm run test:e2e:supabase -- --list` | Refus explicite de la configuration locale absente ; aucune cible distante substituée |
-| CI dernier commit | En attente de la création de PR et des trois jobs ; aucune preuve PostgreSQL déduite des mocks |
+| CI | PR [#19](https://github.com/Vladoche/mon-bprea/pull/19) créée et suivie ; détails des passages réels ci-dessous, validation finale encore requise |
 
 ## Scénarios et limites à établir
 
@@ -44,7 +44,17 @@ Les transactions IndexedDB sont testées avec rollback d’un `put`, réouvertur
 
 La première passe complète a exposé un rechargement intempestif du visiteur botanique sur `pageshow persisted`, une intention récente créée pendant la fin d’un cycle et une attente de test pré-CSS reposant sur un frame non disponible. Les corrections préservent le parcours antérieur, reprennent immédiatement la file éligible et observent le script sans attendre un rendu. Une seconde passe a révélé un retry manuel pendant une requête encore en panne : il attend maintenant ce cycle avant de remettre à zéro l’échéance, en revérifiant identité/génération. Les régressions ciblées puis les suites complètes sont vertes. Aucun test antérieur n’a été affaibli.
 
-Les huit nouvelles recettes réelles sont écrites, syntaxiquement vérifiées et incluses dans `supabase-security` : quatre ITK/apparence (deux appareils et A/B ; hors ligne/reload/acquittement perdu ; CAS concurrents/résolution ; imports séparés) et quatre transversales (historiques multi-appareils ; A/B et outbox ; panne API de tous les domaines ; conflits simultanés cours/ITK/apparence/botanique avec QCM et Drill restant synchronisables). Elles relisent les tables avec les JWT des comptes fictifs, y compris `profiles`. Leur présence ne vaut pas encore réussite PostgreSQL ; le résultat CI doit être ajouté après exécution.
+Les huit nouvelles recettes réelles sont incluses dans `supabase-security` : quatre ITK/apparence (deux appareils et A/B ; hors ligne/reload/acquittement perdu ; CAS concurrents/résolution ; imports séparés) et quatre transversales (historiques multi-appareils ; A/B et outbox ; panne API de tous les domaines ; conflits simultanés cours/ITK/apparence/botanique avec QCM et Drill restant synchronisables). Elles relisent les tables avec les JWT des comptes fictifs, y compris `profiles`.
+
+## Passages CI réels et corrections de recette
+
+Sur `671b853`, les quatre nouvelles recettes ITK/apparence ont réussi. Les premières recettes transversales étaient bloquées par un sélecteur de démarrage Drill qui ignorait la flèche du bouton. Le helper corrigé attend un démarrage proposé ou une série existante ; un test autonome vérifie démarrage, rechargement et deuxième réponse. Les sélecteurs du Dashboard suivent ceux des suites existantes. Les SELECT de recette réutilisent leurs JWT valides au lieu de reconnecter le compte à chaque lecture, sans modifier Auth, les limites de débit ou les assertions PostgreSQL.
+
+Le [job réel de `94d3f09`](https://github.com/Vladoche/mon-bprea/actions/runs/40372324733/job/121746033378) a réussi **350 assertions pgTAP**, **11 groupes Auth/profils**, **22 groupes Drill**, **26 groupes personnels** et **23/24 parcours navigateur réels**. Les seize parcours antérieurs, les quatre nouveaux ITK/apparence et trois transversaux sont verts ; seule la navigation transversale sous panne API restait en échec. L’arrêt ciblé de la stack a réussi. Ce passage partiel n’est pas annoncé comme une réussite du job.
+
+Sur `d1304c0`, les deux jobs Qualité ont réussi ; le job Supabase a de nouveau réussi 23/24 parcours. Son diagnostic a montré l’état Auth transitoire `loading` avant lecture du cache, avec le bouton Drill encore désactivé. La recette attend maintenant la stabilisation de l’identité réelle ; le helper attend soit un bouton activé, soit le formulaire restauré, sans attendre un bouton déjà remplacé par la série. Les contrôles du propriétaire et des données restent stricts.
+
+Une reproduction synthétique avec le SDK verrouillé, stockage mémoire et réseau rejeté a mesuré **25,5 secondes** avant retour d’une session locale proche de son renouvellement, sans contacter de projet. La recette attend maintenant explicitement l’état Auth `offline` et le bon propriétaire à chaque nouvelle page, avant les contrôles de données ; elle ne remplace aucune réponse Auth par un mock. Les diagnostics ne publient que des statuts, compteurs et choix visuels, sans token. Une vérification de durée botanique dépendante du temps réel de CI utilise désormais une horloge figée : les assertions de focus/photo/choix et d’égalité du chrono sont conservées, et « 25 s » est vérifié explicitement.
 
 ## Inspection visuelle et contrôles de livraison
 
@@ -52,7 +62,7 @@ Les matrices synthétiques `.tmp/settings-visual/` couvrent personnel, formulair
 
 Une première capture prise après défilement faisait apparaître artificiellement le lien d’évitement au milieu de la page entière. Les diagnostics ont confirmé son rectangle hors écran, son absence de focus et la conservation du focus de saisie ; les vues ont été reprises depuis le haut sans changer le CSS. Les captures ne contiennent que des fixtures synthétiques, sans session réelle ni preuve RLS.
 
-`git diff --check` réussi. Recherche ciblée de motifs de clés privées/tokens dans les **29 fichiers modifiés**, et **74 liens Markdown locaux** contrôlés sans anomalie. Les captures, diagnostics, rapports et outils temporaires restent ignorés ; aucun secret ni configuration locale privée n’est ajouté à la livraison.
+`git diff --check` réussi. Recherche ciblée de motifs de clés privées/tokens dans les **33 fichiers modifiés**, et **74 liens Markdown locaux** contrôlés sans anomalie. Les captures, diagnostics, rapports et outils temporaires restent ignorés ; aucun secret ni configuration locale privée n’est ajouté à la livraison. Un lancement local à huit workers a rencontré `ERR_NO_BUFFER_SPACE`, puis un démarrage de serveur a été bloqué dans le bac à sable ; la passe finale à deux workers hors de cette restriction a réussi. Ces échecs d’environnement ne sont pas comptés comme des passes réussies.
 
 ## Environnements et exclusions
 

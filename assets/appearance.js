@@ -74,7 +74,9 @@ export function initAppearance() {
     protectedDialog = dialog.open;
     const saved = appearance.updatePreferences(patch);
     if (appearance.getSource() === 'device') save.textContent = saved ? 'Préférences enregistrées sur cet appareil.' : 'Le stockage local est indisponible. Ce choix reste actif pour cette page seulement.';
-    else if (appearance.getSource() === 'blocked') save.textContent = 'Choix temporaire appliqué. Identité à vérifier ; choix non enregistré.';
+    else if (appearance.getSource() === 'blocked') save.textContent = snapshot?.sync.state === 'storage-error'
+      ? 'Erreur de stockage : choix temporaire appliqué, non enregistré.'
+      : 'Choix temporaire appliqué. Identité à vérifier ; choix non enregistré.';
     available();
   }
   open.addEventListener('click', () => { protectedDialog = false; update(); dialog.showModal(); });

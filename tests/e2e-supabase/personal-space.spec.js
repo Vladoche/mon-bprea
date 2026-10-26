@@ -26,14 +26,16 @@ async function quiz(page, score) {
   await page.locator('#check-quiz').click(); await expect(page.locator('#quiz-result')).toContainText(`${score} / 3`);
 }
 async function offlineIdentity(page, userId, retry = false) {
-  const identity = await page.evaluate(async ({ expected, retry }) => {
+  const readIdentity = () => page.evaluate(async ({ expected, retry }) => {
     const app = new URL(document.querySelector('script[type="module"][src]').src);
     const url = new URL('./auth-service.js', app); url.search = app.search;
     const auth = await (await import(url.href)).getAuthService();
     if (retry) try { await auth.retry(); } catch { /* Assert the actual rejected transport state below. */ }
     return { status: auth.getState().status, correctOwner: auth.getState().user?.id === expected };
   }, { expected: userId, retry });
-  expect(identity, 'La panne conserve uniquement l’identité locale fiable du compte fictif.').toEqual({ status: 'offline', correctOwner: true });
+  await expect.poll(readIdentity, { timeout: 35000,
+    message: 'La restauration Auth doit terminer et conserver uniquement l’identité locale fiable du compte fictif.'
+  }).toEqual({ status: 'offline', correctOwner: true });
 }
 async function domainStep(page, label, action) {
   try { return await test.step(label, action, { timeout: 40000 }); }

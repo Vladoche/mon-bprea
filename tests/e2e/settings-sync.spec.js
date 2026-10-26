@@ -160,3 +160,24 @@ test('compte vide : rendu sombre de l’appareil conservé après récupération
   expect(api.rows.appearance.has(accounts.B.id)).toBe(false);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-v1'))).toBe(source);
 });
+
+test('apparence personnelle : stockage refusé, choix temporaire honnête et source visiteur préservée', async ({ page }) => {
+  const source = '{"version":1,"season":"spring","brightness":"light"}';
+  const api = createSettingsAPI(); await api.install(page.context(), 'A', { 'bprea-demo-appearance-v1': source });
+  await page.addInitScript(() => {
+    const open = IDBFactory.prototype.open;
+    IDBFactory.prototype.open = function (name, ...args) {
+      if (name === 'mon-bprea-settings-personal-v1') throw new DOMException('Synthetic quota', 'QuotaExceededError');
+      return open.call(this, name, ...args);
+    };
+  });
+  await page.goto(itkPath);
+  await expect.poll(async () => (await settingsAction(page, 'state')).sync.state).toBe('storage-error');
+  await chooseAppearance(page, 'winter', 'dark');
+  await expect(page.locator('#appearance-save')).toContainText('Erreur de stockage');
+  await expect(page.locator('#appearance-save')).toContainText('non enregistré');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await captureMatrix(page, 'personal-storage-error');
+  expect(api.sent).toEqual([]);
+  expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-v1'))).toBe(source);
+});
