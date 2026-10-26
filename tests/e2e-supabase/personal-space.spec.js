@@ -24,6 +24,7 @@ const drillAnswer = answerDrillQuestion;
 async function quiz(page, score) {
   for (const [index, item] of lesson.quiz.entries()) await page.locator(`input[name="q${index}"][value="${index < score ? item.answer : (item.answer + 1) % item.options.length}"]`).check();
   await page.locator('#check-quiz').click(); await expect(page.locator('#quiz-result')).toContainText(`${score} / 3`);
+  await expect(page.locator('#quiz-result')).toContainText('Progression enregistrée sur cet appareil.');
 }
 async function offlineIdentity(page, userId, retry = false) {
   const readIdentity = () => page.evaluate(async ({ expected, retry }) => {
@@ -59,14 +60,20 @@ async function fillAllDomains(page, { index = 0, score = 2, area = '100', season
     await page.goto(quizPath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await quiz(page, score); if (online) await courseSynced(page);
   });
   await domainStep(page, 'Cours : enregistrement de la case terminé', async () => {
-    await page.goto(coursePath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await page.locator('#mark-done').check({ timeout: 10000 }); if (online) await courseSynced(page);
+    await page.goto(coursePath); if (online) await courseSynced(page); else await offlineIdentity(page, userId); await page.locator('#mark-done').check({ timeout: 10000 }); await expect(page.locator('#mark-done')).toBeEnabled(); if (online) await courseSynced(page);
   });
   await domainStep(page, 'Botanique : session, réponse et fin', async () => {
     await page.goto(botanicalPath); if (online) await botanicalSynced(page); else await offlineIdentity(page, userId); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); if (online) await botanicalSynced(page);
   });
   await domainStep(page, 'ITK et apparence : paramètres générés et choix persistants', async () => {
     await page.goto(itkPath); if (online) await settingsSynced(page); else await offlineIdentity(page, userId); await generateItk(page, { ...itkParameters, area });
-    await chooseAppearance(page, season, brightness); if (online) await settingsSynced(page); await closeAppearance(page);
+    await chooseAppearance(page, season, brightness);
+    if (online) await settingsSynced(page);
+    else await expect.poll(async () => await settingsAction(page, 'state')).toMatchObject({
+      mode: 'personal', view: { itk: { ...itkParameters, area }, appearance: { season, brightness } },
+      sync: { state: 'offline', pending: 2 }
+    });
+    await closeAppearance(page);
   });
 }
 async function verifyBrowser(page, { answers = 1, attempts = 1, botanical = 1, area = '100', done = true, season = 'winter', brightness = 'dark' } = {}) {

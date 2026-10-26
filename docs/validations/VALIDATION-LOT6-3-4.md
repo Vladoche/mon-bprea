@@ -56,6 +56,8 @@ Sur `d1304c0`, les deux jobs Qualité ont réussi ; le job Supabase a de nouveau
 
 Le passage `0d150c6` a franchi les écritures hors API dans tous les domaines, puis échoué pendant la relecture après navigation, toujours avec 23/24 parcours réels réussis. Les rechargements de contrôle attendent eux aussi la restauration Auth de chaque nouvelle page ; chaque domaine possède son étape diagnostique, sans allègement des assertions de contenu ou d’unicité.
 
+L’audit de ces transitions a aussi identifié une attente de recette insuffisante : le score QCM s’affiche avant la fin de sa transaction. La recette attend désormais le message de sauvegarde locale, le déverrouillage de la case de cours et les deux intentions ITK/apparence effectivement présentes dans l’état personnel avant de quitter la page. Une correction affichée ou une sélection visuelle n’est donc jamais utilisée comme preuve de persistance.
+
 Une reproduction synthétique avec le SDK verrouillé, stockage mémoire et réseau rejeté a mesuré **25,5 secondes** avant retour d’une session locale proche de son renouvellement, sans contacter de projet. La recette attend maintenant explicitement l’état Auth `offline` et le bon propriétaire à chaque nouvelle page, avant les contrôles de données ; elle ne remplace aucune réponse Auth par un mock. Les diagnostics ne publient que des statuts, compteurs et choix visuels, sans token. Une vérification de durée botanique dépendante du temps réel de CI utilise désormais une horloge figée : les assertions de focus/photo/choix et d’égalité du chrono sont conservées, et « 25 s » est vérifié explicitement.
 
 ## Inspection visuelle et contrôles de livraison
