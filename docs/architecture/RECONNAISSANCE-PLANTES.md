@@ -1,4 +1,6 @@
-# Reconnaissance des plantes — lot 5.2
+# Reconnaissance des plantes — jeu et stockage
+
+Le lot 6.3.3 ajoute la [synchronisation personnelle](BOTANICAL-SYNCHRONISATION-CLIENT.md) des métadonnées de sessions et réponses dans les environnements Auth configurés. Le moteur, le catalogue, les photos et les calculs du lot 5.2 restent inchangés. Le compte et le visiteur utilisent des historiques séparés ; l’import visiteur exige une confirmation. Une panne API conserve les opérations personnelles dans IndexedDB. Le défaut public reste désactivé. Les [preuves du lot 6.3.3](../validations/VALIDATION-LOT6-3-3.md) distinguent tests applicatifs et Supabase réel.
 
 Le module statique `reconnaissance-plantes.html` appartient à **Accueil → Outils**. Le menu commun et la carte d’Outils conservent les autres destinations. Il utilise les tokens des thèmes existants et n’ajoute aucune dépendance de production.
 
@@ -53,7 +55,7 @@ La révision sélectionne les espèces ayant au moins une erreur ou expiration d
 
 La clé dédiée est `monbprea.botanical.v1`, avec `schemaVersion: 1`, `answers` et `sessions`. Le store ne lit ni n’écrit aucune clé Drill, QCM, Dashboard, ITK ou apparence. Une réponse est enregistrée immédiatement et ne peut pas être remplacée par une seconde issue de la même question. Les métadonnées de session contiennent notamment dates de début/fin et nombre proposé.
 
-Une sauvegarde illisible ou provenant d’un schéma futur reste intacte et en lecture seule, avec un avertissement. Les lignes invalides sont exclues des statistiques mais conservées dans le document lors des écritures suivantes, ainsi que les champs inconnus. Un stockage bloqué ou saturé laisse l’entraînement utilisable en mémoire et signale la non-persistance. Aucune purge automatique n’est prévue. Le store relit avant chaque écriture pour fusionner les réponses déjà écrites depuis un autre onglet ; `localStorage` n’offre toutefois pas de transaction atomique entre processus. Il n’y a ni compte, ni sauvegarde distante ni export dans ce prototype.
+Une sauvegarde illisible ou provenant d’un schéma futur reste intacte et en lecture seule, avec un avertissement. Les lignes invalides sont exclues des statistiques mais conservées dans le document lors des écritures suivantes, ainsi que les champs inconnus. En visiteur, un stockage bloqué ou saturé permet de choisir explicitement de jouer en mémoire sans annonce de sauvegarde. Le compte conserve la question et sa correction pour réessayer le même enregistrement. Aucune purge automatique n’est prévue. Le store relit avant chaque écriture pour fusionner les réponses déjà écrites depuis un autre onglet ; `localStorage` n’offre toutefois pas de transaction atomique entre processus. Ces limites localStorage concernent le visiteur ; le compte utilise les transactions et la sauvegarde distante décrites dans le guide 6.3.3. Aucun export ni reprise de partie en cours n’est ajouté.
 
 Le catalogue initial est petit, avec une seule photographie par espèce. Les sessions se limitent donc à quatre questions par catégorie jouable. Il reste à réunir des photos à différents stades, des légumineuses et des confusions documentées avant d’élargir les niveaux. L’entraînement ne constitue pas une clé de détermination exhaustive sur le terrain.
 
