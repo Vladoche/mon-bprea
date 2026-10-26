@@ -1,4 +1,4 @@
-// Script classique synchrone, avant les CSS : aucun thème provisoire au chargement.
+// Script classique synchrone avant CSS : choix de l’appareil, puis Auth asynchrone.
 (function () {
   'use strict';
   const STORAGE_KEY = 'bprea-demo-appearance-v1';
@@ -55,9 +55,12 @@
 
   let preferences = readPreferences();
   let unsaved = false;
+  let source = 'device';
+  let personalWriter = null;
+  let provisional = null;
   let state;
   function refresh(date = new Date()) {
-    const next = resolve(preferences, date);
+    const next = resolve(provisional || preferences, date);
     if (state && Object.keys(next).every(key => next[key] === state[key])) return;
     state = next;
     const root = document.documentElement;
@@ -68,6 +71,17 @@
   }
 
   function updatePreferences(patch) {
+    if (source !== 'device') {
+      provisional = null;
+      preferences = { version: 1,
+        season: seasons.includes(patch.season) ? patch.season : preferences.season,
+        brightness: brightnesses.includes(patch.brightness) ? patch.brightness : preferences.brightness,
+        updatedAt: new Date().toISOString() };
+      refresh();
+      window.dispatchEvent(new CustomEvent('bprea:preferences-change', { detail: { saved: false, pending: !!personalWriter } }));
+      if (personalWriter) personalWriter({ ...preferences });
+      return false; // Only the asynchronous adapter can confirm a personal save.
+    }
     // Relire la sauvegarde pour préserver les champs d'un autre onglet / futur compte.
     const stored = unsaved ? preferences : readPreferences(preferences);
     preferences = {
@@ -90,13 +104,42 @@
     getState: () => ({ ...state }),
     resolve,
     refresh,
-    updatePreferences
+    updatePreferences,
+    getSource: () => source,
+    getDevicePreferences: () => readPreferences(),
+    // Applying a verified/cache value never calls the writer and never touches
+    // visitor storage. No identity is passed into the visual runtime.
+    setSource(next, value, writer = null) {
+      source = next === 'personal' ? 'personal' : next === 'blocked' ? 'blocked' : 'device';
+      personalWriter = source === 'personal' ? writer : null;
+      // An empty account has no verified preference yet. Keep only the device
+      // rendering provisionally; the editable personal model remains auto/auto.
+      provisional = source === 'personal' && !value ? readPreferences() : null;
+      unsaved = false;
+      preferences = source === 'device' ? readPreferences() : {
+        version: 1, season: seasons.includes(value?.season) ? value.season : 'auto',
+        brightness: brightnesses.includes(value?.brightness) ? value.brightness : 'auto',
+        ...(value?.updatedAt ? { updatedAt: value.updatedAt } : {})
+      };
+      refresh();
+      window.dispatchEvent(new CustomEvent('bprea:preferences-change'));
+    },
+    applyPreferences(value) {
+      if (!value || !seasons.includes(value.season) || !brightnesses.includes(value.brightness)) return false;
+      provisional = null;
+      preferences = { version: 1, season: value.season, brightness: value.brightness,
+        ...(value.updatedAt ? { updatedAt: value.updatedAt } : {}) };
+      refresh();
+      window.dispatchEvent(new CustomEvent('bprea:preferences-change'));
+      return true;
+    }
   });
   refresh();
   window.setInterval(() => refresh(), 60000);
   window.addEventListener('pageshow', () => refresh());
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   window.addEventListener('storage', event => {
+    if (source !== 'device') return;
     if (event.key !== STORAGE_KEY && event.key !== LEGACY_KEY && event.key !== null) return;
     preferences = readPreferences();
     unsaved = false;

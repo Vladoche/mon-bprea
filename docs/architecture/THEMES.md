@@ -1,4 +1,4 @@
-# Apparence dynamique — Lot 5
+# Apparence dynamique — lots 5 et 6.3.4
 
 Les douze pages partagent les mêmes préférences, palettes et contrôles. Le bouton **Apparence** dans l’en-tête ouvre un dialogue utilisable au clavier (Tab, Maj+Tab, Échap) et sur mobile. Les changements s’appliquent immédiatement. Le bouton clair/sombre voisin conserve son accès rapide : il force la luminosité choisie, sans modifier la saison. Pour retrouver les ambiances horaires, sélectionner de nouveau **Automatique selon l’heure**.
 
@@ -35,10 +35,20 @@ La clé `bprea-demo-appearance-v1` contient un objet JSON versionné :
 {"version":1,"season":"auto","brightness":"auto","updatedAt":"2026-10-20T12:00:00.000Z"}
 ```
 
-`updatedAt` est renseigné à chaque choix explicite. Les identifiants des saisons sont `spring`, `summer`, `autumn`, `winter` ; ceux de luminosité sont `light`, `dark` et `auto`. Les champs supplémentaires d’un objet reconnu sont préservés. Ce format sépare les préférences de leur rendu et prépare une future synchronisation, sans compte ni transmission réseau dans ce lot.
+`updatedAt` est renseigné à chaque choix explicite. Les identifiants des saisons sont `spring`, `summer`, `autumn`, `winter` ; ceux de luminosité sont `light`, `dark` et `auto`. Les champs supplémentaires d’un objet reconnu sont préservés. Ce format sépare les préférences de leur rendu. Le mode visiteur reste local ; le mode personnel décrit ci-dessous utilise le même modèle de choix.
 
 En l’absence de nouvelle sauvegarde, une ancienne valeur `light` ou `dark` de `bprea-demo-theme-v1` est reprise comme choix **manuel** et copiée dans le nouveau format. L’ancienne clé reste intacte. Une nouvelle sauvegarde valide est prioritaire, y compris en automatique. Sans préférence antérieure, les deux réglages commencent en automatique. Un enregistrement existant illisible ou d’une version inconnue n’est pas réécrit silencieusement ; lors d’un choix explicite, sa chaîne brute est conservée dans `unrecognizedPreferencesArchive` de la nouvelle sauvegarde. Si le stockage est bloqué, les contrôles fonctionnent pour la page courante et signalent l’absence de sauvegarde.
 
 Les changements se propagent entre onglets du même site par l’événement `storage`. L’API commune `window.BpreaAppearance` expose lecture, résolution et modification ; l’interface réagit aux événements `bprea:appearance-change` et `bprea:preferences-change`. Aucun accès en écriture aux clés de cours, QCM, Drill, statistiques ou ITK n’est nécessaire.
 
-Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications réellement effectuées dans [VALIDATION-LOT5.md](../validations/VALIDATION-LOT5.md).
+## Préférences personnelles (lot 6.3.4)
+
+Le stockage décrit ci-dessus reste celui du visiteur. Dans un environnement Auth configuré, `settings-service.js` sélectionne le cache IndexedDB isolé par environnement, origine Supabase et UUID vérifié, puis consomme `personal_save_appearance`. Aucun choix visiteur ne remplit automatiquement un compte. La configuration publique reste désactivée.
+
+Le script classique applique un rendu provisoire de l’appareil avant CSS, sans réseau. L’adaptateur `appearance.js` vérifie ensuite la source et applique les préférences du bon compte. `window.BpreaAppearance` conserve ses méthodes historiques et ajoute `setSource`, `applyPreferences` et `getSource`. Appliquer une valeur reçue ne rappelle jamais le mécanisme de sauvegarde ; les événements visuels et les minuteurs ne produisent pas d’opérations réseau. Les changements de stockage visiteur sont ignorés pendant l’usage personnel.
+
+Les préférences `auto` restent `auto` en cache et sur Supabase. Les attributs HTML restent dérivés localement, sans identifiant personnel. Le dialogue préserve une sélection active pendant la réconciliation et propose d’utiliser explicitement la version du compte. Les messages distinguent choix temporaire, transaction locale, attente, confirmation distante et erreur de stockage. Les conflits restent conservés et leur résolution exige une action volontaire. L’import v1 ou legacy reconnu possède son aperçu et sa confirmation séparés.
+
+Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise CAS, retry exact, import et limites des caches non chiffrés. Les [preuves 6.3.4](../validations/VALIDATION-LOT6-3-4.md) distinguent captures synthétiques et PostgreSQL réel.
+
+Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications historiques dans [VALIDATION-LOT5.md](../validations/VALIDATION-LOT5.md).

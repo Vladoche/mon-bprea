@@ -48,11 +48,16 @@ test('botanique personnelle : deux appareils, erreurs révisables et chrono stab
     expect(api.answers.size).toBe(3); expect(api.sessions.size).toBe(2);
     await captureMatrix(page, 'personal');
     await page.getByRole('button', { name: 'Choisir une nouvelle session', exact: true }).click();
+    // Keep wall-clock/network latency out of the timer-preservation assertion.
+    // The preceding session is finished; only explicit clock advances below
+    // should consume time in the new Chrono question.
+    await page.clock.pauseAt(new Date('2026-10-25T10:02:00.000Z'));
     await startBotanical(page, { mode: 'chrono', duration: '30' });
     const { image } = await currentBotanicalPhoto(page); const photo = await image.getAttribute('src');
     const choice = page.getByRole('group', { name: 'Quatre propositions' }).getByRole('button').first();
     await choice.click(); await choice.focus(); await page.clock.fastForward(5000);
     const remaining = await page.locator('#bot-time').textContent();
+    expect(remaining).toBe('25 s');
     await page.evaluate(async () => {
       const app = new URL(document.querySelector('script[type="module"][src]').src);
       const url = new URL('./botanical-sync-service.js', app); url.search = app.search;
