@@ -68,18 +68,31 @@ test('Drill réel : multi-appareils, insertion non acquittée, hors ligne persis
     stage = 'A déconnecté et B sans données A ou visiteur';
     await signOut(page); await signInDrill(page, b); await expect(page.locator('.drill-correction')).toHaveCount(0);
     await expect(page.locator('.drill-history')).not.toContainText('2026-W41');
-    stage = 'mobile sombre et clavier'; await page.setViewportSize({ width: 390, height: 844 });
+    stage = 'mobile : création de la série B'; await page.setViewportSize({ width: 390, height: 844 });
     await page.getByRole('button', { name: 'Commencer cette série' }).click(); await synced(page);
+    stage = 'mobile : sélection au clavier B';
     const radio = page.locator('.drill-question').first().getByRole('radio').first(); await radio.focus(); await radio.press('Space'); await expect(radio).toBeChecked();
+    stage = 'mobile : validation au clavier B';
     await page.locator('.drill-question').first().getByRole('button', { name: 'Valider cette réponse', exact: true }).press('Enter');
     await expect(page.locator('.drill-correction')).toHaveCount(1); await synced(page);
+    stage = 'mobile : rendu sombre de l’appareil B';
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    stage = 'mobile : largeur utilisable B';
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     stage = 'visiteur et historique préexistant conservés'; await signOut(page);
     expect(await page.evaluate(() => localStorage.getItem('bprea-demo-drill-v1'))).toBe(visitor);
     await expect(page.locator('.drill-history')).toContainText('2026-W41'); await expect(page.locator('.drill-correction')).toHaveCount(0);
     await b.refresh(); expect((await b.client.from('drill_answers').select('operation_id').eq('user_id', a.userId)).data).toEqual([]);
-  } catch { failure = new Error(`Drill Supabase local non validé : ${stage}. Aucun identifiant, mot de passe ou jeton n’est journalisé.`); }
+  } catch {
+    let display = '';
+    try {
+      const safe = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme,
+        source: window.BpreaAppearance?.getSource(), season: window.BpreaAppearance?.getPreferences().season,
+        brightness: window.BpreaAppearance?.getPreferences().brightness }));
+      display = ` Rendu=${JSON.stringify(safe)}.`;
+    } catch { /* The stage remains available after a closed page or timeout. */ }
+    failure = new Error(`Drill Supabase local non validé : ${stage}.${display} Aucun identifiant, mot de passe ou jeton n’est journalisé.`);
+  }
   finally {
     for (const context of contexts) await context.close();
     for (const student of students.toReversed()) try { await student.cleanup(); } catch { failure = new Error('Nettoyage des seuls comptes fictifs Drill incomplet.'); }

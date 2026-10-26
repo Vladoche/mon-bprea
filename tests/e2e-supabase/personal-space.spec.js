@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createDrillStudent, configureDrillPage, signInDrill, DRILL_LOCAL_URL } from '../helpers/drill-local.js';
 import { LOCAL_SITE } from '../helpers/auth-local.js';
-import { bankQuestions } from '../fixtures/drill.js';
+import { answerDrillQuestion } from '../helpers/drill-browser.js';
 import { lessons } from '../../assets/content.js';
 import { botanicalBank, botanicalPath, botanicalSynced, startBotanical, answerBotanical, finishBotanical, expectBotanicalHistory } from '../helpers/botanical-browser.js';
 import { itkPath, itkParameters, settingsAction, settingsSynced, generateItk, expectItk, chooseAppearance, closeAppearance } from '../helpers/settings-browser.js';
@@ -20,24 +20,32 @@ async function rows(student, table) {
   const result = await student.client.from(table).select('*').eq('user_id', student.userId);
   expect(result.error).toBeNull(); return result.data;
 }
-async function drillAnswer(page, index = 0) {
-  const start = page.getByRole('button', { name: 'Commencer cette série', exact: true }); if (await start.isVisible()) await start.click();
-  const article = page.locator('.drill-question').nth(index), form = article.locator('form').first();
-  const id = await form.getAttribute('data-question'), question = bankQuestions().find(item => item.id === id);
-  await form.getByRole('radio', { name: question.options.find(item => item.id === question.answer).text, exact: true }).check();
-  await form.getByRole('button', { name: 'Valider cette réponse', exact: true }).click(); await expect(article.locator('.drill-correction')).toBeVisible();
-}
+const drillAnswer = answerDrillQuestion;
 async function quiz(page, score) {
   for (const [index, item] of lesson.quiz.entries()) await page.locator(`input[name="q${index}"][value="${index < score ? item.answer : (item.answer + 1) % item.options.length}"]`).check();
   await page.locator('#check-quiz').click(); await expect(page.locator('#quiz-result')).toContainText(`${score} / 3`);
 }
+async function domainStep(label, action) {
+  try { return await test.step(label, action, { timeout: 40000 }); }
+  catch { throw Object.assign(new Error(`La recette a échoué à l’étape ${label}.`), { recipeStep: label }); }
+}
 async function fillAllDomains(page, { index = 0, score = 2, area = '100', season = 'winter', brightness = 'dark', online = true } = {}) {
-  await page.goto(DRILL_LOCAL_URL); if (online) await drillSynced(page); await drillAnswer(page, index); if (online) await drillSynced(page);
-  await page.goto(quizPath); if (online) await courseSynced(page); await quiz(page, score); if (online) await courseSynced(page);
-  await page.goto(coursePath); if (online) await courseSynced(page); await page.locator('#mark-done').check(); if (online) await courseSynced(page);
-  await page.goto(botanicalPath); if (online) await botanicalSynced(page); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); if (online) await botanicalSynced(page);
-  await page.goto(itkPath); if (online) await settingsSynced(page); await generateItk(page, { ...itkParameters, area });
-  await chooseAppearance(page, season, brightness); if (online) await settingsSynced(page); await closeAppearance(page);
+  await domainStep('Drill : démarrage/reprise et première réponse', async () => {
+    await page.goto(DRILL_LOCAL_URL); if (online) await drillSynced(page); await drillAnswer(page, index); if (online) await drillSynced(page);
+  });
+  await domainStep('QCM : correction et sauvegarde de la tentative', async () => {
+    await page.goto(quizPath); if (online) await courseSynced(page); await quiz(page, score); if (online) await courseSynced(page);
+  });
+  await domainStep('Cours : enregistrement de la case terminé', async () => {
+    await page.goto(coursePath); if (online) await courseSynced(page); await page.locator('#mark-done').check({ timeout: 10000 }); if (online) await courseSynced(page);
+  });
+  await domainStep('Botanique : session, réponse et fin', async () => {
+    await page.goto(botanicalPath); if (online) await botanicalSynced(page); await startBotanical(page); await answerBotanical(page); await finishBotanical(page); if (online) await botanicalSynced(page);
+  });
+  await domainStep('ITK et apparence : paramètres générés et choix persistants', async () => {
+    await page.goto(itkPath); if (online) await settingsSynced(page); await generateItk(page, { ...itkParameters, area });
+    await chooseAppearance(page, season, brightness); if (online) await settingsSynced(page); await closeAppearance(page);
+  });
 }
 async function verifyBrowser(page, { answers = 1, attempts = 1, botanical = 1, area = '100', done = true, season = 'winter', brightness = 'dark' } = {}) {
   await page.goto(DRILL_LOCAL_URL); await drillSynced(page); await expect(page.locator('.drill-correction')).toHaveCount(answers);
@@ -76,7 +84,7 @@ test('Espace personnel réel : recette transversale multi-appareils et conservat
     await verifyDatabase(a, { answers: 2, attempts: 2, botanical: 2, area: '240', done: false, season: 'summer', brightness: 'light' });
     expect(await rows(a, 'botanical_sessions')).toHaveLength(2);
     expect(new Set((await rows(a, 'quiz_attempts')).map(item => item.attempt_id)).size).toBe(2);
-  } catch { failure = new Error(`Recette transversale PostgreSQL non validée : ${stage}. Aucune donnée Auth sensible publiée.`); }
+  } catch (issue) { failure = new Error(`Recette transversale PostgreSQL non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}. Aucune donnée Auth sensible publiée.`); }
   finally { await cleanup(students, contexts, failure); }
 });
 
@@ -103,7 +111,7 @@ test('Espace personnel réel : A vers B puis A, aucun historique ni outbox écha
     stage = 'retour A et reprise de sa seule intention'; await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); await signInDrill(page, a);
     await verifyBrowser(page, { area: '789' }); await verifyDatabase(a, { area: '789' });
     expect(await rows(b, 'itk_settings')).toEqual([]);
-  } catch { failure = new Error(`Séparation transversale A/B non validée : ${stage}.`); }
+  } catch (issue) { failure = new Error(`Séparation transversale A/B non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}.`); }
   finally { await cleanup(students, [], failure); }
 });
 
@@ -128,7 +136,7 @@ test('Espace personnel réel : panne API transversale, rechargements et reprise 
     await verifyDatabase(a, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
     stage = 'second passage sans nouvelle intention'; await verifyBrowser(page, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
     await verifyDatabase(a, { answers: 2, attempts: 2, botanical: 2, area: '444', season: 'auto', brightness: 'auto' });
-  } catch { failure = new Error(`Reprise transversale PostgreSQL non validée : ${stage}.`); }
+  } catch (issue) { failure = new Error(`Reprise transversale PostgreSQL non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}.`); }
   finally { await cleanup(students, [], failure); }
 });
 
@@ -173,6 +181,6 @@ test('Espace personnel réel : conflits cours, ITK, apparence et botanique isol�
     await page.goto(botanicalPath); await expect(page.locator('#botanical-sync-status')).toContainText('Conflit'); await page.locator('.botanical-conflict summary').last().click();
     await page.locator('.botanical-conflict').getByRole('button', { name: 'Garder la version du compte', exact: true }).click(); await botanicalSynced(page);
     expect(await rows(a, 'botanical_answers')).toHaveLength(2); expect(await rows(a, 'quiz_attempts')).toHaveLength(2); expect(await rows(a, 'drill_answers')).toHaveLength(2);
-  } catch { failure = new Error(`Isolation transversale des conflits PostgreSQL non validée : ${stage}.`); }
+  } catch (issue) { failure = new Error(`Isolation transversale des conflits PostgreSQL non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}.`); }
   finally { release(); await cleanup(students, [], failure); }
 });

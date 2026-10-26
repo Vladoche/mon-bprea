@@ -136,3 +136,18 @@ test('visiteur : génération et apparence conservées, erreurs de stockage anno
   await generateItk(page, { ...itkParameters, area: '888' }); await expect(page.locator('#itk-action-message')).toContainText(/pas enregistr|pas sauvegard/i); await expect(page.locator('#csv-export')).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-itk-v1'))).toBe(before); await captureMatrix(page, 'storage-error');
 });
+
+test('compte vide : rendu sombre de l’appareil conservé après récupération sans préférence personnelle inventée', async ({ page }) => {
+  const source = '{"version":1,"season":"winter","brightness":"dark"}';
+  const api = createSettingsAPI(); await api.install(page.context(), 'B', { 'bprea-demo-appearance-v1': source });
+  await page.goto(itkPath); await settingsSynced(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect((await settingsAction(page, 'state')).view.appearance).toBeNull();
+  await settingsAction(page, 'retry'); await settingsSynced(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect(await page.evaluate(() => window.BpreaAppearance.getPreferences())).toMatchObject({ season: 'auto', brightness: 'auto' });
+  await page.reload(); await settingsSynced(page);
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  expect(api.rows.appearance.size).toBe(0);
+  expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-v1'))).toBe(source);
+});
