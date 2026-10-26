@@ -29,6 +29,8 @@ Le lot 6.1 distingue les tests du compte dans l’application, avec dépendances
 
 ## Choisir le bon niveau
 
+Le lot 6.3.3 ajoute les suites `botanical-sync-model`, `botanical-personal-store`, `botanical-sync-service`, `botanical-sync-transport` et les parcours `botanical-sync.spec.js` autonomes et Supabase réels. Elles vérifient transactions atomiques, dépendances création/réponses/fin, identités et CAS, pagination, provenance d’import, archives et isolation A/B. Les captures de `tests/e2e/` utilisent un transport HTTP synthétique et le vrai IndexedDB Chromium ; elles ne valident pas RLS. Les six parcours A–F de `tests/e2e-supabase/` utilisent exclusivement les comptes fictifs, JWT et PostgreSQL de la stack éphémère du job `supabase-security`. Les [preuves réellement exécutées](validations/VALIDATION-LOT6-3-3.md) et le [contrat client](architecture/BOTANICAL-SYNCHRONISATION-CLIENT.md) précisent les limites. Le moteur et les suites botaniques visiteur existants restent conservés.
+
 Le lot 6.2.3 ajoute `tests/integration/dashboard-data.test.js` (projection du vrai service Drill dans les statistiques, identité et cache isolés), `tests/e2e/dashboard-sync.spec.js` (rendu et interactions avec un service synthétique, sans preuve Auth/RLS) et `tests/e2e-supabase/dashboard-sync.spec.js` (deux contextes du même compte, reprise réseau, conflits et isolation avec le vrai Supabase local). Cette dernière suite reste incluse dans `supabase-security`, sans utiliser DEV ni PROD. Les résultats exécutés figurent dans [VALIDATION-LOT6-2-3.md](validations/VALIDATION-LOT6-2-3.md).
 
 | Outil | Rôle | Limite |
