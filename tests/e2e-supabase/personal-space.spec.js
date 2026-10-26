@@ -39,7 +39,7 @@ async function fillAllDomains(page, { index = 0, score = 2, area = '100', season
 async function verifyBrowser(page, { answers = 1, attempts = 1, botanical = 1, area = '100', done = true, season = 'winter', brightness = 'dark' } = {}) {
   await page.goto(DRILL_LOCAL_URL); await drillSynced(page); await expect(page.locator('.drill-correction')).toHaveCount(answers);
   await page.goto(dashboardPath); await expect(page.locator('#dashboard-sync-status')).toHaveText('Historique personnel synchronisé');
-  await expect(page.getByRole('term', { name: 'Exercices réalisés', exact: true }).locator('..').getByRole('definition')).toHaveText(String(answers));
+  await expect(page.getByRole('term').filter({ hasText: /^Exercices réalisés$/ }).locator('..').getByRole('definition')).toHaveText(String(answers));
   await page.goto(quizPath); await courseSynced(page); await expect(page.locator('#quiz-history li')).toHaveCount(attempts);
   await page.goto(coursePath); await courseSynced(page); if (done) await expect(page.locator('#mark-done')).toBeChecked(); else await expect(page.locator('#mark-done')).not.toBeChecked();
   await page.goto(botanicalPath); await botanicalSynced(page); await expectBotanicalHistory(page, { attempted: botanical, correct: botanical, incorrect: 0, rate: '100 %' });
@@ -88,7 +88,7 @@ test('Espace personnel réel : A vers B puis A, aucun historique ni outbox écha
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); await page.unroute(pattern, outage);
     stage = 'B vide dans tous les domaines'; await signInDrill(page, b); await drillSynced(page); await expect(page.locator('.drill-correction')).toHaveCount(0);
     await page.goto(dashboardPath); await expect(page.locator('#dashboard-sync-status')).toHaveText('Historique personnel synchronisé');
-    await expect(page.getByRole('term', { name: 'Exercices réalisés', exact: true }).locator('..').getByRole('definition')).toHaveText('0');
+    await expect(page.getByRole('term').filter({ hasText: /^Exercices réalisés$/ }).locator('..').getByRole('definition')).toHaveText('0');
     await page.goto(quizPath); await courseSynced(page); await expect(page.locator('#quiz-history li')).toHaveCount(0);
     await page.goto(coursePath); await courseSynced(page); await expect(page.locator('#mark-done')).not.toBeChecked();
     await page.goto(botanicalPath); await botanicalSynced(page); await expectBotanicalHistory(page, { attempted: 0 });
