@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createSettingsAPI, settingsRow, accounts } from './settings-api.js';
-import { itkPath, itkParameters, settingsAction, settingsSynced, generateItk, expectItk, chooseAppearance, closeAppearance, settingsRecords } from '../helpers/settings-browser.js';
+import { itkPath, itkParameters, settingsAction, settingsSynced, settingsCacheReady, generateItk, expectItk, chooseAppearance, closeAppearance, settingsRecords } from '../helpers/settings-browser.js';
+import { waitForIdentity, waitForPersistedOperation } from '../helpers/personal-browser.js';
 const now = new Date('2026-10-25T10:00:00.000Z');
 test.beforeEach(async ({ page }) => { await page.clock.install({ time: now }); });
 async function captureMatrix(page, name) {
@@ -61,7 +62,11 @@ test('paramètres : panne API, changements successifs, reload et retry strict sa
   await expect(page.locator('#itk-sync-status')).toContainText(/ligne|attente/i); await captureMatrix(page, 'offline');
   const before = (await settingsRecords(page))[0]; await page.reload(); await expectItk(page, { ...itkParameters, area: '222' });
   expect((await settingsRecords(page))[0].operations.map(op => op.id)).toEqual(before.operations.map(op => op.id));
-  api.restOffline = false; api.loseAck = 'itk'; await settingsAction(page, 'retry'); await settingsSynced(page);
+  api.restOffline = false; api.loseAck = 'itk'; await settingsAction(page, 'retry');
+  // Observe the lost acknowledgment's persisted failure before the deliberate
+  // retry. Do not race an automatic retry deadline against a 5-second poll.
+  await waitForPersistedOperation(page, 'mon-bprea-settings-personal-v1', accounts.A.id, { domain: 'itk', state: 'pending', error: 'network' });
+  await settingsAction(page, 'retry'); await settingsSynced(page);
   const sent = api.sent.filter(item => item.domain === 'itk'); expect(sent.at(-1).body).toEqual(sent.at(-2).body);
   expect(api.rows.itk.size).toBe(1); expect(api.rows.itk.get(accounts.A.id).parameters.area).toBe('222');
   expect(api.rows.appearance.get(accounts.A.id)).toMatchObject({ season: 'auto', brightness: 'auto' });
@@ -121,11 +126,13 @@ test('comptes : réponse ITK tardive de A ignorée sous B et caches récupérés
   let release, reading = false; const wait = new Promise(resolve => { release = resolve; }); api.holdRead = async domain => { if (domain === 'itk') { reading = true; await wait; } };
   await page.getByRole('button', { name: 'Actualiser les paramètres', exact: true }).click(); await expect.poll(() => reading).toBe(true);
   await page.evaluate(async email => { const app = new URL(document.querySelector('script[type="module"][src]').src); const url = new URL('./auth-service.js', app); url.search = app.search; const auth = await (await import(url.href)).getAuthService(); await auth.signOut(); await auth.signIn(email, 'synthetic-password'); }, accounts.B.email);
-  release(); api.holdRead = null; await settingsSynced(page);
+  await waitForIdentity(page, accounts.B.id);
+  release(); api.holdRead = null; await settingsSynced(page); await settingsCacheReady(page, accounts.B.id);
   const b = await settingsAction(page, 'state'); expect(b.view.itk).toBeNull(); expect(b.view.appearance).toBeNull(); await expect(page.locator('#csv-export')).toHaveCount(0);
   expect(api.sent.filter(item => item.uid === accounts.B.id)).toHaveLength(0);
   await page.evaluate(async email => { const app = new URL(document.querySelector('script[type="module"][src]').src); const url = new URL('./auth-service.js', app); url.search = app.search; const auth = await (await import(url.href)).getAuthService(); await auth.signOut(); await auth.signIn(email, 'synthetic-password'); }, accounts.A.email);
-  await settingsSynced(page); await expectItk(page, itkParameters); expect(await settingsRecords(page)).toHaveLength(2);
+  await waitForIdentity(page, accounts.A.id); await settingsSynced(page); await settingsCacheReady(page, accounts.A.id);
+  await expectItk(page, itkParameters); expect(await settingsRecords(page)).toHaveLength(2);
 });
 
 test('visiteur : génération et apparence conservées, erreurs de stockage annoncées sans supprimer la source', async ({ page }) => {

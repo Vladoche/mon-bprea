@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createDrillStudent, configureDrillPage, DRILL_LOCAL_URL, personalRecord, signInDrill } from '../helpers/drill-local.js';
 import { makeSeries } from '../fixtures/drill.js';
+import { waitForPersistedOperation } from '../helpers/personal-browser.js';
 
 const synced = page => expect(page.locator('#drill-sync-status')).toHaveText('Synchronisé');
 async function respond(page, index = 0, training = false) {
@@ -58,6 +59,7 @@ test('Drill réel : multi-appareils, insertion non acquittée, hors ligne persis
     const offline = route => blocked ? route.abort('failed') : route.continue();
     await page.route(`${a.environment.url}/**`, offline);
     await respond(page, 2); await expect(page.locator('#drill-sync-status')).toContainText(/attente|appareil/i);
+    await waitForPersistedOperation(page, 'mon-bprea-drill-personal-v1', a.userId, { type: 'answer', state: 'pending' });
     const beforeReload = await personalRecord(page); expect(beforeReload.operations.some(operation => operation.type === 'answer' && operation.state === 'pending')).toBe(true);
     await page.reload(); await expect(page.locator('.drill-correction')).toHaveCount(3);
     await expect(page.locator('#drill-sync-status')).toContainText(/attente|appareil/i);

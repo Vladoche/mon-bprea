@@ -1,18 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { createDrillStudent, configureDrillPage, personalRecord, signInDrill } from '../helpers/drill-local.js';
+import { authIdentity } from '../helpers/personal-browser.js';
 
-async function verifyAuth(page) {
-  return page.evaluate(async () => {
-    // Import the SAME versioned singleton used by the page, without exposing
-    // its SDK session or simulating any Auth response.
-    const module = new URL('assets/auth-service.js', location.href);
-    module.search = new URL(document.querySelector('script[src*="assets/app.js"]').src).search;
-    const { getAuthService } = await import(module.href);
-    const auth = await getAuthService();
-    try { await auth.retry(); } catch { /* The expected outage is asserted by state. */ }
-    return { status: auth.getState().status, userId: auth.getState().user?.id || null };
-  });
-}
+const verifyAuth = page => authIdentity(page, { retry: true });
 
 test('Drill réel : reprise du même compte après panne Auth sans événement online', async ({ page }) => {
   test.setTimeout(90000);
