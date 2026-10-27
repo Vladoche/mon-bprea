@@ -45,7 +45,7 @@ Un échec Linux qui indique des bibliothèques manquantes déclenche **une fois*
 
 `scripts/test-supabase-ci.mjs` lance Auth à côté d’une seule chaîne séquentielle : backend Drill, backend personnel, préparation Chromium, 24 E2E Supabase. pgTAP reste avant ces deux branches. Le navigateur garde un worker et zéro retry. Les durées ne s’additionnent plus : le coût vaut environ le maximum des deux branches. Les labels et mesures restent distincts dans le journal et le résumé Actions, même quand leurs sorties s’entrelacent.
 
-Cette indépendance est vérifiable dans les fixtures : préfixes/adresses avec `randomUUID()`, clients sans persistance ni auto-refresh côté Node, lecture SMTP filtrée par destinataire, aucune purge de boîte, requêtes pédagogiques filtrées par UUID, nettoyages limités aux UUID créés dans chaque processus. Le `signOut` global du navigateur ne concerne que son propre compte fictif. Aucun compte ni stack ne traverse les runners. Les limites Auth locales restent inchangées ; les répétitions CI devront confirmer l’absence de 429.
+Cette indépendance est vérifiable dans les fixtures : préfixes/adresses avec `randomUUID()`, clients sans persistance ni auto-refresh côté Node, lecture SMTP filtrée par destinataire, aucune purge de boîte, requêtes pédagogiques filtrées par UUID, nettoyages limités aux UUID créés dans chaque processus. Le `signOut` global du navigateur ne concerne que son propre compte fictif. Aucun compte ni stack ne traverse les runners. Les limites Auth locales restent inchangées ; les deux exécutions CI complètes ci-dessous réussissent sans erreur de limitation Auth.
 
 `Promise.allSettled` rejoint les deux branches avant de rendre un échec. Chaque suite garde son `finally` et ses codes ; un échec du backend empêche seulement ses descendants dépendants, jamais l’attente/nettoyage Auth. L’arrêt du workflow reste `if: always()`. Sept tests d’orchestration prouvent le chevauchement, la jonction dans les deux sens et la propagation d’échecs à chaque niveau ; ils ne constituent aucune preuve RLS.
 
@@ -66,7 +66,7 @@ Un échec local a révélé une attente fragile dans le test synthétique ITK : 
 
 ## Vérifications et limites
 
-Node local 24.22.0, `npm ci` exécuté. Docker absent : pgTAP et Supabase réels **non exécutés localement**. Ils doivent être validés dans les runs CI ci-dessous. Aucun résultat mock n’est assimilé à une preuve RLS.
+Node local 24.22.0, `npm ci` exécuté. Docker absent : pgTAP et Supabase réels **non exécutés localement**, mais exécutés et réussis dans les runs CI ci-dessous. Aucun résultat mock n’est assimilé à une preuve RLS.
 
 - `npm test` : **329/329**, 35 fichiers (322 préexistants + 7 orchestration), 1,61 s sur l’exécution finale locale.
 - SDK navigateur reconstruit : aucun diff de `assets/vendor/supabase.js`.
@@ -78,27 +78,39 @@ Node local 24.22.0, `npm ci` exécuté. Docker absent : pgTAP et Supabase réels
 
 ### Mesures après
 
-Première mesure : commit `fd10102`, [Qualité 40457986450](https://github.com/Vladoche/mon-bprea/actions/runs/40457986450) et [Sécurité 40457986511](https://github.com/Vladoche/mon-bprea/actions/runs/40457986511). Trois jobs réussis ; 328 tests Vitest à ce stade, 53 E2E classiques, 350 assertions pgTAP, 11 groupes Auth/profils, 22 Drill, 26 personnels et 24 parcours Supabase réels. Aucun repli APT ni refus de débit Auth constaté ; arrêt de stack réussi.
+Première mesure : commit `fd10102`, [Qualité 40457986450](https://github.com/Vladoche/mon-bprea/actions/runs/40457986450) et [Sécurité 40457986511](https://github.com/Vladoche/mon-bprea/actions/runs/40457986511). Deuxième mesure : commit `4d49774`, [Qualité 40458497884](https://github.com/Vladoche/mon-bprea/actions/runs/40458497884) et [Sécurité 40458497432](https://github.com/Vladoche/mon-bprea/actions/runs/40458497432).
 
-| Mesure après | Exécution 1 |
-| --- | ---: |
-| Préparation sécurité jusqu’à stack | 10,0 s |
-| Démarrage stack | 68,8 s |
-| Chargement environnement | 1,6 s |
-| pgTAP | 18,0 s |
-| Auth réel, expiration et nettoyage compris | 153,26 s |
-| Backend Drill | 1,48 s |
-| Backend personnel | 1,52 s |
-| Chromium Supabase : préparation et validation réelle | 12,35 s |
-| Chromium Supabase : 24 E2E | 152,23 s |
-| Phase concurrente après pgTAP | 167,6 s |
-| Total sécurité | 269,9 s |
-| Chromium classique : préparation et validation réelle | 11,6 s |
-| 53 E2E classiques, étape | 70,8 s |
-| Vitest, durée interne | 2,72 s |
-| Enveloppe totale CI observée | 270,5 s |
+**Trois jobs réussis dans les deux exécutions.** 328 tests Vitest à la première, 329 à la deuxième avec la preuve supplémentaire de jonction après échec Auth ; 53 E2E classiques, 350 assertions pgTAP, 11 groupes Auth/profils, 22 Drill, 26 personnels et 24 parcours Supabase réels à chaque fois. La deuxième inclut la version finale du retry automatique à échéance contrôlée dans le test synthétique. Aucun repli APT ni erreur de débit Auth ; arrêt de stack réussi dans les deux runs. Les scripts Auth réels, la version Chromium et l’orchestration sont identiques entre les deux mesures.
 
-Auth se termine à 05:58:49 UTC pendant que Chromium tourne encore, jusqu’à 05:59:03 UTC : le chevauchement est réellement observé. L’attente des JWT n’a pas été raccourcie. Cette première mesure enlève environ 143 s au job sécurité par rapport au run rapide de référence (~35 %), malgré un navigateur réel un peu plus lent. Une deuxième exécution est nécessaire avant de conclure sur la répétabilité ; les checks du dernier commit seront vérifiés après finalisation du document.
+| Mesure après | Exécution 1 | Exécution 2 |
+| --- | ---: | ---: |
+| Préparation sécurité jusqu’à stack | 10,0 s | 11,7 s |
+| Démarrage stack | 68,8 s | 64,4 s |
+| Chargement environnement | 1,6 s | 1,5 s |
+| pgTAP | 18,0 s | 17,0 s |
+| Auth réel, expiration et nettoyage compris | 153,26 s | 152,96 s |
+| Backend Drill | 1,48 s | 1,24 s |
+| Backend personnel | 1,52 s | 1,48 s |
+| Chromium Supabase : préparation et validation réelle | 12,35 s | 11,10 s |
+| Chromium Supabase : 24 E2E | 152,23 s | 151,27 s |
+| Phase concurrente après pgTAP | 167,6 s | 165,1 s |
+| Total sécurité | 269,9 s | 262,6 s |
+| Chromium classique : préparation et validation réelle | 11,6 s | 12,5 s |
+| 53 E2E classiques, étape | 70,8 s | 60,2 s |
+| Vitest, durée interne | 2,72 s | 2,32 s |
+| Enveloppe totale CI observée | 270,5 s | 263,5 s |
+
+Auth se termine à 05:58:49 UTC pendant que Chromium tourne encore jusqu’à 05:59:03 UTC dans le premier run ; même chevauchement à 06:04:15 / 06:04:27 UTC dans le second. L’attente des JWT n’a pas été raccourcie.
+
+Par rapport au run rapide de référence de sécurité (413 s), le gain observé est **143 à 150 s, soit 35 à 36 %**. L’enveloppe CI passe d’environ **6 min 53 s à 4 min 23–30 s**. Par rapport à la référence APT lente, le gain est bien plus élevé, mais cet extrême ne sert pas de promesse de gain habituel. Les parcours eux-mêmes ne sont pas présentés comme accélérés : Chromium Supabase prend ici ~151–152 s contre ~123–143 s avant, et les E2E classiques ~60–71 s contre ~54–72 s. Le bénéfice vient principalement du chevauchement et de l’élimination d’APT systématique.
+
+### Limites et contrôle de livraison
+
+Deux runs complets et quatre installations Chromium sur runners ne constituent pas une garantie statistique contre toute instabilité future. L’image Ubuntu peut évoluer. Le repli dépendances n’a pas été nécessaire dans ces runs : il reste la procédure officielle Playwright et devra encore réussir sur un environnement où les bibliothèques manquent réellement. Aucun succès de ce chemin non exécuté n’est revendiqué.
+
+Le coût Docker/ECR subsiste : les erreurs de quota du registre et son repli automatique expliquent une partie des ~17–18 s pgTAP, alors que les 350 assertions SQL elles-mêmes prennent environ 0–1 s. Aucun remplacement du registre ou cache Docker ajouté dans cette PR. Une annulation/limite du runner ne garantit pas la fin des nettoyages applicatifs ; l’arrêt de la stack éphémère reste `always()` et les comptes ne sortent jamais de cette stack.
+
+Les jobs de la deuxième mesure sont [unit-integration](https://github.com/Vladoche/mon-bprea/actions/runs/40458497884/job/122037308597), [e2e](https://github.com/Vladoche/mon-bprea/actions/runs/40458497884/job/122037308873) et [supabase-security](https://github.com/Vladoche/mon-bprea/actions/runs/40458497432/job/122037307419). Le dernier commit documentaire fait aussi l’objet des trois contrôles avant livraison ; son SHA et leurs liens sont consignés dans la description de la [PR #20](https://github.com/Vladoche/mon-bprea/pull/20). Aucun filtre de chemins ne dispense cette dernière version documentaire des suites complètes.
 
 ### Périmètre préservé
 
