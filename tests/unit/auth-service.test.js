@@ -6,6 +6,16 @@ import { MemoryStorage } from '../helpers/memory-storage.js';
 afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe('service auth — logique applicative avec SDK simulé, sans preuve RLS', () => {
+  it('fournit une identité fraîche explicitement limitée pour la copie, sans session ni métadonnées arbitraires', async () => {
+    const { client } = mockAuthClient({ session: authSession });
+    client.auth.getUser.mockResolvedValue({ data: { user: { ...authUser, user_metadata: { password: 'NEVER_COPY' }, app_metadata: { secret: 'NEVER_COPY' }, identities: ['NEVER_COPY'] } }, error: null });
+    const service = createAuthService(client); await service.start();
+    const before = client.auth.getUser.mock.calls.length, version = service.getIdentityVersion();
+    expect(await service.getExportIdentity()).toEqual(authUser);
+    expect(client.auth.getUser.mock.calls.length).toBe(before + 1);
+    await service.signOut(); expect(service.getIdentityVersion()).toBeGreaterThan(version);
+    await expect(service.getExportIdentity()).rejects.toMatchObject({ code: 'invalid_session' });
+  });
   it('part en chargement puis affiche un visiteur et ne multiplie pas les abonnements', async () => {
     const { client } = mockAuthClient();
     const service = createAuthService(client);

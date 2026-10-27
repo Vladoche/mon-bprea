@@ -86,6 +86,14 @@ export function createAuthService(client, { configurationError, siteUrl, environ
   }
   const service = {
     getState: () => state,
+    // Non-secret identity generation. Changes on sign-out/sign-in, including A→B→A.
+    getIdentityVersion: () => revision,
+    async getExportIdentity() {
+      const user = await requireUser();
+      return Object.fromEntries(['id', 'email', 'created_at', 'updated_at', 'email_confirmed_at', 'last_sign_in_at']
+        .filter(key => Object.hasOwn(user, key) && (user[key] === null || typeof user[key] === 'string'))
+        .map(key => [key, user[key]]));
+    },
     subscribe(listener) { subscribers.add(listener); listener(state); return () => subscribers.delete(listener); },
     start() {
       if (started) return started;

@@ -1,6 +1,7 @@
 import { getAuthService } from './auth-service.js';
 import { validateCredentials, validatePassword, validatePseudo } from './auth-validation.js';
 import { renderBreadcrumbs } from './breadcrumbs.js';
+import { initExportUI } from './export-ui.js';
 
 const controllers = new WeakMap();
 const restoreHandlers = new WeakSet();
@@ -22,10 +23,12 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   const abort = new AbortController();
   let unsubscribe = () => {};
   let disposed = false;
+  let disposeExport = () => {};
   const dispose = () => {
     disposed = true;
     abort.abort();
     unsubscribe();
+    disposeExport();
     link = null;
     for (const input of root.querySelectorAll('input[type="password"]')) input.value = '';
     if (page === 'profile' || page === 'auth-callback') root.textContent = 'Vérification de la session…';
@@ -47,6 +50,11 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   try { service = await getAuthService(); }
   catch { if (!disposed) panel.innerHTML = '<h2>Connexion indisponible</h2><p>Le service de compte ne peut pas être chargé. Recharge la page pour réessayer.</p>'; return; }
   if (disposed) return;
+  if (page === 'profile') {
+    const exportRoot = document.createElement('div'); root.append(exportRoot);
+    const cleanup = await initExportUI(exportRoot, { auth: service });
+    if (disposed) cleanup(); else disposeExport = cleanup;
+  }
 
   function message(text, kind = 'info', focus = false) {
     const output = panel.querySelector('[data-auth-message]');

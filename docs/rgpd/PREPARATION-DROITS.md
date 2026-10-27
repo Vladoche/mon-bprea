@@ -1,6 +1,6 @@
 # Préparation des droits — spécifications 6.4.2 à 6.4.4
 
-**Recommandations C et décisions D, non implémentées.** État du 27 octobre 2026 ; les faits A et identifiants de sources renvoient à l'[inventaire](INVENTAIRE-DONNEES.md). Aucune API d'export, purge, migration ou outil d'administration n'est ajouté dans 6.4.1.
+**Préparation 6.4.1, complétée par l'implémentation 6.4.2 du 27 octobre 2026.** Les faits A et identifiants de sources renvoient à l'[inventaire](INVENTAIRE-DONNEES.md). Le 6.4.1 n'ajoutait aucun mécanisme de droits ; le 6.4.2 livre la copie technique décrite ci-dessous. Les recommandations C et décisions D des lots suivants restent non implémentées/non validées.
 
 ## Conditions communes avant réalisation
 
@@ -26,7 +26,13 @@ Le responsable, les acteurs, bases, destinataires et règles de conservation doi
 | X05/X07/X09 : caches HTTP, logs, sauvegardes, traces | Déterminer avec fournisseurs les données accessibles concernant la personne et limites pour sécurité/tiers | Délais validés, restauration contrôlée, copies opérationnelles ; outils de recette doivent rester synthétiques | RLS et suppression active ne couvrent pas les administrateurs, sauvegardes ou messages déjà reçus. Pas de journaux réels dans GitHub/PR. |
 | I03 : CSV/print/PDF déjà téléchargés | Expliquer que le serveur ne possède pas la copie complète ; fichier utilisateur distinct | Information sur copies locales/impressions et périmètre réellement contrôlé | Ne pas promettre une suppression distante d'un téléchargement, d'une boîte mail ou d'un appareil absent. |
 
-## Lot 6.4.2 — Accès et export : contrat à concevoir
+## Lot 6.4.2 — Accès et export : réalisation et limites
+
+**A — livré :** section du profil, copie JSON v1 des dix tables sous UUID fraîchement vérifié, liste limitée Auth, compléments normalisés des quatre caches personnels, consultation et téléchargement volontaire d'une sélection visiteur séparée. Lectures readonly, filtre/projection par propriétaire, pagination bornée, deux passes concordantes (trois maximum), annulation/invalidations A/B/A et nouvelle vérification avant remise. Pas de fichier sur erreur serveur ; fichier clairement partiel lorsque des catégories sont exclues.
+
+Les archives `raw`, champs inconnus, diagnostics libres et sources non attribuables ne sont pas diffusés. Le manifeste signale les limites et conserve des identifiants/provenances connus sans contenu brut. Les journaux, sauvegardes, données internes Auth et autres appareils ne sont pas annoncés comme couverts. Le parcours local ne donne pas accès aux records personnels d'autres comptes et n'attribue pas le visiteur à l'UUID courant.
+
+Contrat exact, limites de volume et dictionnaire : [EXPORT-DONNEES-PERSONNELLES](../architecture/EXPORT-DONNEES-PERSONNELLES.md). Preuves réellement exécutées : [VALIDATION-LOT6-4-2](../validations/VALIDATION-LOT6-4-2.md). Les points de conception ci-dessous restent la référence d'intention ; **ce téléchargement ne valide pas D01–D14**, ne constitue pas à lui seul une réponse complète aux droits et ne développe ni service de confiance, ni suppression, ni rectification d'historiques immuables.
 
 1. **Périmètre et identité.** Définir la demande (accès, copie, éventuellement portabilité selon conditions), vérifier le propriétaire sans collecter de pièce excessive, figer environnement/projet/UUID et génération. Aucun mélange de A/B, aucune recherche par seul pseudo/e-mail. Prévoir un traitement de confiance pour les données Auth non accessibles au client.
 2. **Récupération complète.** Parcourir toutes les pages des dix tables applicatives pertinentes et sources Auth réellement retenues ; détecter toute erreur. Les API actuelles font des passes multi-requêtes, pas un snapshot global. Définir cohérence temporelle et bornes de reprise ; si une source manque, annoncer une copie partielle motivée au lieu d'une réussite exhaustive.
@@ -65,4 +71,4 @@ La procédure future devra définir l'ordre et l'atomicité possibles entre Auth
 | Livraison | `npm test`, `npm run test:e2e`, SDK sans diff et trois checks `unit-integration`, `e2e`, `supabase-security` sur le dernier commit ; artefact Pages sans document préparatoire ni secret. Préserver optimisations CI #20 et rulesets. |
 | Ouverture | Ne pas confondre recette locale, publication de notice, déploiement et invitation. Autorisation de production explicite, préparatifs 6.5 et configuration distante vérifiée dans un lot autorisé ; aucun runner destructif sur compte étudiant. |
 
-Les tests de panne utilisent horloge contrôlée et données isolées selon [TESTS.md](../TESTS.md) ; les expirations Auth réelles suivent les règles des suites locales Supabase. Cette spécification ne lance aucune action de droits ni de suppression et ne commence pas 6.4.2.
+Les tests de panne utilisent horloge contrôlée et données isolées selon [TESTS.md](../TESTS.md) ; les expirations Auth réelles suivent les règles des suites locales Supabase. Seule la copie technique du 6.4.2 décrite plus haut est développée ; aucune suppression ni réalisation du 6.4.3 dans ce lot.

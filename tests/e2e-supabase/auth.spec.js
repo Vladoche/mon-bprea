@@ -78,7 +78,7 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
     await expect(page.getByLabel('Pseudo (facultatif)', { exact: true })).toHaveValue('');
     await page.getByLabel('Pseudo (facultatif)', { exact: true }).fill('Élève navigateur local');
     await page.getByRole('button', { name: 'Enregistrer le pseudo', exact: true }).click();
-    await expect(main.getByRole('status')).toHaveText('Ton pseudo a été enregistré.');
+    await expect(main.getByRole('region', { name: 'Compte personnel', exact: true }).getByRole('status')).toHaveText('Ton pseudo a été enregistré.');
 
     stage = 'restauration de la session et du profil après rechargement';
     await page.reload();
