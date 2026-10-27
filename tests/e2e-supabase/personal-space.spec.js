@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createDrillStudent, configureDrillPage, signInDrill, DRILL_LOCAL_URL } from '../helpers/drill-local.js';
 import { LOCAL_SITE } from '../helpers/auth-local.js';
+import { waitForIdentity } from '../helpers/personal-browser.js';
 import { answerDrillQuestion } from '../helpers/drill-browser.js';
 import { lessons } from '../../assets/content.js';
 import { botanicalBank, botanicalPath, botanicalSynced, startBotanical, answerBotanical, finishBotanical, expectBotanicalHistory } from '../helpers/botanical-browser.js';
-import { itkPath, itkParameters, settingsAction, settingsSynced, generateItk, expectItk, chooseAppearance, closeAppearance } from '../helpers/settings-browser.js';
+import { itkPath, itkParameters, settingsAction, settingsSynced, settingsCacheReady, generateItk, expectItk, chooseAppearance, closeAppearance } from '../helpers/settings-browser.js';
 
 const lesson = lessons.find(item => item.id === 'matiere-organique');
 const coursePath = `${LOCAL_SITE}cours.html?id=${lesson.id}`, quizPath = `${LOCAL_SITE}exercices.html?id=${lesson.id}`;
@@ -27,16 +28,7 @@ async function quiz(page, score) {
   await expect(page.locator('#quiz-result')).toContainText('Progression enregistrée sur cet appareil.');
 }
 async function offlineIdentity(page, userId, retry = false) {
-  const readIdentity = () => page.evaluate(async ({ expected, retry }) => {
-    const app = new URL(document.querySelector('script[type="module"][src]').src);
-    const url = new URL('./auth-service.js', app); url.search = app.search;
-    const auth = await (await import(url.href)).getAuthService();
-    if (retry) try { await auth.retry(); } catch { /* Assert the actual rejected transport state below. */ }
-    return { status: auth.getState().status, correctOwner: auth.getState().user?.id === expected };
-  }, { expected: userId, retry });
-  await expect.poll(readIdentity, { timeout: 35000,
-    message: 'La restauration Auth doit terminer et conserver uniquement l’identité locale fiable du compte fictif.'
-  }).toEqual({ status: 'offline', correctOwner: true });
+  await waitForIdentity(page, userId, { status: 'offline', retry });
 }
 async function domainStep(page, label, action) {
   try { return await test.step(label, action, { timeout: 40000 }); }
@@ -70,10 +62,7 @@ async function fillAllDomains(page, { index = 0, score = 2, area = '100', season
     if (online) await settingsSynced(page);
     else {
       await offlineIdentity(page, userId);
-      await expect.poll(async () => {
-        const saved = await settingsAction(page, 'state');
-        return { mode: saved.mode, error: saved.view.error, owner: saved.scope ? JSON.parse(saved.scope)[2] : null };
-      }).toEqual({ mode: 'personal', error: null, owner: userId });
+      await settingsCacheReady(page, userId);
     }
     await generateItk(page, { ...itkParameters, area });
     await chooseAppearance(page, season, brightness);

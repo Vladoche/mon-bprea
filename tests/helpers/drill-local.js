@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { personalRecords, waitForIdentity } from './personal-browser.js';
 import { configureLocalAuthPage, createLocalAuthFixture, getLocalSupabaseEnvironment, LOCAL_SITE } from './auth-local.js';
 
 export const DRILL_LOCAL_URL = `${LOCAL_SITE}drill.html?unit=uc3&week=2026-W42`;
@@ -36,17 +37,11 @@ export async function signInDrill(page, student) {
   // Auth publishes the header before the login handler navigates to the
   // profile. Finish that navigation before opening Drill in this context.
   await page.waitForURL(`${LOCAL_SITE}profil.html`);
+  await waitForIdentity(page, student.userId);
   await page.goto(DRILL_LOCAL_URL);
 }
 
 export async function personalRecord(page, scope = null) {
-  return page.evaluate(async requestedScope => {
-    const request = indexedDB.open('mon-bprea-drill-personal-v1', 1);
-    const db = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = reject; });
-    try {
-      const all = db.transaction('accounts').objectStore('accounts').getAll();
-      const records = await new Promise((resolve, reject) => { all.onsuccess = () => resolve(all.result); all.onerror = reject; });
-      return requestedScope ? records.find(record => record.scope === requestedScope) : records[0];
-    } finally { db.close(); }
-  }, scope);
+  const records = await personalRecords(page, 'mon-bprea-drill-personal-v1');
+  return scope ? records.find(record => record.scope === scope) : records[0];
 }

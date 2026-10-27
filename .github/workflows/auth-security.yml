@@ -44,18 +44,10 @@ jobs:
           node scripts/ci-supabase-env.mjs
       - name: Vérifier les privilèges PostgreSQL avec pgTAP
         run: npx --yes supabase@2.121.0 test db
-      - name: Vérifier invitations, récupération, sessions et RLS réels
-        run: node scripts/test-supabase.mjs
-      - name: Vérifier le backend Drill, les conflits et RLS réels
-        run: node scripts/test-drill-supabase.mjs
-      - name: Vérifier les données personnelles, la concurrence et RLS réels
-        run: node scripts/test-personal-data-supabase.mjs
-      - name: Installer Chromium pour les parcours avec Supabase réel
-        run: npx playwright install --with-deps chromium
-      - name: Vérifier l’espace personnel complet, ITK et apparence multi-appareils dans le navigateur
+      - name: Vérifier Auth, RLS, backends et Chromium (expiration réelle chevauchée)
         env:
           PYTHON: python3
-        run: npx playwright test --config=playwright.supabase.config.js
+        run: node scripts/test-supabase-ci.mjs
       - name: Arrêter exclusivement la stack éphémère
         if: always()
         shell: bash

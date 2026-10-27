@@ -9,7 +9,7 @@ npm ci
 npx playwright install chromium
 ```
 
-Le verrou `package-lock.json` est versionné. Utiliser `npm ci` pour reproduire l’installation ; lors d’un changement volontaire de dépendance de développement, mettre à jour le manifeste et le verrou ensemble. Sous Linux, les bibliothèques système Chromium peuvent être installées avec `npx playwright install --with-deps chromium`, comme en CI. Aucune clé secrète n’est nécessaire.
+Le verrou `package-lock.json` est versionné. Utiliser `npm ci` pour reproduire l’installation ; lors d’un changement volontaire de dépendance de développement, mettre à jour le manifeste et le verrou ensemble. En CI, `node scripts/install-chromium.mjs` télécharge le Chromium de ce verrou, puis vérifie réellement son lancement, JavaScript et le rendu. Sous Linux, il utilise `playwright install-deps chromium` seulement si le lancement signale des bibliothèques manquantes, puis recommence la validation réelle. L’installation complète manuelle `npx playwright install --with-deps chromium` reste disponible pour préparer un poste Linux. Aucune clé secrète n’est nécessaire.
 
 ```bash
 npm test
@@ -28,6 +28,38 @@ Le lot 5.2 ajoute des tests du moteur botanique (sélection et distracteurs, ban
 Le lot 6.1 distingue les tests du compte dans l’application, avec dépendances simulées, des essais réels de Supabase Auth/PostgreSQL/RLS. Le guide [AUTHENTIFICATION.md](architecture/AUTHENTIFICATION.md) donne la configuration, les migrations, les modèles d’e-mails et les limites des sessions ; les résultats et opérations encore nécessaires figurent dans [VALIDATION-LOT6-1.md](validations/VALIDATION-LOT6-1.md). La création de tests ne doit jamais être présentée comme une preuve de sécurité exécutée.
 
 ## Choisir le bon niveau
+
+Pendant le développement, lancer la suite liée au risque modifié ; la validation complète n’est pas nécessaire après chaque petite modification. Depuis la racine, après `npm ci` :
+
+| Besoin | Commande ciblée |
+| --- | --- |
+| Vitest, fichier et cas précis | `npm test -- tests/unit/settings-model.test.js -t "apparence"` |
+| Vitest Auth avec mocks (aucune preuve RLS) | `npm test -- tests/unit/auth-service.test.js tests/unit/auth-local-identity.test.js tests/integration/drill-auth-recovery.test.js` |
+| Playwright classique, fichier | `npm run test:e2e -- tests/e2e/settings-sync.spec.js --workers=2` |
+| Playwright classique, cas et répétitions | `npm run test:e2e -- tests/e2e/settings-sync.spec.js --grep "panne API" --repeat-each=3 --workers=2` |
+| Playwright Auth sans stack (configuration désactivée) | `npm run test:e2e -- tests/e2e/auth.spec.js` |
+| HTTP synthétique Auth/SDK/IndexedDB | `npm run test:e2e -- tests/e2e/settings-sync.spec.js --grep "comptes"` |
+| Validation locale complète | `npm test` puis `npm run test:e2e` puis `npm run build:auth-sdk` et `git diff --exit-code -- assets/vendor/supabase.js` |
+| Auth réel ciblé, stack locale préparée | `npm run test:supabase` |
+| Navigateur Supabase réel ciblé | `npm run test:e2e:supabase -- tests/e2e-supabase/settings-sync.spec.js` |
+
+La sélection Vitest par titre doit afficher au moins un test exécuté : adapter `-t` au nom réel du cas. Les tests classiques peuvent contrôler l’horloge et simuler HTTP. Les tests Auth réels conservent le temps réel et des JWT signés par Auth, y compris leur expiration après la tolérance PostgREST.
+
+La recette réelle complète exige Docker, la CLI 2.121.0 et la configuration locale décrite plus bas. Après démarrage de la stack et chargement des seules clés locales :
+
+```bash
+npx --yes supabase@2.121.0 test db
+npm run test:supabase
+npm run test:drill:supabase
+npm run test:personal:supabase
+npm run test:e2e:supabase
+```
+
+La CI exécute les mêmes suites avec `node scripts/test-supabase-ci.mjs` après pgTAP. Pour reproduire ce chevauchement localement, utiliser `node --env-file-if-exists=.env.supabase-test.local scripts/test-supabase-ci.mjs`. Auth tourne à côté de la chaîne Drill → données personnelles → installation/validation Chromium → E2E Supabase (un worker). Chaque processus crée ses propres UUID/adresses ; aucun compte n’est partagé. L’orchestrateur rejoint les deux branches, même en cas d’échec, pour laisser finir les nettoyages ciblés avant l’arrêt de la stack. Les durées et codes de sortie sont consignés sans sessions ni clés. Le workflow conserve son arrêt `always()`, y compris lors d’une annulation ou d’un timeout ; dans ces derniers cas, la CI ne revendique pas un nettoyage applicatif terminé.
+
+Les helpers de `tests/helpers/personal-browser.js` attendent l’identité publiée par le vrai singleton versionné et les lectures IndexedDB jusqu’à `transaction.oncomplete`. `waitForPersistedOperation` vérifie le propriétaire du cache et les champs de l’opération attendue avant un reload/retry. `settingsCacheReady` attend le mode personnel, l’UUID et l’absence d’erreur de vue. Conserver les assertions métier, d’unicité et les relectures PostgreSQL après ces attentes ; un état « synchronisé » seul ne prouve pas le contenu serveur. Aucun `waitForTimeout`, retry global ou mock supplémentaire dans les suites réelles.
+
+Les trois contrôles `unit-integration`, `e2e` et `supabase-security` restent requis sur la PR finale. Les mesures, risques et limites sont dans [VALIDATION-OPTIMISATION-CI.md](validations/VALIDATION-OPTIMISATION-CI.md).
 
 Le lot 6.3.4 ajoute les suites `settings-*` pour les deux singletons ITK/apparence : validation du catalogue et des préférences, transactions et rechargement, chaînage CAS, retry exact, import par domaine et isolement Auth. `settings-appearance.test.js` exerce le vrai script classique avant CSS, la séparation choix/rendu, les saisons, seuils et changements d’heure. Les parcours `settings-sync.spec.js` et `personal-space.spec.js` complètent la recette dans Chromium ; ceux sous `tests/e2e-supabase/` utilisent exclusivement la stack éphémère et des assertions PostgreSQL avec JWT étudiant. Les mocks HTTP et captures autonomes restent distincts de la preuve Auth/RLS réelle. Consulter la [validation 6.3.4](validations/VALIDATION-LOT6-3-4.md) et le [bilan 6.3](validations/BILAN-LOT6-3.md) pour les résultats exécutés et les limites.
 

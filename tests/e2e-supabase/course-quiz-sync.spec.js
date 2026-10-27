@@ -5,6 +5,7 @@ import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/
 import { LOCAL_SITE } from '../helpers/auth-local.js';
 import { lessons } from '../../assets/content.js';
 import { learningDocument } from '../fixtures/personal-data.js';
+import { personalRecords } from '../helpers/personal-browser.js';
 
 // All identity and SQL assertions use the existing guarded, ephemeral local
 // fixture. No fabricated Auth response or privileged pedagogical assertion.
@@ -30,14 +31,7 @@ async function answerQuiz(page, score) {
   await expect(page.locator('#quiz-result')).toContainText(`${score} / ${lesson.quiz.length}`);
 }
 async function records(page) {
-  return page.evaluate(async () => {
-    const request = indexedDB.open('mon-bprea-course-quiz-personal-v1', 1);
-    const db = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = reject; });
-    try {
-      const read = db.transaction('accounts').objectStore('accounts').getAll();
-      return await new Promise((resolve, reject) => { read.onsuccess = () => resolve(read.result); read.onerror = reject; });
-    } finally { db.close(); }
-  });
+  return personalRecords(page, 'mon-bprea-course-quiz-personal-v1');
 }
 async function sqlRows(student, table) {
   await student.refresh();

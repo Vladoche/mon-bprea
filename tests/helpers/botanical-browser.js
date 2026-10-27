@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { personalRecords } from './personal-browser.js';
 import { readFileSync } from 'node:fs';
 
 export const botanicalBank = JSON.parse(readFileSync(new URL('../../assets/botanical-bank.json', import.meta.url), 'utf8'));
@@ -54,12 +55,5 @@ export async function expectBotanicalHistory(page, { attempted, correct, incorre
   }
 }
 export async function botanicalRecords(page) {
-  return page.evaluate(async () => {
-    const request = indexedDB.open('mon-bprea-botanical-personal-v1', 1);
-    const db = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = reject; });
-    try {
-      const read = db.transaction('accounts').objectStore('accounts').getAll();
-      return await new Promise((resolve, reject) => { read.onsuccess = () => resolve(read.result); read.onerror = reject; });
-    } finally { db.close(); }
-  });
+  return personalRecords(page, 'mon-bprea-botanical-personal-v1');
 }

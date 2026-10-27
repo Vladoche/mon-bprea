@@ -54,7 +54,7 @@ jobs:
       - name: Installer les dépendances
         run: npm ci
       - name: Installer Chromium
-        run: npx playwright install --with-deps chromium
+        run: node scripts/install-chromium.mjs
       - name: Vérifier les parcours navigateur
         run: npm run test:e2e
       - name: Conserver les traces et captures en cas d’échec

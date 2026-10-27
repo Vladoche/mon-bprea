@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { personalRecords } from './personal-browser.js';
 
 export const itkPath = '/mon-bprea/itk.html';
 export const itkParameters = Object.freeze({ crop: 'tomate', variety: 'Marmande', cover: 'serre', area: '100', month: '5', year: '2028', soil: 'limoneux', water: 'standard' });
@@ -11,6 +12,10 @@ export async function settingsAction(page, action, ...args) {
   }, { action, args });
 }
 export const settingsSynced = page => expect.poll(async () => (await settingsAction(page, 'state')).sync.state).toBe('synced');
+export const settingsCacheReady = (page, userId) => expect.poll(async () => {
+  const state = await settingsAction(page, 'state');
+  return { mode: state.mode, error: state.view.error, owner: state.scope ? JSON.parse(state.scope)[2] : null };
+}).toEqual({ mode: 'personal', error: null, owner: userId });
 export async function generateItk(page, values = itkParameters) {
   await page.locator('#crop').selectOption(values.crop);
   for (const key of ['variety', 'cover', 'month', 'year', 'soil', 'water']) await page.locator(`#${key}`).selectOption(values[key]);
@@ -31,12 +36,5 @@ export async function closeAppearance(page) {
   await expect(page.locator('#appearance-open')).toBeFocused();
 }
 export async function settingsRecords(page) {
-  return page.evaluate(async () => {
-    const request = indexedDB.open('mon-bprea-settings-personal-v1', 1);
-    const db = await new Promise((resolve, reject) => { request.onsuccess = () => resolve(request.result); request.onerror = reject; });
-    try {
-      const read = db.transaction('accounts').objectStore('accounts').getAll();
-      return await new Promise((resolve, reject) => { read.onsuccess = () => resolve(read.result); read.onerror = reject; });
-    } finally { db.close(); }
-  });
+  return personalRecords(page, 'mon-bprea-settings-personal-v1');
 }
