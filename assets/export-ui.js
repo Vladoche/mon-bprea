@@ -50,7 +50,7 @@ export async function initExportUI(root, { auth, configuration } = {}) {
   });
   const authUnsubscribe = auth.subscribe(state => {
     find('prepare').disabled = state.status !== 'authenticated' || ['verifying', 'reading', 'validating'].includes(current?.status);
-    if (state.status !== 'authenticated' && current?.status === 'idle') find('status').textContent = 'Connexion serveur vérifiée nécessaire. La copie du compte est indisponible en visiteur ou hors ligne ; la sélection locale reste distincte.';
+    if (current?.status === 'idle') find('status').textContent = state.status === 'authenticated' ? labels.idle : 'Connexion serveur vérifiée nécessaire. La copie du compte est indisponible en visiteur ou hors ligne ; la sélection locale reste distincte.';
     if (state.status !== 'authenticated') { preview.textContent = ''; preview.hidden = true; find('confirm').checked = false; updateDeviceButton(); }
   });
   listen(find('prepare'), 'click', () => service.prepareAccount());

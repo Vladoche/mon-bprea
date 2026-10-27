@@ -117,3 +117,12 @@ test('quatre caches personnels, opérations et archives : couverture limitée ho
   }, { caches: CACHES, scope });
   expect(after === before).toBe(true);
 });
+test('le message du pseudo reste indépendant des nouveaux statuts de copie', async ({ page }) => {
+  const api = createExportAPI(); await api.install(page.context()); await page.goto(path);
+  await page.getByLabel('Pseudo (facultatif)', { exact: true }).fill('Pseudo fictif modifié');
+  await page.getByRole('button', { name: 'Enregistrer le pseudo', exact: true }).click();
+  const account = page.getByRole('region', { name: 'Compte personnel', exact: true });
+  await expect(account.getByRole('status')).toHaveText('Ton pseudo a été enregistré.');
+  await expect(page.locator('[data-export-status]')).toHaveText('La préparation n’a pas commencé.');
+  await expect(page.getByLabel('Pseudo (facultatif)', { exact: true })).toHaveValue('Pseudo fictif modifié');
+});

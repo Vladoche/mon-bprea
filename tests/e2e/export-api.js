@@ -25,6 +25,10 @@ export function createExportAPI() {
         if (url.pathname.endsWith('/logout')) return route.fulfill({ status: 204 });
       }
       const table = url.pathname.split('/').at(-1);
+      if (table === 'profiles' && request.method() === 'PATCH' && rows[uid]) {
+        rows[uid].profiles[0].pseudo = request.postDataJSON().pseudo;
+        return send(rows[uid].profiles[0]);
+      }
       if (request.method() !== 'GET') { api.writes.push(table); return send({ code: 'PGRST202' }, 404); }
       if (!rows[uid]?.[table]) return send({ code: '42501' }, 403);
       api.reads.push({ table, uid, query: url.search });
