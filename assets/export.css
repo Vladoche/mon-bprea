@@ -1,0 +1,18 @@
+.data-export { margin-bottom: 56px; }
+.data-export-intro { max-width: 760px; margin-bottom: 24px; }
+.data-export-intro h2 { font-size: clamp(25px, 3vw, 34px); margin: 8px 0 14px; }
+.data-export-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+.data-export-grid > section { min-width: 0; border: 1px solid var(--line); background: var(--white); box-shadow: var(--shadow); border-radius: 16px; padding: 28px; }
+.data-export-grid h3 { margin: 0 0 16px; font-size: 21px; }
+.data-export p, .data-export li, .data-export label, .data-export legend { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.data-export li { margin-bottom: 8px; }
+.data-export-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0; }
+.data-export .btn { white-space: normal; text-align: center; }
+.data-export fieldset { min-width: 0; border: 1px solid var(--line); border-radius: 8px; padding: 16px; }
+.data-export fieldset label { display: block; margin: 10px 0; }
+.data-export-consent { display: flex; gap: 10px; margin: 18px 0; align-items: start; }
+.data-export input[type=checkbox] { flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--color-accent-fill); }
+.data-export input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+.data-export pre { max-height: 360px; white-space: pre-wrap; overflow: auto; overflow-wrap: anywhere; padding: 16px; border: 1px solid var(--line); background: var(--color-surface-soft); color: var(--text); }
+.data-export .btn:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 760px) { .data-export-grid { grid-template-columns: minmax(0, 1fr); } .data-export-grid > section { padding: 22px 18px; } .data-export-actions { flex-direction: column; } }

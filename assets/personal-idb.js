@@ -56,3 +56,37 @@ export function createScopedRepository(scope, { indexedDB = globalThis.indexedDB
   return { scope, read: () => transaction(), change: transaction,
     async close() { (await open()).close(); opening = null; } };
 }
+
+/** Read-only export path. Never creates/migrates a database, validates by
+ * rewriting, enumerates accounts, or emits a synchronization notification. */
+export async function readScopedRecord(databaseName, scope, { indexedDB = globalThis.indexedDB, signal, timeoutMs = 5000 } = {}) {
+  if (!indexedDB) throw Object.assign(new Error(), { code: 'unavailable' });
+  if (signal?.aborted) throw Object.assign(new Error(), { code: 'cancelled' });
+  return new Promise((resolve, reject) => {
+    let request, db, value, settled = false, absent = false;
+    const finish = (error, result) => {
+      if (settled) return;
+      settled = true; clearTimeout(timer); signal?.removeEventListener('abort', cancelled); db?.close();
+      error ? reject(Object.assign(new Error(), { code: error })) : resolve(result);
+    };
+    const cancelled = () => finish('cancelled');
+    const timer = setTimeout(() => finish('blocked'), timeoutMs);
+    signal?.addEventListener('abort', cancelled, { once: true });
+    try { request = indexedDB.open(databaseName); } catch { finish('unavailable'); return; }
+    request.onupgradeneeded = () => { absent = true; request.transaction.abort(); };
+    request.onblocked = () => finish('blocked');
+    request.onerror = () => absent ? finish(null, null) : finish('unavailable');
+    request.onsuccess = () => {
+      db = request.result;
+      if (settled) { db.close(); return; }
+      if (db.version !== 1 || !db.objectStoreNames.contains('accounts')) { finish('future'); return; }
+      try {
+        const tx = db.transaction('accounts', 'readonly');
+        const read = tx.objectStore('accounts').get(scope);
+        read.onsuccess = () => { value = read.result ?? null; };
+        tx.oncomplete = () => finish(null, value);
+        tx.onabort = tx.onerror = () => finish('unavailable');
+      } catch { finish('unavailable'); }
+    };
+  });
+}

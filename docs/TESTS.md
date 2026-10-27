@@ -29,6 +29,8 @@ Le lot 6.1 distingue les tests du compte dans l’application, avec dépendances
 
 ## Choisir le bon niveau
 
+Le lot 6.4.2 ajoute `export-model`, `export-transport` et `export-service` (projection de confidentialité, lecture readonly, pagination et générations), cinq parcours dans `tests/e2e/export.spec.js` et une recette `tests/e2e-supabase/export.spec.js`. Les JSON téléchargés sont réellement parsés. Les traces/vidéos et captures d'échec sont désactivées pour ces nouvelles copies afin de ne pas journaliser leur contenu ; seules les captures visuelles synthétiques sous `.tmp/export-visual/` servent à l'inspection locale. Aucun fichier exporté réel dans Git/Pages. La [validation 6.4.2](validations/VALIDATION-LOT6-4-2.md) distingue HTTP simulé et RLS réel. Commandes ciblées : `npm test -- tests/unit/export-model.test.js tests/unit/export-transport.test.js tests/integration/export-service.test.js`, puis `npm run test:e2e -- tests/e2e/export.spec.js --workers=2`.
+
 Pendant le développement, lancer la suite liée au risque modifié ; la validation complète n’est pas nécessaire après chaque petite modification. Depuis la racine, après `npm ci` :
 
 | Besoin | Commande ciblée |

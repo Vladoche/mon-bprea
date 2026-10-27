@@ -320,6 +320,8 @@ Les 12 photographies sont conservées localement avec leurs crédits : 6 CC0, 4 
 
 ## Limites explicites
 
+La section **Mes données personnelles** du profil prépare une [copie JSON du compte vérifié](docs/architecture/EXPORT-DONNEES-PERSONNELLES.md), avec couverture et exclusions explicites, et permet de consulter/télécharger séparément des sauvegardes visiteur sélectionnées sur l'appareil. Cette copie technique ne couvre pas les données internes des prestataires, ne valide pas les décisions RGPD ouvertes et n'ajoute aucune suppression. [Preuves et limites du lot 6.4.2](docs/validations/VALIDATION-LOT6-4-2.md).
+
 Le [dossier préparatoire RGPD 6.4.1](docs/rgpd/INVENTAIRE-DONNEES.md) recense les données et stockages, les [flux et prestataires](docs/rgpd/FLUX-ET-PRESTATAIRES.md), le [projet de registre](docs/rgpd/REGISTRE-TRAITEMENTS.md), les [décisions encore à valider](docs/rgpd/DECISIONS-A-VALIDER.md) et les [prérequis des droits](docs/rgpd/PREPARATION-DROITS.md). La [politique de confidentialité](docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) est un **projet non validé, non destiné à publication en l'état**. Ce dossier ne prouve pas une conformité acquise et n'ouvre pas les comptes étudiants. Les preuves et limites figurent dans la [validation 6.4.1](docs/validations/VALIDATION-LOT6-4-1.md).
 
 Le [contrat client ITK/apparence](docs/architecture/ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md), la [validation 6.3.4](docs/validations/VALIDATION-LOT6-3-4.md) et le [bilan global 6.3](docs/validations/BILAN-LOT6-3.md) précisent garanties, preuves et étapes avant ouverture. La sauvegarde personnelle des huit paramètres ITK et des choix saison/luminosité suit une confirmation distante, sans génération automatique ni import implicite.
