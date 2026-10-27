@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { runSupabaseSuites } from '../../scripts/test-supabase-ci.mjs';
 
-const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
+const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 
 describe('Orchestration CI Supabase', () => {
   it('exécute les suites indépendantes pendant Auth et attend son nettoyage avant de terminer', async () => {
@@ -31,5 +31,17 @@ describe('Orchestration CI Supabase', () => {
     expect(joined).toBe(false);
     auth.resolve(); await result;
     expect(joined).toBe(true);
+  });
+
+  it('un échec Auth attend aussi la fin du navigateur et de son nettoyage', async () => {
+    const browser = deferred(), browserStarted = deferred(); let failed = false;
+    const result = runSupabaseSuites(async label => {
+      if (label.startsWith('Auth')) throw new Error('Échec Auth contrôlé');
+      if (label === 'Chromium Supabase réel') { browserStarted.resolve(); await browser.promise; }
+    }).catch(() => { failed = true; });
+    await browserStarted.promise;
+    expect(failed).toBe(false);
+    browser.resolve(); await result;
+    expect(failed).toBe(true);
   });
 });

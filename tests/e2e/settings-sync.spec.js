@@ -63,10 +63,12 @@ test('paramètres : panne API, changements successifs, reload et retry strict sa
   const before = (await settingsRecords(page))[0]; await page.reload(); await expectItk(page, { ...itkParameters, area: '222' });
   expect((await settingsRecords(page))[0].operations.map(op => op.id)).toEqual(before.operations.map(op => op.id));
   api.restOffline = false; api.loseAck = 'itk'; await settingsAction(page, 'retry');
-  // Observe the lost acknowledgment's persisted failure before the deliberate
-  // retry. Do not race an automatic retry deadline against a 5-second poll.
-  await waitForPersistedOperation(page, 'mon-bprea-settings-personal-v1', accounts.A.id, { domain: 'itk', state: 'pending', error: 'network' });
-  await settingsAction(page, 'retry'); await settingsSynced(page);
+  // Keep the automatic retry covered. This synthetic suite controls its clock:
+  // advance only to the persisted due date, not an arbitrary timeout/jump.
+  const waiting = await waitForPersistedOperation(page, 'mon-bprea-settings-personal-v1', accounts.A.id, { domain: 'itk', state: 'pending', error: 'network' });
+  const remaining = waiting.retryAt - await page.evaluate(() => Date.now());
+  if (remaining > 0) await page.clock.runFor(remaining);
+  await settingsSynced(page);
   const sent = api.sent.filter(item => item.domain === 'itk'); expect(sent.at(-1).body).toEqual(sent.at(-2).body);
   expect(api.rows.itk.size).toBe(1); expect(api.rows.itk.get(accounts.A.id).parameters.area).toBe('222');
   expect(api.rows.appearance.get(accounts.A.id)).toMatchObject({ season: 'auto', brightness: 'auto' });

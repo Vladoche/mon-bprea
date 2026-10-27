@@ -47,7 +47,7 @@ Un échec Linux qui indique des bibliothèques manquantes déclenche **une fois*
 
 Cette indépendance est vérifiable dans les fixtures : préfixes/adresses avec `randomUUID()`, clients sans persistance ni auto-refresh côté Node, lecture SMTP filtrée par destinataire, aucune purge de boîte, requêtes pédagogiques filtrées par UUID, nettoyages limités aux UUID créés dans chaque processus. Le `signOut` global du navigateur ne concerne que son propre compte fictif. Aucun compte ni stack ne traverse les runners. Les limites Auth locales restent inchangées ; les répétitions CI devront confirmer l’absence de 429.
 
-`Promise.allSettled` rejoint les deux branches avant de rendre un échec. Chaque suite garde son `finally` et ses codes ; un échec du backend empêche seulement ses descendants dépendants, jamais l’attente/nettoyage Auth. L’arrêt du workflow reste `if: always()`. Six tests d’orchestration prouvent le chevauchement, la jonction et la propagation d’échecs à chaque niveau ; ils ne constituent aucune preuve RLS.
+`Promise.allSettled` rejoint les deux branches avant de rendre un échec. Chaque suite garde son `finally` et ses codes ; un échec du backend empêche seulement ses descendants dépendants, jamais l’attente/nettoyage Auth. L’arrêt du workflow reste `if: always()`. Sept tests d’orchestration prouvent le chevauchement, la jonction dans les deux sens et la propagation d’échecs à chaque niveau ; ils ne constituent aucune preuve RLS.
 
 ### Audit des attentes navigateur
 
@@ -62,22 +62,43 @@ Cette indépendance est vérifiable dans les fixtures : préfixes/adresses avec 
 | Retour réseau | Suppression de la route d’interruption puis événement `online`/action explicite existante ; assertion sur état et contenu, aucun délai fixe ni mock réel ajouté |
 | Changement de compte | Attente explicite du nouvel UUID, puis cache du même propriétaire ; assertions de données absentes et retour au cache A inchangées |
 
-Un échec local a révélé une attente fragile dans le test synthétique ITK : après perte d’acquittement, le test attendait le retry automatique dans le timeout de poll de 5 s. Il attend maintenant la preuve persistée de l’échec réseau puis déclenche le retry explicite déjà prévu par ce scénario. Les payloads strictement identiques et l’unicité serveur restent exigés. Le retry automatique reste exercé dans les parcours réels existants ; aucun changement de logique applicative.
+Un échec local a révélé une attente fragile dans le test synthétique ITK : après perte d’acquittement, le test attendait le retry automatique dans le timeout de poll de 5 s. Il attend maintenant la preuve persistée de l’échec réseau puis avance son horloge synthétique jusqu’au `retryAt` enregistré, pour conserver **le retry automatique** et éviter une course entre backoff et poll. Les payloads strictement identiques et l’unicité serveur restent exigés. Cette modification d’horloge est limitée à la suite HTTP synthétique ; aucun changement de logique applicative ni de temps dans les tests Auth réels.
 
 ## Vérifications et limites
 
 Node local 24.22.0, `npm ci` exécuté. Docker absent : pgTAP et Supabase réels **non exécutés localement**. Ils doivent être validés dans les runs CI ci-dessous. Aucun résultat mock n’est assimilé à une preuve RLS.
 
-- `npm test` : **328/328**, 35 fichiers (322 préexistants + 6 orchestration), 2,18 s sur la deuxième exécution locale.
+- `npm test` : **329/329**, 35 fichiers (322 préexistants + 7 orchestration), 1,61 s sur l’exécution finale locale.
 - SDK navigateur reconstruit : aucun diff de `assets/vendor/supabase.js`.
 - Installation légère locale : lancement réel **156.0.8078.4** réussi ; cache Windows préexistant, donc durée non comparable à un runner Linux froid.
 - Première suite locale complète : 52/53, échec de l’attente de retry décrit ci-dessus ; ne constitue pas une validation complète.
-- Retry et changement de compte ciblés, `--repeat-each=3 --workers=2` : **6/6**, 8,9 s.
-- Suite complète finale, inspection visuelle et benchmarks CI : à compléter avec les résultats exécutés.
+- Retry automatique et changement de compte ciblés, `--repeat-each=3 --workers=2` : **6/6**, 8,8 s.
+- Suite classique complète finale : **53/53**, 28,1 s (8 workers locaux ; ne pas comparer directement aux 2 workers CI).
+- Inspection visuelle des captures synthétiques ITK/apparence 1280 et 390 px, clair/sombre : dialogue, focus clavier et contrôles lisibles, aucune régression observée. Les captures restent ignorées sous `.tmp/settings-visual/`, sans session réelle.
 
 ### Mesures après
 
-Les runs de la branche et les trois checks du dernier commit seront renseignés après exécution. Tant que cette section est incomplète, la parallélisation est expérimentale et aucun gain chiffré final n’est revendiqué.
+Première mesure : commit `fd10102`, [Qualité 40457986450](https://github.com/Vladoche/mon-bprea/actions/runs/40457986450) et [Sécurité 40457986511](https://github.com/Vladoche/mon-bprea/actions/runs/40457986511). Trois jobs réussis ; 328 tests Vitest à ce stade, 53 E2E classiques, 350 assertions pgTAP, 11 groupes Auth/profils, 22 Drill, 26 personnels et 24 parcours Supabase réels. Aucun repli APT ni refus de débit Auth constaté ; arrêt de stack réussi.
+
+| Mesure après | Exécution 1 |
+| --- | ---: |
+| Préparation sécurité jusqu’à stack | 10,0 s |
+| Démarrage stack | 68,8 s |
+| Chargement environnement | 1,6 s |
+| pgTAP | 18,0 s |
+| Auth réel, expiration et nettoyage compris | 153,26 s |
+| Backend Drill | 1,48 s |
+| Backend personnel | 1,52 s |
+| Chromium Supabase : préparation et validation réelle | 12,35 s |
+| Chromium Supabase : 24 E2E | 152,23 s |
+| Phase concurrente après pgTAP | 167,6 s |
+| Total sécurité | 269,9 s |
+| Chromium classique : préparation et validation réelle | 11,6 s |
+| 53 E2E classiques, étape | 70,8 s |
+| Vitest, durée interne | 2,72 s |
+| Enveloppe totale CI observée | 270,5 s |
+
+Auth se termine à 05:58:49 UTC pendant que Chromium tourne encore, jusqu’à 05:59:03 UTC : le chevauchement est réellement observé. L’attente des JWT n’a pas été raccourcie. Cette première mesure enlève environ 143 s au job sécurité par rapport au run rapide de référence (~35 %), malgré un navigateur réel un peu plus lent. Une deuxième exécution est nécessaire avant de conclure sur la répétabilité ; les checks du dernier commit seront vérifiés après finalisation du document.
 
 ### Périmètre préservé
 
