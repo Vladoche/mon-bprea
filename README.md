@@ -320,6 +320,8 @@ Les 12 photographies sont conservées localement avec leurs crédits : 6 CC0, 4 
 
 ## Limites explicites
 
+Le [dossier préparatoire RGPD 6.4.1](docs/rgpd/INVENTAIRE-DONNEES.md) recense les données et stockages, les [flux et prestataires](docs/rgpd/FLUX-ET-PRESTATAIRES.md), le [projet de registre](docs/rgpd/REGISTRE-TRAITEMENTS.md), les [décisions encore à valider](docs/rgpd/DECISIONS-A-VALIDER.md) et les [prérequis des droits](docs/rgpd/PREPARATION-DROITS.md). La [politique de confidentialité](docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) est un **projet non validé, non destiné à publication en l'état**. Ce dossier ne prouve pas une conformité acquise et n'ouvre pas les comptes étudiants. Les preuves et limites figurent dans la [validation 6.4.1](docs/validations/VALIDATION-LOT6-4-1.md).
+
 Le [contrat client ITK/apparence](docs/architecture/ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md), la [validation 6.3.4](docs/validations/VALIDATION-LOT6-3-4.md) et le [bilan global 6.3](docs/validations/BILAN-LOT6-3.md) précisent garanties, preuves et étapes avant ouverture. La sauvegarde personnelle des huit paramètres ITK et des choix saison/luminosité suit une confirmation distante, sans génération automatique ni import implicite.
 
 - **Contenus pédagogiques illustratifs** : les formulations des cours sont simplifiées pour la démonstration ; ne remplacent ni les supports des formateurs ni le référentiel de certification. Les intitulés des UC reprennent la structure nationale du BPREA ; leur affectation aux chapitres reste à valider avec le centre.
