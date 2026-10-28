@@ -7,6 +7,7 @@ import { mutateCourse, recordPersonalQuiz, prepareNextOperation, acknowledgeOper
 import { previewLegacyImport, applyLegacyImport } from './course-quiz-import.js';
 import { createCourseQuizTransport, classifyCourseQuizError } from './course-quiz-transport.js';
 import { delayFor } from './sync-runtime.js';
+import { subscribePrivacy } from './privacy-events.js';
 
 export const VISITOR_PROGRESS_KEY = 'bprea-demo-progress-v1';
 export const IMPORT_PROVENANCE_KEY = 'bprea-demo-progress-provenance-v1';
@@ -348,9 +349,16 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
       return snapshot();
     },
     synchronize,
-    stop() { stopped = true; invalidate(); unsubscribe(); broadcast?.close(); listeners.forEach(remove => remove()); document = null; scope = null; mode = 'blocked'; view = unavailable('Recharge la page pour vérifier le compte.'); notify(); },
+    stop() { stopped = true; invalidate(); unsubscribe(); unPrivacy(); broadcast?.close(); listeners.forEach(remove => remove()); document = null; scope = null; mode = 'blocked'; view = unavailable('Recharge la page pour vérifier le compte.'); notify(); },
   };
+  let privacyPaused = false;
+  const unPrivacy = subscribePrivacy(phase => {
+    privacyPaused = phase === 'suspend'; invalidate(); document = null; mode = 'blocked';
+    view = unavailable('Vérification des caches après une action de confidentialité…'); syncState = 'storage-error'; notify();
+    if (!privacyPaused) ready = identity(auth.getState());
+  });
   const unsubscribe = auth.subscribe(state => {
+    if (privacyPaused) return;
     ready = identity(state).catch(() => {
       invalidate(); mode = 'blocked'; scope = null; document = null; syncState = 'session';
       view = unavailable('L’identité personnelle est indisponible. Aucune donnée privée n’est affichée.'); notify();

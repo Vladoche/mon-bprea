@@ -123,7 +123,7 @@ export function createLocalAuthFixture(environment) {
       let result;
       try { result = await admin.auth.admin.deleteUser(userId); }
       catch { throw new Error('Nettoyage local incomplet du seul compte fictif créé par ce run.'); }
-      if (result.error) throw new Error('Nettoyage local incomplet du seul compte fictif créé par ce run.');
+      if (result.error && !(result.error.status === 404 && result.error.code === 'user_not_found')) throw new Error('Nettoyage local incomplet du seul compte fictif créé par ce run.');
       userId = null;
     },
   };

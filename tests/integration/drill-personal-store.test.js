@@ -86,7 +86,7 @@ describe('IndexedDB personnel — données et file dans une seule transaction', 
 
   it('refuse un document personnel de version inconnue sans le réécrire', async () => {
     const repo = createPersonalRepository(scope, { indexedDB }); await repo.read();
-    const request = indexedDB.open('mon-bprea-drill-personal-v1', 1);
+    const request = indexedDB.open('mon-bprea-drill-personal-v1');
     const db = await new Promise(resolve => { request.onsuccess = () => resolve(request.result); });
     const corrupt = { version: 999, scope, preserved: 'aucune perte' };
     await new Promise(resolve => { const tx = db.transaction('accounts', 'readwrite'); tx.objectStore('accounts').put(corrupt, scope); tx.oncomplete = resolve; });

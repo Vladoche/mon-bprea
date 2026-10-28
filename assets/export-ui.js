@@ -46,7 +46,10 @@ export async function initExportUI(root, { auth, configuration } = {}) {
     find('cancel').disabled = !busy && state.status !== 'ready';
     find('download').disabled = state.status !== 'ready';
     coverage(find('coverage'), state.coverage);
-    if (['identity', 'cancelled'].includes(state.status)) clearFiles();
+    if (['identity', 'cancelled'].includes(state.status)) {
+      clearFiles(); preview.textContent = ''; preview.hidden = true;
+      find('confirm').checked = false; updateDeviceButton();
+    }
   });
   const authUnsubscribe = auth.subscribe(state => {
     find('prepare').disabled = state.status !== 'authenticated' || ['verifying', 'reading', 'validating'].includes(current?.status);

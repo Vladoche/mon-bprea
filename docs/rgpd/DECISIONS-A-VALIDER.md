@@ -25,6 +25,10 @@
 
 ## Première analyse qualitative des risques
 
+### Complément technique 6.4.3, sans approbation de D01–D14
+
+La [suppression préparée](../architecture/SUPPRESSION-DONNEES-PERSONNELLES.md) et le [projet de conservation](POLITIQUE-CONSERVATION-PROJET.md) apportent des contrats/test et une matrice à examiner. **Toutes les décisions restent non validées.** D07 doit instruire les événements/durées, y compris la nouvelle barrière locale par portée UUID ; les durées du JSON sont nulles, aucun moteur de purge n'est actif. D08 doit décider les exceptions, le nettoyage des appareils absents et la restauration avant réouverture ; aucune trace serveur perpétuelle n'est créée. D13 doit approuver habilitations, secrets du futur service et procédure de reprise manuelle en cas de preuve expirée ou résultat non confirmé. D01/D04/D14 et les dépendances D03/D05/D06/D09/D12 restent bloquantes. Le prototype refuse une URL Supabase hébergée ; ni un test vert ni un bouton local ne valent autorisation DEV/PROD ou ouverture.
+
 **C :** ce tableau est une appréciation préparatoire sur les droits des personnes, pas une mesure de fréquence en production. Gravité : modérée (perte/gêne limitée), élevée (exposition ou perte d'historique personnel), très élevée (compromission de comptes ou plusieurs personnes). Probabilité : **non chiffrable ici** sans usages, volumes et incidents ; « plausible » décrit un scénario, pas une statistique. Les protections sont des faits A du code ; leur déploiement hébergé n'est pas attesté. Les tests sont des éléments de preuve délimités, pas une garantie de risque nul.
 
 | Risque / scénario | Gravité / probabilité | Protection A et preuve | Limitation restante | Action C / décision D / lot |

@@ -5,6 +5,7 @@ import { createPersonalRepository, personalChange, personalScope, clone } from '
 import { acknowledgeOperation, prepareNextOperation, reconcileHistory, resolveDrillConflict } from './drill-sync-model.js';
 import { createDrillTransport, classifySyncError } from './drill-sync-transport.js';
 import { delayFor } from './sync-runtime.js';
+import { subscribePrivacy } from './privacy-events.js';
 
 const emptyView = error => ({ series: {}, error, warnings: [] });
 function openBroadcast() { try { return globalThis.BroadcastChannel ? new BroadcastChannel('mon-bprea-drill-personal-v1') : null; } catch { return null; } }
@@ -148,7 +149,13 @@ export function createDrillSyncService({ auth, configuration, repositoryFactory 
       return result;
     } catch (error) { if (active(current)) { syncError = error.message; notify(); } return { series: null, error: error.message, warnings: [] }; }
   }
-  const unsubscribe = auth.subscribe(state => { ready = changeIdentity(state).catch(() => {
+  let privacyPaused = false;
+  const unPrivacy = subscribePrivacy(phase => {
+    privacyPaused = phase === 'suspend'; invalidate(); document = null; mode = 'blocked';
+    view = emptyView('Vérification des caches après une action de confidentialité…'); syncState = 'storage-error'; notify();
+    if (!privacyPaused) ready = changeIdentity(auth.getState());
+  });
+  const unsubscribe = auth.subscribe(state => { if (privacyPaused) return; ready = changeIdentity(state).catch(() => {
     invalidate(); mode = 'blocked'; scope = null; document = null; view = emptyView('L’identité personnelle est indisponible. Aucune donnée privée n’est affichée.'); notify();
   }); });
   if (broadcast) broadcast.onmessage = event => { if (mode === 'personal' && event.data === scope) refresh().then(() => requestSync()).catch(() => {}); };
@@ -165,7 +172,7 @@ export function createDrillSyncService({ auth, configuration, repositoryFactory 
       pullRequired = true; return synchronize(); },
     async resolveConflict(id) { const current = generation; await repository.change(saved => resolveDrillConflict(saved, id), () => active(current)); await refresh(current); requestSync(true); },
     synchronize,
-    stop() { stopped = true; invalidate(); unsubscribe(); broadcast?.close(); listeners.forEach(remove => remove()); document = null; view = emptyView('La page doit être rechargée pour vérifier le compte.'); notify(); },
+    stop() { stopped = true; invalidate(); unsubscribe(); unPrivacy(); broadcast?.close(); listeners.forEach(remove => remove()); document = null; view = emptyView('La page doit être rechargée pour vérifier le compte.'); notify(); },
   };
 }
 

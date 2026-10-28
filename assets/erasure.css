@@ -1,0 +1,14 @@
+.data-erasure { margin-block: 2rem 4rem; }
+.data-erasure [data-closure-status]:empty { display: none; }
+.data-erasure-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.data-erasure-grid > section { border: 1px solid var(--color-border); border-radius: 1rem; padding: clamp(1rem, 3vw, 1.75rem); background: var(--color-surface); min-width: 0; }
+.data-erasure fieldset { display: grid; gap: .6rem; margin-block: 1rem; border: 1px solid var(--color-border); border-radius: .6rem; padding: 1rem; }
+.data-erasure label { display: flex; gap: .5rem; align-items: baseline; }
+.data-erasure input[type="checkbox"] { flex-shrink: 0; }
+.data-erasure dialog { width: min(42rem, calc(100% - 2rem)); max-height: 85dvh; overflow: auto; border: 1px solid var(--color-border); border-radius: 1rem; padding: 1.5rem; color: var(--text); background: var(--color-surface); }
+.data-erasure dialog::backdrop { background: rgb(0 0 0 / .65); }
+.data-erasure li { margin-block: .65rem; overflow-wrap: anywhere; }
+.data-erasure form { display: grid; gap: 1rem; }
+.data-erasure form label { display: grid; }
+.data-erasure input[type="password"], .data-erasure input[name="confirmation"] { width: 100%; padding: .75rem; color: inherit; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: .5rem; }
+@media (max-width: 760px) { .data-erasure-grid { grid-template-columns: 1fr; } }

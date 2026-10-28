@@ -95,6 +95,29 @@ test('Drill : première réponse, correction, reprise et historique après recha
   await expect(metric(page, 'Taux de réussite')).toHaveText('100 %');
 });
 
+test('Drill : une sauvegarde de choix retardée conserve le bouton focalisé et la validation au clavier', async ({ page }) => {
+  await page.goto('/mon-bprea/drill.html?unit=uc3');
+  await page.getByRole('button', { name: 'Commencer cette série' }).click();
+  await page.evaluate(() => {
+    const request = navigator.locks.request.bind(navigator.locks);
+    const gate = new Promise(resolve => { window.releaseDraftSave = resolve; });
+    navigator.locks.request = (name, options, callback) => request(name, options, async lock => {
+      if (name === 'bprea-demo-drill-v1') await gate;
+      return callback(lock);
+    });
+  });
+  const question = page.locator('.drill-question').first();
+  const questionId = await question.locator('form').getAttribute('data-question');
+  await question.getByRole('radio').first().check();
+  const submit = question.getByRole('button', { name: 'Valider cette réponse', exact: true });
+  await submit.focus(); await page.evaluate(() => window.releaseDraftSave());
+  await expect(page.locator('#drill-save-status')).toContainText('Choix enregistré sur cet appareil');
+  await expect(submit).toBeFocused(); await submit.press('Enter');
+  await expect(question.locator('.drill-correction')).toBeVisible();
+  const saved = JSON.parse(await page.evaluate(() => localStorage.getItem('bprea-demo-drill-v1')));
+  expect(Object.values(saved.series)[0].answers[questionId]).toBeDefined();
+});
+
 test('Dashboard : état vide puis deux premières réponses réelles, sans gonfler le taux', async ({ page }) => {
   await page.goto('/tableau-de-bord.html');
   await expect(metric(page, 'Exercices réalisés')).toHaveText('0');

@@ -116,7 +116,7 @@ describe('cache botanique personnel et import atomique', () => {
   it('cache futur reste physiquement inchangé et identité invalidée ne peut pas écrire', async () => {
     const repo = createBotanicalRepository(scope, { indexedDB }); await repo.read();
     await expect(repo.change(doc => recordPersonalSession(doc, botanicalSession(), ids()), () => false)).rejects.toThrow(/compte/);
-    const request = indexedDB.open(PERSONAL_BOTANICAL_DB, 1); const db = await new Promise(resolve => { request.onsuccess = () => resolve(request.result); });
+    const request = indexedDB.open(PERSONAL_BOTANICAL_DB); const db = await new Promise(resolve => { request.onsuccess = () => resolve(request.result); });
     const future = { version: 999, scope, preserve: ['ne pas effacer'] };
     await new Promise(resolve => { const tx = db.transaction('accounts', 'readwrite'); tx.objectStore('accounts').put(future, scope); tx.oncomplete = resolve; });
     await expect(repo.read()).rejects.toThrow(/illisible/); await expect(repo.change(doc => recordPersonalSession(doc, botanicalSession(), ids()))).rejects.toThrow();

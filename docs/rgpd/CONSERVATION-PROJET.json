@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "validated": false,
+  "approval": null,
+  "automaticPurgeAuthorized": false,
+  "rules": [
+    { "category": "auth_profiles", "trigger": "fin_relation_a_definir", "durationMs": null },
+    { "category": "pedagogical_history", "trigger": "fin_finalite_pedagogique_a_definir", "durationMs": null },
+    { "category": "scores_results", "trigger": "fin_usage_statistique_a_definir", "durationMs": null },
+    { "category": "personal_cache", "trigger": "retrait_cache_ou_fin_usage_appareil_a_definir", "durationMs": null },
+    { "category": "outbox_conflicts", "trigger": "resolution_ou_abandon_autorise_a_definir", "durationMs": null },
+    { "category": "import_archives", "trigger": "fin_besoin_reprise_a_definir", "durationMs": null },
+    { "category": "visitor", "trigger": "fin_usage_local_a_definir", "durationMs": null },
+    { "category": "logs", "trigger": "evenement_journalise_a_qualifier", "durationMs": null },
+    { "category": "backups", "trigger": "creation_point_restauration_a_qualifier", "durationMs": null },
+    { "category": "rights_requests", "trigger": "cloture_demande_a_qualifier", "durationMs": null },
+    { "category": "local_write_barrier", "trigger": "fin_anciens_clients_a_verifier", "durationMs": null }
+  ]
+}

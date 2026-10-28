@@ -100,6 +100,12 @@ Les noms des tables internes Auth ne sont pas un contrat d'export applicatif. **
 
 ## Bilan de conservation et complétude
 
+### Delta 6.4.3 (les tableaux ci-dessus décrivent l'audit initial)
+
+Le [lot 6.4.3](../architecture/SUPPRESSION-DONNEES-PERSONNELLES.md) ajoute l'effacement local sélectionné et un prototype de clôture strictement éphémère. Les quatre bases conservent leurs noms et records `accounts` v1 ; leur **version de base** passe à 2 avec `privacy[scope] = {version:1,epoch,blocked}`. La portée UUID reste personnelle : ce marqueur n'est ni anonyme ni un historique pédagogique ; il demeure après retrait/reprise pour bloquer les anciens clients. Durée nécessaire et retrait futur à valider D07/D08/D12/D13, sans TTL ni suppression aveugle de comptes. L'export pédagogique 6.4.2 reste partiel et n'en prétend pas la couverture.
+
+Le canal `mon-bprea-privacy-v1` transporte seulement `{phase:'suspend'|'settled'}`, sans UUID, réponses ou token. Web Locks coordonne les actions destructives locales. Le serveur local reçoit temporairement Bearer/mot de passe pour une nouvelle connexion native puis une capacité chiffrée d'autorisation en mémoire ; aucune copie de ces secrets dans les caches, exports ou logs applicatifs, aucun dossier nominatif serveur ajouté. Les logs d'infrastructure restent un traitement fournisseur à qualifier. Aucun usage Storage ajouté et aucun service déployé sur DEV/PROD. [Projet de conservation](POLITIQUE-CONSERVATION-PROJET.md) non validé, aucune purge automatique ; [preuves et limites](../validations/VALIDATION-LOT6-4-3.md).
+
 | Ensemble | Durée fonctionnelle constatée A | Politique validée / décision D | Proposition C pour 6.4.3 |
 | --- | --- | --- | --- |
 | Comptes, profils, historiques S | Pas d'échéance/purge temporelle dans les migrations applicatives | Durée du compte, lien avec formation, fin de relation et archives éventuelles inconnus | Définir événement de fin, nécessité résiduelle, délai justifié et exécution vérifiable ; aucune durée arbitraire proposée. |

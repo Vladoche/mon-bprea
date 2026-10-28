@@ -98,7 +98,7 @@ test('quatre caches personnels, opérations et archives : couverture limitée ho
   const before = await page.evaluate(async ({ docs, caches, scope, foreign }) => {
     const names = Object.entries(caches);
     for (const [domain, name] of names) await new Promise((resolve, reject) => {
-      const req = indexedDB.open(name, 1); req.onupgradeneeded = () => req.result.createObjectStore('accounts');
+      const req = indexedDB.open(name); req.onupgradeneeded = () => req.result.createObjectStore('accounts');
       req.onsuccess = () => { const db = req.result, tx = db.transaction('accounts', 'readwrite'); tx.objectStore('accounts').put(docs[domain], scope); tx.objectStore('accounts').put({ scope: foreign, private: 'B_ONLY' }, foreign); tx.oncomplete = () => { db.close(); resolve(); }; tx.onabort = reject; };
     });
     return JSON.stringify(docs);
