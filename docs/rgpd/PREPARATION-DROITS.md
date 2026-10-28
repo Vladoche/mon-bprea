@@ -1,6 +1,6 @@
 # Préparation des droits — spécifications 6.4.2 à 6.4.4
 
-**Préparation 6.4.1, complétée par l'implémentation 6.4.2 du 27 octobre 2026.** Les faits A et identifiants de sources renvoient à l'[inventaire](INVENTAIRE-DONNEES.md). Le 6.4.1 n'ajoutait aucun mécanisme de droits ; le 6.4.2 livre la copie technique décrite ci-dessous. Les recommandations C et décisions D des lots suivants restent non implémentées/non validées.
+**Préparation 6.4.1, actualisée après 6.4.2/6.4.3 et recette 6.4.4 le 28 octobre 2026.** Les faits et sources renvoient à l'[inventaire](INVENTAIRE-DONNEES.md). Copie technique, effacement local et prototype de clôture sont développés ; leur état d'exécution relève de la [matrice des preuves](MATRICE-CONFORMITE-ET-PREUVES.md). Les décisions juridiques et procédures hébergées restent non validées/non activées.
 
 ## Conditions communes avant réalisation
 
@@ -8,7 +8,9 @@ Le responsable, les acteurs, bases, destinataires et règles de conservation doi
 
 **B :** accès et copie au sens de l'article 15 ne se confondent pas avec portabilité de l'article 20, dont les conditions dépendent notamment de la base et de l'automatisation. Les droits peuvent comporter conditions et exceptions ; ne pas promettre une suppression universelle immédiate. Prévoir le délai de réponse applicable de l'article 12, y compris prolongation motivée et information dans le premier mois lorsque ses conditions sont réunies. Source : [RGPD chapitre III](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), consulté le 27/10/2026. Définir un suivi de demande minimisé, accès restreint et rétention propre (D04/D07).
 
-## Matrice de couverture obligatoire des futures procédures (C)
+## Matrice de couverture des procédures et de leurs compléments (C)
+
+La table conserve le périmètre d'intention ; les paragraphes de réalisation distinguent ce qui est effectivement livré et ce qui demande une procédure complémentaire. En particulier, les `raw`/archives de tiers ne sont jamais diffusés automatiquement. Le store `privacy` v2, absent de la copie pédagogique, doit être traité par le canal complémentaire.
 
 | Sources A | Accès/export 6.4.2 à spécifier | Suppression/conservation 6.4.3 à spécifier | Risque d'oubli et condition de confidentialité |
 | --- | --- | --- | --- |
@@ -38,7 +40,7 @@ Contrat exact, limites de volume et dictionnaire : [EXPORT-DONNEES-PERSONNELLES]
 2. **Récupération complète.** Parcourir toutes les pages des dix tables applicatives pertinentes et sources Auth réellement retenues ; détecter toute erreur. Les API actuelles font des passes multi-requêtes, pas un snapshot global. Définir cohérence temporelle et bornes de reprise ; si une source manque, annoncer une copie partielle motivée au lieu d'une réussite exhaustive.
 3. **Complément local.** Proposer séparément les seules données attribuées à la personne sur l'appareil courant : brouillons, outbox, conflits, imports et anciennes clés. Ne jamais parcourir/exporter tous les comptes d'IndexedDB ni la totalité du localStorage. Indiquer qu'un autre appareil hors ligne peut contenir d'autres données non accessibles à cette procédure.
 4. **Réconciliation sans perte.** Conserver provenance et états (`local uniquement`, `confirmé`, `en attente`, `conflit`, `archive`, `dérivé`) ; relier doublons techniques par identité stable et distinguer intentions divergentes. Préserver dates réelles et nulls. Une opération incertaine n'est ni écartée ni comptée comme deuxième tentative par défaut.
-5. **Format proposé.** Documenter un format structuré versionné avec date de collecte, portée, dictionnaire de champs, sources/états, bornes et avertissements. Contenu pédagogique public d'un snapshot à contextualiser, sans étendre la collecte. Décider ensuite formats et portabilité, sans coder l'export maintenant.
+5. **Format livré.** JSON v1 avec date de collecte, portée, dictionnaire, sources/états, bornes et avertissements ; contenu pédagogique public d'un snapshot contextualisé. Les formats complémentaires et conditions de portabilité restent à décider.
 6. **Confidentialité.** Liste explicite d'exclusions des secrets ; examen des sources brutes/champs inconnus pouvant contenir des tiers. Ne pas envoyer l'export à une URL fournie par query, un compte suivant ou un service externe. Décider remise sécurisée, expiration et absence de cache réseau public ; pas d'e-mail de copie complète improvisé.
 7. **Rectification/limitation.** Définir comment corriger identité/profil et traiter un historique déclaré inexact sans casser les contraintes append-only ni inventer une tentative. Le droit d'accès ne justifie pas l'assouplissement des RLS/guards. Les décisions sur limitation/rectification et éventuelles annotations demandent leur propre conception autorisée.
 
@@ -77,4 +79,4 @@ La procédure future devra définir l'ordre et l'atomicité possibles entre Auth
 | Livraison | `npm test`, `npm run test:e2e`, SDK sans diff et trois checks `unit-integration`, `e2e`, `supabase-security` sur le dernier commit ; artefact Pages sans document préparatoire ni secret. Préserver optimisations CI #20 et rulesets. |
 | Ouverture | Ne pas confondre recette locale, publication de notice, déploiement et invitation. Autorisation de production explicite, préparatifs 6.5 et configuration distante vérifiée dans un lot autorisé ; aucun runner destructif sur compte étudiant. |
 
-Les tests de panne utilisent horloge contrôlée et données isolées selon [TESTS.md](../TESTS.md) ; les expirations Auth réelles suivent les règles des suites locales Supabase. Les capacités techniques 6.4.2/6.4.3 décrites plus haut ne remplacent ni les décisions juridiques ni la recette finale 6.4.4, qui n'est pas commencée ici.
+Les tests de panne utilisent horloge contrôlée et données isolées selon [TESTS.md](../TESTS.md) ; les expirations Auth réelles suivent les suites locales Supabase. La [recette finale 6.4.4](../validations/VALIDATION-LOT6-4-4.md) relie scénarios A–E, domaines et exécutions identifiées. Le [projet de procédure demandes/incidents](PROCEDURE-DEMANDES-ET-INCIDENTS-PROJET.md) traite les compléments : Auth interne, bruts exclus, barrières UUID, copies absentes et sauvegardes. Le [dossier de préouverture](DOSSIER-PREOUVERTURE.md) conserve les blocages ; aucune de ces pièces ne valide D01–D14.

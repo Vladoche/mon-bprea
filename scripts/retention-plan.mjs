@@ -1,7 +1,7 @@
 /** Review-only planner. No database, filesystem mutation, scheduler or executor.
  * A duration in test fixtures is not an approved duration for Mon BPREA. */
 export function planRetention(policy, records, now) {
-  if (!policy?.validated || !policy.approval || !Array.isArray(policy.rules) || !Number.isFinite(now)) throw new Error('Politique non validée : aucune purge autorisée.');
+  if (policy?.validated !== true || !policy.approval || !Array.isArray(policy.rules) || !Number.isFinite(now)) throw new Error('Politique non validée : aucune purge autorisée.');
   const rules = new Map();
   for (const rule of policy.rules) {
     if (!rule.category || rules.has(rule.category) || !rule.trigger || !rule.purpose || !rule.justification || !rule.validator ||

@@ -3,6 +3,7 @@ import { createErasureService, PERSONAL_ERASURE } from './erasure-service.js';
 import { VISITOR_SOURCES } from './export-sources.js';
 import { closureAvailable, createClosureClient } from './closure-client.js';
 const issues = { identity: 'L’identité doit être vérifiée à nouveau. Aucune nouvelle suppression autorisée.',
+  confirmation: 'La confirmation n’est plus disponible. Examine à nouveau la sélection avant de confirmer. Aucune nouvelle suppression effectuée.',
   changed: 'La sauvegarde a changé depuis l’aperçu. Relis la sélection avant de confirmer à nouveau.',
   unknown: 'Une sauvegarde est illisible, future ou ne permet pas d’attribuer ses archives. Elle est conservée.',
   future: 'Version de stockage inconnue : aucune suppression de cette source.',

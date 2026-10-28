@@ -8,6 +8,7 @@ import { personalScope } from '../../assets/drill-personal-store.js';
 import { emptyPersonalDocument, mutateCourse } from '../../assets/course-quiz-model.js';
 import { TABLES } from '../../assets/export-sources.js';
 import { stopOrdinarySync } from '../helpers/export-browser.js';
+import { personalRecords } from '../helpers/personal-browser.js';
 import { seedPersonalTables as seed, readPersonalTables as sqlSnapshot } from '../helpers/personal-data-local.js';
 
 async function copy(page) {
@@ -55,6 +56,14 @@ test('Export réel : dix tables, pagination, caches en attente, RLS A/B et sessi
     expect(JSON.stringify(fileA).includes(b.userId)).toBe(false);
     for (const secret of ['access_token', 'refresh_token', 'token_hash', 'service_role']) expect(JSON.stringify(fileA).includes(secret)).toBe(false);
     expect(JSON.stringify(await sqlSnapshot(a)) === JSON.stringify(beforeA)).toBe(true);
+    stage = 'effacement local après copie, serveur et fichier conservés';
+    await page.locator('[data-erase-personal]').getByLabel('Cours et QCM', { exact: true }).check();
+    await page.locator('[data-erase-preview]').click(); await expect(page.getByRole('dialog')).toBeVisible();
+    await page.locator('[data-erase-confirm]').click(); await expect(page.locator('[data-erase-status]')).toContainText('Effacement local confirmé');
+    expect((await personalRecords(page, 'mon-bprea-course-quiz-personal-v1')).some(record => record.scope === scope)).toBe(false);
+    expect(fileA.data.personalLocal.courses.operations.some(op => op.payload.p_lesson_id === 'export-local-uniquement')).toBe(true);
+    expect(JSON.stringify(await sqlSnapshot(a)) === JSON.stringify(beforeA)).toBe(true);
+    expect(JSON.stringify(await sqlSnapshot(b)) === JSON.stringify(beforeB)).toBe(true);
     stage = 'compte B dans le même navigateur';
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
     await expect(page.locator('[data-export-download]')).toBeDisabled();
