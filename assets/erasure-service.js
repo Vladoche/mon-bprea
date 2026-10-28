@@ -94,8 +94,8 @@ export function createErasureService({ auth, configuration, storage = globalThis
               const result = await changeLocal(group.database, ticket.scope, { indexedDB,
                 active: () => plan === ticket && current(ticket.id, ticket.version), expected: group.expected,
                 transform: group.group === 'settings' && group.domains.length === 1 ? record => settingsSubset(record, group.domains) : undefined });
-              results.push({ source: group.domains.join(' / '), ...result });
-            } catch (issue) { results.push({ source: group.domains.join(' / '), status: 'failed', reason: issue.code || 'unavailable' }); }
+              results.push({ source: group.domains.join(' / '), kind: 'personal', ...result });
+            } catch (issue) { results.push({ source: group.domains.join(' / '), kind: 'personal', status: 'failed', reason: issue.code || 'unavailable' }); }
           }
           for (const source of ticket.visitorRecords) {
             try {
@@ -103,8 +103,8 @@ export function createErasureService({ auth, configuration, storage = globalThis
               if (storage.getItem(source.key) !== source.raw) throw error('changed');
               storage.removeItem(source.key);
               if (storage.getItem(source.key) !== null) throw error('unavailable');
-              results.push({ source: source.domain, status: source.raw === null ? 'absent' : 'erased' });
-            } catch (issue) { results.push({ source: source.domain, status: 'failed', reason: issue.code || 'unavailable' }); }
+              results.push({ source: source.domain, kind: 'visitor', status: source.raw === null ? 'absent' : 'erased' });
+            } catch (issue) { results.push({ source: source.domain, kind: 'visitor', status: 'failed', reason: issue.code || 'unavailable' }); }
           }
         } finally { plan = null; generation++; publishPrivacy('settled'); }
         const failed = results.filter(item => item.status === 'failed').length;

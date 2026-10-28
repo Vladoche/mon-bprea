@@ -31,13 +31,15 @@ Node **24.22.0**, npm **10.4.0**, `npm ci` réussi, dépendances/verrou inchang�
 
 | Contrôle | Résultat observé / portée |
 | --- | --- |
-| `npm test` | **376 tests, 42 fichiers réussis** ; 352 tests antérieurs conservées. Mocks/fake-indexeddb ne sont pas une preuve RLS. |
+| `npm test` | **376 tests, 42 fichiers réussis** ; 352 tests antérieurs conservés. Mocks/fake-indexeddb ne sont pas une preuve RLS. |
 | Nouveaux contrats | 24 tests : autorisation, A/B/environnements/projets, sélection, annulation, compteur non confirmé, record futur/inaccessible, upgrade bloqué et aucun effacement tardif, rollback après DELETE si barrière échoue, ancienne v1, epoch/reprise, réponse réseau tardive, export invalidé ; identité/proof/TTL/schéma fermé, doubles demandes et pannes serveur ; règles de conservation refusées sans validation et horloge contrôlée. |
-| `npm run test:e2e` | **66 parcours réussis en 1,1 minute**, dont sept nouveaux ; 59 précédents conservés. Aucun test E2E exécuté sur Pages/DEV/PROD. |
+| `npm run test:e2e` | **67 parcours réussis en 1,1 minute**, dont huit nouveaux ; 59 précédents conservés. Aucun test E2E exécuté sur Pages/DEV/PROD. |
 | SDK | `npm run build:auth-sdk` puis `git diff --exit-code -- assets/vendor/supabase.js` réussis, bundle verrouillé identique. |
 | SQL/Auth réels sur le poste | **Non exécutés : Docker absent**. Ne pas déduire une réussite SQL des tests simulés. La preuve attendue vient exclusivement de la stack éphémère CI sur la tête finale de PR. |
 
 Les incidents intermédiaires sont conservés comme échecs, sans baisse d'assertion métier : ouverture forcée v1 des anciens helpers après évolution v2 (corrigée en lecture de la version existante), assertions sur fieldset au lieu d'un contrôle réellement désactivé, label visiteur comprenant son état, parcours à deux onglets n'ayant pas démarré le service visé. Une erreur réseau brute « Failed to fetch » a été remplacée par un état non confirmé compréhensible. La première suite complète a fait **65/66** : refus Auth affiché à tort comme erreur de stockage ; la frontière d'identité normalise désormais ce cas et conserve le record. La présence d'un cache initialement absent sans barrière a aussi été corrigée et couverte par un test de recréation.
+
+Première CI sur `e92e8b8` : [Qualité](https://github.com/Vladoche/mon-bprea/actions/runs/40642570706) réussie ; [sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/40642570743) en échec malgré **386 assertions pgTAP réussies**, service local disponible, suites Auth/backends réussies et **24/26 parcours réels**. La nouvelle recette atteint la confirmation serveur, les dix absences, les neuf RPC refusées et le retour de l'appareil, mais attendait à tort une erreur dans la vue visiteur. L'assertion contrôle désormais le mode visiteur, le cours décoché (aucun résultat privé réaffiché), l'outbox encore présente et les dix tables/B après retour réseau. L'autre échec est une perte de focus du bouton Drill lors du retour asynchrone d'une sauvegarde de choix ; une recette locale avec verrou retardé reproduit d'abord cet échec, puis passe après conservation du focus du bouton lors du rendu. Aucune assertion clavier historique retirée. Les résultats partiels nomment aussi explicitement « Cache personnel » et « Visiteur ». Ces corrections imposent de nouveaux checks sur la tête finale ; ce premier run reste déclaré en échec.
 
 ## Inspection visuelle et accessibilité
 

@@ -101,9 +101,14 @@ test('Clôture réelle : dix cascades, B intact, ancien JWT/outbox hors ligne, p
     stage = 'retour réseau de l’ancien appareil sans transfert ou réécriture';
     await secondContext.setOffline(false); await authIdentity(second, { retry: true }); await cachedCourse(second, 'retry');
     await expect.poll(async () => (await authIdentity(second)).userId).toBeNull();
+    stage = 'outbox restante du seul UUID supprimé';
     const local = (await personalRecords(second, 'mon-bprea-course-quiz-personal-v1')).find(record => record.scope === scope);
     expect(local.operations.some(op => op.state === 'pending')).toBe(true);
-    expect((await cachedCourse(second, 'state')).error !== null).toBe(true);
+    stage = 'vue privée retirée après refus de l’identité';
+    expect((await cachedCourse(second, 'state')).mode).toBe('visitor');
+    await expect(second.locator('#course-quiz-sync-status')).toContainText('visiteur');
+    await expect(second.locator('#mark-done')).not.toBeChecked();
+    stage = 'dix tables toujours absentes et B inchangé après retour réseau';
     for (const [name, spec] of Object.entries(TABLES)) {
       const result = await old.from(name).select(spec.owner).eq(spec.owner, a.userId); expect(result.error === null && result.data.length === 0).toBe(true);
     }

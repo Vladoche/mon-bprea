@@ -73,7 +73,7 @@ export async function initErasureUI(root, { auth, configuration } = {}) {
       if (disposed) return;
       find('erase-results').replaceChildren(...result.results.map(item => { const li = document.createElement('li');
         const label = item.source.split(' / ').map(key => PERSONAL_ERASURE[key] || VISITOR_SOURCES[key]?.label || key).join(' / ');
-        li.textContent = `${label} : ${item.status === 'failed' ? issues[item.reason] || issues.unavailable : item.status === 'absent' ? 'déjà absent' : 'effacement local confirmé'}`; return li; }));
+        li.textContent = `${item.kind === 'visitor' ? 'Visiteur' : 'Cache personnel'} : ${label} — ${item.status === 'failed' ? issues[item.reason] || issues.unavailable : item.status === 'absent' ? 'déjà absent' : 'effacement local confirmé'}`; return li; }));
       status(result.status === 'complete' ? 'Effacement local confirmé pour la sélection. Les données du serveur restent conservées.' : result.status === 'partial' ? 'Effacement local partiel. Certaines catégories n’ont pas pu être retirées ; consulte le détail.' : 'Effacement local non confirmé. Consulte le détail avant de réessayer.', result.status !== 'complete');
       for (const input of root.querySelectorAll('input[data-erase-kind]')) input.checked = false;
     } catch (issue) { status(issues[issue.code] || issues.unavailable, true); }

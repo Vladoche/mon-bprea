@@ -146,6 +146,8 @@ test('échec de stockage après une sélection mixte : résultat partiel et reco
   await page.locator('[data-erase-visitor]').getByLabel('Cours et QCM', { exact: true }).check();
   await preview(page); await page.locator('[data-erase-confirm]').click();
   await expect(page.locator('[data-erase-status]')).toContainText('Effacement local partiel');
+  await expect(page.locator('[data-erase-results]')).toContainText('Cache personnel : Cours et QCM');
+  await expect(page.locator('[data-erase-results]')).toContainText('Visiteur : Cours et QCM');
   expect(await read(page, CACHES.courses, scope(accounts.A.id))).toEqual(original.a);
   expect(await read(page, CACHES.courses, scope(accounts.B.id))).toEqual(original.b);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBeNull(); await captures(page, 'partiel');
