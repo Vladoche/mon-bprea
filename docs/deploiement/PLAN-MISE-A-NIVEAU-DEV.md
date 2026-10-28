@@ -1,10 +1,12 @@
 # Plan de mise à niveau Supabase DEV
 
-**PROPOSITION NON EXÉCUTÉE — initiée en 6.5.2, actualisée en 6.5.3.A le 28 octobre 2026.** Cible exclusive future : **`wcckbyhrtroittbfophv`**. Le mandat 6.5.3.A autorise seulement le générateur et les essais sur stack éphémère locale, avec leur livraison GitHub. Il **n'autorise aucune étape d'écriture hébergée ci-dessous**, invitation, session, e-mail, suppression ou déploiement. PROD reste exclu.
+**PROPOSITION NON EXÉCUTÉE — actualisation 6.5.3.B du 28 octobre 2026. EN ATTENTE D'AUTORISATION A.** Cible exclusive : **`wcckbyhrtroittbfophv`**. Les métadonnées DEV ont été relues ; aucune copie de données, migration, session d'essai ou modification hébergée réalisée. PROD reste exclu.
+
+Le [guide de sauvegarde Free](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) et le [runbook 6.5.3.B](RUNBOOK-MIGRATION-DEV-6-5-3B.md) précisent deux accords séparés : **A avant copie réelle**, puis **B après preuve et décision de risque, avant la seule migration personnelle**. Le [rapport actuel](../validations/VALIDATION-LOT6-5-3B.md) confirme les deux versions anciennes et l'absence de la troisième ; ne pas le confondre avec une migration exécutée. Docker/psql/pg_dump absents sur le poste, restauration non exécutée, protection du futur dossier privé à confirmer. Les comptes fictifs déclarés ne sont pas réputés jetables. Les étapes Auth/liens/frontend/recette ci-dessous restent ultérieures, hors de l'intervention SQL 6.5.3.B.
 
 Références : [audit daté et preuves R01–R16](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md), [matrice des écarts](MATRICE-ECARTS-DEV.md), [recette future](PLAN-RECETTE-DEV.md). Base Git de l'audit : `5affd57ee6e3a92d53eb8bddafc029268554c522`. Les faits sont ceux de la lecture du 28 octobre ; les relire avant intervention, surtout après le changement de défauts Data API annoncé pour le 30 octobre. Une approbation de ce document n'est pas une autorisation générale d'exécuter ses étapes.
 
-**Actualisation 6.5.3.A : solution B choisie par l’exploitant, invitations et récupération manuelles sans SMTP externe.** Le choix SMTP est abandonné après le 6.5.2, dont les constats restent historiques. Aucun fournisseur, domaine, Brevo, abonnement ou envoi automatique à installer. Le [générateur et son guide](INVITATIONS-ET-RECUPERATION-MANUELLES.md) sont exclusivement locaux : leur usage hébergé nécessite adaptation, protections et autorisation séparées. Aucune étape de ce plan n’est exécutée par le 6.5.3.A ; le futur 6.5.3.B concerne uniquement la migration personnelle manquante après autorisation.
+**Choix 6.5.3.A conservé : solution B, invitations et récupération manuelles sans SMTP externe.** Le choix SMTP est abandonné après le 6.5.2, dont les constats restent historiques. Aucun fournisseur, domaine, Brevo, abonnement ou envoi automatique à installer. Le [générateur et son guide](INVITATIONS-ET-RECUPERATION-MANUELLES.md) sont exclusivement locaux : leur usage hébergé nécessite adaptation, protections et autorisation séparées. Aucune étape d'écriture de ce plan n'est exécutée dans la préparation 6.5.3.B ; seule la migration personnelle pourra faire l'objet de B.
 
 ## Ordre et responsabilités
 
@@ -25,7 +27,7 @@ Ordre proposé : **A préconditions → B base → C Auth → D liens manuels �
 | Retour sûr | Désigner version frontend sûre Auth off, mesure autorisée de suspension serveur si fuite, règles de réconciliation des effacements, assistance et critères de reprise | Simple retour de fichier proposé comme restauration de données ou suppression automatique de tables |
 | Déclencheurs automatiques | Relire intégration DEV (off lors de R13), workflows et cible liée ; pas de déploiement Pages ni de migration automatique souhaités | Activation distante inattendue ou partage de cible avec un autre environnement |
 
-Pour six adultes, rechercher d'abord les moyens déjà disponibles et la perte réellement acceptable. Aucun abonnement Supabase payant, SMTP externe, domaine acheté ou nouveau projet n’est prévu. Si une copie DB/Auth est nécessaire, son contenu sensible, son stockage, sa durée et sa restauration doivent être autorisés dans un autre mandat : aucun dump n'est produit par cet audit.
+Pour six adultes, rechercher d'abord les moyens déjà disponibles et la perte réellement acceptable. Supabase Free uniquement, aucun SMTP externe, domaine acheté ou nouveau projet. La [proposition 6.5.3.B](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) borne la copie applicative hors dépôt et exclut Auth ; contenu, protection, durée et restauration nécessitent A, puis une décision sur les limites avant B. Aucun dump n'est produit par la phase préparatoire.
 
 ## B — Base PostgreSQL
 
