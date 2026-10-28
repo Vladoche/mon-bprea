@@ -65,7 +65,14 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     const downloading = page.waitForEvent('download'); await page.locator('[data-export-download]').click();
     const copyPath = await (await downloading).path(), copyText = await readFile(copyPath, 'utf8'), copy = JSON.parse(copyText);
     expect(copy.sourceScope.userId === a.userId && Object.keys(copy.data.server).length === 10).toBe(true);
-    expect(isDeepStrictEqual(copy.data.server, beforeA)).toBe(true);
+    // SQL snapshot orders by identity; export uses creation time + identity for
+    // some histories. Compare the same rows, retaining every field and value.
+    for (const [name, spec] of Object.entries(TABLES)) {
+      stage = `copie sauvegardée : valeurs de ${name}`;
+      const byIdentity = rows => [...rows].sort((a, b) => a[spec.key] < b[spec.key] ? -1 : a[spec.key] > b[spec.key] ? 1 : 0);
+      expect(isDeepStrictEqual(byIdentity(copy.data.server[name]), byIdentity(beforeA[name]))).toBe(true);
+    }
+    stage = 'copie sauvegardée : exclusions et limites affichées';
     expect(copyText.includes(b.userId) || copyText.includes('access_token') || copyText.includes('refresh_token')).toBe(false);
     await expect(page.locator('.data-erasure')).toContainText('Un fichier déjà téléchargé ne peut pas être rappelé');
     await expect(page.locator('.data-erasure')).toContainText('Les appareils éteints ou hors ligne peuvent garder des caches');

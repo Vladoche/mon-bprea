@@ -7,7 +7,7 @@
 | Référence | Exécution et identification | Résultat / limite |
 | --- | --- | --- |
 | L-U | 28/10/2026, Node 24.22.0, après `npm ci`, `npm test` sur la branche dédiée ; détail dans [VALIDATION-LOT6-4-4](../validations/VALIDATION-LOT6-4-4.md) | **380 tests / 42 fichiers réussis**. Mocks et fake-indexeddb, aucune preuve RLS. |
-| L-B | Même recette, `npm run test:e2e` après L-U | **73 parcours Chromium réussis en 52,4 s**, dont scénarios A/B/D/E et inventaire de l'artefact. HTTP personnel synthétique ; pas PostgreSQL. |
+| L-B | Même recette, `npm run test:e2e` après L-U ; rejouée après correction de l'assertion C | **73 parcours Chromium réussis en 57,3 s** au dernier passage local, dont A/B/D/E et inventaire de l'artefact. HTTP personnel synthétique ; pas PostgreSQL. |
 | L-P | Préparation locale par `scripts/prepare-pages.py` et `privacy-artifact.spec.js` sous `/mon-bprea/` | 17 pages vierges, réseau/stockages/URL ; configuration Auth désactivée. Ni CDN ni réglages hébergés reproduits. |
 | L-V | Inspection des captures synthétiques d'export/effacement, 1280/390 px, clair/sombre ; clavier testé par L-B | Preuve locale limitée aux écrans inspectés, pas audit complet d'accessibilité. |
 | CI-U / CI-B | Jobs `unit-integration` et `e2e` de la **tête finale de PR** | SHA, liens et résultats observés consignés dans la description de PR ; à vérifier avant livraison. Un ancien SHA vert ne suffit pas. |

@@ -54,7 +54,7 @@ Node **24.22.0**, npm **10.4.0**. `npm ci` réussi, dépendances/verrou inchang�
 | Vérification | Résultat / portée |
 | --- | --- |
 | `npm test` | **380 tests, 42 fichiers réussis**, après 376 conservés + 4 nouveaux cas utiles (dont tests comprenant plusieurs refus). Logique JS/IDB simulée uniquement. |
-| `npm run test:e2e` | **73/73 réussis en 52,4 s**, dont six nouveaux parcours autonomes. Premier passage complet avant ajout du timeout : 72/72 en 48,9 s ; les résultats finaux incluent bien le timeout natif observé en 16,9 s. |
+| `npm run test:e2e` | **73/73 réussis en 57,3 s au dernier passage local**, après correction de l'assertion C, dont six nouveaux parcours autonomes. Passages antérieurs : 72/72 en 48,9 s avant ajout du timeout, puis 73/73 en 52,4 s. Timeout natif observé en 16,9 s. |
 | Tests ciblés | Nouveaux A/B/D, inventaire/URLs, refus de politique et retour local tardif réussis ; pas de retry global ni d'assertion antérieure affaiblie. |
 | SDK | `npm run build:auth-sdk` puis `git diff --exit-code -- assets/vendor/supabase.js` réussis ; SDK 2.118.0 verrouillé identique. |
 | Invariants Git | Aucun changement de migrations, règles RLS/grants, package/verrou, workflows ou `assets/auth-config.json`. |
@@ -87,6 +87,8 @@ Livraison par la [PR #24](https://github.com/Vladoche/mon-bprea/pull/24), ouvert
 | `supabase-security` | **386 assertions pgTAP minimum conservées**, runners Auth/Drill/personnel réels, 26 parcours Chromium réels dont A/C renforcés, expiration JWT native et arrêt de stack réussi |
 
 Aucune réussite CI n'est déduite ici des résultats de #23 ou de la présence des fichiers. Les preuves finales sont reportées après lecture des checks/logs du **dernier SHA** dans la description de PR ; cette méthode évite un commit supplémentaire seulement pour citer son propre résultat CI. Si un code change après ces checks, les refaire. Si la stack CI ne passe pas, C/RLS/JWT résiduel restent non validés et le lot technique n'est pas déclaré terminé.
+
+Première CI réelle complète sur `25f3f4a` : [job sécurité](https://github.com/Vladoche/mon-bprea/actions/runs/40711971151/job/122900203110), **386 pgTAP réussis, 25/26 parcours réels**, puis arrêt de stack réussi. Le nouveau scénario C échoue pendant la vérification de copie avant clôture. Le snapshot SQL du helper trie par identifiant, tandis que l'export trie certains historiques par date de création puis identifiant ; leur ordre de lignes n'est pas le même contrat. La comparaison est corrigée pour classer les deux ensembles par leur clé avant comparaison profonde, sans retirer aucun champ/valeur, et l'étape nomme désormais la table en cause sans en journaliser le contenu. Ce premier run reste en échec ; C et les trois checks doivent réussir sur le commit corrigé avant livraison.
 
 ## Limites et décision d'ouverture
 
