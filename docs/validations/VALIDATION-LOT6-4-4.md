@@ -78,7 +78,7 @@ Les E2E contrôlent absence de débordement dans leurs variantes, annulation/Esc
 
 ## Trois jobs finaux et sécurité réelle
 
-La réussite sur la tête finale doit être observée avant livraison, avec SHA et liens dans la description de PR :
+Livraison par la [PR #24](https://github.com/Vladoche/mon-bprea/pull/24), ouverte vers `main` sans fusion. La réussite sur sa tête finale doit être observée avant livraison, avec SHA et liens dans sa description :
 
 | Job obligatoire | Preuve attendue / limite de rédaction |
 | --- | --- |

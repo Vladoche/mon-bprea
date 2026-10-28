@@ -14,7 +14,7 @@
 | CI-R | Job `supabase-security` de cette même tête : stack locale Docker éphémère | Poste sans Docker : aucune exécution locale réelle. Résultat réel à relever dans la PR ; aucun mock ne peut valider cette ligne. 386 assertions pgTAP conservées et 26 E2E réels attendus, sans retrait des suites Auth/backends. |
 | H-21/22/23 | PR fusionnées [#21](https://github.com/Vladoche/mon-bprea/pull/21), [#22](https://github.com/Vladoche/mon-bprea/pull/22), [#23](https://github.com/Vladoche/mon-bprea/pull/23), métadonnées relues le 28/10/2026 | Preuves historiques à leur SHA ; ne remplacent pas CI-U/B/R après changement. |
 
-La description finale de PR doit donner URL du job, SHA observé, conclusion, compte de tests et arrêt de stack. Les matrices ci-dessous désignent le job applicable ; tant que sa réussite n'a pas été observée sur la tête finale, la preuve CI reste à obtenir. L'état hébergé DEV/PROD demeure **PRÉPARÉ MAIS NON ACTIVÉ / BLOQUANT**, même après CI verte.
+Les preuves définitives (URL des jobs, SHA exact, conclusion, compte de tests et arrêt de stack) sont centralisées dans la description de la [PR #24](https://github.com/Vladoche/mon-bprea/pull/24). Les matrices ci-dessous désignent le job applicable ; tant que sa réussite n'a pas été observée sur la tête finale, la preuve CI reste à obtenir. L'état hébergé DEV/PROD demeure **PRÉPARÉ MAIS NON ACTIVÉ / BLOQUANT**, même après CI verte.
 
 ## Exigences et limites
 
