@@ -1,8 +1,10 @@
 # Authentification et profils — lot 6.1
 
-Le lot 6.3.2 réutilise cette même frontière Auth pour la [synchronisation personnelle des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md), en complément du Drill. Les comptes ont des caches distincts par environnement/projet/UUID ; la clé visiteur n’est importée qu’après confirmation explicite. Une déconnexion conserve les données et outboxes tout en masquant les vues privées. Les descriptions du périmètre initial 6.1 ci-dessous restent historiques ; les procédures d’invitation, les privilèges profils et le défaut public désactivé ne changent pas.
+**Actualisation 6.5.3.A, 28 octobre 2026 : invitations et récupération manuelles, sans SMTP externe.** Le choix SMTP a été abandonné après le lot 6.5.2. Le [guide opérateur](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md) décrit le générateur Node exclusivement verrouillé sur la stack éphémère ; DEV/PROD sont refusés. La récupération publique est assistée, sans collecte d’adresse ni e-mail automatique. Aucune ouverture ou autorisation hébergée ne découle de ce lot.
 
-Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill](DRILL-SYNCHRONISATION-CLIENT.md), avec vérification de session avant chaque accès distant et JWT fixé par requête. Il ajoute un état `offline` limité à une identité locale déjà vérifiée (UUID/session_id correspondants), sans autorisation distante ; toute identité incertaine masque le cache. La déconnexion invalide immédiatement les vues et requêtes, puis appelle le SDK, sans effacer la progression. Les profils, RLS et flux d'invitation ci-dessous restent inchangés.
+Le lot 6.3.2 réutilise cette même frontière Auth pour la [synchronisation personnelle des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md), en complément du Drill. Les comptes ont des caches distincts par environnement/projet/UUID ; la clé visiteur n’est importée qu’après confirmation explicite. Une déconnexion conserve les données et outboxes tout en masquant les vues privées. Les descriptions du périmètre initial 6.1 ci-dessous restent historiques ; les privilèges profils et le défaut public désactivé restent préservés ; la procédure d’invitation est actualisée en 6.5.3.A.
+
+Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill](DRILL-SYNCHRONISATION-CLIENT.md), avec vérification de session avant chaque accès distant et JWT fixé par requête. Il ajoute un état `offline` limité à une identité locale déjà vérifiée (UUID/session_id correspondants), sans autorisation distante ; toute identité incertaine masque le cache. La déconnexion invalide immédiatement les vues et requêtes, puis appelle le SDK, sans effacer la progression. Les profils et RLS restent inchangés ; le flux d’invitation courant est décrit ci-dessous.
 
 Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
 
@@ -18,9 +20,10 @@ La configuration versionnée est **désactivée**. Aucun projet, identifiant ou 
 | `assets/auth-header.js` | Accès discret Connexion ou Mon profil / Déconnexion, sans changer les trois rubriques. |
 | `assets/auth-pages.js`, `assets/auth.css` | Formulaires, messages accessibles, états de chargement et affichage privé. |
 | `connexion.html` | E-mail et mot de passe, sans formulaire d’inscription. |
-| `mot-de-passe-oublie.html` | Demande de réinitialisation avec confirmation générique. |
+| `mot-de-passe-oublie.html` | Information de récupération assistée sans collecte d’adresse ni envoi, également sans JavaScript. |
 | `authentification.html` | Retour unique d’invitation et de récupération, puis définition du mot de passe. |
 | `profil.html` | E-mail Auth, date du compte et pseudo facultatif. |
+| `scripts/admin-generate-auth-link.mjs`, `scripts/auth-link-local.mjs` | Administration Node locale : confirmation, contrôle de compte, generateLink et remise unique ; exclus de Pages. |
 | `supabase/migrations/` | Définition versionnée du modèle, des contraintes et des droits. |
 
 `@supabase/supabase-js` **2.118.0** est verrouillé dans les dépendances de développement ; `esbuild` **0.28.2** prépare `assets/vendor/supabase.js`. Le navigateur charge ce fichier local, sans CDN, import npm ni serveur Node.js. Après une mise à jour volontaire du SDK, conserver manifeste et verrou ensemble, reconstruire puis tester :
@@ -36,7 +39,7 @@ Utiliser Node.js 24 LTS pour ces outils. Le site publié reste utilisable sans N
 
 ## Séparer développement et production
 
-Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire ; les modèles et la livraison des e-mails restent à configurer et à valider.
+Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire ; l’adaptation hébergée du générateur et sa recette attendent une autorisation distincte. Aucun SMTP externe à préparer pour le parcours choisi.
 
 | Environnement | Usage | Données |
 | --- | --- | --- |
@@ -44,9 +47,9 @@ Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octob
 | Projet Supabase DEV distinct | Vérification manuelle d’une configuration hébergée, avec frontend local | Comptes d’essai autorisés, jamais les camarades |
 | Projet Supabase PROD distinct | Futur accueil des étudiants au lot 6.5 | Aucun compte étudiant à créer dans ce lot |
 
-Dans le Dashboard Supabase, sélectionner le projet DEV existant et vérifier sa référence exacte à partir du rapport de validation. Conserver le mot de passe de base dans un gestionnaire de secrets. Relever l’URL publique et la clé **publishable** dans les réglages API. Ne pas créer une table à la main : utiliser les migrations versionnées et contrôler leur historique. La migration du lot 6.1 est déjà appliquée sur DEV ; ne pas la rejouer. Vérifier les réglages Auth et les URL, puis résoudre la configuration des modèles d’e-mails avec un SMTP adapté.
+Dans le Dashboard Supabase, sélectionner le projet DEV existant et vérifier sa référence exacte à partir du rapport de validation. Conserver le mot de passe de base dans un gestionnaire de secrets. Relever l’URL publique et la clé **publishable** dans les réglages API. Ne pas créer une table à la main : utiliser les migrations versionnées et contrôler leur historique. La migration du lot 6.1 est déjà appliquée sur DEV ; ne pas la rejouer. Vérifier Auth et URLs selon le plan courant. La migration personnelle manquante relève du futur 6.5.3.B, non commencé ici ; aucune opération hébergée dans 6.5.3.A.
 
-Le projet PROD existe séparément, avec ses propres clés, règles, SMTP, sauvegardes et réglages à préparer avant l’ouverture. Ne pas copier la base d’essai ni ses comptes. Toute opération nécessitant l’accès à un projet ou une modification distante doit être effectuée par une personne autorisée ; ne jamais confondre une préparation locale avec un déploiement. Aucune opération de préparation DEV ne doit modifier PROD.
+Le projet PROD existe séparément, avec ses propres clés, règles, sauvegardes et réglages à préparer avant l’ouverture. Ne pas copier la base d’essai ni ses comptes. Toute opération nécessitant l’accès à un projet ou une modification distante doit être effectuée par une personne autorisée ; ne jamais confondre une préparation locale avec un déploiement. Aucune opération de préparation DEV ne doit modifier PROD.
 
 ## Configuration publique du frontend
 
@@ -87,7 +90,7 @@ Dans le projet DEV, désactiver **Allow new users to sign up** et **Allow anonym
 
 La stack locale fixe `auth.enable_signup=false`, `auth.sms.enable_signup=false` et `auth.enable_anonymous_sign_ins=false`. **`auth.email.enable_signup=true` conserve le fournisseur e-mail actif** : malgré son nom dans la CLI, ce réglage pilote `GOTRUE_EXTERNAL_EMAIL_ENABLED`. Le désactiver empêcherait aussi les comptes invités de se connecter par mot de passe. L’interdiction de création libre repose sur le réglage global `auth.enable_signup=false` et doit être vérifiée par un appel API réel. Ce fichier ne configure pas automatiquement un projet hébergé : reporter et contrôler les réglages dans son Dashboard. Voir les [options générales Auth](https://supabase.com/docs/guides/auth/general-configuration) et le [mappage officiel de la CLI 2.121.0](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/commands/start/services/gotrue.service.ts).
 
-Une personne autorisée utilise **Authentication → Users → Invite user** dans le Dashboard. L’invitation native crée l’utilisateur Auth ; le trigger crée son profil dans la même transaction. Le destinataire ouvre le lien, confirme explicitement son traitement, définit son mot de passe puis consulte son profil. Aucun envoi administratif n’existe dans le frontend. L’[API administrative native](https://supabase.com/docs/reference/javascript/auth-admin-inviteuserbyemail) est réservée au service de confiance ou au runner local isolé.
+Le parcours choisi utilise [generateLink](https://supabase.com/docs/reference/javascript/auth-admin-generatelink) depuis Node de confiance, seulement pour `invite` ou `recovery`. Une invitation peut créer immédiatement l’utilisateur Auth et le trigger son profil dans la même transaction. L’opérateur confirme la cible puis transmet individuellement le lien ; le titulaire confirme son traitement et choisit son propre mot de passe. Aucun mot de passe ni rôle administratif choisi par l’opérateur. Tout compte existant, même en attente, bloque `invite` pour éviter le remplacement silencieux d’un lien déjà remis. Les invitations natives/capture SMTP restent des régressions locales distinctes.
 
 Vérifier réellement, avec un client public non connecté, que l’appel direct `auth.signUp()` est refusé avec `signup_disabled` et que `signInAnonymously()` est refusé. Un bouton absent et une configuration écrite ne démontrent pas ce refus. Tester ensuite invitation valide, expirée, déjà consommée, invalide, compte déjà existant et ouverture dans un navigateur neuf. Pour une personne déjà activée, utiliser le parcours de récupération plutôt que créer un second compte. Ne pas envoyer d’invitation réelle aux étudiants pendant ce lot.
 
@@ -102,25 +105,29 @@ Le remote Git pointe vers `https://github.com/Vladoche/mon-bprea.git` et `.githu
 
 Entrer les URL exactes, sans wildcard, dans **Authentication → URL Configuration**. Garder le `/` final de Site URL : les modèles construisent le lien en lui ajoutant `authentification.html`. Retirer les anciennes URL de démonstration avant ouverture. Les règles Supabase de [redirection](https://supabase.com/docs/guides/auth/redirect-urls) restent nécessaires, même lorsque le modèle vise directement le site.
 
-Copier le contenu versionné de `supabase/templates/invite.html` dans **Invite user**, et celui de `recovery.html` dans **Reset password**. Le premier utilise :
+Les templates versionnés restent réservés aux régressions SMTP locales, sans installation hébergée requise pour le choix manuel. Le premier utilise :
 
 ```html
 {{ .SiteURL }}authentification.html?token_hash={{ .TokenHash }}&amp;type=invite
 ```
 
-Le second remplace `invite` par `recovery`. Les variables sont celles des [modèles officiels Supabase](https://supabase.com/docs/guides/auth/auth-email-templates). Le service transmet aussi le callback exact à `resetPasswordForEmail()` ; ne pas remplacer ces modèles par un lien implicite renvoyant une session dans le fragment.
+Le second remplace `invite` par `recovery`. Les variables sont celles des [modèles officiels Supabase](https://supabase.com/docs/guides/auth/auth-email-templates). Le générateur manuel utilise `properties.hashed_token`, vérifie type, utilisateur, `redirect_to` et structure de `action_link`, puis construit le callback exact avec `URL`/`URLSearchParams`. Il ne remet ni n’ouvre `action_link`, qui pourrait consommer le jeton à l’ouverture. Aucun fragment de session ni redirection libre.
 
-Au chargement du callback, le premier script du document extrait seulement `token_hash` et `type`, refuse les paramètres dupliqués, types inconnus et fragments, puis retire immédiatement query et fragment avec `history.replaceState`, avant les ressources et modules. Les pages de compte déclarent `Referrer-Policy: no-referrer` via leur balise meta. La valeur transitoire passe en mémoire à l’interface puis disparaît de `window` ; aucun jeton n’est affiché ou journalisé par le code.
+Au chargement du callback, le premier script du document extrait seulement `token_hash` et `type`, refuse les paramètres supplémentaires ou dupliqués, types inconnus et fragments, puis retire immédiatement query et fragment avec `history.replaceState`, avant les ressources et modules. Les pages de compte déclarent `Referrer-Policy: no-referrer` via leur balise meta. La valeur transitoire passe en mémoire à l’interface puis disparaît de `window` ; aucun jeton n’est affiché ou journalisé par le code.
 
 Le bouton **Continuer l’activation** ou **Continuer la réinitialisation** déclenche `verifyOtp({ token_hash, type })`. Ce clic réduit les consommations involontaires par les scanners d’e-mails qui ouvrent les liens. Le formulaire apparaît seulement après réponse Auth valide ; le mot de passe est enregistré avec `updateUser`. Le parcours ne dépend pas d’un vérificateur créé dans le navigateur d’envoi, ce qui permet l’ouverture d’une invitation ailleurs. Une URL `next`, `redirect` ou un chemin fourni par l’utilisateur n’est jamais utilisé pour naviguer.
 
 Le `token_hash` permet de consommer le lien et reste sensible. **La première requête HTTP vers le callback contient sa query** : l’hébergeur, un proxy ou le fournisseur de messagerie peut déjà l’avoir enregistrée avant que JavaScript nettoie l’URL. Le nettoyage et `no-referrer` ne suppriment pas ces journaux. Garder une durée de validité limitée, aucun outil d’analytics sur ce parcours, aucun suivi de clic et aucun partage de lien. Après consommation, un rechargement ne restaure pas l’autorisation de définition du mot de passe : recommencer avec un nouveau lien si nécessaire.
 
-## Livraison des e-mails
+## Transmission manuelle et régressions SMTP locales
 
-La documentation SMTP consultée le 22 octobre 2026 indique que le service Supabase par défaut vise les adresses préautorisées de l’équipe du projet, limite actuellement les envois à deux messages par heure et ne garantit ni livraison ni disponibilité. Ces limites peuvent changer ; elles ne conviennent pas à l’ouverture d’une promotion. Configurer un SMTP propre avant cette ouverture, avec domaine d’expédition vérifié, SPF/DKIM/DMARC adaptés et essais contrôlés. Conserver ses identifiants uniquement dans la configuration sécurisée du fournisseur. Voir le [guide SMTP officiel](https://supabase.com/docs/guides/auth/auth-smtp).
+La génération ne demande aucun envoi transactionnel. La page publique explique de contacter la personne invitante par le canal habituel, puis de recevoir un lien après vérification raisonnable de l’identité. `requestPasswordReset`, devenu sans appelant applicatif, est retiré ; les appels natifs dans les runners servent uniquement de régressions locales. Le profil propose « Récupération assistée du mot de passe ».
 
-En local, `[local_smtp]` active la capture à `http://127.0.0.1:54324` ; aucun e-mail d’essai n’a à être livré à un destinataire réel. Selon la version CLI, l’interface de capture est Mailpit ou Inbucket ; le runner sait lire les deux API. Désactiver les réécritures de liens et le suivi des clics du fournisseur SMTP. Vérifier le contenu réel reçu, l’URL complète et le parcours dans un autre navigateur. Les confirmations de changement d’adresse devront être configurées et testées avant d’introduire cette fonction ; l’interface du lot 6.1 ne propose pas cette modification.
+Le [guide opérateur](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md) couvre clé privée ignorée, confirmation, compte existant/inconnu, résultat incertain sans retry, incidents et fermeture en juin 2027. Le terminal affiche le lien une fois ; son historique peut le conserver. Aucun secret dans Pages, logs, presse-papiers automatique ou rapport.
+
+La capture `[local_smtp]` à `http://127.0.0.1:54324` et les templates ne changent pas : les tests historiques Mailpit/Inbucket restent utiles pour vérifier le fournisseur. Le nouveau parcours manuel est distinct et vérifie l’absence de message pour ses seules adresses synthétiques. Aucun SMTP hébergé ni modèle distant n’est modifié.
+
+Le réglage local `secure_password_change=true` reste actif ; la recette réelle vérifie invitation/récupération puis `updateUser` dans une session fraîche, sans ancien mot de passe ni nonce automatique. DEV off, constaté en 6.5.2, reste inchangé. Une décision hébergée nécessite un autre mandat.
 
 ## Table `public.profiles` et migration
 
@@ -196,16 +203,7 @@ Les tests SQL `supabase/tests/database/profiles_privileges.test.sql` inspectent 
 
 La suite distincte `tests/e2e-supabase/`, configurée par `playwright.supabase.config.js`, complète ces essais par l’activation et la récupération dans le navigateur avec Auth et e-mails capturés réels. Elle requiert la même stack et les mêmes variables locales ; elle ne doit jamais viser un projet distant. Ne pas publier de traces ou captures susceptibles de contenir un lien d’authentification.
 
-Pour appliquer les migrations au **projet DEV hébergé choisi et vérifié**, une personne disposant de l’accès peut utiliser :
-
-```bash
-npx --yes supabase@2.121.0 login
-npx --yes supabase@2.121.0 link --project-ref REFERENCE_DEV_REELLE
-npx --yes supabase@2.121.0 db push --dry-run
-npx --yes supabase@2.121.0 db push
-```
-
-Remplacer la référence par celle du projet DEV ; vérifier l’environnement lié avant l’écriture et garder les secrets hors des commandes enregistrées. `config.toml` et les modèles ne sont pas automatiquement appliqués par `db push` : configurer Auth séparément. Le runner automatisé refuse DEV hébergé par conception ; contrôler manuellement son déploiement avec comptes fictifs et clients publics. PROD nécessite une procédure et une validation ultérieures distinctes.
+Les procédures hébergées relèvent désormais du [plan DEV](../deploiement/PLAN-MISE-A-NIVEAU-DEV.md), avec ciblage et autorisations distincts. Le 6.5.3.A ne lance ni login/link/push/dry-run distant ni migration. Les trois migrations, RLS/GRANT, trigger et prototype close-account local restent inchangés. Le futur 6.5.3.B préparera la seule migration personnelle manquante, séparément autorisée.
 
 ## Niveaux de vérification et CI
 
@@ -226,4 +224,4 @@ Sans Docker/CLI ou stack accessible, déclarer les tests Supabase **non exécut�
 
 Ne collecter ni nom complet, adresse, date de naissance, téléphone ou établissement. Le mot de passe n’est jamais stocké dans une table applicative. Définir au lot 6.4 les bases et finalités documentées, durées de conservation par type de donnée, comptes inactifs, journaux Auth/SMTP/hébergement, sauvegardes et purge, export/suppression, responsable et contact, sous-traitants, région et éventuels transferts. La cascade SQL ne constitue ni une procédure juridique ni l’effacement complet des sauvegardes et journaux.
 
-Prévoir des pages et liens distincts de mentions légales et d’information sur la confidentialité dans le footer au lot 6.4, après rédaction validée. Le lot 6.1 n’affiche pas une politique définitive ni un consentement générique. Avant un compte réel, finaliser ces informations et les mesures de conformité, confirmer la configuration PROD, SMTP, redirections, durées de session et de liens, sauvegardes, contrôles RLS effectifs et traitement des incidents. Ne pas ouvrir la promotion avant validation du lot 6.5, ni fusionner ou déclencher une publication sans accord.
+Prévoir des pages et liens distincts de mentions légales et d’information sur la confidentialité dans le footer au lot 6.4, après rédaction validée. Le lot 6.1 n’affiche pas une politique définitive ni un consentement générique. Avant un compte réel, finaliser ces informations et les mesures de conformité, confirmer la configuration PROD, la génération/transmission manuelles, les redirections, durées de session et de liens, sauvegardes, contrôles RLS effectifs et traitement des incidents. Ne pas ouvrir la promotion avant validation du lot 6.5, ni fusionner ou déclencher une publication sans accord.

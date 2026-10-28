@@ -31,9 +31,11 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
     for (const page of ['connexion', 'authentification', 'mot-de-passe-oublie', 'profil'])
       expect(existsSync(join(result.output, `${page}.html`))).toBe(true);
     expect(readFileSync(join(result.output, 'assets/supabase-client.js'), 'utf8')).toContain('./vendor/supabase.js?v=auth-test');
-    for (const privateFile of ['supabase/config.toml', 'scripts/test-supabase.mjs', '.env.supabase-test.local',
+    for (const privateFile of ['supabase/config.toml', 'scripts/test-supabase.mjs', 'scripts/admin-generate-auth-link.mjs', 'scripts/auth-link-local.mjs', '.env.supabase-test.local',
       'node_modules/@supabase/supabase-js/package.json', 'auth-config.local.json', 'tests/helpers/auth-http.js'])
       expect(existsSync(join(result.output, privateFile)), privateFile).toBe(false);
+    expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).toContain('sans service d’envoi automatique d’e-mails');
+    expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).not.toContain('requestPasswordReset');
   });
 
   it('applique une configuration publique seulement à la copie sans modifier les sources', () => {

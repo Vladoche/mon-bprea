@@ -2,7 +2,7 @@
 
 > **PROJET NON VALIDÉ — NON DESTINÉ À PUBLICATION EN L'ÉTAT**
 >
-> Version du 28 octobre 2026, lot 6.5.1. Les mentions à compléter bloquent la publication et les invitations. Aucun contact officiel ni service de clôture hébergé n'est annoncé comme disponible.
+> Version de travail du 28 octobre 2026, actualisée en 6.5.3.A. Les mentions à compléter bloquent la publication et les invitations. Aucun contact officiel ni service de clôture hébergé n'est annoncé comme disponible.
 
 ## Pourquoi ce site, et pour qui ?
 
@@ -22,7 +22,7 @@ Avec un compte configuré, le navigateur peut aussi garder la session, une copie
 
 ## Ce qui serait envoyé à Supabase
 
-L'espace personnel préparé fonctionne sur invitation, sans inscription libre. Dans la configuration publique du dépôt, il reste désactivé. L'e-mail sert à l'invitation, la connexion et la récupération ; Supabase Auth gère le compte et les sessions. Le pseudo est facultatif. **À COMPLÉTER : source réelle de votre adresse et information remise avant sa collecte/invitation.** Sans adresse, pas de compte personnel ; les pages visiteur restent utilisables.
+L'espace personnel préparé fonctionne sur invitation, sans inscription libre. Dans la configuration publique du dépôt, il reste désactivé. L'e-mail sert à l'invitation, la connexion et la récupération ; Supabase Auth gère le compte et les sessions. Le pseudo est facultatif. Le choix actuel prévoit des invitations et récupérations manuelles, sans SMTP externe ni e-mails automatiques. La génération d’une invitation peut déjà créer le compte avant activation ; l’accord de participation, l’adresse confirmée et l’information approuvée doivent la précéder. Le titulaire choisit lui-même son mot de passe après confirmation volontaire du lien. **À COMPLÉTER : source réelle de votre adresse et information remise avant sa collecte/invitation.** Sans adresse, pas de compte personnel ; les pages visiteur restent utilisables.
 
 Lorsqu'il sera autorisé et configuré, l'espace synchronisera progression, réponses et résultats Drill, cours/QCM, botanique, derniers paramètres ITK et choix d'apparence, avec dates et identifiants techniques. Le Dashboard calcule ses statistiques depuis les réponses Drill, sans historique supplémentaire. ITK ne stocke pas les calendriers/PDF/CSV complets sur le serveur. Les thèmes automatiques restent calculés sur l'appareil.
 
@@ -32,7 +32,7 @@ La connexion n'importe pas automatiquement l'historique visiteur. Les imports pr
 
 Les règles prévues limitent les comptes ordinaires à leurs propres données. Les résultats doivent rester privés entre participants. Des administrateurs habilités et les prestataires peuvent néanmoins disposer d'accès techniques privilégiés ; ces accès doivent être limités et vérifiés avant ouverture.
 
-GitHub Pages distribue les fichiers publics ; sa [documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection) indique l'enregistrement des IP de visite pour la sécurité. Supabase est prévu pour Auth et PostgreSQL. **À COMPLÉTER : destinataires effectifs, contrats, région, chaîne d'e-mails, lieux/accès support et transferts éventuels avec leurs garanties.** Rien ne prouve ici une localisation exclusivement européenne. Les liens pédagogiques externes s'ouvrent sur votre action et relèvent des règles de leurs sites.
+GitHub Pages distribue les fichiers publics ; sa [documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection) indique l'enregistrement des IP de visite pour la sécurité. Supabase est prévu pour Auth et PostgreSQL. **À COMPLÉTER : destinataires effectifs, contrats, région, canal privé de transmission des liens et ses copies, lieux/accès support et transferts éventuels avec leurs garanties.** Rien ne prouve ici une localisation exclusivement européenne. Les liens pédagogiques externes s'ouvrent sur votre action et relèvent des règles de leurs sites.
 
 ## Pourquoi et combien de temps ?
 
@@ -45,6 +45,8 @@ Pour juin 2027, l'exploitant doit choisir et annoncer la date, une fenêtre de r
 Le profil préparé permet une copie JSON du compte vérifié et une sélection visiteur séparée. La copie reste partielle : notamment internes Auth, journaux, backups, autres appareils, bruts/champs inconnus et marqueurs de suspension demandent un examen complémentaire. Conservez le fichier avec précaution. Un export n'est pas à lui seul la réponse à toutes les demandes.
 
 Le retrait local sélectionné efface des catégories de cet appareil après confirmation ; le serveur reste inchangé et du non synchronisé peut être perdu. Un marqueur technique personnel demeure pour empêcher les anciens clients de réécrire le cache. Le prototype de clôture de compte reste réservé aux tests locaux : aucun service hébergé de clôture n'est rendu disponible par ce lot.
+
+Pour une récupération de compte, contactez la personne qui vous a invité par votre moyen habituel. Après vérification raisonnable de votre identité, elle pourra transmettre individuellement un lien temporaire. Une demande depuis une nouvelle adresse ou un nouveau numéro ne suffit pas seule ; aucun mot de passe ni copie d’identité par défaut ne doit être demandé. L’outil hébergé et sa recette ne sont pas encore autorisés.
 
 **À COMPLÉTER et tester : canal de contact accessible même sans accès au compte, procédure effective d'assistance, copie complémentaire, rectification et effacement.** N'envoyez ni mot de passe, ni jeton, ni lien de récupération ; aucune pièce d'identité n'est demandée par défaut. La future procédure devra confirmer séparément les suppressions actives et les copies résiduelles, sans promettre d'effacer partout instantanément.
 

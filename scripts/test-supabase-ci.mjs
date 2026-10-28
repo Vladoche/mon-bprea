@@ -3,6 +3,8 @@ import { playwrightCLI, runNode } from './ci-command.mjs';
 
 // One ephemeral stack, UUID/email fixtures private to each process. The browser
 // remains at one worker; none of these suites reuses the Auth expiry accounts.
+// Chromium découvre aussi auth-manual.spec.js : generateLink sans SMTP,
+// activation/récupération, expiration serveur et nettoyages Auth/profils vérifiés.
 export async function runSupabaseSuites(run = runNode) {
   const outcomes = await Promise.allSettled([
     run('Auth réel (expiration comprise)', ['scripts/test-supabase.mjs']),

@@ -43,18 +43,24 @@ test('profil sans service configuré : aucune donnée personnelle ni accès Supa
   expect(privateRequests).toEqual([]);
 });
 
-test('récupération non configurée : formulaire accessible, envoi indisponible et retour connexion', async ({ page }) => {
+test('récupération assistée : information accessible, aucune collecte ni requête recover et retour connexion', async ({ page }) => {
+  const recoveryRequests = [];
+  page.on('request', request => { if (new URL(request.url()).pathname === '/auth/v1/recover') recoveryRequests.push(true); });
   await page.goto(`${prefix}mot-de-passe-oublie.html`);
-  await expect(page.getByLabel('Adresse e-mail', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Envoyer le lien de réinitialisation', exact: true })).toBeDisabled();
-  await expect(page.locator('main').getByRole('alert')).toContainText(/configuré|accessible/i);
+  await expect(page.getByRole('heading', { name: 'Récupérer ton compte avec assistance' })).toBeVisible();
+  await expect(page.locator('main')).toContainText('par votre moyen de communication habituel');
+  await expect(page.locator('main')).toContainText('sans service d’envoi automatique d’e-mails');
+  await expect(page.locator('main form, main input')).toHaveCount(0);
+  await page.getByRole('link', { name: 'Retour à la connexion', exact: true }).focus();
+  await expect(page.getByRole('link', { name: 'Retour à la connexion', exact: true })).toBeFocused();
+  expect(recoveryRequests).toEqual([]);
   await page.getByRole('link', { name: 'Retour à la connexion', exact: true }).click();
   await expect(page).toHaveURL(/\/mon-bprea\/connexion\.html$/);
 });
 
 test('callback : URL nettoyée, liens invalides refusés et vérification indisponible sans service', async ({ page }) => {
   const token = 'fixture-syntactic-link-not-real';
-  for (const suffix of ['', `?token_hash=${token}&type=signup`, `?token_hash=${token}&type=invite&token_hash=${token}`, '#access_token=fixture-not-a-session']) {
+  for (const suffix of ['', `?token_hash=${token}&type=signup`, `?token_hash=${token}&type=invite&token_hash=${token}`, `?token_hash=${token}&type=invite&type=recovery`, `?token_hash=${token}&type=invite&next=https://example.invalid`, '#access_token=fixture-not-a-session']) {
     // Chaque lien doit charger un document ; ajouter un hash au document déjà
     // ouvert serait une navigation interne, sans exécution de son bootstrap.
     await page.goto(`${prefix}connexion.html`);

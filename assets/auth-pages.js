@@ -8,7 +8,7 @@ const controllers = new WeakMap();
 const restoreHandlers = new WeakSet();
 const descriptions = {
   'auth-login': ['Connexion', 'Retrouve ton espace personnel avec ton compte invité.'],
-  'auth-reset': ['Mot de passe oublié', 'Reçois un lien par e-mail pour choisir un nouveau mot de passe.'],
+  'auth-reset': ['Mot de passe oublié', 'Une récupération personnelle, avec la personne qui t’a invité.'],
   'auth-callback': ['Activation et mot de passe', 'Finalise ton invitation ou réinitialise ton mot de passe.'],
   profile: ['Mon profil', 'Les informations de ton compte et ton pseudo.'],
 };
@@ -45,10 +45,14 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   // The callback document captured and removed these values before loading modules.
   let link = page === 'auth-callback' ? window.__bpreaAuthLink : null;
   if (page === 'auth-callback') delete window.__bpreaAuthLink;
-  root.innerHTML = `<section class="page-top wrap auth-top">${renderBreadcrumbs(page)}<div class="page-eyebrow">TON ESPACE PERSONNEL</div><h1></h1><p></p></section><div class="wrap auth-layout"><section class="auth-panel" aria-label="Compte personnel"><p class="auth-message" role="status">Chargement du compte…</p></section><aside class="auth-aside"><h2>Un compte sur invitation</h2><p>Ton compte est créé à partir d’une invitation envoyée par l’administrateur. Il n’y a pas d’inscription libre.</p><p>Les cours et les outils publics restent disponibles sans connexion.</p><p><a href="mes-cours.html">Parcourir mes cours</a></p><p class="auth-help">En visiteur, l’historique des exercices hebdomadaires reste sur cet appareil. Lorsque l’espace personnel est activé, les réponses du compte alimentent son tableau de bord et se synchronisent ; celles en attente ne sont pas encore confirmées sur les autres appareils.</p></aside></div>`;
+  root.innerHTML = `<section class="page-top wrap auth-top">${renderBreadcrumbs(page)}<div class="page-eyebrow">TON ESPACE PERSONNEL</div><h1></h1><p></p></section><div class="wrap auth-layout"><section class="auth-panel" aria-label="Compte personnel"><p class="auth-message" role="status">Chargement du compte…</p></section><aside class="auth-aside"><h2>Un compte sur invitation</h2><p>La personne qui t’invite te transmet individuellement un lien personnel. Il n’y a pas d’inscription libre.</p><p>Les cours et les outils publics restent disponibles sans connexion.</p><p><a href="mes-cours.html">Parcourir mes cours</a></p><p class="auth-help">En visiteur, l’historique des exercices hebdomadaires reste sur cet appareil. Lorsque l’espace personnel est activé, les réponses du compte alimentent son tableau de bord et se synchronisent ; celles en attente ne sont pas encore confirmées sur les autres appareils.</p></aside></div>`;
   root.querySelector('h1').textContent = descriptions[page][0];
   root.querySelector('.auth-top > p').textContent = descriptions[page][1];
   const panel = root.querySelector('.auth-panel');
+  if (page === 'auth-reset') {
+    panel.innerHTML = '<h2>Récupérer ton compte avec assistance</h2><p>Les comptes Mon BPREA sont gérés personnellement, sans service d’envoi automatique d’e-mails.</p><p>Pour récupérer ton compte, contacte la personne qui t’a invité par votre moyen de communication habituel.</p><p>Après vérification de ton identité, elle pourra te transmettre un lien personnel pour choisir un nouveau mot de passe.</p><p>Ne communique jamais ton mot de passe ni ton lien personnel.</p><div class="auth-links"><a href="connexion.html">Retour à la connexion</a></div>';
+    return;
+  }
   let service;
   try { service = await getAuthService(); }
   catch { if (!disposed) panel.innerHTML = '<h2>Connexion indisponible</h2><p>Le service de compte ne peut pas être chargé. Recharge la page pour réessayer.</p>'; return; }
@@ -125,30 +129,6 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
     return;
   }
 
-  if (page === 'auth-reset') {
-    panel.innerHTML = `<h2>Recevoir un lien</h2><p>Indique l’adresse utilisée pour ton invitation.</p>${messageMarkup()}<form class="auth-form">${emailField}<button class="btn btn-primary" type="submit">Envoyer le lien de réinitialisation</button></form><div class="auth-links"><a href="connexion.html">Retour à la connexion</a></div>`;
-    const form = panel.querySelector('form');
-    let pending = false;
-    unsubscribe = service.subscribe(state => {
-      if (disposed) return;
-      busy(form, pending || state.status === 'loading' || state.status === 'unavailable');
-      if (state.status === 'unavailable') message(state.error || 'La récupération de mot de passe n’est pas encore configurée.', 'error');
-      else if (state.status === 'loading') message('Vérification du service…');
-      else if (!pending) message('');
-    });
-    listen(form, 'submit', async event => {
-      event.preventDefault();
-      if (pending) return;
-      pending = true; busy(form, true); message('Demande en cours…');
-      try {
-        await service.requestPasswordReset(form.elements.email.value.trim());
-        if (!disposed) message('Si cette adresse correspond à un compte, un e-mail contenant un lien de réinitialisation sera envoyé. Consulte aussi les courriers indésirables.', 'success', true);
-      } catch (error) { if (!disposed) message(safeError(error), 'error', true); }
-      finally { pending = false; if (!disposed) busy(form, false); }
-    });
-    return;
-  }
-
   if (page === 'auth-callback') {
     let verified = false;
     let completed = false;
@@ -156,10 +136,10 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
     const linkType = link?.type;
     function invalidLink() {
       link = null;
-      panel.innerHTML = '<h2>Lien invalide ou expiré</h2><p role="alert">Ce lien ne peut pas être utilisé. Il peut avoir expiré ou avoir déjà été ouvert.</p><p>Pour une invitation, demande un nouveau lien à l’administrateur. Pour un mot de passe oublié, fais une nouvelle demande.</p><div class="auth-links"><a href="mot-de-passe-oublie.html">Demander un nouveau lien</a><a href="connexion.html">Connexion</a></div>';
+      panel.innerHTML = '<h2>Lien invalide ou expiré</h2><p role="alert">Ce lien ne peut pas être utilisé. Il peut avoir expiré ou avoir déjà été utilisé.</p><p>Contacte la personne qui t’a invité par votre moyen habituel pour obtenir de l’aide.</p><div class="auth-links"><a href="mot-de-passe-oublie.html">Récupération assistée</a><a href="connexion.html">Connexion</a></div>';
     }
     if (!link) { invalidLink(); return; }
-    panel.innerHTML = `<h2>${linkType === 'invite' ? 'Activer ton compte' : 'Réinitialiser ton mot de passe'}</h2>${messageMarkup()}<p>Pour vérifier le lien reçu par e-mail, utilise le bouton ci-dessous. Tu pourras ensuite choisir ton mot de passe.</p><button class="btn btn-primary" type="button" data-continue>${linkType === 'invite' ? 'Continuer l’activation' : 'Continuer la réinitialisation'}</button>`;
+    panel.innerHTML = `<h2>${linkType === 'invite' ? 'Activer ton compte' : 'Réinitialiser ton mot de passe'}</h2>${messageMarkup()}<p>Pour vérifier le lien personnel qui t’a été transmis, utilise le bouton ci-dessous. Tu pourras ensuite choisir ton mot de passe.</p><button class="btn btn-primary" type="button" data-continue>${linkType === 'invite' ? 'Continuer l’activation' : 'Continuer la réinitialisation'}</button><div class="auth-links"><a href="connexion.html">Annuler</a></div>`;
     const continueButton = panel.querySelector('[data-continue]');
     unsubscribe = service.subscribe(state => {
       if (disposed || completed) return;
@@ -223,7 +203,7 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
       try {
         const profile = await service.getProfile();
         if (disposed || request !== requestId || service.getState().status !== 'authenticated' || service.getState().user?.id !== user.id) return;
-        panel.innerHTML = `<h2>Les informations du compte</h2>${messageMarkup()}<dl class="auth-details"><div><dt>Adresse e-mail</dt><dd data-email></dd></div><div><dt>Compte créé le</dt><dd data-created></dd></div></dl><form class="auth-form"><div class="auth-field"><label for="auth-pseudo">Pseudo (facultatif)</label><input id="auth-pseudo" name="pseudo" type="text" autocomplete="nickname" aria-describedby="auth-pseudo-help"><small id="auth-pseudo-help">De 2 à 40 caractères, ou laisse ce champ vide. Ne saisis pas d’information sensible.</small></div><button class="btn btn-primary" type="submit">Enregistrer le pseudo</button></form><hr class="auth-divider"><div class="auth-account-actions"><a href="mot-de-passe-oublie.html">Changer mon mot de passe</a><button class="btn btn-outline" type="button" data-sign-out>Déconnexion</button></div>`;
+        panel.innerHTML = `<h2>Les informations du compte</h2>${messageMarkup()}<dl class="auth-details"><div><dt>Adresse e-mail</dt><dd data-email></dd></div><div><dt>Compte créé le</dt><dd data-created></dd></div></dl><form class="auth-form"><div class="auth-field"><label for="auth-pseudo">Pseudo (facultatif)</label><input id="auth-pseudo" name="pseudo" type="text" autocomplete="nickname" aria-describedby="auth-pseudo-help"><small id="auth-pseudo-help">De 2 à 40 caractères, ou laisse ce champ vide. Ne saisis pas d’information sensible.</small></div><button class="btn btn-primary" type="submit">Enregistrer le pseudo</button></form><hr class="auth-divider"><div class="auth-account-actions"><a href="mot-de-passe-oublie.html">Récupération assistée du mot de passe</a><button class="btn btn-outline" type="button" data-sign-out>Déconnexion</button></div>`;
         panel.querySelector('[data-email]').textContent = user.email || 'Adresse indisponible';
         const created = new Date(user.created_at);
         panel.querySelector('[data-created]').textContent = user.created_at && Number.isFinite(created.getTime()) ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'Europe/Paris' }).format(created) : 'Date indisponible';

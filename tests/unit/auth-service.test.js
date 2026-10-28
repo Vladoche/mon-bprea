@@ -200,15 +200,12 @@ describe('service auth — logique applicative avec SDK simulé, sans preuve RLS
     expect(service.getState().error ?? '').not.toContain('server-fixture-detail');
   });
 
-  it('demande une récupération avec le mécanisme officiel et une URL relative au site', async () => {
+  it('ne propose plus de demande automatique de récupération dans le service applicatif', async () => {
     const { client } = mockAuthClient();
     const service = createAuthService(client, { siteUrl: 'http://127.0.0.1:4173/mon-bprea/' });
     await service.start();
-    await service.requestPasswordReset(authUser.email);
-    expect(client.auth.resetPasswordForEmail).toHaveBeenCalledTimes(1);
-    expect(client.auth.resetPasswordForEmail).toHaveBeenCalledWith(authUser.email, { redirectTo: 'http://127.0.0.1:4173/mon-bprea/authentification.html' });
-    await expect(service.requestPasswordReset('adresse-invalide')).rejects.toThrow();
-    expect(client.auth.resetPasswordForEmail).toHaveBeenCalledTimes(1);
+    expect(service.requestPasswordReset).toBeUndefined();
+    expect(client.auth.resetPasswordForEmail).not.toHaveBeenCalled();
   });
 
   it('vérifie uniquement les liens invitation/récupération et ne consomme pas un type arbitraire', async () => {
@@ -232,6 +229,40 @@ describe('service auth — logique applicative avec SDK simulé, sans preuve RLS
     await expect(service.updatePassword('Mot-de-passe-fixture!')).rejects.toThrow();
     expect(client.auth.updateUser).not.toHaveBeenCalled();
     expect(JSON.stringify(service.getState())).not.toContain('expired-token-fixture');
+  });
+
+  it('refuse une deuxième vérification en vol et accepte l’événement Auth du seul lien confirmé', async () => {
+    vi.useFakeTimers();
+    const { client, emit } = mockAuthClient();
+    let resolve;
+    client.auth.verifyOtp.mockReturnValue(new Promise(done => { resolve = done; }));
+    client.auth.getUser.mockResolvedValue({ data: { user: authUser }, error: null });
+    const service = createAuthService(client); await service.start();
+    const first = service.completeLink({ token_hash: 'fixture-link-not-real', type: 'invite' });
+    await expect(service.completeLink({ token_hash: 'fixture-link-not-real', type: 'invite' })).rejects.toMatchObject({ code: 'link_pending' });
+    emit('SIGNED_IN', authSession);
+    resolve({ data: { user: authUser, session: authSession }, error: null });
+    await first; await vi.runAllTimersAsync();
+    expect(client.auth.verifyOtp).toHaveBeenCalledTimes(1);
+    expect(service.getState().user.id).toBe(authUser.id);
+  });
+
+  it.each(['sortie', 'autre compte', 'A→B→A'])('rejette le résultat tardif du lien après %s sans autoriser de mot de passe', async change => {
+    vi.useFakeTimers();
+    const { client, emit } = mockAuthClient({ session: authSession });
+    let resolve;
+    client.auth.verifyOtp.mockReturnValue(new Promise(done => { resolve = done; }));
+    const service = createAuthService(client); await service.start();
+    const first = service.completeLink({ token_hash: 'fixture-recovery-link-not-real', type: 'recovery' });
+    if (change === 'sortie') emit('SIGNED_OUT', null);
+    else emit('SIGNED_IN', { ...authSession, access_token: 'fixture-B', user: { ...authUser, id: '22222222-2222-4222-8222-222222222222' } });
+    if (change === 'A→B→A' || change === 'sortie') emit('PASSWORD_RECOVERY', authSession);
+    resolve({ data: { user: authUser, session: authSession }, error: null });
+    await expect(first).rejects.toMatchObject({ code: 'session_changed' });
+    await vi.runAllTimersAsync();
+    expect(service.getState().status).not.toBe('authenticated');
+    await expect(service.updatePassword('Mot-de-passe-fixture-nouveau!')).rejects.toMatchObject({ code: 'invalid_link' });
+    expect(client.auth.updateUser).not.toHaveBeenCalled();
   });
 
   it('exige un lien vérifié pour changer le mot de passe et ne réutilise pas cette autorisation', async () => {

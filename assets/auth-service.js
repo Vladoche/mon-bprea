@@ -1,5 +1,5 @@
 import { getSupabaseClient } from './supabase-client.js';
-import { validateCredentials, validateEmail, validatePassword, validatePseudo } from './auth-validation.js';
+import { validateCredentials, validatePassword, validatePseudo } from './auth-validation.js';
 import { createLocalIdentityMarker } from './auth-local-identity.js';
 
 const unavailable = 'L’espace compte n’est pas encore configuré. Les cours et outils restent accessibles.';
@@ -32,6 +32,8 @@ export function createAuthService(client, { configurationError, siteUrl, environ
   let started;
   let revision = 0;
   let passwordLinkUser = null;
+  let linkPending = false;
+  let linkAttempt = null;
   const subscribers = new Set();
   function publish(status, user = null, error = null) {
     state = Object.freeze({ status, user: publicUser(user), error });
@@ -102,6 +104,10 @@ export function createAuthService(client, { configurationError, siteUrl, environ
         client.auth.onAuthStateChange((event, session) => {
           // Callback synchrone : aucune attente d'appel Auth dans son verrou.
           if (event === 'INITIAL_SESSION') return;
+          if (linkAttempt) {
+            if (event === 'SIGNED_OUT' || !session?.user || linkAttempt.event) linkAttempt.interrupted = true;
+            else linkAttempt.event = { type: event, userId: session.user.id, token: session.access_token };
+          }
           if (event === 'SIGNED_OUT' || !session?.user) { revision++; passwordLinkUser = null; localSession = null; marker.clear(); publish('anonymous'); return; }
           localSession = session;
           if (passwordLinkUser && passwordLinkUser !== session.user.id) passwordLinkUser = null;
@@ -163,19 +169,31 @@ export function createAuthService(client, { configurationError, siteUrl, environ
       try { await run('logout', () => client.auth.signOut({ scope: 'local' })); publish('anonymous'); }
       catch (error) { publish('error', null, error.message); throw error; }
     },
-    async requestPasswordReset(email) {
-      const problem = validateEmail(email);
-      if (problem) throw new AuthError(problem, 'validation');
-      const redirectTo = new URL('authentification.html', siteUrl || new URL('.', location.href)).href;
-      await run('reset', () => client.auth.resetPasswordForEmail(email.trim(), { redirectTo }));
-    },
     async completeLink({ token_hash, type } = {}) {
       if (!['invite', 'recovery'].includes(type) || !/^[A-Za-z0-9_-]{20,512}$/.test(token_hash || ''))
         throw new AuthError('Ce lien est invalide, expiré ou déjà utilisé. Demande un nouveau lien.', 'invalid_link');
-      const data = await run('link', () => client.auth.verifyOtp({ token_hash, type }));
-      if (!data?.session || !data?.user?.id) throw new AuthError('Ce lien est invalide ou expiré.', 'invalid_link');
-      revision++; passwordLinkUser = data.user.id; localSession = data.session; marker.remember(localSession, data.user.id); publish('authenticated', data.user);
-      return state.user;
+      if (linkPending) throw new AuthError('Une vérification est déjà en cours.', 'link_pending');
+      linkPending = true;
+      const current = revision;
+      const attempt = linkAttempt = { event: null, interrupted: false };
+      try {
+        const data = await run('link', () => client.auth.verifyOtp({ token_hash, type }));
+        if (!data?.session?.access_token || !data?.user?.id || data.session.user?.id !== data.user.id)
+          throw new AuthError('Ce lien est invalide ou expiré.', 'invalid_link');
+        // verifyOtp émet lui-même SIGNED_IN/PASSWORD_RECOVERY avant sa réponse.
+        // Une seule transition vers SA session est attendue ; sortie/A→B→A
+        // pendant le réseau invalide la réponse et tout droit de mot de passe.
+        const event = attempt.event;
+        if (attempt.interrupted || (event && (!['SIGNED_IN', 'PASSWORD_RECOVERY'].includes(event.type)
+            || event.userId !== data.user.id || event.token !== data.session.access_token))
+            || (revision !== current && !(revision === current + 1 && localSession?.access_token === data.session.access_token
+              && localSession?.user?.id === data.user.id))) {
+          revision++; passwordLinkUser = null; marker.clear(); publish('anonymous');
+          throw new AuthError('La session a changé. Ouvre un nouveau lien personnel.', 'session_changed');
+        }
+        revision++; passwordLinkUser = data.user.id; localSession = data.session; marker.remember(localSession, data.user.id); publish('authenticated', data.user);
+        return state.user;
+      } finally { linkPending = false; linkAttempt = null; }
     },
     async updatePassword(password) {
       const problem = validatePassword(password, password);
