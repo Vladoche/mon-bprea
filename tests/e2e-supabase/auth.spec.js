@@ -100,11 +100,11 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
     await expect(page.getByLabel('Pseudo (facultatif)', { exact: true })).toHaveValue('Élève navigateur local');
 
     stage = 'demande réelle de récupération et e-mail local';
-    await main.getByRole('link', { name: 'Changer mon mot de passe', exact: true }).click();
-    await page.getByLabel('Adresse e-mail', { exact: true }).fill(fixture.email);
-    await page.getByRole('button', { name: 'Envoyer le lien de réinitialisation', exact: true }).click();
-    await expect(main.getByRole('status')).toContainText('Si cette adresse correspond à un compte');
-    const recoveryLink = await fixture.recoveryLink();
+    await main.getByRole('link', { name: 'Récupération assistée du mot de passe', exact: true }).click();
+    await expect(main).toContainText('par votre moyen de communication habituel');
+    await expect(main.locator('form')).toHaveCount(0);
+    // Le mécanisme natif/capture reste une régression distincte, hors page publique.
+    const recoveryLink = await fixture.nativeRecovery();
 
     stage = 'vérification réelle du lien de récupération et nouveau mot de passe';
     await openCapturedLink(page, recoveryLink);

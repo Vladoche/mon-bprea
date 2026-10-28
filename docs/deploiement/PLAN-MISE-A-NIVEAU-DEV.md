@@ -1,21 +1,23 @@
 # Plan de mise à niveau Supabase DEV
 
-**PROPOSITION NON EXÉCUTÉE — 28 octobre 2026, lot 6.5.2.** Cible exclusive future : **`wcckbyhrtroittbfophv`**. Le mandat actuel autorise l'audit en lecture seule et sa livraison GitHub. Il **n'autorise aucune étape d'écriture ci-dessous**, invitation, test de session, e-mail, suppression ou déploiement. PROD reste exclu.
+**PROPOSITION NON EXÉCUTÉE — initiée en 6.5.2, actualisée en 6.5.3.A le 28 octobre 2026.** Cible exclusive future : **`wcckbyhrtroittbfophv`**. Le mandat 6.5.3.A autorise seulement le générateur et les essais sur stack éphémère locale, avec leur livraison GitHub. Il **n'autorise aucune étape d'écriture hébergée ci-dessous**, invitation, session, e-mail, suppression ou déploiement. PROD reste exclu.
 
 Références : [audit daté et preuves R01–R16](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md), [matrice des écarts](MATRICE-ECARTS-DEV.md), [recette future](PLAN-RECETTE-DEV.md). Base Git de l'audit : `5affd57ee6e3a92d53eb8bddafc029268554c522`. Les faits sont ceux de la lecture du 28 octobre ; les relire avant intervention, surtout après le changement de défauts Data API annoncé pour le 30 octobre. Une approbation de ce document n'est pas une autorisation générale d'exécuter ses étapes.
+
+**Actualisation 6.5.3.A : solution B choisie par l’exploitant, invitations et récupération manuelles sans SMTP externe.** Le choix SMTP est abandonné après le 6.5.2, dont les constats restent historiques. Aucun fournisseur, domaine, Brevo, abonnement ou envoi automatique à installer. Le [générateur et son guide](INVITATIONS-ET-RECUPERATION-MANUELLES.md) sont exclusivement locaux : leur usage hébergé nécessite adaptation, protections et autorisation séparées. Aucune étape de ce plan n’est exécutée par le 6.5.3.A ; le futur 6.5.3.B concerne uniquement la migration personnelle manquante après autorisation.
 
 ## Ordre et responsabilités
 
 L'exploitant peut cumuler décision, opération et contrôle, avec une vérification distincte de cible/résultat à chaque passage. Les identités, adresses d'essai, habilitations, secrets et reçus sensibles restent dans un dossier privé. Aucun rôle formateur ni administration scolaire n'est ajouté.
 
-Ordre proposé : **A préconditions → B base → C Auth → D messagerie → E frontend local → F recette dédiée → G décision de préparation**. Une phase ne commence qu'après preuve de sortie de la précédente. Une livraison d'e-mail, une création de compte et une clôture nécessitent chacune un périmètre explicitement autorisé, même pendant une recette.
+Ordre proposé : **A préconditions → B base → C Auth → D liens manuels → E frontend local → F recette dédiée → G décision de préparation**. Une phase ne commence qu'après preuve de sortie de la précédente. Une génération de lien, une création de compte et une clôture nécessitent chacune un périmètre explicitement autorisé, même pendant une recette.
 
 ## A — Préconditions bloquantes avant la première écriture
 
 | Contrôle futur | Preuve / décision à réunir | Arrêt si |
 | --- | --- | --- |
 | Cible et version | Vérifier référence exacte dans Dashboard/outil, nom, région ; dernier main/PR retenu et trois checks verts sur cette tête ; préciser opérateur et fenêtre | Référence différente, ambiguïté, nouvel état non expliqué ou diff hors périmètre |
-| Autorisation distincte | Mandat daté : DEV seul, migration exacte, réglages nommés, comptes fictifs/adresses et envois autorisés, exclusions et droits de nettoyage ; autorisations par phase | Une action n'est pas couverte ; aucun consentement déduit du silence ou de la CI |
+| Autorisation distincte | Mandat daté : DEV seul, migration exacte, réglages nommés, comptes fictifs/adresses et générations/transmissions autorisées, exclusions et droits de nettoyage ; autorisations par phase | Une action n'est pas couverte ; aucun consentement déduit du silence ou de la CI |
 | Historique/objets | Relire les trois versions et les catalogues, grants effectifs, policies, fonctions, dépendances ; comparer à l'audit | Version manquante supplémentaire, objet personnel déjà partiellement présent, dérive RLS ou fonction inexpliquée |
 | Accès opérateur | Vérification privée du rôle minimal, MFA/récupération, accès support et disponibilité ; aucun secret de CLI dans logs ou commande partagée | Privilège excessif non maîtrisé, secret exposé ou récupération impossible |
 | Protection des données existantes | Identifier en privé propriétaires/portées des données d'essai déjà présentes et l'impact ; ne pas les considérer jetables. La lecture du 6.5.2 n'en a inspecté ni identité ni contenu | Donnée réelle découverte, propriété incertaine, demande de nettoyage global |
@@ -23,7 +25,7 @@ Ordre proposé : **A préconditions → B base → C Auth → D messagerie → E
 | Retour sûr | Désigner version frontend sûre Auth off, mesure autorisée de suspension serveur si fuite, règles de réconciliation des effacements, assistance et critères de reprise | Simple retour de fichier proposé comme restauration de données ou suppression automatique de tables |
 | Déclencheurs automatiques | Relire intégration DEV (off lors de R13), workflows et cible liée ; pas de déploiement Pages ni de migration automatique souhaités | Activation distante inattendue ou partage de cible avec un autre environnement |
 
-Pour six adultes, rechercher d'abord les moyens déjà disponibles et la perte réellement acceptable. Aucun achat Pro/PITR/SMTP ou création de projet n'est approuvé. Si une copie DB/Auth est nécessaire, son contenu sensible, son stockage, sa durée et sa restauration doivent être autorisés dans un autre mandat : aucun dump n'est produit par cet audit.
+Pour six adultes, rechercher d'abord les moyens déjà disponibles et la perte réellement acceptable. Aucun abonnement Supabase payant, SMTP externe, domaine acheté ou nouveau projet n’est prévu. Si une copie DB/Auth est nécessaire, son contenu sensible, son stockage, sa durée et sa restauration doivent être autorisés dans un autre mandat : aucun dump n'est produit par cet audit.
 
 ## B — Base PostgreSQL
 
@@ -61,15 +63,15 @@ La migration n'est pas accompagnée d'une migration inverse. **Aucun rollback au
 
 Relever avant chaque changement l'ancienne valeur non sensible dans un dossier privé, modifier le seul paramètre autorisé, relire puis tester son effet prévu. Si blocage Auth, suspendre et restaurer uniquement cette ancienne configuration via moyen officiel autorisé ; ne pas ouvrir signup/anonyme pour dépanner.
 
-## D — SMTP et modèles
+## D — Liens manuels, sans SMTP externe
 
-1. Confirmer un fournisseur SMTP existant ou une offre gratuite adaptée à six, avant de recommander un achat : expéditeur/domaine autorisés, quotas réels invitation+récupération, limites de destinataires, SPF/DKIM/DMARC, lieux/transferts, logs/rétention, engagement applicable et récupération opérateur. Le service intégré réservé aux adresses de l'équipe ne convient pas à l'invitation des camarades ; ne pas leur donner un rôle d'administration pour contourner cette limite.
-2. Autoriser séparément la configuration SMTP et le stockage des identifiants dans l'interface sécurisée officielle. Aucun secret dans Git, argument partagé, capture ou frontend. Désactiver suivi de clic/pixels/réécritures du fournisseur si applicable et autorisé. Relire les paramètres non sensibles, sans envoyer de message automatiquement.
-3. Installer exactement [invite.html](../../supabase/templates/invite.html) et [recovery.html](../../supabase/templates/recovery.html), sujets `Activer votre compte Mon BPREA` et `Réinitialiser votre mot de passe Mon BPREA`. Conserver SiteURL, TokenHash, type correct et échappement HTML ; relire **corps et sujets effectivement enregistrés**, pas seulement un config diff de sujets.
-4. Vérifier callback exact, OTP 8/expiration hébergée décidée, absence de fragment de session et de redirection libre. Les modifications de sécurité/notification éventuelles demandent leur propre décision ; aucun template supplémentaire activé par défaut.
-5. Seulement après autorisation d'envoi vers une boîte d'essai contrôlée, réaliser invitation et récupération depuis le message reçu jusqu'au formulaire dans un navigateur neuf. Dater livraison/retards, scanner, usage unique et expiration, sans conserver lien/TokenHash ni adresse dans preuve publique. Un lien généré administrativement sans envoi ne prouve pas la livraison.
+1. Valider d’abord l’outil administratif local et les preuves de [6.5.3.A](../validations/VALIDATION-LOT6-5-3A.md) : types fermés, cible, clé privée, confirmation, callback et résultat incertain sans retry. Le programme livré refuse techniquement DEV/PROD ; ne pas supprimer ses gardes pour cette phase.
+2. Obtenir ensuite une autorisation propre à la génération de liens DEV, une adaptation dédiée et relue, des protections de cible/habilitation/secret et une liste privée de seules identités fictives. Cette génération peut créer réellement Auth/profil : ce n’est pas une lecture ni une simulation. Aucun camarade, inscription publique ou mot de passe opérateur.
+3. Après cette autorisation, générer et transmettre individuellement les seuls liens fictifs par canal privé contrôlé ; remise unique, pas de fichier/trace publique, clipboard automatique ou service d’envoi. Vérifier `hashed_token`, type, callback exact, usage unique et expiration réellement attendue.
+4. Recetter activation volontaire dans un navigateur vierge, prévisualisation sans consommation, mot de passe choisi par le titulaire et connexion. Recetter récupération assistée après vérification d’identité, ancien mot de passe refusé, nouveau accepté ; comportement Secure password change à décider séparément.
+5. Préparer l’exploitation privée ultérieure et la fermeture juin 2027, après décisions de confidentialité et ouverture distinctes. Aucun SMTP, personnalisation d’e-mail hébergé, essai de délivrabilité Brevo ou envoi automatique aux camarades n’est requis.
 
-En cas d'échec, arrêter les invitations, conserver le compte et son historique, vérifier quota/configuration et délivrabilité auprès de l'opérateur. Restaurer un ancien template incompatible n'est pas un état prêt : laisser la recette fermée jusqu'au correctif. Aucun envoi massif, répétition sans borne ou invitation des cinq camarades.
+En cas d’échec/compte déjà créé/résultat incertain, arrêter, conserver compte/historique et diagnostiquer la seule cible. Aucun remplacement silencieux de lien, retry aveugle, suppression/recréation ou envoi massif. Les templates/capture SMTP locaux restent des régressions historiques, sans modification hébergée.
 
 ## E — Frontend DEV local, distinct de Pages
 
@@ -81,13 +83,13 @@ Retour sûr : arrêter ce serveur, revenir à une copie publique Auth off et con
 
 ## F — Recette hébergée dédiée, après accord distinct
 
-Exécuter le [plan de recette](PLAN-RECETTE-DEV.md) avec comptes fictifs A/B propres à l'exécution, deux appareils A et un contexte anonyme. Ne modifier ni guards ni URLs des runners destructifs existants : ceux-ci restent exclusivement sur la stack locale éphémère. La création, l'envoi et le nettoyage sont bornés par autorisation explicite, pas autorisés globalement par le nom « test ».
+Exécuter le [plan de recette](PLAN-RECETTE-DEV.md) avec comptes fictifs A/B propres à l'exécution, deux appareils A et un contexte anonyme. Ne modifier ni guards ni URLs des runners destructifs existants : ceux-ci restent exclusivement sur la stack locale éphémère. La création, la génération/transmission et le nettoyage sont bornés par autorisation explicite, pas autorisés globalement par le nom « test ».
 
 Scénarios : invitation/activation/connexion/récupération, profil et colonnes protégées, Drill/Dashboard, cours/QCM, botanique, ITK/apparence auto et sombre, outbox/retry hors ligne/deux appareils, A/B et requêtes forgées, export, effacement local. La clôture assistée et la restauration sont des sous-recettes avec autorisation supplémentaire, jamais une dépendance à résoudre en déployant le prototype local.
 
 ## G — Preuves de préparation et arrêt final
 
-DEV peut être déclaré **prêt pour la recette suivante**, dans le seul périmètre autorisé, après : identité datée ; historique/définitions/grants vérifiés ; sauvegarde et reprise acceptées ; Auth/URLs relus ; modèles effectivement installés et SMTP prêt avec périmètre d'envoi décidé ; artefact local exact sans secret ; accès opérateur maîtrisés ; plan de tests et nettoyages autorisés ; inconnues/alertes assorties d'une décision. Avant ces preuves, le statut reste non prêt pour le périmètre concerné. Un frontend qui démarre ou la CI éphémère verte ne suffit pas.
+DEV peut être déclaré **prêt pour la recette suivante**, dans le seul périmètre autorisé, après : identité datée ; historique/définitions/grants vérifiés ; sauvegarde et reprise acceptées ; Auth/URLs relus ; outil administratif hébergé séparément autorisé et validé, périmètre de génération/transmission décidé ; artefact local exact sans secret ; accès opérateur maîtrisés ; plan de tests et nettoyages autorisés ; inconnues/alertes assorties d'une décision. Avant ces preuves, le statut reste non prêt pour le périmètre concerné. Un frontend qui démarre ou la CI éphémère verte ne suffit pas.
 
 Après F, chaque résultat doit indiquer environnement, SHA, date, méthode, preuve minimisée et limite. Les échecs et tests impossibles restent visibles. Une recette hébergée réussie ne lève pas automatiquement D01–D14 ni les quinze P0, et n'autorise ni invitation réelle, fusion, production ni publication de notice.
 
@@ -99,9 +101,9 @@ Après F, chaque résultat doit indiquer environnement, SHA, date, méthode, pre
 | Migration en erreur ou résultat HTTP perdu | Stopper toute chaîne suivante ; relire historique/catalogues et statut de transaction ; pas de retry aveugle | Identifier rollback effectif, commit réussi ou objets partiels ; correction soumise à autorisation, jamais repair pour masquer l'échec |
 | Migration appliquée, fonctionnalité en panne | Suspendre recette/sync selon mécanisme préautorisé, préserver données et version d'essai | Diagnostic puis correctif ciblé ou restauration isolée autorisée ; pas de DROP/DELETE automatique |
 | Mauvaise configuration Auth | Stopper nouvelles connexions/invitations d'essai ; rétablir seulement valeur antérieure autorisée et relire | Ne pas ouvrir signup/anonyme ni baisser les protections pour obtenir un succès |
-| E-mail/callback mal configuré | Suspendre envoi et consommation de liens, ne pas les journaliser ; garder comptes existants | Réparer paramètres/templates après accord, nouvel essai contrôlé ; pas de suppression/recréation de compte pour contourner l'erreur |
+| Lien/callback mal configuré | Suspendre génération/transmission et consommation de liens, ne pas les journaliser ; garder comptes existants | Réparer paramètres/générateur après accord, nouvel essai contrôlé ; pas de suppression/recréation de compte pour contourner l'erreur |
 | Soupçon RLS, exposition ou réponse étrangère | Arrêt immédiat de la recette ; fermeture de l'artefact local et mesure serveur de confinement préautorisée, incident privé D13 | Analyse privilèges/policies/JWT, correction autorisée, nouvelle recette A/B complète avant reprise ; cacher un bouton ne confine pas l'API |
-| Compte fictif inaccessible | Conserver UUID en dossier privé, stopper actions ciblées ; récupération native seulement si autorisée | Vérifier identité/cible puis récupération ; aucune suppression globale ni réutilisation d'un compte historique |
+| Compte fictif inaccessible | Conserver UUID en dossier privé, stopper actions ciblées ; récupération manuelle seulement si autorisée | Vérifier identité/cible puis récupération ; aucune suppression globale ni réutilisation d'un compte historique |
 | Futur service déployé en erreur | Aucun déploiement dans ce plan actuel ; si un autre mandat en crée un, stopper l'accès via procédure de ce service | Version sûre/secrets/habilitations et recette revus ; ne pas déverrouiller close-account local |
 | Restauration envisagée | Isoler la cible, suspendre accès et synchronisation ; ne pas restaurer dans DEV en guise de test | Réconcilier suppressions depuis preuve minimale privée, réappliquer, contrôler Auth/dix tables/JWT/appareils et B, puis décider reprise. Copies résiduelles explicitement séparées |
 

@@ -10,7 +10,8 @@
       const token = params.get('token_hash');
       const type = params.get('type');
       const valid = !location.hash && params.getAll('token_hash').length === 1
-        && params.getAll('type').length === 1 && /^[A-Za-z0-9_-]{20,512}$/.test(token || '')
+        && params.getAll('type').length === 1 && [...params.keys()].sort().join(',') === 'token_hash,type'
+        && /^[A-Za-z0-9_-]{20,512}$/.test(token || '')
         && (type === 'invite' || type === 'recovery');
       history.replaceState(null, '', location.pathname);
       Object.defineProperty(window, '__bpreaAuthLink', {
@@ -35,7 +36,7 @@
 </head>
 <body data-page="auth-callback">
   <header id="app-header"></header>
-  <main id="app-main" tabindex="-1"><noscript>Active JavaScript puis ouvre à nouveau le lien reçu par e-mail.</noscript></main>
+  <main id="app-main" tabindex="-1"><noscript>Active JavaScript puis ouvre à nouveau le lien personnel qui t’a été transmis.</noscript></main>
   <footer id="app-footer"></footer>
 </body>
 </html>

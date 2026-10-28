@@ -116,6 +116,15 @@ export function createLocalAuthFixture(environment) {
       return capturedCallback(environment.mailUrl, email, 'invite');
     },
     recoveryLink() { return capturedCallback(environment.mailUrl, email, 'recovery'); },
+    async nativeRecovery() {
+      // Régression SMTP historique, appelée seulement depuis Node de test.
+      const client = createClient(environment.url, environment.publishableKey, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      });
+      const result = await client.auth.resetPasswordForEmail(email, { redirectTo: LOCAL_CALLBACK });
+      if (result.error) throw new Error('La régression SMTP locale de récupération a échoué.');
+      return capturedCallback(environment.mailUrl, email, 'recovery');
+    },
     async cleanup() {
       if (!userId) return;
       if (email !== `${run}@example.test` || !/^[0-9a-f-]{36}$/i.test(userId))
