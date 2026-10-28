@@ -1,0 +1,21 @@
+# Préparation de la restauration d'une copie JSON de compte
+
+**Lot 6.5.3.B, 28 octobre 2026 : note seulement. Aucun import développé.** Le téléchargement du [lot 6.4.2](../architecture/EXPORT-DONNEES-PERSONNELLES.md) existe ; il ne constitue pas encore une sauvegarde de compte restaurable. Cette note réserve les travaux aux futurs lots 6.5.4.A et 6.5.4.B, sans commencer leur conception détaillée ni leur implémentation.
+
+| Sujet à traiter dans les prochains lots | Exigence à préserver |
+| --- | --- |
+| Validation du fichier | Taille bornée avant parsing, enveloppe et exportFormatVersion reconnues, types/champs/listes autorisés, dates/valeurs/relations cohérentes ; refus non destructif d'une version future ou d'un fichier corrompu. |
+| Propriétaire et environnement | Auth fraîche via le service partagé, portée compte/environnement/origine projet/UUID ; ne jamais accepter l'UUID du fichier comme autorisation. Données d'un tiers ou d'un autre environnement refusées ; une copie appareil unverified n'est pas une copie de compte. |
+| Aperçu et décision | Montrer couverture, exclusions, conflits et changements prévus ; choix volontaire puis confirmation ; aucune écriture à la connexion, à la sélection du fichier ou après une réponse Auth périmée. |
+| Préservation | Garder source et données existantes ; pas de reset, DELETE, réinitialisation de cache ou remplacement global. Copie locale seule, nouvel appareil et serveur indisponible doivent être distingués. |
+| Identités et doublons | Conserver les identifiants immuables des tentatives/opérations et la provenance. Deux scores/dates égaux ne désignent pas une même tentative ; projection, remote et outbox ne s'additionnent pas. Idempotence persistante après reload et retry. |
+| Révisions et conflits | Les anciennes révisions CAS ne sont pas réinjectées comme écritures gagnantes. Relire l'état courant ; conserver done:false, historiques, fin botanique initiale et intentions divergentes ; résoudre explicitement, sans dernier horodatage gagnant. |
+| Outboxes | Réconcilier données déjà présentes, reçus incertains, dépendances et opérations encore en attente ; ne pas attribuer un nouvel ID à un retry ni envoyer une intention A sous le JWT B. |
+| Dépendances | Séries/réponses/entraînements et sessions/réponses dans le bon ordre ; refuser l'orphelin sans lui inventer une racine. ITK et apparence restent deux domaines. |
+| Appareil neuf ou stockage perdu | Distinguer récupération du serveur et compléments exclusivement locaux ; les exclusions de l'export, archives brutes et marqueurs privacy ne sont pas récupérés par magie. Respecter les barrières locales et les effacements décidés. |
+| Auth supprimé | Le JSON n'inclut ni mot de passe/empreinte, identité fournisseur, JWT, refresh token ni secret de signature. Il ne réactive pas un compte supprimé et n'autorise pas le transfert automatique vers un nouveau compte/UUID. Décision de droits séparée. |
+| Tests | A/B, fichier tiers/projet différent, A→B→A pendant lecture/aperçu/envoi, reprise après panne, doublons exacts et deux tentatives distinctes, CAS dépassé, outbox déjà acquittée, nouvel appareil et compte supprimé ; données synthétiques isolées et vrais JWT/RLS locaux pour la sécurité. |
+
+Les imports historiques visiteur ne doivent pas être réutilisés brutalement : leurs sources, identités et manifestes ne sont pas le format d'une sauvegarde de compte. Le [contrat backend personnel](../architecture/PERSONAL-DATA-BACKEND.md), le [Drill](../architecture/DRILL-SYNCHRONISATION-BACKEND.md) et les [barrières d'effacement](../architecture/SUPPRESSION-DONNEES-PERSONNELLES.md) restent les références.
+
+La copie technique DB du [guide Supabase Free](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) est une opération opérateur distincte. Aucun écran, parseur d'import, RPC, migration, clé locale, workflow ou nouvelle dépendance n'est ajouté ici.

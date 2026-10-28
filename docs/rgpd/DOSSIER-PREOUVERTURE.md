@@ -1,4 +1,6 @@
-# Dossier de préouverture — actualisation 6.5.3.A
+# Dossier de préouverture — actualisation 6.5.3.B
+
+**Actualisation 6.5.3.B, 28/10/2026 : préparation de sauvegarde/migration DEV seulement.** [Rapport actuel](../validations/VALIDATION-LOT6-5-3B.md), [sauvegarde Free](../deploiement/SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) et [runbook à deux accords](../deploiement/RUNBOOK-MIGRATION-DEV-6-5-3B.md). Deux migrations et quatre tables confirmées en lecture seule ; migration personnelle absente. Aucune copie ni migration exécutée ; restauration non testée faute de Docker/psql/pg_dump. Chemin privé choisi dans la conversation, protection et risque résiduel à décider. **A et B restent distincts ; aucun P0 levé**, notamment P0-06/11/12/14. L'import JSON individuel et la recette connectée restent ultérieurs ; les éléments 6.5.2/6.5.3.A ci-dessous gardent leur portée historique.
 
 **DOCUMENT DE TRAVAIL NON VALIDÉ — 28 octobre 2026. OUVERTURE BLOQUÉE.** Base technique 6.5.2 : dernier `origin/main` vérifié à la création de branche, fusion #25 `5affd57ee6e3a92d53eb8bddafc029268554c522`. Le 6.5.2 a autorisé l’audit DEV en lecture seule. Le 6.5.3.A autorise seulement outil et essais locaux éphémères ; aucune mise à niveau, recette hébergée, invitation réelle, fusion ou publication. Les choix juridiques/opérationnels [D01–D14](DECISIONS-A-VALIDER.md) restent à valider. Aucune identité civile ni coordonnée n'est publiée.
 
