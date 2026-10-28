@@ -25,7 +25,7 @@ export async function waitForIdentity(page, userId, { status = 'authenticated', 
 // oncomplete, using a new readonly transaction ordered after prior writes.
 export async function personalRecords(page, name) {
   return page.evaluate(async name => {
-    const request = indexedDB.open(name, 1);
+    const request = indexedDB.open(name);
     request.onupgradeneeded = () => request.transaction.abort();
     const db = await new Promise((resolve, reject) => {
       request.onsuccess = () => resolve(request.result);

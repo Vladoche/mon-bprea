@@ -3,6 +3,7 @@ import { readScopedRecord } from './personal-idb.js';
 import { CACHES, TABLES, VISITOR_SOURCES, MAX_BYTES, fail } from './export-sources.js';
 import { envelope, projectLocal, projectVisitor, serializeExport } from './export-model.js';
 import { createExportTransport } from './export-transport.js';
+import { subscribePrivacy } from './privacy-events.js';
 
 const fingerprint = value => JSON.stringify(value, (_, item) => item && typeof item === 'object' && !Array.isArray(item)
   ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
@@ -18,6 +19,7 @@ export function createExportService({ auth, configuration, readLocal = readScope
   const unsubscribe = auth.subscribe(() => {
     if (expected && !active(expected.job, expected.id, expected.version)) invalidate('identity');
   });
+  const unPrivacy = subscribePrivacy(() => invalidate());
   async function local(scope, signal) {
     const data = {}, coverage = [];
     for (const [domain, database] of Object.entries(CACHES)) {
@@ -120,6 +122,6 @@ export function createExportService({ auth, configuration, readLocal = readScope
       }
       return envelope({ kind: 'device', ownership: 'unverified' }, data, coverage, now());
     },
-    stop() { disposed = true; unsubscribe(); invalidate(); subscribers.clear(); },
+    stop() { disposed = true; unsubscribe(); unPrivacy(); invalidate(); subscribers.clear(); },
   };
 }

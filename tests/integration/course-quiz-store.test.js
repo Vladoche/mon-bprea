@@ -158,7 +158,7 @@ describe('cours/QCM — cache personnel atomique et import volontaire', () => {
   });
   it('un cache corrompu reste intact et bloque lecture et écriture', async () => {
     const repo = createCourseQuizRepository(scope, { indexedDB }); await repo.read();
-    const request = indexedDB.open(PERSONAL_COURSE_QUIZ_DB, 1);
+    const request = indexedDB.open(PERSONAL_COURSE_QUIZ_DB);
     const db = await new Promise(resolve => { request.onsuccess = () => resolve(request.result); });
     const corrupt = { version: 999, scope, preserve: ['aucune perte'] };
     await new Promise(resolve => { const tx = db.transaction('accounts', 'readwrite'); tx.objectStore('accounts').put(corrupt, scope); tx.oncomplete = resolve; });

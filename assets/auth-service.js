@@ -10,7 +10,7 @@ export class AuthError extends Error {
 function safeError(error, operation) {
   if (error instanceof AuthError) return error;
   if (error?.status === 429 || error?.code === 'over_request_rate_limit') return new AuthError('Trop de tentatives. Patiente avant de réessayer.', 'rate_limit');
-  if (operation === 'session' && (error?.status === 401 || error?.status === 403 || ['session_not_found', 'refresh_token_not_found', 'refresh_token_already_used', 'bad_jwt'].includes(error?.code)))
+  if (operation === 'session' && (error?.status === 401 || error?.status === 403 || ['session_not_found', 'user_not_found', 'refresh_token_not_found', 'refresh_token_already_used', 'bad_jwt'].includes(error?.code)))
     return new AuthError('Ta session a expiré. Connecte-toi à nouveau.', 'invalid_session');
   if (error instanceof TypeError || error?.name === 'AuthRetryableFetchError' || error?.name === 'TimeoutError' || (!error?.status && !error?.code))
     return new AuthError(network, 'network');

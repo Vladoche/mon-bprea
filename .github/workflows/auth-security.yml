@@ -44,6 +44,13 @@ jobs:
           node scripts/ci-supabase-env.mjs
       - name: Vérifier les privilèges PostgreSQL avec pgTAP
         run: npx --yes supabase@2.121.0 test db
+      - name: Servir uniquement le prototype de clôture local
+        shell: bash
+        run: |
+          node scripts/prepare-closure-local.mjs
+          npx --yes supabase@2.121.0 functions serve --env-file .env.closure-test.local > "$RUNNER_TEMP/closure-functions.log" 2>&1 &
+          echo "$!" > "$RUNNER_TEMP/closure-functions.pid"
+          node scripts/wait-closure-local.mjs
       - name: Vérifier Auth, RLS, backends et Chromium (expiration réelle chevauchée)
         env:
           PYTHON: python3
@@ -52,4 +59,7 @@ jobs:
         if: always()
         shell: bash
         run: |
+          if [[ -f "$RUNNER_TEMP/closure-functions.pid" ]]; then
+            kill "$(cat "$RUNNER_TEMP/closure-functions.pid")" 2>/dev/null || true
+          fi
           npx --yes supabase@2.121.0 stop --no-backup > "$RUNNER_TEMP/supabase-stop.log" 2>&1

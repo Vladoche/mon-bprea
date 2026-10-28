@@ -94,4 +94,6 @@ Pour les données internes Auth, journaux, backups, autres appareils, archives b
 
 ## Vérification
 
+**Compatibilité 6.4.3 :** le lecteur readonly accepte désormais les versions de base IndexedDB 1 et 2 sans migration ; les documents pédagogiques restent v1. Toute action de confidentialité entre onglets invalide la préparation et la remise de fichier, en plus des générations Auth existantes. Le nouveau store technique `privacy` n'est pas présenté comme couvert par le fichier pédagogique partiel ; sa portée personnelle et sa procédure complémentaire sont décrites dans [SUPPRESSION-DONNEES-PERSONNELLES](SUPPRESSION-DONNEES-PERSONNELLES.md). Les dix tables, projections, archives/conflits accessibles et exclusions de confidentialité antérieures restent identiques.
+
 [VALIDATION-LOT6-4-2](../validations/VALIDATION-LOT6-4-2.md) distingue unités/intégration, HTTP synthétique, téléchargements Chromium, RLS réel éphémère et limites de poste. Les scénarios de confidentialité exercent A/B/A, dernière page en échec, réponse tardive, annulation, identité refusée avant remise, quatre caches, archives et sources visiteur. Les suites antérieures et 350 assertions pgTAP restent conservées.

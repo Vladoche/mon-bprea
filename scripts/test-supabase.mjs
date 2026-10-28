@@ -293,6 +293,10 @@ try {
     const expired = await rawProfiles(session.access_token);
     assert.equal(expired.response.status, 401, 'Un JWT authentique périmé au-delà de la tolérance doit être refusé avec HTTP 401.');
     assert.equal(expired.data?.code, 'PGRST303', 'Le refus doit provenir de la validation des claims JWT par PostgREST.');
+    const closure = await fetch(`${url}/functions/v1/close-account`, { method: 'POST',
+      headers: { Origin: 'http://127.0.0.1:4173', apikey: publicKey, Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'prepare', password: a.password, confirmation: 'SUPPRIMER' }), signal: AbortSignal.timeout(15000) });
+    assert.equal(closure.status, 401, 'Le prototype de clôture doit aussi refuser ce JWT réellement expiré.');
   });
 
   console.log(`${passed} groupes de vérifications Supabase réellement exécutés et réussis.`);

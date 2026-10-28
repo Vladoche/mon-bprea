@@ -2,6 +2,7 @@ import { getAuthService } from './auth-service.js';
 import { validateCredentials, validatePassword, validatePseudo } from './auth-validation.js';
 import { renderBreadcrumbs } from './breadcrumbs.js';
 import { initExportUI } from './export-ui.js';
+import { initErasureUI } from './erasure-ui.js';
 
 const controllers = new WeakMap();
 const restoreHandlers = new WeakSet();
@@ -24,11 +25,13 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   let unsubscribe = () => {};
   let disposed = false;
   let disposeExport = () => {};
+  let disposeErasure = () => {};
   const dispose = () => {
     disposed = true;
     abort.abort();
     unsubscribe();
     disposeExport();
+    disposeErasure();
     link = null;
     for (const input of root.querySelectorAll('input[type="password"]')) input.value = '';
     if (page === 'profile' || page === 'auth-callback') root.textContent = 'Vérification de la session…';
@@ -54,6 +57,9 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
     const exportRoot = document.createElement('div'); root.append(exportRoot);
     const cleanup = await initExportUI(exportRoot, { auth: service });
     if (disposed) cleanup(); else disposeExport = cleanup;
+    const erasureRoot = document.createElement('div'); root.append(erasureRoot);
+    const eraseCleanup = await initErasureUI(erasureRoot, { auth: service });
+    if (disposed) eraseCleanup(); else disposeErasure = eraseCleanup;
   }
 
   function message(text, kind = 'info', focus = false) {

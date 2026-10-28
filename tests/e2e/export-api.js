@@ -2,18 +2,18 @@ import { accounts, sessionFor } from './course-quiz-api.js';
 import { serverRows } from '../fixtures/export.js';
 export { accounts };
 export const exportOrigin = 'https://export.invalid';
-export function createExportAPI() {
+export function createExportAPI({ origin = exportOrigin, localClosure = false } = {}) {
   const rows = Object.fromEntries(Object.values(accounts).map(account => [account.id, serverRows(account.id, 205)]));
   const api = { rows, reads: [], writes: [], hold: null, failLast: false, authOffline: false };
   api.install = async (context, account = 'A', sources = {}) => {
-    await context.addInitScript(({ session, sources }) => {
+    await context.addInitScript(({ session, sources, hostname }) => {
       if (localStorage.getItem('export-fixture')) return;
       localStorage.setItem('export-fixture', 'yes');
-      if (session) localStorage.setItem('bprea-auth-export.invalid-/mon-bprea/', JSON.stringify(session));
+      if (session) localStorage.setItem(`bprea-auth-${hostname}-/mon-bprea/`, JSON.stringify(session));
       for (const [key, value] of Object.entries(sources)) localStorage.setItem(key, value);
-    }, { session: account ? sessionFor(account) : null, sources });
-    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: exportOrigin, publishableKey: 'sb_publishable_syntheticExport', siteUrl: 'http://127.0.0.1:4173/mon-bprea/' } }));
-    await context.route(`${exportOrigin}/**`, async route => {
+    }, { session: account ? sessionFor(account) : null, sources, hostname: new URL(origin).hostname });
+    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: origin, publishableKey: 'sb_publishable_syntheticExport', siteUrl: 'http://127.0.0.1:4173/mon-bprea/', ...(localClosure ? { accountClosureLocalTest: true } : {}) } }));
+    await context.route(`${origin}/**`, async route => {
       const request = route.request(), url = new URL(request.url());
       let uid; try { uid = JSON.parse(Buffer.from(request.headers().authorization.split('.')[1], 'base64url')).sub; } catch { /* Anonymous. */ }
       const send = (data, status = 200) => route.fulfill({ status, json: data, headers: { 'access-control-allow-origin': '*' } });

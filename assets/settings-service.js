@@ -4,6 +4,7 @@ import { createSettingsRepository, personalScope } from './settings-store.js';
 import { clone, domains, equal, validateValue, validateAppearance, queueSettings, prepareSettingsOperation, acknowledgeSettings, reconcileSettings, resolveSettingsConflict, LocalSettingsError, SettingsSyncError, valueFromRow } from './settings-model.js';
 import { createSettingsTransport, classifySettingsError } from './settings-transport.js';
 import { delayFor } from './sync-runtime.js';
+import { subscribePrivacy } from './privacy-events.js';
 export const VISITOR_ITK_KEY = 'bprea-demo-itk-v1';
 export const VISITOR_APPEARANCE_KEY = 'bprea-demo-appearance-v1';
 export const LEGACY_THEME_KEY = 'bprea-demo-theme-v1';
@@ -237,9 +238,15 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
       return snapshot();
     },
     synchronize, syncNow: synchronize,
-    stop() { stopped = true; invalidate(); unsubscribe(); broadcast?.close(); listeners.forEach(fn => fn()); document = null; scope = null; mode = 'blocked'; view = unavailable('Recharge la page pour vérifier le compte.'); notify(); },
+    stop() { stopped = true; invalidate(); unsubscribe(); unPrivacy(); broadcast?.close(); listeners.forEach(fn => fn()); document = null; scope = null; mode = 'blocked'; view = unavailable('Recharge la page pour vérifier le compte.'); notify(); },
   };
-  const unsubscribe = auth.subscribe(authState => { ready = identity(authState).catch(() => { invalidate(); mode = 'blocked'; scope = null; document = null; state = 'session'; view = unavailable('L’identité personnelle est indisponible.'); notify(); }); });
+  let privacyPaused = false;
+  const unPrivacy = subscribePrivacy(phase => {
+    privacyPaused = phase === 'suspend'; invalidate(); document = null; mode = 'blocked';
+    view = unavailable('Vérification des caches après une action de confidentialité…'); state = 'storage-error'; notify();
+    if (!privacyPaused) ready = identity(auth.getState());
+  });
+  const unsubscribe = auth.subscribe(authState => { if (privacyPaused) return; ready = identity(authState).catch(() => { invalidate(); mode = 'blocked'; scope = null; document = null; state = 'session'; view = unavailable('L’identité personnelle est indisponible.'); notify(); }); });
   if (broadcast) broadcast.onmessage = event => { if (mode === 'personal' && event.data === scope) { const current = generation; refresh(current, repository).then(() => { if (active(current)) requestSync(); }).catch(issue => { if (active(current)) { state = 'storage-error'; error = issue.message; view = unavailable(error); notify(); } }); } };
   const listen = (target, event, fn) => { if (target?.addEventListener) { target.addEventListener(event, fn); listeners.push(() => target.removeEventListener(event, fn)); } };
   listen(globalThis.window, 'online', () => service.retry());

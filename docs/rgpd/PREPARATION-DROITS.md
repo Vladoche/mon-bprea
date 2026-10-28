@@ -44,7 +44,13 @@ Contrat exact, limites de volume et dictionnaire : [EXPORT-DONNEES-PERSONNELLES]
 
 **Critères de recette proposés :** jeu fictif avec chaque source de la matrice, deux comptes et deux appareils ; zéro secret/ligne B ; données anciennes et nulls fidèles ; pages >100 et erreur de dernière page ; mutation pendant lecture ; session expirée et retour HTTP tardif ; outbox hors ligne, conflits et bruts de tiers ; export interrompu sans fichier annoncé complet ; format relisible et accessible. Les tests réels de permissions restent sur stack locale dédiée, jamais DEV/PROD.
 
-## Lot 6.4.3 — Conservation et suppression : contrat à concevoir
+## Lot 6.4.3 — Conservation et suppression : réalisation technique et décisions restantes
+
+**A — développé :** retrait local ciblé par portée vérifiée et sélection, dialogue et comptage du non confirmé, quatre caches IndexedDB v2 (records pédagogiques v1 inchangés), barrière transactionnelle et invalidation des services/exports entre onglets ; visiteur et provenances séparés. ITK/apparence sont retirables séparément dans leur record partagé si archives attribuables. Une barrière technique personnelle locale minimale reste conservée ; aucune suppression universelle de toutes les copies n'est annoncée.
+
+Un prototype Edge Function **strictement local éphémère** vérifie Auth, une nouvelle connexion native avec mot de passe puis une capacité temporaire liée au JWT exact avant suppression administrative Auth et contrôle des dix tables. Aucun UUID cible libre, nouveau DELETE étudiant, migration ou suivi nominatif serveur. Les anciennes FK empêchent la recréation sous l'UUID supprimé ; la preuve réelle est celle de la recette SQL/Auth locale, pas des mocks. La clôture ne retire automatiquement ni cache personnel ni visiteur ; le résultat distingue serveur confirmé, nettoyage local non effectué et éventuel échec de fin de session.
+
+Contrat, ordre, reprise après perte d'acquittement, limites visiteurs/appareils absents et conditions d'activation : [architecture 6.4.3](../architecture/SUPPRESSION-DONNEES-PERSONNELLES.md). Preuves exécutées et limites : [validation](../validations/VALIDATION-LOT6-4-3.md). [Politique de conservation](POLITIQUE-CONSERVATION-PROJET.md) et [règles JSON](CONSERVATION-PROJET.json) **non validées**, durées nulles, aucune purge autorisée. Les exigences opérationnelles suivantes restent à instruire ; cette réalisation ne valide aucune décision D01–D14 et n'ouvre aucun service hébergé.
 
 **Décider avant d'effacer** : finalité de la demande, catégories/portée, délais et exceptions réellement applicables, éventuel archivage restreint, appareils concernés, information de la personne et preuve minimale de réalisation. Une conservation pour litige/obligation ne se décide pas par commodité technique. La progression ne doit jamais être supprimée lors d'une déconnexion ordinaire.
 
@@ -71,4 +77,4 @@ La procédure future devra définir l'ordre et l'atomicité possibles entre Auth
 | Livraison | `npm test`, `npm run test:e2e`, SDK sans diff et trois checks `unit-integration`, `e2e`, `supabase-security` sur le dernier commit ; artefact Pages sans document préparatoire ni secret. Préserver optimisations CI #20 et rulesets. |
 | Ouverture | Ne pas confondre recette locale, publication de notice, déploiement et invitation. Autorisation de production explicite, préparatifs 6.5 et configuration distante vérifiée dans un lot autorisé ; aucun runner destructif sur compte étudiant. |
 
-Les tests de panne utilisent horloge contrôlée et données isolées selon [TESTS.md](../TESTS.md) ; les expirations Auth réelles suivent les règles des suites locales Supabase. Seule la copie technique du 6.4.2 décrite plus haut est développée ; aucune suppression ni réalisation du 6.4.3 dans ce lot.
+Les tests de panne utilisent horloge contrôlée et données isolées selon [TESTS.md](../TESTS.md) ; les expirations Auth réelles suivent les règles des suites locales Supabase. Les capacités techniques 6.4.2/6.4.3 décrites plus haut ne remplacent ni les décisions juridiques ni la recette finale 6.4.4, qui n'est pas commencée ici.
