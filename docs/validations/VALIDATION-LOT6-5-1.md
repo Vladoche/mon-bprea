@@ -1,0 +1,52 @@
+# Validation du lot 6.5.1 — cadrage pour six adultes
+
+**28 octobre 2026, Europe/Paris. Livraison documentaire ; aucune autorisation d'ouverture ni conformité juridique déclarée.** Méthode [A–F](../rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md). Les incertitudes sont des résultats documentés, pas des contrôles réputés réussis.
+
+## Base et périmètre vérifiés (A)
+
+Lecture intégrale d'AGENTS.md, `docs/TESTS.md`, des treize références du mandat (dossier, décisions, matrice, registre, inventaire, flux, confidentialité, conservation Markdown/JSON, procédure, spécification publique, bilan et validation 6.4.4), puis préparation des droits et contrat de suppression lorsque nécessaire. Worktree unique, initialement propre sur `feature/lot6-4-4-recette-confidentialite` à `3246ebe`. Aucun travail utilisateur déplacé/effacé.
+
+`git fetch origin main` a actualisé `origin/main` à **`39a5196816060e4d2a3963b44af6bfe5019b7d30`**. API GitHub : [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) fusionnée le 28/10/2026 à ce SHA. Branche demandée créée depuis cette base : **`feature/lot6-5-1-cadrage-six-etudiants`**. Dépôt `Vladoche/mon-bprea` public selon `get_repo` ; visibilité réelle Pages/CDN distincte et non inspectée. Pas d'édition de `main`.
+
+Workflows Qualité, Sécurité Auth/RLS et Pages relus. Trois jobs conservés : `unit-integration`, `e2e`, `supabase-security`, sans filtre documentaire ; optimisations #20 inchangées. La publication Pages reste sur `main`/déclenchement manuel, aucun workflow de déploiement lancé. Aucun ruleset modifié.
+
+## Livrables et nouveaux faits (B)
+
+Les dix déclarations sont intégrées au [cadrage](../rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md) : projet personnel indépendant, pas d'exploitation officielle par l'établissement ; exploitant et cinq camarades tous majeurs, **six adultes maximum** ; usage facultatif sans compte imposé ; révision/entraînement BPREA ; horizon **juin 2027** ; résultats privés et aucun accès formateur prévu ; comptes sur invitation sans inscription libre. Absence de notation officielle et remontée institutionnelle caractérisent le modèle d'usage déclaré, sans certification technique ni attestation externe. Le plafond six est opérationnel, pas un quota serveur ajouté.
+
+| Livrable | Résultat et statut |
+| --- | --- |
+| [Analyse personnelle/domestique](../rgpd/ANALYSE-EXCEPTION-PERSONNELLE-PROJET.md) | Deux branches traitées ; cercle strictement amical et absence professionnelle/commerciale à établir. D : préparer le socle RGPD proportionné sans revendiquer d'exemption. Qualification E ouverte. |
+| [Calendrier](../rgpd/CALENDRIER-FERMETURE-PROJET.md) | Trois scénarios, fenêtre candidate 14/30 jours, phases A–F, jour T et purges non approuvés. Arrêt des écritures, anciens JWT/outboxes, appareils absents et restauration distingués. |
+| [Plan léger](../rgpd/PLAN-EXPLOITATION-LEGERE.md) | Exploitant cumulant les tâches, canal dédié proposé, options suppression comparées ; combinaison export/retrait local + clôture assistée recommandée sous conditions. Feuille prestataires et checklist 6.5.2 prêtes, aucun audit distant commencé. |
+| Documents existants | D01–D14 et quinze P0 réévalués ; cinq finalités R01–R05 resserrées sans mission institutionnelle présumée ; notice raccourcie explicitement préparatoire, conservation/assistance/incidents adaptés. Matrice, spécification, README et bilan reliés au cadrage actuel, preuves 6.4 conservées comme historiques. |
+
+## Sources officielles (C), limites de consultation
+
+Toutes les sources juridiques suivantes ont été relues le **28/10/2026** : [CNIL particuliers/exception](https://www.cnil.fr/fr/cnil-direct/question/1817), RGPD sur CNIL [chapitre I](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre1), [II](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre2), [III](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), [IV](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre4), [consentement](https://www.cnil.fr/fr/les-bases-legales/consentement), [intérêt légitime](https://www.cnil.fr/fr/les-bases-legales/interet-legitime), [transparence](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence), [conservation](https://www.cnil.fr/fr/passer-laction/les-durees-de-conservation-des-donnees), [AIPD](https://www.cnil.fr/fr/ce-quil-faut-savoir-sur-lanalyse-dimpact-relative-la-protection-des-donnees-aipd) et listes [requise](https://www.cnil.fr/sites/cnil/files/atoms/files/liste-traitements-aipd-requise.pdf) / [non requise](https://www.cnil.fr/sites/cnil/files/atoms/files/liste-traitements-aipd-non-requise.pdf). L'accès EUR-Lex (CELEX et ELI) a été bloqué par antirobot ; aucune lecture réussie de cette source ni du considérant 18 via ce lecteur n'est déclarée. Texte des articles lu sur CNIL.
+
+Documentation technique relue le même jour : [GitHub Pages/IP](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection), [Supabase gestion utilisateur/JWT résiduel](https://supabase.com/docs/guides/auth/managing-user-data), [sessions](https://supabase.com/docs/guides/auth/sessions), [backups](https://supabase.com/docs/guides/platform/backups) et [changelog](https://supabase.com/changelog) après refus du format `.md` par le lecteur. Avis TLS du 12/10/2026 repéré ; aucune mise à niveau de code/configuration effectuée. Ces guides ne prouvent aucun contrat, région, plan ou réglage propre à l'exploitant (F).
+
+## Contrôles locaux et limites
+
+Node **24.22.0**, npm **10.4.0** ; `npm ci` puis `npx playwright install chromium` réussis, manifeste/verrou inchangés. Les opérations Git nécessitant écriture sous `.git` ont utilisé les permissions adaptées après refus initial de `fetch` en sandbox.
+
+| Contrôle réellement effectué | Résultat et portée |
+| --- | --- |
+| `npm test` | **380 tests / 42 fichiers réussis** ; logique JS et IndexedDB simulée, pas preuve RLS. |
+| `npm run test:e2e -- --workers=2` | **73/73 parcours Chromium réussis (1,4 min)** avec Python 3.15 système, serveur boucle locale et profils isolés. Premier lancement resté au démarrage du serveur avec Python du runtime en environnement restreint, interrompu puis relancé avec permissions adaptées ; ce premier essai n'est pas une réussite. Aucun test modifié. |
+| SDK | `npm run build:auth-sdk` puis `git diff --exit-code -- assets/vendor/supabase.js` réussis, bundle verrouillé identique. |
+| Documentation et confidentialité | **19 documents, 292 liens locaux, 57 tableaux contrôlés, zéro anomalie** ; Markdown analysé, fences/encodage/liens/colonnes vérifiés, D01–D14 uniques et quinze P0 toujours bloquants. Relecture des dix déclarations, des dates/qualifications et du diff ; recherche bornée de secrets, e-mails et coordonnées dans les 16 fichiers documentaires modifiés/ajoutés sans signal. Aucun code/configuration suivi différent de la base. |
+| Artefact Pages | Préparateur réel : **127 fichiers publics + `.nojekyll`, 292 références versionnées**, version locale `lot6-5-1-cadrage`. SHA-256 de l'inventaire ordonné chemins/contenus : `4f5472e8f0060a8e716770e33f37f5e151a536b1ee2c71f1a81e4635ae28f2c8`. Auth off, aucune URL/clé ; aucun `docs/`, test, serveur, env ou `confidentialite.html`. E2E `privacy-artifact` réussi sur 17 documents, aucune requête externe dans ces contextes vierges locaux. Pas preuve du CDN hébergé. |
+| Visuel | Aucun écran applicatif modifié. Rendu local Markdown inspecté : notice mobile sombre 390 px, cadrage clair 1280 px et dossier P0 clair 1600 px ; avertissement préparatoire visible, tableaux rendus et aucun débordement de document dans ces variantes. Captures sous `.tmp/lot651/`, ignorées. Ce rendu local ne publie aucune notice ni ne constitue un audit global d'accessibilité. |
+| Sécurité réelle locale | **NON EXÉCUTÉE sur ce poste : Docker absent du PATH et chemin d'installation habituel.** CLI Supabase non disponible dans le PATH ; pas de tentative de stack ni de remplacement par DEV/PROD. La preuve RLS/pgTAP réelle de cette tête doit venir de CI éphémère. |
+
+Rapport des contrôles documentaires/artefact/rendu sous `.tmp/lot651/review-checks.json`, ignoré. Premier lancement du renderer : navigateur installé hors de la sandbox, rendu impossible ; relance avec permissions adaptées réussie. Cette recherche de secrets est bornée, pas une garantie absolue ; aucune donnée réelle de navigateur utilisée. Les trois jobs de la **dernière tête de PR** doivent ensuite être observés verts, avec SHA, URL, conclusion et arrêt de stack dans la description de PR, sans commit supplémentaire seulement pour citer son propre résultat CI. Les verts de #24 ne remplacent pas ces preuves. Tout nouveau commit impose de recontrôler sa propre CI ; en cas d'échec, ne pas déclarer la livraison terminée.
+
+## Recommandations (D), décisions (E) et pièces manquantes (F)
+
+D : socle simple de l'hypothèse RGPD applicable sans préjuger de la qualification ; contact dédié, cumul des tâches, copie/retrait local et clôture assistée contrôlée, pas d'archive centrale indéfinie. D11 propose une conclusion motivée d'absence de nécessité d'AIPD pour le périmètre actuel, **à valider**, avec avis ciblé si doute de risque élevé et réexamen si les usages changent.
+
+E : qualification/identité/contact, bases par finalité, source des adresses et gratuité/publicité/non-commercial, périmètre approuvé, canal testé, scénario/T/fenêtre/délais, option de droits et restauration, analyse terminal/AIPD et autorisations. F : contrats, région/accès/transferts, SMTP, admin/MFA, logs/backups et réglages/recette hébergés. Les décisions sont suivies uniquement sous D01–D14 ; les quinze P0 restent bloquants avec actions/personne/étape explicites, faits de P0-09 désormais cadrés. Aucun P0 levé par simple déclaration ou amélioration d'affichage.
+
+**Invariants :** pas d'accès ni écriture DEV/PROD, migration, RLS/GRANT, configuration Auth ou services pédagogiques modifiés ; `assets/auth-config.json` désactivé, verrou du prototype local conservé ; `CONSERVATION-PROJET.json` inchangé, `validated:false`, `automaticPurgeAuthorized:false`, durées nulles. Pas de secret/coordonnée réelle ajouté, compte supprimé/créé, invitation, SMTP changé, Cron/purge, notice définitive ou service privé activé. Pas de 6.5.2, fusion automatique, modification de protection ou déploiement. Livraison par commit/push/PR pour revue ; ouverture toujours bloquée sur décisions et preuves subsistantes.

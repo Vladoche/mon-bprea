@@ -2,6 +2,10 @@
 
 **RECETTE TECHNIQUE ET PRÉPARATION — AUCUNE CONFORMITÉ ACQUISE.** État au 28 octobre 2026. Les sources juridiques indiquent les textes à examiner, pas une applicabilité ou une base retenue. Les statuts ont le sens du [dossier de préouverture](DOSSIER-PREOUVERTURE.md). Fonctions validatrices **à désigner** ; aucune approbation implicite par le développeur.
 
+## Actualisation documentaire 6.5.1
+
+La [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) est fusionnée dans `main` au commit `39a5196816060e4d2a3963b44af6bfe5019b7d30`. Les résultats historiques ci-dessous gardent leur SHA ; les nouveaux checks seront relevés sur la tête de la PR 6.5.1 dans sa description et la [validation](../validations/VALIDATION-LOT6-5-1.md). Le [cadrage A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md) renseigne B : six adultes maximum, usage facultatif indépendant, résultats privés sans accès formateur/évaluation officielle prévus, horizon juin 2027. Ces faits remplacent les inconnues de public des lignes C01/C05/C14 ; C10/C11 sont préparées pour l'exploitant cumulant les tâches, aucun canal réel validé. Les P0 restent bloquants et D01–D14 à valider. Ni état distant ni conformité ne sont inférés des tests.
+
 ## Registre des exécutions
 
 | Référence | Exécution et identification | Résultat / limite |
@@ -35,7 +39,7 @@ Sources officielles relues le 28/10/2026 : [S2 — RGPD principes, art. 5–7](h
 | C11 Incidents, S4 art. 32–34 | Qualification, confinement, notifications conditionnelles | Même procédure et exercice fictif | Trame de simulation ; tests de panne techniques distincts | CI-U/B pour pannes, pas notifications | Projet préparé ; aucun vrai incident provoqué | Décideur/canal/astreinte/prestataires non testés ; aucune notification réelle | D05/D13, P0-12 | Responsable + référent incidents |
 | C12 Prestataires/transferts, S4 art. 28 et règles de transfert à examiner | Cartographie et dossier contractuel | `FLUX-ET-PRESTATAIRES.md`, registre | Relecture et inventaire local de réseau ; pièces internes à obtenir | CI-B seulement pour réseau de l'artefact | L-P : aucun tiers chargé dans ce parcours | Région, DPA/plan effectifs, SMTP, support, logs/backups non vérifiés | D05/D06, P0-07/08 | Responsable + fonction contractuelle |
 | C13 Traçabilité opérationnelle, S4 art. 24/30/32 | Preuves Git/CI minimisées et futur suivi restreint | Cette matrice, validation et projet de procédure | Contrôle SHA/jobs, artefact sans docs/fixtures/env | CI-U/B/R | Provenance des tests traçable ; pas de ledger serveur ajouté | Les capacités temporaires ne sont pas un dossier de droits ; rétention des preuves à décider | D04/D07/D08/D13 | Gardien du registre + sécurité |
-| C14 AIPD éventuelle, S4 art. 35/36 | Screening critères/public/effets et risques R01–R12 | `DECISIONS-A-VALIDER.md`, dossier P0-09/10 | Revue documentaire ; aucune suite informatique ne tranche ce besoin | Aucun | **DÉCISION À VALIDER**, blocage d'ouverture | Public/échelle/dépendance/conséquences inconnus ; ni obligation ni dispense déclarée | D01/D02/D09/D11 | Responsable + DPO/conseil compétent |
+| C14 AIPD éventuelle, S4 art. 35/36 | Screening critères/public/effets et risques R01–R12 | `DECISIONS-A-VALIDER.md`, dossier P0-09/10 | Revue documentaire ; aucune suite informatique ne tranche ce besoin | Aucun | **DÉCISION À VALIDER**, blocage d'ouverture | Public/usages B renseignés en 6.5.1 ; screening et qualification juridique à valider, mesures hébergées F non éprouvées ; ni obligation ni dispense acquise | D01/D02/D09/D11 | Responsable + DPO/conseil compétent |
 
 ## Couverture des domaines et des transitions
 
