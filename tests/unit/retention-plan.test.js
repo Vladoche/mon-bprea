@@ -17,3 +17,18 @@ it('horloge contrôlée, événement explicite, dernière activité, finalité a
   expect(planRetention(policy, [{ ...source, events: {} }], 20000)[0].result).toBe('missing_event');
   expect(source.events.end).toBe(10000);
 });
+it('une pseudo-validation textuelle ou numérique ne vaut jamais approbation de politique', () => {
+  const records = [{ id: 'fixture', category: 'fictional', events: { end: 0 } }];
+  for (const validated of ['false', 'true', 1, {}, []]) {
+    expect(() => planRetention({ ...policy, validated }, records, 10000)).toThrow('Politique non validée');
+  }
+});
+it('règles ambiguës/incomplètes et horloge invalide refusées, aucune candidature sur createdAt seul', () => {
+  for (const change of [{ durationMs: null }, { durationMs: -1 }, { durationMs: 1.5 }, { trigger: '' }, { purpose: '' }, { validator: '' }, { archiveDecision: '' }, { exceptionDecision: '' }, { proof: '' }]) {
+    expect(() => planRetention({ ...policy, rules: [{ ...rule, ...change }] }, [], 10000)).toThrow();
+  }
+  expect(() => planRetention({ ...policy, rules: [rule, rule] }, [], 10000)).toThrow();
+  expect(() => planRetention(policy, [], NaN)).toThrow();
+  const record = Object.freeze({ id: 'fixture', category: 'fictional', createdAt: 0 });
+  expect(planRetention(policy, [record], 10000)).toEqual([{ id: 'fixture', result: 'missing_event' }]);
+});

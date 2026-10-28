@@ -1,6 +1,6 @@
 # Projet de registre des traitements — lot 6.4.1
 
-**PROJET INTERNE NON VALIDÉ — 27 octobre 2026.** Ce fichier public ne constitue ni le registre complet de l'exploitant ni la politique de confidentialité. Il en prépare les fiches sans coordonnées personnelles, contrat privé ou information de sécurité confidentielle. A/B/C/D : [méthode de l'inventaire](INVENTAIRE-DONNEES.md). Les identifiants de données et de flux y sont définis, ainsi que dans [Flux et prestataires](FLUX-ET-PRESTATAIRES.md).
+**PROJET INTERNE NON VALIDÉ — actualisé le 28 octobre 2026, lot 6.4.4.** Ce fichier public ne constitue ni le registre complet de l'exploitant ni la politique de confidentialité. Il en prépare les fiches sans coordonnées personnelles, contrat privé ou information de sécurité confidentielle. A/B/C/D : [méthode de l'inventaire](INVENTAIRE-DONNEES.md). Identifiants des données/flux dans l'inventaire et [Flux et prestataires](FLUX-ET-PRESTATAIRES.md). Aucune base légale ou durée approuvée par cette actualisation.
 
 **B :** l'article 30 distingue le registre du responsable de celui du sous-traitant. Le projet rassemble finalités, personnes, données, destinataires, transferts, délais et sécurité ; les bases légales et risques complètent ce socle. Source : [CNIL — registre](https://www.cnil.fr/fr/RGPD-le-registre-des-activites-de-traitement), consultée le 27/10/2026. Le statut et le rôle de l'organisme restent à établir ; ne pas invoquer automatiquement la dérogation des petites structures pour des traitements pédagogiques réguliers.
 
@@ -13,7 +13,7 @@
 | DPO / point de contact droits | Désignation éventuelle et canal opérationnel à confirmer (D04), aucun contact inventé. |
 | Gestionnaire du registre et validation | Personne/fonction à désigner ; date/version et décisions approuvées à tenir hors données confidentielles du dépôt. |
 | Personnes concernées | A : utilisateurs du navigateur visiteur et comptes préparés. D : étudiants réellement visés, adultes/mineurs, effectifs, établissements et caractère facultatif/obligatoire de l'usage (D09). |
-| Statut des traitements | A : capacités du code au commit `178f7c7`, Auth publique désactivée. Ni volume ni activité étudiante hébergée vérifiés. |
+| Statut des traitements | A : capacités relues sur la fusion #23 `1bddaece…`, copie partielle, retrait local et clôture locale éphémère préparés ; Auth publique désactivée. Ni volume ni activité étudiante hébergée vérifiés. |
 
 ## Options de licéité à instruire, aucune base retenue (B/D)
 
@@ -33,7 +33,7 @@ Les options de l'article 6 ne sont pas interchangeables : **contrat** seulement 
 | Transferts | D05/D06 : région/accès support et relais e-mail non vérifiés ; ne pas annoncer « exclusivement UE ». Matrice des prestataires de référence. |
 | Conservation | A : aucune échéance du compte définie dans l'application ; session persistée, retrait SDK lors de signOut local réussi. B : durée Auth configurable [sessions](https://supabase.com/docs/guides/auth/sessions), consultation 27/10/2026. D07 : paramètres, logs et backups réels inconnus. |
 | Sécurité | A : configuration publique désactivée, HTTPS requis en hébergé, `getUser`, identités/générations, lien nettoyé et confirmation explicite ; pas de secret administratif côté client. Config locale sans signup/anonyme, état hébergé à revalider au lot 6.5. |
-| Suppression/archivage | A : déconnexion locale du compte, pas suppression ; pas de procédure globale étudiante. C : prévoir révocation des sessions et traitement des liens/logs/copies avec 6.4.3 ; ne pas promettre invalidation instantanée de tous JWT. |
+| Suppression/archivage | A : déconnexion conservant la progression ; prototype local de clôture réauthentifiée avec capacité temporaire A08 et cascades. Pas de service hébergé de clôture/droits. C/D08 : traiter liens, logs, backups et appareils absents ; aucun JWT instantanément révoqué garanti. |
 | Risques / décisions ouvertes | Accès sur appareil partagé, JWT et session SDK accessibles au profil navigateur, liens dans journaux initiaux, invitation adressée à tort ; R01–R03/R09/R10 des [risques](DECISIONS-A-VALIDER.md). D01 à D07/D09/D10. |
 
 ## R02 — Personnaliser l'identification affichée du compte
@@ -48,7 +48,7 @@ Les options de l'article 6 ne sont pas interchangeables : **contrat** seulement 
 | Transferts | D05/D06 : mêmes inconnues Supabase que R01, hors hypothèse d'usage SMTP du pseudo non observée. |
 | Conservation | A : ligne liée au compte, pas de TTL ; pseudo remplaçable, dates créées/mises à jour, pas d'historique de pseudos applicatif. D07 : durée du compte et backups. |
 | Sécurité | A : RLS `auth.uid()=id`, UPDATE de la seule colonne `pseudo`, pas INSERT/DELETE étudiant ; trigger privé de création ; [migration profils](../../supabase/migrations/20261022000100_profiles.sql). |
-| Suppression/archivage | A : FK cascade depuis Auth, sans procédure globale exposée. C : prévoir rectification et effacement avec preuve d'absence dans copies actives/sauvegardes selon règles validées. |
+| Suppression/archivage | A : pseudo rectifiable, copie du profil sous UUID vérifié ; cascade depuis Auth exercée par prototype éphémère. D : exceptions, copies et sauvegardes à traiter selon règles approuvées et service hébergé autorisé. |
 | Risques / décisions ouvertes | Réidentification via pseudo, accès administratif ; R02/R10. D01/D03/D05/D06/D07 et présentation du caractère facultatif D10. |
 
 ## R03 — Reprendre son apprentissage et consulter ses résultats
@@ -65,7 +65,7 @@ Cette finalité regroupe états de cours, résultats, historiques d'entraînemen
 | Transferts | A : local sans API pédagogique distante en visiteur ; compte configuré vers Supabase. D05/D06 : pays/chaîne et accès privilégiés. Pas de transfert des résultats aux sites de ressources identifié. |
 | Conservation | A : historiques append-only sans échéance dans le code ; Dashboard recalculé, pas de table de statistiques supplémentaire ; outboxes/conflits/bruts locaux conservés après déconnexion. D07 : durée pédagogique utile, fin de formation, éventuelles archives justifiées non définies. |
 | Sécurité | A : RLS, contraintes, grants, UUID durable/retry exact, CAS des états modifiables, cache cloisonné par portée, transactions atomiques, imports non implicites et validation. Scores QCM/botaniques déclaratifs, pas résultats d'examen certifiés. |
-| Suppression/archivage | A : cascades SQL et immutabilité des historiques ; pas d'interface globale. Les archives locales de conflits/imports ne sont pas anonymes. C : concevoir accès/export exhaustifs 6.4.2 et conservation/suppression multicopie 6.4.3. |
+| Suppression/archivage | A : copie JSON partielle des dix tables et compléments locaux ; bruts/champs inconnus exclus. Retrait local sélectionné des caches/archives/imports et barrière X10 ; cascades via clôture locale seulement. Aucun anonymat des archives ni retrait des copies absentes présumé. C/D : procédure complémentaire de droits et restauration contrôlée. |
 | Risques / décisions ouvertes | Mélange A/B, source visiteur étrangère, conservation excessive, pertes hors ligne, export incomplet et réapparition après suppression : R01–R08/R10/R11. D03/D07/D08/D09/D11 ; examen AIPD à formaliser. |
 
 ## R04 — Retrouver ses paramètres d'utilisation
@@ -80,7 +80,7 @@ Cette finalité regroupe états de cours, résultats, historiques d'entraînemen
 | Transferts | A : pas d'envoi de calendrier/CSV/PDF complet ; singletons personnels vers Supabase. D05/D06 pour prestataire. |
 | Conservation | A : dernière valeur, anciennes clés visiteur préservées ; bornes en nombre du cache P05, pas de TTL. X01 stocke un jour masqué sans nettoyage journalier de la clé. D07 : durée utile et copies importées à définir. |
 | Sécurité | A : validation des huit champs, portée, CAS et outbox ; apparence `auto` préservée, valeurs personnelles appliquées après identité, aucune donnée de compte en attribut CSS. |
-| Suppression/archivage | A : aucun mécanisme RGPD ajouté ; limite de contrôle sur fichiers téléchargés/imprimés. C : couvrir valeurs, anciennes clés et bruts d'import dans les spécifications 6.4.3. |
+| Suppression/archivage | A : copie normalisée et retrait local ITK/apparence séparables si archives attribuables ; clés anciennes visiteur sélectionnées distinctement. Contrôle des singletons dans la clôture locale. Fichiers téléchargés/imprimés hors contrôle ; rétention et compléments de droits à valider. |
 | Risques / décisions ouvertes | Copies résiduelles, appareil partagé, outbox incertaine et fichiers exportés sur l'OS : R02–R04/R07/R08. D03/D07/D08/D12. |
 
 ## R05 — Fournir le site et assurer son exploitation technique
@@ -89,7 +89,7 @@ Cette finalité regroupe états de cours, résultats, historiques d'entraînemen
 | --- | --- |
 | Finalité / statut | A : distribuer les contenus publics et gérer les erreurs locales/réseau ; B : sécurité de l'infrastructure chez Pages. Traitements propres aux fournisseurs à distinguer de ceux décidés par l'exploitant. |
 | Responsable / personnes | D01/D05 ; visiteurs et comptes des futures API, opérateurs d'exploitation éventuels. Le registre peut nécessiter une activité propre au prestataire, sans l'attribuer à l'exploitant par défaut. |
-| Données et origine | X03/X05/X07/X09 : requêtes et URLs, IP côté hébergeur selon [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection), consultation 27/10/2026 ; logs API/Auth/SMTP possibles mais non inspectés. Pas de mesure d'audience applicative identifiée. |
+| Données et origine | X03/X05/X07/X09 : requêtes/URLs, IP côté hébergeur selon [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection), relu le 28/10/2026 ; logs API/Auth/Edge/SMTP possibles mais non inspectés. X10 assure la coordination locale par portée UUID. Pas de mesure d'audience applicative identifiée. |
 | Base envisagée | D03/D05 : nécessité de sécurité et éventuel intérêt légitime documenté selon acteur ; obligation légale seulement avec texte identifié. Aucun fondement déduit de la seule existence de logs. |
 | Destinataires / prestataires | GitHub pour Pages ; Supabase et messagerie pour services configurés ; équipes support/administration réellement habilitées à établir. Pas de destinataire analytics ajouté. |
 | Transferts | F01/F08/F13 et matrice des prestataires ; D05/D06 : pays et garanties non établis au niveau du projet. |

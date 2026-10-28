@@ -2,7 +2,7 @@
 
 > **PROJET NON VALIDÉ — NON DESTINÉ À PUBLICATION EN L'ÉTAT**
 >
-> Version de travail du 27 octobre 2026. Les mentions « À VALIDER » sont des points bloquants, pas des informations officielles. Ce texte n'atteste pas la conformité du service et ne doit pas être utilisé comme notice définitive ou envoyé avec une invitation étudiante.
+> Version de travail du 28 octobre 2026, revue 6.4.4. Les mentions « À VALIDER » sont des points bloquants, pas des informations officielles. Ce texte n'atteste pas la conformité du service et ne doit pas être utilisé comme notice définitive ou envoyé avec une invitation étudiante.
 
 Le texte ci-dessous est une **proposition C**, fondée sur les faits techniques A de l'[inventaire](INVENTAIRE-DONNEES.md). L'identité de l'exploitant, les bases légales, les contacts, les durées et les conditions réelles d'hébergement sont des **décisions D**, encore ouvertes. La préparation s'appuie sur les [recommandations CNIL de transparence](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence) et les [articles 12 à 14 du RGPD](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), consultés le 27 octobre 2026 (**B**).
 
@@ -80,7 +80,13 @@ Selon les conditions applicables, vous pouvez demander accès, rectification, ef
 
 **À VALIDER : canal de contact autorisé, personnes chargées des demandes, vérification d'identité proportionnée, délais et modalités opérationnelles.** N'envoyez jamais votre mot de passe ou un jeton de connexion pour prouver votre identité.
 
-Il n'existe actuellement dans ce périmètre ni bouton d'export global de compte, ni suppression globale du compte et de toutes les copies locales. Les lots suivants doivent préparer ces mécanismes. Cette absence de bouton ne remplace pas le traitement d'une demande de droits par l'organisme à identifier. Le CSV du générateur ITK n'est pas un export de toutes vos données personnelles.
+Le profil propose de préparer puis télécharger volontairement une copie JSON du compte vérifié, lorsque l'espace personnel est configuré. Elle couvre les dix tables applicatives et les compléments normalisés de ce compte sur cet appareil. Elle reste **partielle** : données internes Auth, journaux, sauvegardes, autres appareils, archives brutes/champs inconnus et marqueurs techniques de suspension ne sont pas annoncés comme couverts. Les erreurs serveur empêchent la remise d'un fichier ; les exclusions locales sont signalées. Les copies visiteur sélectionnées constituent un fichier séparé, sans propriétaire de compte présumé. Aucun envoi à un tiers n'est réalisé par cet export. Le CSV ITK ne constitue pas cette copie de compte.
+
+Un parcours distinct permet d'effacer volontairement des catégories de cet appareil, après aperçu et confirmation. Les opérations non synchronisées choisies peuvent être perdues définitivement. Les autres comptes et les données serveur restent conservés. Un marqueur technique personnel reste dans IndexedDB pour suspendre les anciens clients ; sa durée nécessaire reste à valider. La reprise explicite peut reconstruire depuis le serveur les données encore présentes, sans récupérer le non synchronisé effacé. Un fichier déjà téléchargé reste sur l'appareil de son destinataire.
+
+La clôture de compte est un **prototype réservé aux tests locaux éphémères**, après nouvelle connexion native et confirmation distincte. Elle n'est pas un service disponible sur l'hébergement public. Elle contrôle l'effacement Auth et des dix tables actives, sans prétendre retirer caches de tous les appareils, impressions, e-mails, journaux ou sauvegardes fournisseur. Les appareils absents peuvent conserver des copies ; une restauration de sauvegarde doit être traitée par une procédure à valider. Un JWT déjà émis peut subsister jusqu'à expiration ; la prévention de recréation serveur est testée séparément.
+
+Ces fonctions techniques ne remplacent ni un canal de droits opérationnel, y compris sans accès au compte, ni l'examen des conditions de chaque droit. La procédure, ses responsables, les exceptions et modalités de remise/suppression restent à approuver. [Préparation des droits](PREPARATION-DROITS.md), [limites vérifiées](../validations/VALIDATION-LOT6-4-4.md).
 
 ## Avant qu'une version officielle soit publiée
 
@@ -88,6 +94,6 @@ Cette section est une **note interne de préparation**, à retirer du texte offi
 
 1. Résoudre D01 à D14 dans [les décisions](DECISIONS-A-VALIDER.md), compléter et approuver les mentions et leurs preuves internes ; ne pas afficher de champs « À VALIDER » aux étudiants.
 2. Adapter le texte au public et au fonctionnement effectivement ouverts, conserver une version datée, distinguer information visiteur et personnel ; prévoir les informations spécifiques à l'invitation indirecte.
-3. Dans un lot autorisé, créer la page publique définitive, accessible sans connexion depuis navigation/footer et parcours de compte ; vérifier liens, lecture clavier, mobile et sombre avant publication. **Aucune page racine `confidentialite.html` n'est créée dans 6.4.1.**
+3. Dans un lot autorisé, créer la page publique définitive selon la [spécification](SPECIFICATION-INFORMATION-PUBLIQUE.md), accessible sans connexion avant la première collecte pertinente et depuis les parcours de compte ; vérifier clavier, mobile et sombre. **Aucune page racine `confidentialite.html` n'est créée ou publiée par 6.4.4.**
 4. Vérifier l'artefact exact : [prepare-pages.py](../../scripts/prepare-pages.py) n'inclut aujourd'hui pas `docs/` ; la page racine future, elle, sera publiée par cette chaîne. Le présent Markdown pourra rester visible dans le dépôt public : son avertissement doit rester explicite.
 5. Prévoir une information avant/au moment pertinent de la collecte et de la première invitation ; une notice publiée seule ne prouve ni sa communication, ni un consentement. Recette 6.4.4 puis validation d'ouverture 6.5, sans activation implicite.

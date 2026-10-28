@@ -154,3 +154,28 @@ it('ancien client v1 refusé après upgrade et réponse réseau tardive incapabl
   const legacy = f.indexedDB.open(CACHES.courses, 1); await expect(new Promise((resolve, reject) => { legacy.onsuccess = resolve; legacy.onerror = () => reject(legacy.error); })).rejects.toMatchObject({ name: 'VersionError' });
   sync.stop(); exporter.stop(); f.service.stop(); await repo.close();
 });
+it('export en attente ignorant l’annulation : effacement transactionnel puis réponse tardive ne livrent aucun fichier', async () => {
+  const f = fixture(), repo = await fill(f, 'courses'), b = await fill(f, 'courses', scope(B)), beforeB = await b.read();
+  let release, entered;
+  const gate = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });
+  const exporter = createExportService({ auth: f.auth, configuration: config, storage: f.storage,
+    readLocal: (database, key) => readScopedRecord(database, key, f),
+    transportFactory: () => async () => { entered(); await gate; return serverRows(A); } });
+  const pending = exporter.prepareAccount(); await reached;
+  await f.service.prepare({ personal: ['courses'] });
+  expect((await f.service.execute({ confirmed: true })).status).toBe('complete');
+  release(); await pending;
+  const deliver = vi.fn(); expect(await exporter.downloadAccount(deliver)).toBe(false); expect(deliver).not.toHaveBeenCalled();
+  expect(await readScopedRecord(CACHES.courses, scope(A), f)).toBeNull(); expect(await b.read()).toEqual(beforeB);
+  exporter.stop(); f.service.stop(); await repo.close(); await b.close();
+});
+it('aperçu en attente puis A→B→A : réponse locale tardive refusée, aucun plan réutilisable', async () => {
+  let release, entered;
+  const gate = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });
+  const f = fixture({ readLocal: async () => { entered(); await gate; return null; } });
+  const pending = f.service.prepare({ personal: ['courses'] });
+  const rejected = expect(pending).rejects.toMatchObject({ code: 'identity' }); await reached;
+  f.switch(B); f.switch(A); release(); await rejected;
+  await expect(f.service.execute({ confirmed: true })).rejects.toMatchObject({ code: 'confirmation' });
+  expect(await f.indexedDB.databases()).toEqual([]); f.service.stop();
+});

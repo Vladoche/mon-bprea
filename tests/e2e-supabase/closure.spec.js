@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
+import { readFile } from 'node:fs/promises';
+import { isDeepStrictEqual } from 'node:util';
 import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/drill-local.js';
 import { seedPersonalTables, readPersonalTables } from '../helpers/personal-data-local.js';
 import { LOCAL_SITE } from '../helpers/auth-local.js';
@@ -25,7 +27,7 @@ async function cachedCourse(page, action) {
     return { mode: service.getState().mode, error: service.getState().view.error };
   }, action);
 }
-test('Clôture réelle : dix cascades, B intact, ancien JWT/outbox hors ligne, perte d’acquittement et reprise', async ({ page, browser }) => {
+test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT résiduel/outbox hors ligne et reprise', async ({ page, browser }) => {
   test.setTimeout(150000); const students = []; let secondContext, stage = 'comptes fictifs', failure;
   try {
     const a = await createDrillStudent(); students.push(a); const b = await createDrillStudent(); students.push(b);
@@ -58,6 +60,22 @@ test('Clôture réelle : dix cascades, B intact, ancien JWT/outbox hors ligne, p
     await page.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: a.environment.url,
       publishableKey: a.environment.publishableKey, siteUrl: LOCAL_SITE, accountClosureLocalTest: true } }));
     await signInDrill(page, a); await page.goto(`${LOCAL_SITE}profil.html`);
+    stage = 'copie sauvegardée avant clôture';
+    await page.locator('[data-export-prepare]').click(); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
+    const downloading = page.waitForEvent('download'); await page.locator('[data-export-download]').click();
+    const copyPath = await (await downloading).path(), copyText = await readFile(copyPath, 'utf8'), copy = JSON.parse(copyText);
+    expect(copy.sourceScope.userId === a.userId && Object.keys(copy.data.server).length === 10).toBe(true);
+    // SQL snapshot orders by identity; export uses creation time + identity for
+    // some histories. Compare the same rows, retaining every field and value.
+    for (const [name, spec] of Object.entries(TABLES)) {
+      stage = `copie sauvegardée : valeurs de ${name}`;
+      const byIdentity = rows => [...rows].sort((a, b) => a[spec.key] < b[spec.key] ? -1 : a[spec.key] > b[spec.key] ? 1 : 0);
+      expect(isDeepStrictEqual(byIdentity(copy.data.server[name]), byIdentity(beforeA[name]))).toBe(true);
+    }
+    stage = 'copie sauvegardée : exclusions et limites affichées';
+    expect(copyText.includes(b.userId) || copyText.includes('access_token') || copyText.includes('refresh_token')).toBe(false);
+    await expect(page.locator('.data-erasure')).toContainText('Un fichier déjà téléchargé ne peut pas être rappelé');
+    await expect(page.locator('.data-erasure')).toContainText('Les appareils éteints ou hors ligne peuvent garder des caches');
     await page.getByLabel('Mot de passe actuel', { exact: true }).fill(a.password);
     await page.getByLabel('Écris SUPPRIMER pour confirmer', { exact: true }).fill('SUPPRIMER');
     await page.getByRole('button', { name: 'Vérifier mon identité pour clôturer', exact: true }).click();
@@ -76,6 +94,8 @@ test('Clôture réelle : dix cascades, B intact, ancien JWT/outbox hors ligne, p
     await page.locator('[data-closure-retry]').click(); await expect(page.locator('[data-closure-status]')).toContainText('Suppression serveur confirmée');
     await expect(page.locator('[data-closure-status]')).toContainText('Nettoyage local non effectué');
     stage = 'absence Auth et des dix tables vérifiée avec ancien JWT';
+    const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url'));
+    expect(claims.exp * 1000 > Date.now()).toBe(true);
     const old = createClient(a.environment.url, a.environment.publishableKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: `Bearer ${token}` } } });
     for (const [name, spec] of Object.entries(TABLES)) {
       const result = await old.from(name).select(spec.owner).eq(spec.owner, a.userId); expect(result.error === null && result.data.length === 0).toBe(true);
@@ -96,8 +116,16 @@ test('Clôture réelle : dix cascades, B intact, ancien JWT/outbox hors ligne, p
       ['personal_save_itk', { p_parameters: parameters, p_operation_id: randomUUID(), p_expected_revision: 0 }],
       ['personal_save_appearance', { p_preferences: { version: 1, season: 'auto', brightness: 'auto' }, p_operation_id: randomUUID(), p_expected_revision: 0 }],
     ];
-    for (const [name, body] of forbidden) expect(Boolean((await old.rpc(name, body)).error)).toBe(true);
-    expect(Boolean((await old.from('profiles').insert({ id: a.userId })).error)).toBe(true);
+    for (const [name, body] of forbidden) {
+      const result = await old.rpc(name, body);
+      // A gateway refusal or expired JWT would not prove the FK protection.
+      expect([400, 403, 409].includes(result.status)).toBe(true);
+      expect(['23503', '23514', '42501'].includes(result.error?.code)).toBe(true);
+      if (['drill_create_series', 'personal_record_quiz', 'personal_save_itk', 'personal_save_appearance', 'personal_save_course', 'personal_save_botanical_session'].includes(name)) expect(result.error?.code === '23503').toBe(true);
+    }
+    const profileInsert = await old.from('profiles').insert({ id: a.userId });
+    expect(profileInsert.error?.code === '42501').toBe(true);
+    expect(claims.exp * 1000 > Date.now()).toBe(true);
     stage = 'retour réseau de l’ancien appareil sans transfert ou réécriture';
     await secondContext.setOffline(false); await authIdentity(second, { retry: true }); await cachedCourse(second, 'retry');
     await expect.poll(async () => (await authIdentity(second)).userId).toBeNull();
@@ -113,6 +141,7 @@ test('Clôture réelle : dix cascades, B intact, ancien JWT/outbox hors ligne, p
       const result = await old.from(name).select(spec.owner).eq(spec.owner, a.userId); expect(result.error === null && result.data.length === 0).toBe(true);
     }
     expect(JSON.stringify(await readPersonalTables(b))).toBe(JSON.stringify(beforeB));
+    expect(await readFile(copyPath, 'utf8') === copyText).toBe(true);
   } catch { failure = new Error(`Clôture Supabase éphémère non validée : ${stage}. Aucune session, clé ou donnée journalisée.`); }
   finally {
     await secondContext?.close(); await page.close();
