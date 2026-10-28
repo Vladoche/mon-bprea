@@ -11,6 +11,10 @@
 
 Les résultats historiques #23 (376 unités/intégration, 67 Chromium, 386 pgTAP, 26 Chromium Supabase) appartiennent à sa tête `ec715f76…`, pas au nouveau code. La recette 6.4.4 conserve les suites et renforce les interactions copie/retrait/clôture ainsi que les refus de conservation. Les trois checks de sa **tête finale**, leurs liens et SHA sont centralisés dans la description de la [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) ; la [validation 6.4.4](VALIDATION-LOT6-4-4.md) indique les exécutions et limites du poste sans Docker.
 
+## Mise à jour de lecture après 6.5.1
+
+Ce bilan reste historique du chantier 6.4. La PR #24 a été fusionnée au commit `39a5196816060e4d2a3963b44af6bfe5019b7d30`. Le mandat suivant autorise explicitement le cadrage documentaire 6.5.1 malgré les portes d'ouverture encore ouvertes : [périmètre déclaré des six adultes](../rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md), [décisions actualisées](../rgpd/DECISIONS-A-VALIDER.md), [validation 6.5.1](VALIDATION-LOT6-5-1.md). Ses déclarations lèvent les inconnues factuelles de public/usage, sans approuver leurs qualifications ni autoriser l'ouverture. Le statut courant des portes est le dossier de préouverture ; 6.5.2 et les essais hébergés restent à autoriser séparément.
+
 ## Ce qui est préparé techniquement
 
 - Les domaines Auth/profil, Drill/Dashboard, cours/QCM, botanique, ITK/apparence, caches/files/conflits/imports ont des contrats, tests et limites reliés aux preuves.

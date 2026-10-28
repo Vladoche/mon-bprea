@@ -2,98 +2,56 @@
 
 > **PROJET NON VALIDÉ — NON DESTINÉ À PUBLICATION EN L'ÉTAT**
 >
-> Version de travail du 28 octobre 2026, revue 6.4.4. Les mentions « À VALIDER » sont des points bloquants, pas des informations officielles. Ce texte n'atteste pas la conformité du service et ne doit pas être utilisé comme notice définitive ou envoyé avec une invitation étudiante.
+> Version du 28 octobre 2026, lot 6.5.1. Les mentions à compléter bloquent la publication et les invitations. Aucun contact officiel ni service de clôture hébergé n'est annoncé comme disponible.
 
-Le texte ci-dessous est une **proposition C**, fondée sur les faits techniques A de l'[inventaire](INVENTAIRE-DONNEES.md). L'identité de l'exploitant, les bases légales, les contacts, les durées et les conditions réelles d'hébergement sont des **décisions D**, encore ouvertes. La préparation s'appuie sur les [recommandations CNIL de transparence](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence) et les [articles 12 à 14 du RGPD](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), consultés le 27 octobre 2026 (**B**).
+## Pourquoi ce site, et pour qui ?
 
-## À quoi sert Mon BPREA ?
+Mon BPREA est un projet personnel de révision et d'entraînement, indépendant de l'établissement de formation. Son exploitant prévoit l'espace personnel pour lui-même et ses cinq camarades majeurs : six adultes maximum. L'utilisation est facultative et personne n'est obligé de créer un compte. Les exercices et scores aident à réviser ; ils ne constituent pas une évaluation officielle. Aucun classement public, badge, accès formateur ou transmission officielle des résultats n'est prévu.
 
-Mon BPREA permet de consulter des cours, de s'exercer, de retrouver ses résultats et de préparer un itinéraire technique agricole simplifié. Les résultats aident à organiser les révisions. Ils ne constituent pas des résultats d'examen certifiés. Le code audité ne prévoit ni classement entre étudiants, ni badge de récompense, ni décision automatisée d'admission ou de sanction.
+Les pages pédagogiques publiques peuvent être consultées sans compte. Limiter les invitations ne rend pas ces pages privées. Le service personnel est prévu jusqu'à la fin de formation en **juin 2027** ; sa date exacte de fermeture reste à décider.
 
-## Qui est responsable de vos données ?
+## Qui propose Mon BPREA ?
 
-**À VALIDER AVANT PUBLICATION : identité et coordonnées de l'organisme qui décide des usages de vos données ; rôle de tout établissement partenaire ; contact pour vos droits et coordonnées du DPO s'il est désigné.** Ces éléments ne sont pas encore établis. Le propriétaire du dépôt et les prestataires techniques ne sont pas désignés automatiquement comme responsables du service.
+**À COMPLÉTER avant publication : identité de l'exploitant personne physique, désignation juridique et contact autorisé pour l'assistance et les données.** Le projet n'est pas exploité officiellement par l'établissement. La qualification juridique reste à valider ; aucune identité civile ou adresse personnelle n'est publiée automatiquement dans Git.
 
-## Utiliser le site sans compte
+## Ce que votre navigateur conserve
 
-Dans la configuration publique auditée, le compte et la synchronisation Supabase sont désactivés. L'utilisation des cours et outils reste possible sans compte. Votre navigateur peut conserver sur cet appareil :
+Sans compte, l'appareil peut garder vos cours terminés, scores et tentatives QCM, séries/réponses/entraînements et brouillons Drill, sessions/réponses botaniques, derniers paramètres ITK et préférences d'apparence. Ces données visiteur ne sont pas envoyées à Supabase par ce mode et ne suivent pas automatiquement sur un autre appareil. Sur un profil partagé, elles peuvent appartenir à quelqu'un d'autre.
 
-- les cours marqués terminés, meilleurs scores et tentatives QCM ;
-- les séries du Mode Drill, brouillons, réponses et entraînements ;
-- les sessions de reconnaissance des plantes, réponses, dates, durées et erreurs à revoir ;
-- les huit derniers paramètres du formulaire ITK ;
-- les choix de saison et de luminosité, un ancien choix de thème, ainsi que le jour où vous avez masqué l'anecdote.
+Avec un compte configuré, le navigateur peut aussi garder la session, une copie des données personnelles, des envois en attente, conflits et archives d'import. **Se déconnecter ne supprime pas la progression ni ces copies.** Elles ne sont pas chiffrées par l'application ; utilisez un profil navigateur personnel. Une perte/éviction du stockage peut faire perdre les résultats non synchronisés.
 
-Ces sauvegardes locales ne sont pas envoyées à Supabase par le mode visiteur. Elles peuvent appartenir à une autre personne qui a utilisé le même profil navigateur. Elles ne suivent pas automatiquement l'utilisateur sur un autre appareil par une fonction de Mon BPREA. Effacer les données du navigateur peut faire perdre des résultats.
+## Ce qui serait envoyé à Supabase
 
-Le site est hébergé sur GitHub Pages : selon la [documentation de GitHub](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection), l'adresse IP des visites y est enregistrée pour la sécurité, même sans compte GitHub. « Sans compte » ne signifie donc pas « aucune donnée traitée par l'hébergement ».
+L'espace personnel préparé fonctionne sur invitation, sans inscription libre. Dans la configuration publique du dépôt, il reste désactivé. L'e-mail sert à l'invitation, la connexion et la récupération ; Supabase Auth gère le compte et les sessions. Le pseudo est facultatif. **À COMPLÉTER : source réelle de votre adresse et information remise avant sa collecte/invitation.** Sans adresse, pas de compte personnel ; les pages visiteur restent utilisables.
 
-## L'espace personnel préparé
+Lorsqu'il sera autorisé et configuré, l'espace synchronisera progression, réponses et résultats Drill, cours/QCM, botanique, derniers paramètres ITK et choix d'apparence, avec dates et identifiants techniques. Le Dashboard calcule ses statistiques depuis les réponses Drill, sans historique supplémentaire. ITK ne stocke pas les calendriers/PDF/CSV complets sur le serveur. Les thèmes automatiques restent calculés sur l'appareil.
 
-Un espace personnel a été développé pour retrouver une progression sur plusieurs appareils. **Son ouverture publique aux étudiants n'est pas réalisée par ce lot.** Le fonctionnement ci-dessous décrit cet espace lorsqu'il est configuré ; il n'annonce pas que des comptes étudiants réels sont déjà actifs.
+La connexion n'importe pas automatiquement l'historique visiteur. Les imports proposés pour cours/QCM, botanique, ITK et apparence nécessitent un aperçu et votre confirmation ; ne les acceptez que pour vos propres données. Aucun import visiteur Drill n'est proposé.
 
-Un compte serait proposé sur invitation, sans inscription publique libre. L'adresse e-mail sert à l'invitation, à la connexion et à la récupération du mot de passe. Supabase Auth gère l'identifiant du compte et les sessions. Le profil contient un pseudo facultatif et des dates techniques. Le mot de passe et les jetons de session ne sont pas enregistrés dans les historiques pédagogiques.
+## Qui peut y accéder, et quels prestataires ?
 
-**À VALIDER : qui fournit l'adresse d'invitation, de quelle source elle provient, pourquoi un compte est proposé, si son usage est facultatif ou requis dans la formation, les données nécessaires et les conséquences d'une non-fourniture.** Le pseudo est facultatif dans le code. Une inscription ou une connexion ne transfère pas automatiquement l'historique visiteur vers un compte.
+Les règles prévues limitent les comptes ordinaires à leurs propres données. Les résultats doivent rester privés entre participants. Des administrateurs habilités et les prestataires peuvent néanmoins disposer d'accès techniques privilégiés ; ces accès doivent être limités et vérifiés avant ouverture.
 
-## Quelles données seraient synchronisées ?
+GitHub Pages distribue les fichiers publics ; sa [documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection) indique l'enregistrement des IP de visite pour la sécurité. Supabase est prévu pour Auth et PostgreSQL. **À COMPLÉTER : destinataires effectifs, contrats, région, chaîne d'e-mails, lieux/accès support et transferts éventuels avec leurs garanties.** Rien ne prouve ici une localisation exclusivement européenne. Les liens pédagogiques externes s'ouvrent sur votre action et relèvent des règles de leurs sites.
 
-Les données personnelles synchronisées comprennent la progression du Drill, les états de cours, les scores et tentatives QCM, les sessions et réponses botaniques, les derniers paramètres ITK et les choix d'apparence. Les dates, durées, identifiants et informations techniques de synchronisation permettent de retrouver l'historique et de reprendre un envoi interrompu.
+## Pourquoi et combien de temps ?
 
-Le tableau de bord calcule ses statistiques depuis les premières réponses du Drill. Il ne crée pas un historique statistique séparé. Les entraînements supplémentaires restent conservés dans leur historique. Les anciens scores partiels ne deviennent pas des tentatives datées inventées.
+**À COMPLÉTER : bases légales par finalité si le RGPD s'applique, critères/durées de conservation et intérêts poursuivis si retenus.** Créer un compte volontairement ou accepter une invitation ne vaut pas consentement général. Le code audité ne contient pas d'outil publicitaire ou de mesure d'audience applicative ; gratuité, absence d'exploitation commerciale et intention future restent à confirmer par l'exploitant. Les sauvegardes du navigateur utilisent localStorage/IndexedDB ; leur nécessité et leurs durées doivent être validées séparément.
 
-Le générateur ITK ne sauvegarde pas les calendriers, PDF, CSV ou documents complets dans l'espace personnel : il mémorise les huit paramètres `culture, variété, conduite, surface, mois, année, sol, eau`. Les documents sont reconstruits sur l'appareil. Les préférences automatiques de saison/luminosité restent automatiques ; leur rendu dépend de la date et de l'heure locales de chaque appareil.
+Pour juin 2027, l'exploitant doit choisir et annoncer la date, une fenêtre de récupération, puis l'arrêt et l'effacement autorisé des comptes/données actives. **Ces échéances ne sont pas encore approuvées ; aucune purge automatique n'est active.** Le sort des contenus publics après la formation reste à décider. Les journaux, sauvegardes et messages ont des délais/limites propres à vérifier auprès des prestataires. Des copies peuvent rester sur un appareil absent ou dans un fichier que vous avez téléchargé.
 
-L'import des anciennes données locales est proposé séparément pour cours/QCM, botanique, ITK et apparence. Il demande un aperçu puis une confirmation et conserve la sauvegarde d'origine. Ne confirmez un import que si ces données vous appartiennent. Le code audité ne propose pas d'import visiteur du Drill.
+## Récupérer, corriger ou supprimer vos données
 
-## Ce qui reste sur votre appareil avec un compte
+Le profil préparé permet une copie JSON du compte vérifié et une sélection visiteur séparée. La copie reste partielle : notamment internes Auth, journaux, backups, autres appareils, bruts/champs inconnus et marqueurs de suspension demandent un examen complémentaire. Conservez le fichier avec précaution. Un export n'est pas à lui seul la réponse à toutes les demandes.
 
-Le navigateur peut conserver la session de connexion, un marqueur d'identité et une copie de vos données personnelles. Cette copie permet de reprendre les envois et, sous certaines conditions, de continuer pendant une panne réseau. Des opérations en attente, des versions en conflit et des copies brutes d'anciens imports peuvent aussi y rester.
+Le retrait local sélectionné efface des catégories de cet appareil après confirmation ; le serveur reste inchangé et du non synchronisé peut être perdu. Un marqueur technique personnel demeure pour empêcher les anciens clients de réécrire le cache. Le prototype de clôture de compte reste réservé aux tests locaux : aucun service hébergé de clôture n'est rendu disponible par ce lot.
 
-**Se déconnecter ne supprime pas l'historique ni les opérations en attente de cet appareil.** Les vues personnelles sont retirées, mais les caches ne sont pas chiffrés par l'application. Une personne ayant accès au même profil navigateur, une extension autorisée ou un logiciel malveillant pourrait lire des données locales. Un appareil partagé demande donc des précautions particulières. Un résultat encore local n'est pas garanti sur un autre appareil avant confirmation de synchronisation.
+**À COMPLÉTER et tester : canal de contact accessible même sans accès au compte, procédure effective d'assistance, copie complémentaire, rectification et effacement.** N'envoyez ni mot de passe, ni jeton, ni lien de récupération ; aucune pièce d'identité n'est demandée par défaut. La future procédure devra confirmer séparément les suppressions actives et les copies résiduelles, sans promettre d'effacer partout instantanément.
 
-Un fichier ITK téléchargé, une impression ou un PDF enregistré par vos soins reste également sous votre contrôle, hors du stockage personnel de Mon BPREA.
+Si le RGPD s'applique, vos droits d'accès, rectification, effacement et limitation s'exercent selon leurs conditions ; opposition et portabilité dépendent notamment du fondement retenu. Un consentement retenu doit être retirable. Une réclamation peut être adressée à la [CNIL](https://www.cnil.fr/fr/plaintes).
 
-## Qui peut accéder aux données ?
+## Note interne à retirer de la future notice approuvée
 
-Dans le code préparé, les API personnelles limitent chaque compte à ses propres données. Les autres étudiants ne disposent pas d'un accès à ces historiques via les politiques prévues. Aucune interface de consultation des résultats par un formateur n'est livrée dans ce périmètre.
+Les déclarations de périmètre B proviennent du mandat 6.5.1, les capacités A de l'[inventaire](INVENTAIRE-DONNEES.md) ; méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md). Ce texte proposé D reste soumis aux choix E et preuves F de D01–D14. Sources C relues le 28/10/2026 : [transparence CNIL](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence), [droits RGPD](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3).
 
-L'hébergement public utilise GitHub Pages. L'espace personnel configuré utilise Supabase pour les comptes, les API et la base de données. Les invitations et récupérations passent par une chaîne de messagerie à préciser. Les opérateurs et prestataires habilités peuvent disposer d'accès techniques privilégiés.
-
-**À VALIDER : destinataires effectifs, habilitations, rôle de l'établissement, fournisseur d'e-mails et contrats applicables.** Les localisations exactes, accès support et transferts éventuels hors de l'Union européenne doivent être confirmés. Ce projet ne garantit pas que toutes les données restent dans l'Union européenne.
-
-Les ressources pédagogiques contiennent des liens vers des sites externes. L'ouverture de ces liens vous conduit vers leurs services et leurs propres règles de confidentialité. Les photographies du jeu et les PDF locaux ne nécessitent pas, dans le code audité, d'intégration d'un service tiers pour leur affichage.
-
-## Sur quelles bases et pour combien de temps ?
-
-**À VALIDER : base légale de chaque finalité, durée ou critère de conservation pour chaque catégorie, y compris comptes, progression, caches, imports, journaux, messages et sauvegardes.** Aucune base légale générale n'est choisie dans ce projet.
-
-Le code ne fixe pas de date d'effacement automatique des comptes ou des historiques pédagogiques. Certaines préférences remplacent leur valeur précédente et quelques diagnostics locaux sont limités en nombre ; cela ne constitue pas une politique de conservation. Les durées réelles des journaux et sauvegardes des prestataires ne sont pas établies par cet audit.
-
-## Cookies et sauvegardes du navigateur
-
-Le code utilise surtout localStorage et IndexedDB pour la sauvegarde, l'apparence et le compte préparé. Aucun outil de publicité ou de mesure d'audience n'a été identifié dans les sources auditées. L'analyse des accès au terminal et des éventuelles exemptions fonctionnelles reste à valider ; l'absence de publicité ne dispense pas d'examiner ces usages. Les traceurs des sites externes et les réponses de l'infrastructure ne sont pas tous vérifiables depuis le dépôt. Aucun bandeau de consentement n'est ajouté dans ce lot.
-
-## Vos droits et les fonctions disponibles
-
-Selon les conditions applicables, vous pouvez demander accès, rectification, effacement ou limitation de vos données. Opposition et portabilité dépendent notamment de la base et des conditions du traitement. Si un traitement est fondé sur le consentement, son retrait doit être possible. Vous pouvez adresser une réclamation à la [CNIL](https://www.cnil.fr/fr/plaintes).
-
-**À VALIDER : canal de contact autorisé, personnes chargées des demandes, vérification d'identité proportionnée, délais et modalités opérationnelles.** N'envoyez jamais votre mot de passe ou un jeton de connexion pour prouver votre identité.
-
-Le profil propose de préparer puis télécharger volontairement une copie JSON du compte vérifié, lorsque l'espace personnel est configuré. Elle couvre les dix tables applicatives et les compléments normalisés de ce compte sur cet appareil. Elle reste **partielle** : données internes Auth, journaux, sauvegardes, autres appareils, archives brutes/champs inconnus et marqueurs techniques de suspension ne sont pas annoncés comme couverts. Les erreurs serveur empêchent la remise d'un fichier ; les exclusions locales sont signalées. Les copies visiteur sélectionnées constituent un fichier séparé, sans propriétaire de compte présumé. Aucun envoi à un tiers n'est réalisé par cet export. Le CSV ITK ne constitue pas cette copie de compte.
-
-Un parcours distinct permet d'effacer volontairement des catégories de cet appareil, après aperçu et confirmation. Les opérations non synchronisées choisies peuvent être perdues définitivement. Les autres comptes et les données serveur restent conservés. Un marqueur technique personnel reste dans IndexedDB pour suspendre les anciens clients ; sa durée nécessaire reste à valider. La reprise explicite peut reconstruire depuis le serveur les données encore présentes, sans récupérer le non synchronisé effacé. Un fichier déjà téléchargé reste sur l'appareil de son destinataire.
-
-La clôture de compte est un **prototype réservé aux tests locaux éphémères**, après nouvelle connexion native et confirmation distincte. Elle n'est pas un service disponible sur l'hébergement public. Elle contrôle l'effacement Auth et des dix tables actives, sans prétendre retirer caches de tous les appareils, impressions, e-mails, journaux ou sauvegardes fournisseur. Les appareils absents peuvent conserver des copies ; une restauration de sauvegarde doit être traitée par une procédure à valider. Un JWT déjà émis peut subsister jusqu'à expiration ; la prévention de recréation serveur est testée séparément.
-
-Ces fonctions techniques ne remplacent ni un canal de droits opérationnel, y compris sans accès au compte, ni l'examen des conditions de chaque droit. La procédure, ses responsables, les exceptions et modalités de remise/suppression restent à approuver. [Préparation des droits](PREPARATION-DROITS.md), [limites vérifiées](../validations/VALIDATION-LOT6-4-4.md).
-
-## Avant qu'une version officielle soit publiée
-
-Cette section est une **note interne de préparation**, à retirer du texte officiel après validation. Elle ne remplace pas les informations manquantes :
-
-1. Résoudre D01 à D14 dans [les décisions](DECISIONS-A-VALIDER.md), compléter et approuver les mentions et leurs preuves internes ; ne pas afficher de champs « À VALIDER » aux étudiants.
-2. Adapter le texte au public et au fonctionnement effectivement ouverts, conserver une version datée, distinguer information visiteur et personnel ; prévoir les informations spécifiques à l'invitation indirecte.
-3. Dans un lot autorisé, créer la page publique définitive selon la [spécification](SPECIFICATION-INFORMATION-PUBLIQUE.md), accessible sans connexion avant la première collecte pertinente et depuis les parcours de compte ; vérifier clavier, mobile et sombre. **Aucune page racine `confidentialite.html` n'est créée ou publiée par 6.4.4.**
-4. Vérifier l'artefact exact : [prepare-pages.py](../../scripts/prepare-pages.py) n'inclut aujourd'hui pas `docs/` ; la page racine future, elle, sera publiée par cette chaîne. Le présent Markdown pourra rester visible dans le dépôt public : son avertissement doit rester explicite.
-5. Prévoir une information avant/au moment pertinent de la collecte et de la première invitation ; une notice publiée seule ne prouve ni sa communication, ni un consentement. Recette 6.4.4 puis validation d'ouverture 6.5, sans activation implicite.
+Avant publication : compléter les mentions, approuver la version, l'adapter au service réellement ouvert, réaliser la page accessible sans compte selon la [spécification](SPECIFICATION-INFORMATION-PUBLIQUE.md) et la rendre accessible **avant invitation et au moment pertinent de collecte**. Vérifier clavier, mobile, sombre et points d'entrée. Les documents `docs/` restent exclus de Pages mais visibles dans le dépôt public ; leur avertissement reste obligatoire. Aucun `confidentialite.html` n'est créé ici. Les [P0](DOSSIER-PREOUVERTURE.md) restent bloquants ; aucune conformité ou autorisation d'ouverture n'est déduite de cette rédaction.

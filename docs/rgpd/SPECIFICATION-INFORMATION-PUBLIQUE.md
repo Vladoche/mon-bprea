@@ -2,12 +2,16 @@
 
 **NON VALIDÉ — 28 octobre 2026.** La future page `confidentialite.html` n'est ni créée, ni ajoutée à l'artefact, ni publiée comme notice définitive. [Projet de texte](POLITIQUE-CONFIDENTIALITE-PROJET.md), [décisions](DECISIONS-A-VALIDER.md), [portes P0](DOSSIER-PREOUVERTURE.md). Une mention « À VALIDER » ne doit pas être livrée comme information officielle aux étudiants.
 
+## Actualisation de périmètre 6.5.1
+
+Méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md). B : outil personnel indépendant, six adultes maximum dans l'espace personnel, usage facultatif, résultats privés sans accès formateur ni évaluation officielle prévus, fin de formation juin 2027. Ces faits remplacent les anciennes questions de public dans la présente spécification ; ils ne valident pas D01–D14. D : information courte accessible avant invitation et collecte pertinente, avec les limites administratives/fournisseur. E/F : identité/contact, bases, durées dont fermeture, contrats/transferts effectifs restent à compléter/tester. Aucune publication ici.
+
 ## Contenu à approuver avant réalisation publique
 
 | Partie proposée | Fait technique utilisable | Mention/décision encore nécessaire |
 | --- | --- | --- |
-| Responsable et contact | Aucune identité déduite du dépôt | D01/D02/D04 : organisme, coordonnées autorisées, rôles et DPO si pertinent, canal fonctionnel sans compte |
-| Finalités et bases | Cinq finalités R01–R05 ; aide à révision sans badges/classement ou sanction automatique implémentée | D03/D09 : base par finalité, usage facultatif/requis, public et effets institutionnels ; aucune case d'acceptation générale |
+| Responsable et contact | Aucune identité déduite du dépôt | D01/D02/D04 : personne physique responsable potentielle si RGPD applicable, identité/contact autorisés, critères DPO sans désignation automatique, canal fonctionnel sans compte |
+| Finalités et bases | Cinq finalités R01–R05 ; aide à révision sans badges/classement ou sanction automatique implémentée | D03/D09 : base par finalité, périmètre B désormais renseigné, qualifications à approuver ; aucune case d'acceptation générale |
 | Mode visiteur | Progression/préférences locales, pas d'API pédagogique Supabase ; IP/logs Pages distincts | Qualification des accès au terminal D12, durées et conseils sur appareil partagé |
 | Compte configuré | Auth/e-mail/UUID, profil privé, dix tables, quatre caches v2, session SDK, marqueur de continuité, outboxes/conflits/imports | Informations réellement ouvertes et catégories nécessaires ; aucune promesse de déploiement depuis Git |
 | Source des données | Saisies, calculs descriptifs et invitation native préparée ; import visiteur explicite | D10 : origine réelle des adresses, collecte directe/indirecte, caractère obligatoire et conséquences de non-fourniture |
@@ -15,10 +19,10 @@
 | Effacement local | Choix et confirmation par catégorie, serveur conservé, perte possible de non synchronisé | Signaler la barrière personnelle UUID restante, la reprise explicite et la limite des anciens scripts visiteur |
 | Clôture | Prototype réauthentifié et strictement éphémère ; aucun service hébergé disponible | D04/D08/D13 : service ou procédure alternative réellement disponible, exceptions et reprise en cas de non-confirmation ; ne pas annoncer le prototype aux étudiants comme opérationnel |
 | Limites de suppression | Copies téléchargées/CSV/PDF/impressions, e-mails, autres appareils, logs et backups distincts | Délais fournisseurs, assistance légitime après clôture et traitement des restaurations ; aucun « tout effacé partout » |
-| Durées | Pas de purge automatique ; JSON non validé, durées nulles | D07 : durées ou critères motivés par catégorie, y compris outboxes/imports/barrières, demandes et preuves ; pas de conservation indéfinie déclarée conforme |
+| Durées | Pas de purge automatique ; JSON non validé, durées nulles | D07 : horizon juin 2027, T/fenêtre et durées ou critères motivés par catégorie, y compris outboxes/imports/barrières, demandes et preuves ; pas de conservation indéfinie déclarée conforme |
 | Destinataires et transferts | Pages, Supabase configuré, chaîne messagerie à préciser ; liens tiers sur clic | D05/D06 : contrats/rôles, chaîne réelle, lieux et garanties ; aucune mention « uniquement UE » sans pièces |
 | Droits et recours | Fonctions techniques décrites avec limites, pas de rectification d'historique par invention | D04 : circuit effectif ; information sur accès, rectification, effacement, limitation, opposition et portabilité selon conditions, retrait si consentement applicable, réclamation CNIL |
-| Versions et accessibilité | Site statique, thèmes saisonniers/horaires, clair/sombre à préserver | Version/date approuvées, historique d'information proportionné, langage adapté au public dont mineurs si confirmés |
+| Versions et accessibilité | Site statique, thèmes saisonniers/horaires, clair/sombre à préserver | Version/date approuvées, historique d'information proportionné, langage adapté aux six adultes, visiteur public distinct |
 
 Références officielles relues le 28/10/2026 : [CNIL — articles 12–14 et droits](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), [GitHub Pages — données de visites](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection). Leur consultation ne remplace pas les faits contractuels et décisions de l'exploitant.
 

@@ -2,6 +2,8 @@
 
 **DOCUMENT DE TRAVAIL NON VALIDÉ — 28 octobre 2026.** Aucun canal officiel, opérateur habilité, calendrier de conservation ou contrat n'est créé par ce texte. [D01/D04/D07/D08/D13](DECISIONS-A-VALIDER.md) doivent être résolues ; [portes de préouverture](DOSSIER-PREOUVERTURE.md). Les fonctions ci-dessous sont à désigner. Les dossiers réels doivent rester hors dépôt public, dans un espace restreint.
 
+**Actualisation 6.5.1, méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md).** B : projet personnel indépendant, six adultes maximum, usage facultatif, résultats privés, fin prévue juin 2027. D : l'exploitant peut cumuler réception, décision et opération habilitée ; une éventuelle aide doit être expressément autorisée, aucun rôle enseignant ou DPO présumé. Une adresse dédiée peut suffire ; E/F : canal réel, propriétaire, protection, disponibilité/fréquence de consultation, récupération et besoin de suppléance à confirmer et tester avant invitation. Ne pas publier de coordonnées privées. Le [plan léger](PLAN-EXPLOITATION-LEGERE.md) recommande une clôture assistée contrôlée avec export/retrait local autonome, sans décision acquise ni service hébergé activé. Les étapes ci-dessous sont des recommandations D ; les références légales sont C, sous réserve de l'[applicabilité](ANALYSE-EXCEPTION-PERSONNELLE-PROJET.md).
+
 ## Réception et qualification des demandes
 
 | Étape proposée | Action, contrôle et trace minimale | Décision / fonction à désigner |
@@ -25,7 +27,7 @@ Une restauration doit rester isolée, avec accès et synchronisation suspendus. 
 
 ## Checklist opérationnelle avant activation
 
-Chaque ligne attend un opérateur et un valideur distinctement identifiés selon les moyens disponibles, une preuve interne datée et une conclusion. Aucun nom d'administrateur, secret, détail de récupération ou liste d'habilitations n'est à publier dans Git.
+Chaque ligne attend un opérateur autorisé, une décision et une vérification de cible/résultat, une preuve interne datée et une conclusion. L'exploitant peut accomplir ces étapes successives lui-même ; deux personnes ne sont pas exigées par principe à six utilisateurs. Si indisponible, prévoir une aide habilitée ou un arrêt sûr avec information, plutôt qu'un partage de secrets. Aucun nom d'administrateur, secret, détail de récupération ou liste d'habilitations n'est à publier dans Git.
 
 | Objet | Vérifiable dans Git / recette éphémère | À vérifier dans les réglages/pratiques réels, actuellement non vérifié |
 | --- | --- | --- |
