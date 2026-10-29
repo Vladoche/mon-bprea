@@ -1,5 +1,7 @@
 # Plan de recette hébergée DEV
 
+**Complément 6.5.4.A :** l'[import JSON limité](../architecture/RESTAURATION-DONNEES-PERSONNELLES.md) est préparé sur fixtures isolées ; [validation](../validations/VALIDATION-LOT6-5-4A.md). Ce lot ne réalise **aucun appel de recette ni écriture DEV/PROD**. Le futur 6.5.4.B devra reprendre sa matrice : récupération locale distincte d'une insertion SQL confirmée, cas bloqués, erreurs réseau, A/B et barrières privacy. Ne pas simuler une perte serveur en supprimant un historique immuable. Comptes fictifs, liens, écritures et nettoyages hébergés restent soumis au mandat séparé ci-dessous.
+
 **PROPOSITION NON EXÉCUTÉE — actualisée en 6.5.3.B le 29 octobre 2026.** Cette préparation n'autorise aucune recette connectée, création de compte ou génération de lien DEV. Cible unique future : **`wcckbyhrtroittbfophv`**. Aucun compte étudiant/camarade, projet PROD ou navigateur personnel ne doit être utilisé. Les tests applicatifs/CI restent exclusivement isolés.
 
 Le [rapport d’exécution 6.5.3.B](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md) établit la copie, la restauration PostgreSQL applicative partielle et la migration unique sous A/B. La précondition de schéma/reprise limitée est satisfaite ; les accès Auth, liens manuels, comptes fictifs de recette et autorisations de parcours restent à préparer. Ni A/B ni la CI ne donnent l’autorisation de cette recette. La [restauration JSON individuelle](PREPARATION-RESTAURATION-COMPTE-JSON.md) reste réservée aux lots suivants, sans implémentation ici.

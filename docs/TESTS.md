@@ -1,5 +1,13 @@
 # Développement et stratégie de tests
 
+## Restauration JSON volontaire — lot 6.5.4.A
+
+`npm test -- tests/unit/restore-model.test.js tests/integration/restore-service.test.js` vérifie le véritable format exporté v1, fichiers hostiles/bornés, couverture/identité, relations/UUID et tentatives distinctes, préservation des valeurs/champs existants, analyse readonly, confirmation, répétition, CAS, outbox incertaine, retours tardifs, A→B→A et rollback/quota IndexedDB. Fixtures exclusivement synthétiques et instants pédagogiques explicites.
+
+`npm run test:e2e -- tests/e2e/restore.spec.js --workers=2` utilise le vrai SDK et IndexedDB Chromium avec HTTP **simulé**, sous `/mon-bprea/` : aperçu/annulation sans écriture, confirmation clavier, reload/second import, compte/projet étrangers, visiteur, fichiers/réseau en erreur, session changée et vues 1280/390 clair/sombre. Traces/vidéos/captures d'échec désactivées ; captures visuelles synthétiques ignorées sous `.tmp/restore-visual/`. Ce n'est pas une preuve RLS.
+
+`npm run test:e2e:supabase -- tests/e2e-supabase/restore.spec.js` est découvert par **supabase-security** existant, sans changer son orchestration. Deux scénarios avec les gardes de `mon-bprea-lot6-1-local` : dix tables A/B, export véritable et nouvel appareil, intentions absentes restaurées avec UUID d'origine, conflits, cache/JWT, répétition et refus ; puis premières créations cours/QCM/session botanique/ITK/apparence en base zéro. RPC normales et JWT étudiants, aucun DELETE d'historique pour simuler une perte ; nettoyage des seuls comptes fictifs créés. Contenus/jetons non journalisés. Docker absent : NON EXÉCUTÉ sur le poste, preuve réelle à contrôler en CI, jamais redirection vers DEV/PROD. [Résultats effectifs](validations/VALIDATION-LOT6-5-4A.md), [contrats et limites](architecture/RESTAURATION-DONNEES-PERSONNELLES.md).
+
 ## Installer les outils
 
 Le site reste statique ; Node.js sert uniquement aux vérifications locales et à la CI. Installer **Node.js 24 LTS** et utiliser son npm, puis depuis la racine du dépôt :

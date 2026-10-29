@@ -1,0 +1,77 @@
+# Restauration personnelle JSON — lot 6.5.4.A
+
+## Audit préalable de faisabilité
+
+Base auditée : `2478032a38fb1f54c6e651409ba9ae32cec3597d`, dernier `origin/main` après fetch ; PR #29 confirmée fusionnée. Les trois migrations et les neuf RPC existantes sont les seuls contrats SQL. Aucun accès de recette à DEV/PROD, aucune migration ou modification de privilège.
+
+| Domaine / format export et cache v1 | Identités / opérations | Contrat SQL et réconciliation existante | Faisabilité retenue avant implémentation |
+| --- | --- | --- | --- |
+| Profil : `server.profiles`, identité Auth limitée | UUID Auth ; profil `id` | SELECT propre ; UPDATE pseudo seulement ; aucun INSERT étudiant | Consultation pour propriété, aucune restauration du profil ou d'Auth. |
+| Drill : trois tableaux SQL, `personalLocal.drill.drill`, `remote`, opérations et brouillons | UC/semaine ; UUID technique série ; UUID de première réponse et de chaque entraînement | `drill_create_series` attribue l'UUID technique ; réponses append-only ; `remoteDocument`, `snapshotMatches`, `reconcileHistory`, `acknowledgeOperation` | Reconstitution locale depuis séries serveur identiques ; réponses/entraînements manquants seulement si UUID de série toujours identique et parents vérifiés. Série exportée absente bloquée : pas de nouvel UUID pour remplacer l'ancien. Brouillons absents compatibles seulement. |
+| Cours : `course_states`, cache `courses` | `lesson_id`, UUID opération, base/révision | `personal_save_course`, CAS ; `reconcileHistory` et acquittement contrôlé | État identique récupérable localement. Création absente seulement avec base 0/révision 1 et UUID original. Toute divergence et révision historique supérieure bloquées ; `done:false` conservé. |
+| QCM : `quiz_attempts`, cache `attempts`, opérations | UUID `attempt_id` ; cours ; date conservée | `personal_record_quiz`, append-only ; `enqueueImportedQuiz` et reçus existants | Insertion manquante avec le même UUID/date/score/total, ou récupération locale d'un reçu actuel. Deux UUID restent deux tentatives, même score/date. |
+| Botanique : deux tableaux SQL, cache sessions/réponses et opérations | `session_id`, `answer_id=question_id`, UUID d'opérations locales ; révision pédagogique distincte de SQL | `personal_save_botanical_session`, `personal_record_botanical_answer` ; modèles et reçus existants | Session absente ouverte en révision 1 seulement, avec UUID original. Session terminée absente et anciennes révisions bloquées. Réponses manquantes seulement avec parent compatible et opération locale exportée identifiable ; aucune session fictive. |
+| ITK : `itk_settings`, `settings.values.itk` | Singleton UUID Auth, UUID opération/base/révision | `personal_save_itk`, huit chaînes validées par le catalogue, CAS | Identique récupérable localement ; création base 0 seulement ; choix actuel différent conservé. Aucun historique de documents. |
+| Apparence : `appearance_preferences`, `settings.values.appearance` | Singleton UUID Auth, UUID opération/base/révision | `personal_save_appearance`, CAS | Même règle que l'ITK ; `auto` reste `auto`, date absente non inventée. |
+| Compléments : projections, remote, opérations, conflits, imports, archives | Portée `[environnement, origine Supabase, UUID]` ; dépendances et identités d'origine | Quatre bases `accounts` + `privacy`, transactions réelles de `personal-idb` | Aucune copie globale d'un record ou d'une outbox. Projections/remote/intentions sont rapprochés, jamais additionnés. Manifestes privés incomplets (raw/summary exclus de l'export), conflits et archives restent hors réactivation. Barrière privacy, même déjà rouverte, bloque le domaine : l'ancien JSON ne permet pas de dater son autorisation. |
+
+L'export v1 est une copie partielle, sans snapshot multi-bases ni signature. Le propriétaire fraîchement vérifié autorise les opérations ; le fichier ne certifie pas des résultats d'examen. La restauration totale des dix tables, des métadonnées serveur et d'Auth n'est pas possible avec ces contrats.
+
+## BESOINS BACKEND RESTAURATION — NON IMPLÉMENTÉS
+
+| Domaine | Limitation exacte et risque | Résultat / contrat minimal futur à étudier |
+| --- | --- | --- |
+| Séries Drill absentes | INSERT étudiant ne peut pas fixer `id`. Une recréation par UC/semaine changerait les références des réponses et retries historiques. | Contrat de correspondance explicite, autorisé et atomique, prouvant snapshot/date/parents et identité, sans élargir arbitrairement INSERT/UPDATE. Aucune remappage dans ce lot. |
+| États de cours, ITK, apparence et sessions avancées absents | Le CAS exige base 0 à la création ; aucune révision historique supérieure ne peut être réinjectée fidèlement. Les reçus intermédiaires des singletons ne sont pas conservés. | Décision séparée sur la signification des révisions restaurées, les reçus et les effacements. Pas de remise à zéro de base ni de nouvel UUID sous confirmation générale. |
+| Sessions botaniques terminées absentes | Le client normal crée ouverte puis complète ; l'export peut ne conserver que le dernier UUID de complétion. | Contrat conservant création et première fin avec identités originales ; aucun découpage inventant un UUID dans ce lot. |
+| Compléments d'import / effacements | Le JSON exclut les sources brutes et le store privacy. Il ne prouve pas qu'une portée effacée peut être rouverte ni qu'un manifeste est rejouable. | Autorisation/provenance et politique anti-résurrection à décider séparément. Aucune barrière retirée, aucun registre perpétuel ou RPC privilégiée ajouté. |
+
+## Format et validation
+
+Le parseur [restore-model.js](../../assets/restore-model.js) accepte l'enveloppe `exportFormatVersion:1` du [lot 6.4.2](EXPORT-DONNEES-PERSONNELLES.md), sans changer le format exporté. `status:partial` est valide. `complete_accessible` ne garantit aucune restauration totale. Les copies appareil `ownership:unverified`, futures, étrangères ou incohérentes sont refusées sans écriture. Les secrets, sessions, configurations et sauvegardes PostgreSQL n'ont aucun champ autorisé.
+
+La limite de **20 Mio UTF-8** est vérifiée sur `File.size` avant lecture puis sur le texte avant JSON.parse. Autres bornes : 100 000 lignes SQL, profondeur 30, 1 500 000 nœuds et tableaux bornés. L'enveloppe, la couverture et les colonnes ont des listes fermées. Les validateurs existants contrôlent valeurs, dates civiles avec microsecondes, UUID non nuls, révisions, snapshots, relations et capacités. Aucun MIME, nom de fichier, URL ou texte d'erreur externe n'est une autorité.
+
+Les clés structurelles dangereuses ne passent pas les listes de champs. Les identifiants métier valides comme `constructor` restent des clés propres posées avec `defineProperty`. L'option `allowMapKeys` du projecteur est réservée à la validation d'import ; les exclusions de l'export existant restent inchangées. Les champs inconnus sont refusés, jamais transférés dans une structure exécutable. Les avertissements/dictionnaires du fichier sont validés mais ne sont pas rendus comme HTML ou messages d'autorisation. L'interface affiche des libellés fixes et des compteurs via `textContent` et ne visite aucune référence embarquée.
+
+La couverture distingue source présente, limitée, absente, exclue, illisible et indisponible. Les sources manquantes ne sont pas récupérables. Une relation orpheline est invalide. `server` et `personalLocal.remote` sont rapprochés par identité, jamais additionnés. Les variantes immuables incompatibles sont refusées. Les états modifiables gardent leurs révisions sans priorité à l'horloge locale. Une projection sans opération identifiable reste non restaurable.
+
+## Identité et aperçu sans mutation
+
+[restore-service.js](../../assets/restore-service.js) utilise `getExportIdentity()` du service Auth partagé : `getUser()` réseau frais. Ni l'e-mail, ni l'UUID du fichier, ni une session seulement locale ne suffisent. Compte, génération Auth, environnement et origine Supabase doivent correspondre à `sourceScope`. La portée reste `JSON.stringify([environment, supabaseOrigin, UUIDAuth])`. Le v1 ne contient pas l'origine du site ou de l'ancien appareil : leur provenance n'est pas certifiée au-delà de cette portée applicative.
+
+L'analyse lit le fichier en mémoire, les dix tables via le transport d'export paginé et les quatre records via `readScopedSnapshot()`. Celui-ci lit `accounts` et `privacy` dans une transaction readonly, sans créer/migrer une base absente. Deux passes identiques sont exigées, sur trois au maximum. Une panne distante est indisponible, jamais zéro ligne. Aucun repository écrivain, nouvelle opération, notification ou démarrage de synchronisation ne résulte de cette phase. Une synchronisation déjà active peut faire évoluer les sources et imposer une nouvelle analyse.
+
+[restore-plan.js](../../assets/restore-plan.js) travaille sur des clones. Il prépare les actions et un résumé par domaine : récupérables, déjà présentes, conflits, ignorées et non restaurables. L'aperçu donne date, taille et portée vérifiée sans UUID/e-mail. Les abonnés ne reçoivent que les compteurs, statuts et codes fixes, jamais les payloads ou le fichier privé.
+
+## Application et préservation
+
+Après clic et confirmation explicite : nouvelle vérification Auth, verrou Web Locks `mon-bprea-privacy-v1`, suspension des services coopérants par le canal existant puis relecture des sources. Une signature différente impose une nouvelle analyse. Chaque transaction compare encore son record au contenu attendu. A→B→A, déconnexion, annulation, pagehide ou événement de confidentialité invalident générations et réponses tardives, même si le transport ignore l'annulation.
+
+[restore-adapters.js](../../assets/restore-adapters.js) réutilise modèles, validateurs, transactions, transports et acquittements. Il hydrate les lignes **actuellement relues**, ou reconstitue une opération ciblée avec UUID, base et payload d'origine. Aucune copie d'outbox ou affectation globale d'un record. Une intention active dans le domaine actuel bloque les nouvelles actions concernées ; erreurs/conflits/archives sauvegardés ne sont pas remis en attente. Une dépendance qui ne peut rester identique bloque l'opération. Les réponses botaniques manquantes exigent donc une opération exportée sans dépendance perdue et un parent confirmé compatible. Les snapshots/parents locaux et SQL sont comparés avant rattachement.
+
+Une garde supplémentaire vérifie la survie des projections existantes, champs inconnus, archives et opérations, y compris après la future reconstruction cours/QCM à l'acquittement. Une opération qui les ferait disparaître est bloquée avant persistance/envoi. Les brouillons sont ajoutés seulement à une clé absente d'un snapshot actuel identique ; aucun choix existant ou marqueur consommé `null` n'est remplacé.
+
+`createScopedRepository()` conserve un seul `put` par record et attend `transaction.oncomplete`. La restauration refuse **toute** entrée privacy, même `blocked:false` après reprise : le v1 ne contient pas l'époque/autorisation nécessaire pour distinguer un complément légitime d'une résurrection. Aucune barrière n'est modifiée, retirée ou importée. Les autres comptes/projets/environnements ne sont pas parcourus. Aucun `clear`, `deleteDatabase`, DELETE distant ou effacement de progression.
+
+Les RPC utilisent les JWT utilisateurs fraîchement vérifiés et fixés par requête, avec RLS/privilèges existants. Une première réponse, tentative ou réponse botanique n'est jamais modifiée. Les créations mutables exigent base originale zéro/révision 1. Une concurrence postérieure à la lecture reste arbitrée par les RPC/contraintes ; le conflit est archivé par le modèle existant. Aucun dernier fichier gagnant, nouveau UUID de retry, baisse de révision ou nouvelle clé de série pour contourner un conflit.
+
+## Résultats et interruptions
+
+Catégories distinctes : déjà présentes, récupérées dans le cache, confirmées serveur, en attente locale, conflits, ignorées et non restaurables. Une récupération SQL vers IndexedDB compte comme **locale**, sans nouvelle insertion SQL. Une nouvelle opération durable reste **en attente** jusqu'au reçu vérifié et à la relecture serveur concordante. Les créations SQL gardent les dates pédagogiques mais reçoivent de nouvelles dates techniques `created_at/updated_at` ; leurs métadonnées PostgreSQL ne sont pas restaurées à l'identique.
+
+Échec IndexedDB/quota : rollback du record concerné, aucun envoi de ses nouvelles opérations. Perte réseau après commit : UUID, bases et payloads restent dans les outboxes normales. La reprise utilise la synchronisation existante, sans second moteur. Réimporter un fichier confirmé retrouve les identités et n'alloue aucun UUID. Une outbox courante active attend sa réconciliation ordinaire. Les éléments non traités restent dans le fichier et, après persistance, dans les outboxes de leur portée.
+
+Le plan reste en mémoire et disparaît à l'annulation/changement d'identité/rechargement. Aucun plan durable ne contourne l'effacement. Une opération autorisée déjà envoyée peut atteindre SQL malgré l'annulation ; une nouvelle analyse contrôle alors l'état réel. Les vues de l'ancien compte sont immédiatement retirées.
+
+**Aucune transaction globale** entre les quatre bases IndexedDB et PostgreSQL : résultats partiels et domaines restés en attente sont annoncés. Deux passes ne sont pas un snapshot et ne détectent pas une transaction longtemps invisible ou une modification aller-retour. Le cache reste non chiffré, exposé au contrôle du profil navigateur/XSS/extensions. Le JSON est non signé ; les résultats restent déclaratifs, sans certification d'examen.
+
+## Limites opérationnelles et vérification
+
+La suppression Auth interdit `getUser` frais et les FK empêchent la recréation par un ancien JWT ; le JSON ne recrée aucun compte/profil. L'effacement local reste par appareil : le fichier n'apporte aucun registre global des retraits sur d'autres appareils. Une suppression administrative partielle hors contrats ou une reconstruction SQL globale exige une procédure séparée réconciliant les décisions d'effacement ; ce flux ne certifie pas leur absence et ne les autorise pas.
+
+Les [preuves exécutées](../validations/VALIDATION-LOT6-5-4A.md) distinguent Vitest/fake-indexeddb, Chromium avec HTTP synthétique et PostgreSQL/Auth réels éphémères. Ces derniers créent des éléments initialement absents avec UUID originaux ; aucune perte serveur simulée par suppression d'un historique. Une perte complète avec changement de projet/UUID reste hors périmètre.
+
+Auth publique reste désactivée. Aucun changement SQL/RPC/RLS/grants, dépendance, achat, SMTP, ouverture, fusion, déploiement ou intervention DEV/PROD. Le 6.5.4.B reste une recette hébergée distincte nécessitant ses propres autorisations.
+
+Références fournisseur relues le 29 octobre 2026 : [getUser](https://supabase.com/docs/reference/javascript/auth-getuser), [changelog](https://supabase.com/changelog), [exposition Data API](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically). Le changement des grants par défaut n'autorise aucun élargissement des privilèges versionnés.

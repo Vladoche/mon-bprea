@@ -42,7 +42,7 @@ export function project(value, schema, context = { omitted: 0 }, depth = 0) {
   const result = {};
   for (const [key, item] of Object.entries(value)) {
     if (schema.$map) {
-      if (['__proto__', 'prototype', 'constructor'].includes(key)) { context.omitted++; continue; }
+      if (!context.allowMapKeys && ['__proto__', 'prototype', 'constructor'].includes(key)) { context.omitted++; continue; }
       Object.defineProperty(result, key, { value: project(item, schema.$map, context, depth + 1), enumerable: true });
     } else if (Object.hasOwn(schema, key)) result[key] = project(item, schema[key], context, depth + 1);
     else context.omitted++;
@@ -57,7 +57,7 @@ export function projectRow(name, row, userId) {
   if (spec.fields.some(key => row[key] === null && !nullable.includes(key))) fail('invalid');
   return project(row, sqlSchema(name), { omitted: 0, userId });
 }
-export function projectLocal(domain, document, scope) {
+export function projectLocal(domain, document, scope, { allowMapKeys = false } = {}) {
   if (!object(document) || document.scope !== scope) fail('ownership');
   if (document.version !== 1) fail('future');
   if (!Array.isArray(document.operations) || !Array.isArray(document.conflicts)) fail('invalid');
@@ -65,7 +65,7 @@ export function projectLocal(domain, document, scope) {
       domain === 'courses' && (!object(document.courses) || !object(document.attempts)) ||
       domain === 'botanical' && (!object(document.sessions) || !object(document.answers)) ||
       domain === 'settings' && !object(document.values)) fail('invalid');
-  const context = { omitted: 0, userId: JSON.parse(scope)[2] };
+  const context = { omitted: 0, userId: JSON.parse(scope)[2], allowMapKeys };
   const result = {};
   const schema = domain === 'drill' ? { drill } : domain === 'courses' ? { courses: map(course), attempts: map(fields('attemptId,lessonId,score,total,completedAt')) }
     : domain === 'botanical' ? { sessions: map(botanicalSession), answers: map(botanicalAnswer) } : { values: { itk, appearance } };

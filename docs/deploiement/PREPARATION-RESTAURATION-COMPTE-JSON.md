@@ -1,5 +1,7 @@
 # Préparation de la restauration d'une copie JSON de compte
 
+**Actualisation 6.5.4.A, 29 octobre 2026 : import volontaire limité implémenté.** La note 6.5.3.B ci-dessous reste historique. Le [nouvel importateur](../architecture/RESTAURATION-DONNEES-PERSONNELLES.md) valide les copies de compte v1 et propose un aperçu sans mutation, puis restaure les cas compatibles après confirmation et nouvelle vérification Auth/état. [Preuves et limites](../validations/VALIDATION-LOT6-5-4A.md). Métadonnées SQL, séries Drill absentes, révisions avancées et compléments privés incomplets ne sont pas récupérables intégralement. Toute trace privacy bloque le domaine, même après reprise ; aucun ancien compte n'est réactivé. Aucune migration ou recette DEV/PROD. Le 6.5.4.B reste ultérieur et demande un mandat distinct.
+
 **Lot 6.5.3.B, 28 octobre 2026 : note seulement. Aucun import développé.** Le téléchargement du [lot 6.4.2](../architecture/EXPORT-DONNEES-PERSONNELLES.md) existe ; il ne constitue pas encore une sauvegarde de compte restaurable. Cette note réserve les travaux aux futurs lots 6.5.4.A et 6.5.4.B, sans commencer leur conception détaillée ni leur implémentation.
 
 | Sujet à traiter dans les prochains lots | Exigence à préserver |

@@ -1,7 +1,7 @@
 /** Stable transaction primitive shared by the personal domains. No Auth or
  * pedagogy belongs here: validation and initial documents remain domain owned. */
 export function createScopedRepository(scope, { indexedDB = globalThis.indexedDB, databaseName,
-  empty, validate, ErrorType = Error, onCommit = () => {} }) {
+  empty, validate, ErrorType = Error, onCommit = () => {}, privacyPolicy = () => true }) {
   let opening;
   function open() {
     if (!opening) opening = new Promise((resolve, reject) => {
@@ -43,7 +43,7 @@ export function createScopedRepository(scope, { indexedDB = globalThis.indexedDB
       guard.onsuccess = () => {
         const marker = guard.result;
         const nextEpoch = marker?.epoch ?? null;
-        if ((marker && (marker.version !== 1 || typeof marker.epoch !== 'string' || typeof marker.blocked !== 'boolean')) || marker?.blocked || (epoch !== undefined && epoch !== nextEpoch)) {
+        if ((marker && (marker.version !== 1 || typeof marker.epoch !== 'string' || typeof marker.blocked !== 'boolean')) || marker?.blocked || !privacyPolicy(marker) || (epoch !== undefined && epoch !== nextEpoch)) {
           failure = Object.assign(new ErrorType('Ce cache a été retiré sur cet appareil. Reprends-le explicitement depuis le profil pour le reconstruire.'), { code: 'local_erased' });
           tx.abort(); return;
         }
@@ -75,7 +75,7 @@ export function createScopedRepository(scope, { indexedDB = globalThis.indexedDB
 
 /** Read-only export path. Never creates/migrates a database, validates by
  * rewriting, enumerates accounts, or emits a synchronization notification. */
-export async function readScopedRecord(databaseName, scope, { indexedDB = globalThis.indexedDB, signal, timeoutMs = 5000 } = {}) {
+export async function readScopedRecord(databaseName, scope, { indexedDB = globalThis.indexedDB, signal, timeoutMs = 5000, includePrivacy = false } = {}) {
   if (!indexedDB) throw Object.assign(new Error(), { code: 'unavailable' });
   if (signal?.aborted) throw Object.assign(new Error(), { code: 'cancelled' });
   return new Promise((resolve, reject) => {
@@ -97,12 +97,23 @@ export async function readScopedRecord(databaseName, scope, { indexedDB = global
       if (settled) { db.close(); return; }
       if (![1, 2].includes(db.version) || !db.objectStoreNames.contains('accounts')) { finish('future'); return; }
       try {
-        const tx = db.transaction('accounts', 'readonly');
+        const hasPrivacy = db.objectStoreNames.contains('privacy');
+        const tx = db.transaction(includePrivacy && hasPrivacy ? ['accounts', 'privacy'] : ['accounts'], 'readonly');
         const read = tx.objectStore('accounts').get(scope);
         read.onsuccess = () => { value = read.result ?? null; };
-        tx.oncomplete = () => finish(null, value);
+        let privacy = null;
+        if (includePrivacy && hasPrivacy) {
+          const guard = tx.objectStore('privacy').get(scope);
+          guard.onsuccess = () => { privacy = guard.result ?? null; };
+        }
+        tx.oncomplete = () => finish(null, includePrivacy ? { document: value, privacy } : value);
         tx.onabort = tx.onerror = () => finish('unavailable');
       } catch { finish('unavailable'); }
     };
   });
+}
+
+// Same readonly path, with the anti-resurrection marker read atomically.
+export async function readScopedSnapshot(databaseName, scope, options) {
+  return (await readScopedRecord(databaseName, scope, { ...options, includePrivacy: true })) ?? { document: null, privacy: null };
 }

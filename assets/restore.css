@@ -1,0 +1,15 @@
+.data-restore { margin-top: 28px; padding: 28px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); box-shadow: var(--shadow); }
+.data-restore h3 { margin: 0 0 16px; font-size: 23px; }
+.data-restore > p { max-width: 800px; }
+.data-restore input[type=file] { display: block; max-width: 100%; margin-top: 10px; padding: 12px 0; color: var(--text); font: inherit; }
+.data-restore input::file-selector-button { padding: 8px 12px; margin-right: 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--color-surface-soft); color: var(--text); cursor: pointer; }
+.data-restore-table { margin: 20px 0; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.data-restore table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.5; }
+.data-restore caption { text-align: left; padding: 14px; font-weight: 700; }
+.data-restore th, .data-restore td { padding: 12px; text-align: left; border-top: 1px solid var(--line); min-width: 85px; }
+.data-restore thead, .data-restore tbody th { background: var(--color-surface-soft); }
+.data-restore th[scope=row] { min-width: 145px; }
+.data-restore summary { cursor: pointer; padding: 8px 0; }
+.data-restore-scroll-help { display: none; }
+.data-restore [tabindex]:focus-visible, .data-restore summary:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+@media (max-width: 760px) { .data-restore { padding: 22px 18px; } .data-restore th, .data-restore td { padding: 10px; } .data-restore-scroll-help { display: block; } }
