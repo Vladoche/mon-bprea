@@ -1,17 +1,17 @@
 # Matrice Git / Supabase DEV — lot 6.5.2
 
-## Actualisation 6.5.3.B — 28 octobre 2026
+## Actualisation 6.5.3.B — 29 octobre 2026
 
-[Relecture actuelle et limites](../validations/VALIDATION-LOT6-5-3B.md) : DEV identifié, Free/eu-west-1/17.11, exactement deux migrations, quatre tables et sept fonctions ; les six tables personnelles et huit fonctions associées restent absentes. Définitions et privilèges comparés sans dérive dans le périmètre relu. Data API public/graphql_public exposés, privé exclu, auto-exposition encore on ; droits authenticated explicites et refus anon contrôlés par catalogues. Aucun test JWT hébergé. Intégration GitHub DEV : déploiement et branching automatiques off, aucune consultation PROD.
+[Exécution actuelle et limites](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md) : DEV Free/eu-west-1/17.11 identifié ; trois migrations, dix tables, 98 colonnes, 95 contraintes, 24 index, onze triggers, 24 policies et quinze fonctions dont neuf RPC. Définitions et privilèges comparés à Git et au relevé antérieur sans dérive. Data API public/graphql_public exposés et privé exclu, réglages conservés. Aucun test JWT hébergé ni consultation PROD.
 
 | Écart actuel | État 6.5.3.B et suite |
 | --- | --- |
-| Protection avant migration | [Copie applicative Free préparée](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md), Auth exclu ; **EN ATTENTE D'AUTORISATION A**, aucune copie réalisée. Chemin hors dépôt choisi en privé ; ACL finales, chiffrement/cloud à confirmer. |
-| Restauration et perte de fixtures | **NON EXÉCUTÉE / RISQUE NON ACCEPTÉ** : Docker/psql/pg_dump absents ; procédure isolée et alternatives documentées. Fictif ne vaut pas accord de perte. |
-| Migration personnelle | **ABSENT CONFIRMÉ** ; [runbook](RUNBOOK-MIGRATION-DEV-6-5-3B.md), seul fichier 20261025143831 ; B indépendant à demander après sauvegarde/décision, aucun push ou dry-run distant. |
+| Protection avant migration | **RÉALISÉE après A** : archive pg_dump native et SQL dérivés du même snapshot, neuf fichiers intègres ; dossier hors dépôt à ACL privées, chiffrement dispensé et cloud exclu selon l’exploitant. |
+| Restauration et perte de fixtures | **RESTAURATION APPLICATIVE PARTIELLE VÉRIFIÉE** : quatre tables/données/structure/droits concordants dans PostgreSQL natif neuf ; Auth simulé uniquement localement. Aucun compte restauré ou effacé, pas de reprise complète Supabase garantie. |
+| Migration personnelle | **INSTALLÉE ET SCHÉMA VÉRIFIÉ** après B ; seul fichier 20261025143831, anciennes versions/objets conservés. [Runbook](RUNBOOK-MIGRATION-DEV-6-5-3B.md), aucune réapplication ni recette connectée. |
 | Import de copie individuelle | **NON IMPLÉMENTÉ** ; [note future](PREPARATION-RESTAURATION-COMPTE-JSON.md), sans début des lots 6.5.4.A/B. |
 
-La grande matrice ci-dessous conserve les **constats datés du 6.5.2**. Son ancienne action SMTP/modèles est remplacée dans la feuille de route par les liens manuels du 6.5.3.A, sans prétendre avoir changé la configuration hébergée. Aucun de ces ajouts ne lève un P0 ou D07/D08/D13. L'[audit historique](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md) reste intact.
+La grande matrice ci-dessous conserve les **constats datés du 6.5.2**. Ses anciennes absences du backend personnel sont résolues dans l’état actuel ci-dessus ; l’ancienne action SMTP/modèles est remplacée dans la feuille de route par les liens manuels du 6.5.3.A, sans prétendre avoir changé la configuration hébergée. Aucun de ces ajouts ne lève un P0 ou D07/D08/D13. L'[audit historique](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md) reste intact.
 
 ## Matrice historique du 6.5.2
 

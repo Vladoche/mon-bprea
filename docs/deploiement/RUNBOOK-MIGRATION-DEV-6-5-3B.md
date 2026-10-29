@@ -1,120 +1,93 @@
 # Runbook de migration DEV — lot 6.5.3.B
 
-**28 octobre 2026. PRÉPARATION SEULE. EN ATTENTE D'AUTORISATION A ; B non demandé. Migration non exécutée.** La [validation datée](../validations/VALIDATION-LOT6-5-3B.md) porte les lectures réelles. Ce runbook prépare uniquement le schéma applicatif ; aucune montée de version du moteur PostgreSQL.
+**29 octobre 2026 : migration unique appliquée après A/B, copie et restauration applicative partielle vérifiées.** [Preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md), [préparation historique](../validations/VALIDATION-LOT6-5-3B.md) et [récupération](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md). Aucun changement de version du moteur PostgreSQL.
 
-## Cible et version de départ
+## Cible, source et résultat
 
-| Élément | Référence contrôlée |
+| Élément | Contrôle effectué |
 | --- | --- |
-| Projet unique | `wcckbyhrtroittbfophv` — Mon BPREA DEV ; eu-west-1 ; Free ; ACTIVE_HEALTHY ; PostgreSQL 17.11.0.003 |
-| Base Git | `51c1165cc976d20a9c1a834c93b0b96f22154acc`, dernier origin/main après fetch, fusion PR #27 confirmée |
-| Branche | `feature/lot6-5-3b-backup-migration-dev`, créée depuis cette base, worktree initial propre |
-| Migrations observées | `20261022000100 profiles`, puis `20261024083417 create_drill_sync_schema` ; aucune autre version |
-| Seul fichier candidat | [20261025143831_create_personal_data_backend.sql](../../supabase/migrations/20261025143831_create_personal_data_backend.sql) |
-| SHA-256 du fichier local relu | `e30acdeae62080380e5767600ccb78897537ff5369b48a4f3f2bb9f065bc96ec` ; fins de lignes CRLF du checkout ; comparer de nouveau les octets exacts avant intervention |
-| CLI / configuration | `supabase@2.121.0`, aides relues ; config.toml local `mon-bprea-lot6-1-local`, sans seed ; aucun secret à publier |
+| Cible exclusive | `wcckbyhrtroittbfophv` — Mon BPREA DEV ; eu-west-1 ; Free ; ACTIVE_HEALTHY ; PostgreSQL 17.11.0.003 |
+| Git source | `65847b8819df5d685b48cffca0d20b675629ddf1`, dernier origin/main après fetch ; fusion de la PR #28 observée, faite par l’exploitant |
+| Branche de travail | `feature/lot6-5-3b-backup-migration-dev` ; aucun travail direct sur main |
+| Historique avant | `20261022000100 profiles`, `20261024083417 create_drill_sync_schema` ; aucune installation personnelle partielle |
+| Seul fichier appliqué | [20261025143831_create_personal_data_backend.sql](../../supabase/migrations/20261025143831_create_personal_data_backend.sql) |
+| SHA-256 du checkout CRLF | `e30acdeae62080380e5767600ccb78897537ff5369b48a4f3f2bb9f065bc96ec` ; fichier versionné inchangé |
+| Historique après | Les deux versions conservées + `20261025143831 create_personal_data_backend`, aucune quatrième version |
+| Protection préalable | Archive native PostgreSQL 17.11, SQL dérivés du même snapshot, neuf fichiers intègres, copie privée ; restauration applicative partielle comparée |
+| Résultat | Dix tables, 98 colonnes, 95 contraintes validées, 24 index valides/prêts, onze triggers, 24 policies, quinze fonctions dont neuf RPC ; objets et droits anciens conservés |
 
-PROD `oqoqrxwfbkhtpksqimgd` ne doit faire l'objet d'aucun appel, navigation, lien CLI, extraction ou restauration. La mention `main / PRODUCTION` dans le Dashboard DEV désigne sa propre branche principale ; elle ne remplace pas le contrôle de référence.
+PROD `oqoqrxwfbkhtpksqimgd` est exclu de tout appel, navigation, liaison CLI, extraction et restauration. Le libellé Dashboard `main / PRODUCTION` dans DEV désigne la branche de ce projet DEV ; toujours contrôler la référence complète.
 
-Les SHA des fichiers peuvent dépendre de CRLF/LF ; ne pas prendre un écart d'octets pour une preuve de modification SQL ni le normaliser silencieusement. Comparer le blob Git et le contenu, qualifier l'écart, puis représenter la référence exacte à autoriser si nécessaire. Aucun SQL versionné n'est modifié par ce lot.
+## Autorisations A et B
 
-## Préconditions et arrêts
+A a explicitement couvert la copie applicative et le dossier protégé hors dépôt. L’exploitant a déclaré DEV fictif, exclu le dossier du cloud et dispensé cette copie de chiffrement du volume. La conservation retenue est de sept jours pour réexamen, sans purge automatique. Les exclusions Auth/Storage/Vault et les limites de restauration sont maintenues.
 
-| Contrôle immédiatement avant intervention | Preuve nécessaire / arrêt |
+B a ensuite été explicitement donné : **« Ok on va partir sur pg dump. J’autorise B »**. L’accès initial a échoué avant copie ; l’exploitant a déclaré avoir réinitialisé le mot de passe DB, puis demandé la reprise. La copie réussie, la restauration et les préconditions ont été vérifiées **avant** l’application. L’autorisation n’a pas été redemandée.
+
+Les deux accords ne couvrent aucune recette connectée, invitation, récupération de compte, génération de lien, nettoyage d’un compte existant, réglage Auth, Edge Function, ouverture ou production. Ils ne rendent pas les comptes fictifs jetables.
+
+## Préconditions et critères d’arrêt
+
+| Contrôle immédiatement avant intervention | Résultat / arrêt à respecter |
 | --- | --- |
-| Identité, Git et état | Référence exacte dans chaque appel et URL, nom/plan/région/statut relus, SHA du checkout/fichier confirmé. Arrêt sur autre cible, nouveau commit/migration ou état inexpliqué. |
-| Historique | Exactement les deux versions ci-dessus ; cible déjà installée ou quatrième version : arrêt. Ne pas réappliquer profils/Drill. |
-| Absence d'installation partielle | Aucune des six tables personnelles, des deux guards ou six RPC ; aucune relation ou routine applicative inattendue dans public/bprea_private. Arrêt sur collision/objet partiel, même sans ligne d'historique. |
-| Dérive existante | Comparer définitions, signatures/corps/propriétaires, ACL/RLS, contraintes/index/triggers aux deux migrations et au relevé avant opération. Tout écart non expliqué bloque ; aucune réparation automatique. |
-| Données et comptes | DEV réservé au fictif selon l'exploitant ; confirmer le périmètre réel en privé avant copie. Donnée réelle imprévue : arrêter et revoir A. Ne pas consulter de réponses nominatives, compter ou effacer des comptes pour simplifier. |
-| Sauvegarde et reprise | A obtenu, copie/manifest vérifiés au niveau consigné, ou décision explicite sur une alternative/limitation et les seules pertes acceptables. Dossier privé protégé, échéance et sort des copies décidés. À ce jour : aucune preuve de sauvegarde ou restauration. |
-| Accès et confirmations | Opérateur de confiance, secret DB saisi localement sans argument/log, aucune auto-confirmation via SUPABASE_YES ou flag CLI. Arrêt sur rôle/secret/connexion inattendus. |
-| Déclencheurs | Revoir workflows et intégration **DEV seulement**. Deploy to production et Automatic branching off observés ; Pages déclenché par push main/workflow_dispatch, pas par la branche de travail. Ne jamais pousser sur main ou utiliser Git comme déploiement SQL. |
-| Fenêtre et périmètre | Une opération à la fois, pas d'activité d'essai concurrente ; aucun compte créé/supprimé, lien/e-mail généré, Auth/SMTP/URL/clé/plan/région modifié ou Edge/Pages déployé. Pas de recette connectée. |
+| Cible et Git | Référence dans l’hôte, nom/statut/plan/région relus ; checkout et SHA du fichier confirmés. Autre cible ou nouveau commit non expliqué : arrêt. |
+| Historique et collisions | Exactement deux versions avant ; six tables et huit fonctions personnelles absentes. Version supplémentaire, objet partiel ou cible déjà installée : arrêt, aucune réapplication. |
+| Dérive | Catalogue complet et droits comparés à la copie puis à la reconstruction Git ; aucun écart. Toute différence non expliquée bloque ; aucun repair ou GRANT global. |
+| Copie et risque | Manifeste/intégrité/portée vérifiés ; restauration partielle réelle, Auth exclu. Une archive seule ne démontre pas la récupération des comptes. |
+| Secret et TLS | Saisie locale masquée, environnement du seul processus, URL sans identifiant ; `verify-full` avec CA publique officielle. Échec de certificat ou rôle inattendu : arrêt sans contournement. |
+| Delta appliqué | Uniquement le fichier cible, seed/rôles exclus, Vault désactivé par `--skip-vault`. Autre fichier ou effet inattendu : arrêt avant application. |
+| Données et fenêtre | Copie et DDL séquentiels ; aucune ligne remontée au modèle, aucune RPC métier ni recette hébergée. Donnée réelle imprévue : arrêter et revoir le périmètre. |
+| Automatisations | Workflows inchangés : PR = contrôles synthétiques, Pages = push main/lancement manuel ; pas de push main ou de mécanisme Git servant à appliquer SQL. |
 
-## Point d'arrêt A — copie avant intervention
+Pour une autre intervention, obtenir les accords correspondant à son nouveau périmètre. Le fait que ce lot soit terminé ne permet aucune nouvelle migration ou reprise automatique.
 
-Présenter la [proposition de sauvegarde](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) : DEV seul ; structure public/bprea_private, profils et trois Drill, versions/ACL/configuration sans secret ; Auth/Storage/Vault et autres copies exclus ; deux dumps CLI bornés et manifest privé ; chemin exact hors dépôt choisi par l'exploitant ; ACL, chiffrement et absence de synchronisation à confirmer ; conservation proposée de sept jours ; dépendances UUID et restauration seulement applicative ; commandes et procédures du guide.
+## SQL relu et effet appliqué
 
-Demander : **« Autorisez-vous cette copie applicative limitée de DEV, dans le chemin privé et pour la durée précisés, avec ces exclusions et ce niveau de vérification ? »** Consigner la réponse et les conditions sans secret. Le choix d'un chemin ou la déclaration de données fictives ne répond pas à cette question. Une autorisation conditionnelle n'est utilisable qu'une fois toutes ses conditions établies. Sans accord, livrer la préparation et le statut EN ATTENTE D'AUTORISATION.
+Six tables : `course_states`, `quiz_attempts`, `botanical_sessions`, `botanical_answers`, `itk_settings`, `appearance_preferences`. Deux guards privés invoker, six RPC publiques invoker, seize policies, six triggers, PK/FK/CHECK/index et grants de colonnes sont ajoutés. Les quatre tables et sept fonctions antérieures restent identiques.
 
-Sur ce poste, Docker/psql/pg_dump manquent ; chiffrement, cloud et ACL du futur sous-dossier ne sont pas confirmés. Aucune copie ne doit être lancée pour vérifier ces prérequis. Ne pas transmettre un dump au modèle ou à une API tierce. L'essai réel éventuel se fait sur le poste privé de l'opérateur, séparément des fixtures de CI.
+Le fichier commence par BEGIN et termine par NOTIFY pgrst puis COMMIT. Aucun DROP/TRUNCATE/effacement ni transformation des anciennes tables. Les INSERT/UPDATE dans les corps créés ne s’exécutent pas pendant CREATE FUNCTION. Aucune nouvelle extension, vue, fonction definer ou rôle ; aucun index concurrent.
 
-## Relecture du SQL candidat
+Dépendances : `auth.users(id)`, `auth.uid()`, schéma privé existant et primitives PostgreSQL 17. Les six nouvelles FK Auth directes et la FK botanique composite sont CASCADE. Les droits `authenticated` portent sur SELECT et les seules colonnes métier nécessaires ; propriétaires/dates/révisions restent protégés. Les nouveaux objets retirent explicitement les droits `anon`, PUBLIC et `service_role` ; aucune réintroduction de ces droits pour les contrôler.
 
-Le fichier a été lu intégralement, des tables au COMMIT : six CREATE TABLE, deux guards invoker, six RPC publiques invoker, seize policies, six triggers, index et contraintes. Il commence par BEGIN, termine par NOTIFY pgrst puis COMMIT. **Aucun DROP, TRUNCATE, DELETE de données existantes ou modification des quatre anciennes tables** ; les UPDATE/INSERT des corps de fonctions sont leur comportement futur, pas une exécution pendant CREATE FUNCTION. Aucune nouvelle fonction definer, vue, extension ou rôle. Pas de CREATE INDEX CONCURRENTLY ni d'autre instruction d'entretien imposant une sortie de transaction.
+Le COMMIT interne ne démontre pas l’atomicité commune du DDL et de l’inscription du ledger CLI. Après toute réponse incertaine, contrôler les deux ; aucun retry ou `migration repair` pour masquer une divergence.
 
-Dépendances : auth.users(id), auth.uid(), bprea_private existant et primitives PostgreSQL 17 ; propriétaire opérateur postgres requis pour créer les nouveaux objets/FK, révoquer les défauts et accorder les seuls droits prévus. Les six FK Auth directes nouvelles et la FK botanique composite sont CASCADE. Les références vers Auth peuvent nécessiter des verrous de métadonnées ; objets nouveaux limitent le besoin de verrouiller des données existantes, sans supprimer le risque d'attente, timeout, manque de droits ou collision. Aucune mesure de verrou en charge n'a été réalisée sur DEV.
-
-Les quatre états modifiables protègent révisions CAS et champs serveur ; QCM/réponses botaniques restent append-only, avec identités stables et idempotence. La création seule ne peuple aucune table et ne synchronise aucun cache. Les accès sont SELECT et INSERT/UPDATE de colonnes explicites pour authenticated ; anon/PUBLIC refusés, droits service_role explicitement retirés sur ces nouveaux objets. Les grants administratifs antérieurs profils/Drill sont préservés.
-
-Le BEGIN/COMMIT du fichier ne suffit pas à affirmer que le DDL et l'inscription de l'historique CLI sont atomiques ensemble : le fichier contient son propre COMMIT et le ledger est géré par la CLI. En cas d'acquittement perdu, contrôler **les deux**, même si l'un paraît complet. Ne pas masquer une divergence avec migration repair.
-
-## Point d'arrêt B — migration, après A et décision de risque
-
-B n'est présentable qu'après validation des préconditions. Remplir, puis soumettre :
-
-| Pièce à présenter à l'exploitant | État préparatoire actuel |
-| --- | --- |
-| Référence DEV, état, SHA Git/fichier et historique à l'instant du lancement | Références ci-dessus, à relire après A ; aucun accord déduit de ces lectures |
-| Fichier unique / effet SQL | `20261025143831_create_personal_data_backend.sql`, six tables et objets décrits ; anciens profils/Drill préservés |
-| Méthode et commande exacte | CLI épinglée, cible explicite et `--skip-vault`, ci-dessous ; aide/source vérifiées, commande non exécutée |
-| Sauvegarde | **NON AUTORISÉE / NON RÉALISÉE** ; renseigner date privée, périmètre et manifest après A ; jamais inventer taille/empreinte |
-| Restauration | **NON EXÉCUTÉE** ; indiquer niveau 1/2/3 réellement atteint, dépendances Auth et limites |
-| Risques résiduels | Perte de fixtures et comptes Auth non couverts, restauration partielle/non éprouvée, snapshots distincts, copie locale, verrous/collision, résultat incertain et defaults Data API. Aucun risque accepté à ce jour. |
-| Décision et arrêts | Accepter précisément ces limites/pertes, attendre les preuves manquantes ou revoir le périmètre ; arrêter sur tout écart de cible, historique, SQL, privilèges, données ou sauvegarde |
-
-Demander ensuite **une nouvelle autorisation visant uniquement l'application de ce fichier sur ce DEV**, avec commande et conditions. L'autorisation A, une PR verte ou une acceptation de la feuille de route ne valent pas B. Aucune relance automatique. Sans B : EN ATTENTE D'AUTORISATION, aucune simulation distante ni application.
-
-## Commande candidate, non approuvée et non exécutée
-
-Les aides `db push --help` de **2.121.0** et ses [effets documentés dans le code officiel](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/commands/db/push/SIDE_EFFECTS.md) confirment --linked, --project-ref, --skip-vault et la confirmation interactive. Cette CLI peut synchroniser Vault par défaut ; `--skip-vault` est donc obligatoire. Un mot de passe DB fourni par environnement privé évite de demander une création de login temporaire ; ne jamais saisir ce secret dans la conversation ou avec --password/--db-url.
+## Commande réellement exécutée
 
 ```text
-npx --yes supabase@2.121.0 db push --linked --project-ref wcckbyhrtroittbfophv --skip-vault
+npx --yes supabase@2.121.0 db push --db-url "postgresql://db.wcckbyhrtroittbfophv.supabase.co:5432/postgres?sslmode=verify-full" --skip-vault
 ```
 
-Après B seulement, depuis le checkout exact, avec contrôle des variables d'environnement, connexion et secret privé selon le guide. Le `--yes` est celui de **npx** avant le paquet ; aucun --yes Supabase. Aucun --include-all, --include-seed, --include-roles, reset, repair, pull ou SQL Editor. Aucun remplacement du SQL versionné pour faire passer une erreur. Aucun dry-run distant exécuté dans cette préparation ; si une simulation est souhaitée, son périmètre et ses effets doivent être expressément couverts par B après relecture du code, avec --skip-vault conservé.
+La méthode liée avec `--linked --project-ref`, préparée le 28 octobre, a été remplacée par cette connexion directe explicite pour porter la vérification TLS via le parseur libpq de cette version. L’URL ne contient **ni utilisateur ni mot de passe**. `PGUSER=postgres`, `PGPASSWORD` saisi localement, `PGSSLROOTCERT` et `PGCONNECT_TIMEOUT=10` sont fournis au seul processus ; environnement hérité contrôlé. Aucune création de login temporaire ou connexion API d’administration n’est nécessaire à cette connexion.
 
-**Avant de répondre à la confirmation CLI**, vérifier que la liste contient uniquement :
+Les [options](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/commands/db/push/SIDE_EFFECTS.md), le [parseur des variables PG](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/command-internal/db-config.parse.ts) et le [pilote TLS](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/command-internal/db-connection.sql-pg.layer.ts) ont été relus. `--db-url` est exclusif de `--linked`/`--local` ; ne pas lui ajouter `--project-ref`. Le `--yes` avant le paquet appartient à npx. Aucun `--include-all`, `--include-seed`, `--include-roles`, `--yes` Supabase, dry-run, reset, repair ou SQL Editor.
 
-```text
-20261025143831_create_personal_data_backend.sql
-```
+**Particularité constatée :** malgré un terminal TTY et `SUPABASE_YES=false`, la CLI a utilisé son mode machine et n’a pas attendu de réponse interactive. Ne pas prétendre qu’un opérateur a relu puis confirmé son prompt. Le contrôle préalable avait imposé le Git exact, les trois fichiers locaux, les deux versions distantes et le seul delta attendu. Le résultat JSON a annoncé exactement le fichier cible, `seeds: []`, `roles: []`, `dryRun: false` et un code zéro. La protection d’une future exécution doit revalider le mode de sortie/agent et ses confirmations ; ne jamais compter sur la présence d’un TTY seule. Aucune seconde exécution n’a été lancée.
 
-Autre fichier, opération Vault/seed/rôle, historique à créer/transformer inattendu ou cible ambiguë : refuser et arrêter. La CLI est un outil générique de migrations, pas une allowlist intrinsèque pour ce seul fichier ; les contrôles humain/SQL/Git sont indispensables. Conserver seulement stade, code et résultat minimisé. Ne pas lancer deux commandes concurrentes ni réessayer après timeout.
+## Vérification structurelle après application
 
-## Vérification structurelle après application autorisée
+Les [scripts catalogue](../../scripts/verification-dev/catalogue.sql) et [privilèges](../../scripts/verification-dev/privileges.sql) ont été exécutés en lecture seule sur DEV. Leurs résultats ont été comparés à une base PostgreSQL 17.11 reconstruite depuis les trois fichiers Git, avec mêmes rôles et défauts ACL applicatifs. Les extensions gérées ne sont pas reproduites dans cette base ; leur inventaire DEV est comparé avant/après.
 
-Réutiliser, dans l'outil officiel explicitement réglé sur DEV, [catalogue.sql](../../scripts/verification-dev/catalogue.sql) et [privileges.sql](../../scripts/verification-dev/privileges.sql). Ces scripts encadrent des SELECT de métadonnées dans une transaction read only puis rollback ; aucune RPC métier ni donnée utilisateur. Le script SQL ne choisit pas lui-même une connexion. Ne pas le raccorder aux runners de sécurité ou déduire une identité DEV du seul nom de base postgres.
-
-| Domaine | Attendu à comparer réellement, au SQL et au relevé avant opération |
+| Domaine | Résultat réel |
 | --- | --- |
-| Historique | Trois versions exactes dans l'ordre, noms attendus, aucune quatrième version ; cible marquée installée et objets concordants |
-| Tables | Dix tables public : profiles, drill_series, drill_answers, drill_training_attempts, course_states, quiz_attempts, botanical_sessions, botanical_answers, itk_settings, appearance_preferences ; aucune relation privée/supplémentaire inexpliquée |
-| Colonnes | Ordre, nom, type/précision, nullabilité, DEFAULT, generated et ACL ; comparer chaque définition, pas seulement un nombre |
-| Contraintes | PK, UNIQUE, CHECK validées, FK et actions CASCADE, colonnes composites dans le bon ordre ; six nouvelles racines Auth et dépendance botanique ; ne pas exécuter de suppression pour le démontrer |
-| Index | Définition, ordre des colonnes, unicité, validité et readiness, y compris tous les anciens index ; les INFO unused_index ne justifient aucune suppression |
-| Triggers | Onze applicatifs, dont le trigger Auth préservé ; noms, tables, événements, fonctions, état actif et non seulement présence |
-| Routines | Quinze applicatives hors extensions : six privées et neuf RPC publiques ; signatures nommées, retours, langage, volatilité, propriétaire, config/search_path, sécurité et **corps complets** comparés à Git |
-| RLS | On sur dix tables ; 24 policies explicites authenticated, propriétaire, USING/WITH CHECK adaptés ; aucune policy anon ou DELETE étudiante ; FORCE RLS à comparer au modèle |
-| ACL effectives | Tables/colonnes/schémas/fonctions, PUBLIC et héritages ; authenticated SELECT et seules colonnes métier ; propriétaire/dates/version/révision protégés ; privés sans USAGE/EXECUTE client ; aucun droit anonyme ; service_role distinct, nouveaux REVOKE préservés |
-| Préservation | Comparer les définitions et privilèges des quatre tables/sept fonctions préexistantes ; aucun reset/suppression dans l'opération. Aucun comptage de données n'est nécessaire à cette preuve structurelle ; si nécessaire, autoriser une mesure minimale en privé. |
-| Data API | Schéma public exposé, privé non exposé ; chemin additionnel/configuration et ACL par défaut relus ; droits ci-dessus évalués sous chaque rôle sans l'exécuter. Reachability réelle sous JWT réservée à la recette suivante. |
+| Historique | Trois versions exactes, noms et ordre attendus, aucune autre version |
+| Tables/colonnes | Dix tables ; types, ordre, nullabilité, DEFAULT, generated, propriétaires, ACL et FORCE RLS comparés |
+| Contraintes/index | 95 contraintes validées, PK/UNIQUE/CHECK/FK et actions CASCADE comparées ; 24 index valides/prêts, définitions identiques |
+| Triggers | Onze applicatifs, dont celui sur Auth conservé ; noms, événements, fonctions et activation comparés |
+| Routines | Quinze hors extensions ; signatures/retours, langue, sécurité, volatilité, strict/leakproof/parallel, contexte et corps comparés ; six privées et neuf RPC publiques |
+| RLS | On sur dix tables, FORCE RLS off comme dans Git ; 24 policies propriétaire `authenticated`, USING/WITH CHECK comparés |
+| Droits | Tables/colonnes/schémas/fonctions/défauts comparés, y compris refus clients sur le privé et nouveaux REVOKE `service_role` ; aucun DELETE étudiant |
+| Préservation | Tous les objets, droits, défauts et extensions antérieurs conservés ; aucun DML de données anciennes dans le fichier appliqué |
+| Data API | Dashboard relu : public/graphql_public exposés, privé exclu, extra search path public/extensions, max rows 1000 ; auto-exposition on conservée. Indicateurs 0/10 tables et 0/15 fonctions ne remplacent pas les ACL SQL. Aucun essai JWT/REST hébergé. |
 
-Les nombres **10 / 11 / 24 / 15 dont 9 RPC** concordent avec les trois fichiers SQL : 4+6 tables, 5+6 triggers, 8+16 policies, 7+8 fonctions. Ils ne prouvent pas les propriétés. L'inventaire sans filtre de préfixe permet de repérer une routine inattendue ; ses corps ne sont pas exécutés pour l'inspecter. Tout écart : arrêter, conserver données et preuves minimisées, aucun GRANT global ou déverrouillage.
+Le [changement annoncé du 30 octobre 2026](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically) ne dispense pas des droits explicites ni de RLS. Aucun réglage Dashboard changé, aucun Save, aucun GRANT global.
 
-Le [changement fournisseur du 30 octobre 2026](https://supabase.com/changelog/45329-breaking-change-tables-not-exposed-to-data-and-graphql-api-automatically), relu le 28/10, retire l'exposition implicite des nouvelles tables via les droits par défaut, sans remplacer RLS. Les GRANT explicites du fichier candidat couvrent le modèle déclaré. Un indicateur Dashboard n'est pas un test de privilèges effectifs ni un parcours PostgREST réussi : existence de la table, schéma exposé, droits SQL, RLS, rôle authenticated et refus anon sont à vérifier séparément. En cas de 42501, diagnostiquer le droit manquant ; ne jamais accorder ALL, ouvrir à anon, rétablir service_role sur les nouvelles tables ou supprimer RLS.
-
-## Arrêt sûr et reprise conditionnelle
+## Arrêt sûr et suite
 
 | État constaté | Action |
 | --- | --- |
-| Non commencé / autorisation absente | Ne rien exécuter sur DEV ; conserver l'état et livrer la préparation. |
-| Erreur transactionnelle | Relire statut, historique et catalogues ; rollback annoncé ne suffit pas. Aucun deuxième essai avant diagnostic et décision ciblée. |
-| Connexion perdue / réponse incertaine | Distinguer non commencé, annulé, committé avec ledger, objets sans ledger ou indéterminé. Aucune relance ni repair automatique. |
-| Migration committée, défaut fonctionnel | Garder Auth public off, suspendre la recette ; préserver les six tables et données. Préparer correctif relu ou reprise supplémentaire autorisée. Aucun DROP, reset ou restauration sur DEV pour « revenir en arrière ». |
-| Données plus récentes / effacement postérieur | Aucun écrasement depuis l'ancienne copie et aucune recréation d'un compte effacé. Isoler/réconcilier avant une éventuelle restauration séparément autorisée. |
-| Suspicion d'exposition / mauvaise cible | Arrêter la chaîne ; procédure d'incident privée et confinement autorisé, sans nouvelle consultation de PROD. |
+| Erreur ou acquittement perdu | Relire ledger, catalogue et droits, préserver les données ; aucun retry/reset/repair automatique |
+| Migration installée, défaut fonctionnel | Suspendre la recette, conserver tables et données ; correctif séparément relu et autorisé |
+| Copie ancienne ou effacement intervenu | Isoler et réconcilier ; aucune restauration écrasant des données récentes ou recréant un compte effacé |
+| Soupçon de fuite ou mauvaise cible | Arrêt de la chaîne, procédure d’incident privée et confinement autorisé, aucune consultation PROD |
 
-Après un résultat structurel positif, la seule conclusion admissible sera : **« Migration installée, schéma vérifié, prêt pour recette hébergée autorisée ultérieurement »**, avec limites. À ce jour cette conclusion n'est pas atteinte. Aucun compte connecté, invitation/récupération hébergée, A/B distant, fonctionnement pédagogique, restauration individuelle, validation juridique ou ouverture n'est déclaré validé. Les quinze P0 restent bloquants.
+Conclusion technique atteinte : **migration installée, schéma vérifié, prêt pour une recette hébergée autorisée ultérieurement**. Le [plan de recette](PLAN-RECETTE-DEV.md) n’est pas exécuté. Aucun fonctionnement connecté, accès A/B distant, invitation/récupération, restauration individuelle, validation juridique ou ouverture n’est déclaré acquis ; les quinze P0 restent bloquants.
