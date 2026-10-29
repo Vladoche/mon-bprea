@@ -1,4 +1,8 @@
-# Validation du lot 6.5.3.B — préparation sauvegarde et migration DEV
+# Validation du lot 6.5.3.B — préparation du 28 octobre
+
+**Clôture technique du 29 octobre 2026 : copie applicative et restauration PostgreSQL partielle vérifiées, migration unique installée et schéma DEV contrôlé.** Le [rapport d’exécution daté](EXECUTION-LOT6-5-3B-2026-10-29.md) porte les autorisations A/B, la méthode native retenue, les preuves et limites actuelles. Les constats ci-dessous sont la préparation historique ; leurs mentions de non-exécution décrivent le 28 octobre.
+
+## Préparation du 28 octobre — historique
 
 **28 octobre 2026, Europe/Paris. PHASE PRÉPARATOIRE. EN ATTENTE D'AUTORISATION A.** Métadonnées DEV relues ; aucune sauvegarde de données, restauration ou migration hébergée exécutée. B non demandé, faute de sauvegarde/décision de risque. Ce rapport ne vaut ni recette connectée, ni validation juridique, ni ouverture.
 
