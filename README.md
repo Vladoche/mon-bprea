@@ -1,5 +1,7 @@
 # Mon BPREA — Démonstration fonctionnelle
 
+Le lot **6.5.4.A** ajoute une [restauration JSON personnelle limitée](docs/architecture/RESTAURATION-DONNEES-PERSONNELLES.md) dans « Mes données personnelles » : analyse sans écriture, Auth fraîche, aperçu/confirmation, préservation de l'existant, réconciliation et bilan local/serveur distinct. Les copies v1 antérieures restent analysables, avec des cas explicitement bloqués ; aucun compte Auth ou projet Supabase complet n'est restauré. [Tests et limites](docs/validations/VALIDATION-LOT6-5-4A.md). Auth public reste désactivée ; aucune intervention DEV/PROD ni ouverture. La recette hébergée 6.5.4.B attend une autorisation distincte.
+
 Un site de révision **entièrement statique** (HTML, CSS, JavaScript), prêt pour GitHub Pages. Le site publié fonctionne sans Node.js ni installation npm à l’exécution. Le lot 6.1 prépare Supabase Auth et les profils privés, avec un SDK navigateur servi localement et une configuration désactivée par défaut. Les outils de développement utilisent Node.js pour les tests et la préparation de ce SDK.
 
 ## Fonctions incluses
