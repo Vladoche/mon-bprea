@@ -1,5 +1,7 @@
 # Recette hébergée DEV — lot 6.5.4.B
 
+**Reprise 6.5.4.C, 30 octobre 2026 :** la [procédure de continuation](RUNBOOK-REPRISE-DEV-6-5-4C.md) conserve le run consommé, les identités A/B, preuves et budgets ; [réconciliation et résultats](../validations/VALIDATION-LOT6-5-4C.md). A présent/confirmé, B absent, mot de passe A inconnu ; **1/3 créneau, 2/60 Auth et 0/140 pédagogiques** hérités. Nouveau SHA/artefact avec filiation, **R requis avant toute nouvelle opération**, C/D distincts. Matrice T01–T12 conservée ; les mentions préparatoires A/B absents plus bas restent historiques et ne remplacent pas le bilan daté de l'exécution B.
+
 **Suivi opérateur du 30 octobre, après préparation : A reçu avec la protection présentée, sans nouvelle copie technique.** [Reçu et contrôles](../validations/VALIDATION-LOT6-5-4B.md). B/C/D restent à obtenir. Les mentions de phase 0 ci-dessous décrivent le mandat initial, avant cet accord distinct ; A n'est plus à redemander. Le correctif d'environnement des sous-processus ne change ni la cible ni les bornes acceptées ; fixer le nouveau SHA testé et reconstruire l'artefact avant B.
 
 **29–30 octobre 2026 — phase 0 préparée ; EN ATTENTE D'AUTORISATION.** Le mandat autorise les lectures de métadonnées et les préparations locales. Il ne donne aucun accord A/B/C/D. [Résultats réellement observés](../validations/VALIDATION-LOT6-5-4B.md). Aucun accès PROD, compte/lien créé, session étudiante, écriture pédagogique ou nettoyage DEV dans cette préparation.

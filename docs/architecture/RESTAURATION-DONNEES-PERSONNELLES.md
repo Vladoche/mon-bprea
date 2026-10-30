@@ -1,5 +1,7 @@
 # Restauration personnelle JSON — lot 6.5.4.A
 
+**Suivi 6.5.4.C, 30 octobre 2026 :** [reprise DEV préparée](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md), [résultats effectifs](../validations/VALIDATION-LOT6-5-4C.md). T09–T12 restent en attente de C ; aucun export/import DEV. La filiation de l'outil conserve budgets/UUID des fixtures, sans importer sessions ou sauvegardes. Aucun contrat de restauration ci-dessous modifié, compte Auth restauré ou historique supprimé pour simuler une perte.
+
 **Suivi 6.5.4.B, 30 octobre 2026 :** le [runbook DEV T09–T12](../deploiement/RUNBOOK-RECETTE-DEV-6-5-4B.md) prépare export/analyse/annulation, premières intentions compatibles, relectures, import répété, conflit récent, refus A sous B, appareil neuf et barrières privacy. [État : EN ATTENTE D'AUTORISATION](../validations/VALIDATION-LOT6-5-4B.md), aucun import DEV exécuté. Les cas manquants proviendront d'intentions jamais envoyées ; aucun historique immuable supprimé pour simuler une perte. Aucun contrat, moteur, RPC, révision ou garantie ci-dessous n'est modifié pour obtenir un résultat vert.
 
 ## Audit préalable de faisabilité

@@ -1,5 +1,7 @@
 # Plan de mise à niveau Supabase DEV
 
+**Suivi 6.5.4.C, 30 octobre 2026 :** [lecture seule et reprise](../validations/VALIDATION-LOT6-5-4C.md), [point R](RUNBOOK-REPRISE-DEV-6-5-4C.md). Catalogue complet/privilèges effectifs concordants, aucune nouvelle migration/configuration. A existe, B absent ; ancien échec du mot de passe et budgets conservés. R propre au nouveau SHA/artefact, C/D absents. Aucune autorisation de mise à niveau ou d'ouverture ne découle de cette continuation préparée.
+
 **Suivi 6.5.4.B, 30 octobre 2026 :** [préparation de la recette](RUNBOOK-RECETTE-DEV-6-5-4B.md), [preuves](../validations/VALIDATION-LOT6-5-4B.md). Identité, trois migrations et contrats des dix tables/neuf RPC revérifiés en lecture seule ; aucune mise à niveau supplémentaire exécutée. Un outil DEV distinct prépare deux identités et un frontend local, sans assouplir les runners éphémères. Les lettres A–G de ce plan historique ne sont pas les accords **A recette, B liens, C pédagogie, D nettoyage** du nouveau runbook. Ces quatre accords restent absents ; toute modification SQL/Auth/configuration et toute nouvelle copie technique nécessitent leurs propres décisions. Auth Pages reste off.
 
 **Actualisation 6.5.3.B, 29 octobre 2026 : étape base achevée sous A/B.** DEV seul **`wcckbyhrtroittbfophv`** ; copie applicative native, restauration PostgreSQL partielle et seule migration personnelle réalisées. [Preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md). PROD exclu ; recette connectée non exécutée.
