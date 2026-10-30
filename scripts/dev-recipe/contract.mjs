@@ -30,6 +30,16 @@ export class RecipeError extends Error {
 export const fail = code => { throw new RecipeError(code); };
 export const safeMessage = error => error instanceof RecipeError ? error.message : messages.uncertain;
 
+// Les processus non Node (Git/Python/Chromium) ne doivent pas hériter de la clé
+// administrative ni des jetons/diagnostics privés du terminal opérateur.
+export function publicProcessEnvironment(env) {
+  const allowed = new Set(['PATH', 'PATHEXT', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'TEMP', 'TMP', 'TMPDIR',
+    'HOME', 'USERPROFILE', 'LOCALAPPDATA', 'APPDATA', 'PROGRAMDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)',
+    'HOMEDRIVE', 'HOMEPATH', 'LANG', 'LC_ALL', 'LC_CTYPE', 'TZ', 'DISPLAY', 'WAYLAND_DISPLAY',
+    'XDG_RUNTIME_DIR', 'DBUS_SESSION_BUS_ADDRESS', 'LD_LIBRARY_PATH', 'NUMBER_OF_PROCESSORS', 'OS']);
+  return Object.fromEntries(Object.entries(env).filter(([name]) => allowed.has(name.toUpperCase())));
+}
+
 export function validateRun(run, sha) {
   if (!runPattern.test(run || '') || !shaPattern.test(sha || '')) fail('input');
 }

@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, openSync, closeSync, writeFileSync, fsyncSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEV_SITE, DEV_PROJECT, MAX_MUTATIONS, MAX_AUTH_REQUESTS, UUID, validateEnvironment, validateRun, browserGate,
-  operationSlot, syntheticEmail, safeMessage, fail } from './contract.mjs';
+  operationSlot, syntheticEmail, publicProcessEnvironment, safeMessage, fail } from './contract.mjs';
 import { ROOT, runDirectory, readPrivate, createPrivate, reserveSlot, artifactHash } from './private-files.mjs';
 import { generateTestLink } from './generate-test-links.mjs';
 import { createRecipeServer } from './serve.mjs';
@@ -17,14 +17,15 @@ try {
   if (!stdin.isTTY || !stdout.isTTY || process.env.CI || process.env.DEBUG || process.env.PWDEBUG
       || process.env.NODE_DEBUG || process.env.NODE_OPTIONS) fail('private');
   validateEnvironment(process.env);
+  const childEnv = publicProcessEnvironment(process.env);
   const run = process.env.MON_BPREA_DEV_RUN;
-  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, env: childEnv, encoding: 'utf8' }).trim();
   validateRun(run, sha);
   const dir = runDirectory(run, sha), plan = readPrivate(dir, 'plan.json');
   if (plan.run !== run || plan.sha !== sha || plan.project !== DEV_PROJECT) fail('artifact');
   const artifact = readPrivate(dir, 'artifact.json');
   if (artifact.sha !== sha || artifact.hash !== artifactHash(dir)) fail('artifact');
-  if (execFileSync('git', ['status', '--porcelain', '--untracked-files=normal'], { cwd: ROOT, encoding: 'utf8' }).trim()) fail('artifact');
+  if (execFileSync('git', ['status', '--porcelain', '--untracked-files=normal'], { cwd: ROOT, env: childEnv, encoding: 'utf8' }).trim()) fail('artifact');
   // Une seule session opérateur par run, même après crash. Pas de reprise aveugle.
   createPrivate(dir, 'session-started.json', { sha, startedAt: new Date().toISOString() });
   terminal = createInterface({ input: stdin, output: stdout });
@@ -35,7 +36,7 @@ try {
   const key = readPrivate(dir, 'auth-config.json').publishableKey;
   server = createRecipeServer(dir, key);
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(4173, '127.0.0.1', resolve); });
-  browser = await chromium.launch({ headless: false, args: ['--disable-logging'] });
+  browser = await chromium.launch({ headless: false, env: childEnv, args: ['--disable-logging'] });
   const owned = new Map(), verifications = new Set(), contexts = {}, pages = {};
   let writeEnabled = false, mutationCount = 0, authCount = 0;
   const allow = browserGate({ getIds: () => [...owned.values()], getEmails: () => [...owned.keys()].map(actor => syntheticEmail(run, actor)),

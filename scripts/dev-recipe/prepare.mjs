@@ -2,15 +2,16 @@ import { randomBytes } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 import { DEV_API, DEV_PROJECT, DEV_SITE, DEV_CALLBACK, MAX_MUTATIONS, MAX_AUTH_REQUESTS, TABLES, RPCS,
-  publicConfiguration, safeMessage, fail } from './contract.mjs';
+  publicConfiguration, publicProcessEnvironment, safeMessage, fail } from './contract.mjs';
 import { ROOT, runDirectory, createPrivate, protectDirectory, artifactHash } from './private-files.mjs';
 import { fixturePlan, targetPreflightSql } from './fixtures.mjs';
 import { writeFileSync } from 'node:fs';
 
 try {
   if (process.argv.length !== 2) fail('input');
-  if (execFileSync('git', ['status', '--porcelain', '--untracked-files=normal'], { cwd: ROOT, encoding: 'utf8' }).trim()) fail('artifact');
-  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, encoding: 'utf8' }).trim();
+  const childEnv = publicProcessEnvironment(process.env);
+  if (execFileSync('git', ['status', '--porcelain', '--untracked-files=normal'], { cwd: ROOT, env: childEnv, encoding: 'utf8' }).trim()) fail('artifact');
+  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, env: childEnv, encoding: 'utf8' }).trim();
   const run = `r654b-${new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).replaceAll('-', '')}-${randomBytes(6).toString('hex')}`;
   const dir = runDirectory(run, sha, { create: true });
   protectDirectory(dir);
@@ -27,7 +28,7 @@ try {
     protectionAccepted: false, absent: { A: false, B: false } });
   execFileSync(process.env.PYTHON || 'python', ['scripts/prepare-pages.py', '--version', sha,
     '--auth-config', join(dir, 'auth-config.json'), '--output', join(dir, 'frontend', 'mon-bprea')],
-  { cwd: ROOT, stdio: 'pipe' });
+  { cwd: ROOT, env: childEnv, windowsHide: true, stdio: 'pipe' });
   createPrivate(dir, 'artifact.json', { sha, hash: artifactHash(dir) });
   console.log(`Préparation locale seule : ${run}\nSHA : ${sha}\nArtefact ignoré : .tmp/dev-recipe/${run}/frontend/mon-bprea\nAucun appel Supabase. Aucun accord A/B/C/D enregistré.`);
 } catch (error) { console.error(safeMessage(error)); process.exitCode = 1; }

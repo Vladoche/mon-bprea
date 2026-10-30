@@ -1,5 +1,7 @@
 # Recette hébergée DEV — lot 6.5.4.B
 
+**Suivi opérateur du 30 octobre, après préparation : A reçu avec la protection présentée, sans nouvelle copie technique.** [Reçu et contrôles](../validations/VALIDATION-LOT6-5-4B.md). B/C/D restent à obtenir. Les mentions de phase 0 ci-dessous décrivent le mandat initial, avant cet accord distinct ; A n'est plus à redemander. Le correctif d'environnement des sous-processus ne change ni la cible ni les bornes acceptées ; fixer le nouveau SHA testé et reconstruire l'artefact avant B.
+
 **29–30 octobre 2026 — phase 0 préparée ; EN ATTENTE D'AUTORISATION.** Le mandat autorise les lectures de métadonnées et les préparations locales. Il ne donne aucun accord A/B/C/D. [Résultats réellement observés](../validations/VALIDATION-LOT6-5-4B.md). Aucun accès PROD, compte/lien créé, session étudiante, écriture pédagogique ou nettoyage DEV dans cette préparation.
 
 ## Cible, versions et conditions d'arrêt
@@ -64,7 +66,7 @@ Le générateur/sélecteur DEV ne prend **aucun argument**, URL libre, `--projec
 | `MON_BPREA_DEV_RUN` | Run préparé, inchangé |
 | `MON_BPREA_DEV_ADMIN_KEY` | Clé moderne `sb_secret_…` du seul processus Node privé, jamais dans un argument/fichier/navigateur/conversation ; ne pas copier une clé ici pour faire approuver |
 
-L'opérateur habilité vérifie secrètement la provenance/permission de sa clé. Le format ne certifie pas son origine serveur. Aucun secret supplémentaire n'est demandé par le frontend. CI, pipes, variables de diagnostic et historique de liens sont refusés. L'ACL ne chiffre pas le disque et ne certifie aucune exclusion de synchronisation cloud : vérifier le poste et décider la conservation avant les liens.
+L'opérateur habilité vérifie secrètement la provenance/permission de sa clé. Le format ne certifie pas son origine serveur. Aucun secret supplémentaire n'est demandé par le frontend. Chromium et les commandes Git/Python/ACL reçoivent une liste fermée de variables publiques, jamais l'environnement privé Node complet. CI, pipes, variables de diagnostic et historique de liens sont refusés. L'ACL ne chiffre pas le disque et ne certifie aucune exclusion de synchronisation cloud : vérifier le poste et décider la conservation avant les liens.
 
 ## Point d'arrêt B — une génération à la fois
 

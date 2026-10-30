@@ -1,7 +1,8 @@
 import { it, expect, vi } from 'vitest';
 import { createClient } from '@supabase/supabase-js';
 import { DEV_PROJECT, DEV_API, DEV_SITE, DEV_CALLBACK, MAX_MUTATIONS, validateEnvironment, validatePreflight,
-  syntheticEmail, operationSlot, publicConfiguration, boundedAdminFetch, browserGate, safeMessage } from '../../scripts/dev-recipe/contract.mjs';
+  syntheticEmail, operationSlot, publicConfiguration, publicProcessEnvironment, boundedAdminFetch, browserGate, safeMessage } from '../../scripts/dev-recipe/contract.mjs';
+import { spawnSync } from 'node:child_process';
 import { generateTestLink } from '../../scripts/dev-recipe/generate-test-links.mjs';
 
 const run = 'r654b-20261029-012345abcdef', sha = 'a'.repeat(40), at = Date.parse('2026-10-29T20:00:00Z');
@@ -41,6 +42,20 @@ it('refuse PROD, toute autre cible, les normalisations URL et les arguments hors
 it('la configuration frontend ne contient que les cinq champs publics et une clé publishable', () => {
   expect(Object.keys(publicConfiguration(key)).sort()).toEqual(['enabled', 'environment', 'publishableKey', 'siteUrl', 'url']);
   expect(() => publicConfiguration(environment().MON_BPREA_DEV_ADMIN_KEY)).toThrow();
+});
+it('les sous-processus reçoivent un environnement public fermé, sans clé, jeton ni option de diagnostic hérités', () => {
+  const privateEnv = { ...process.env, MON_BPREA_DEV_ADMIN_KEY: 'sb_secret_synthetic_fixture_only',
+    SUPABASE_SERVICE_ROLE_KEY: 'synthetic-service-key', FUTURE_UNKNOWN_CREDENTIAL: 'synthetic-private',
+    NODE_OPTIONS: '--trace-warnings', CHROME_LOG_FILE: 'synthetic-private-log', GITHUB_TOKEN: 'synthetic-token' };
+  const child = spawnSync(process.execPath, ['-p', 'JSON.stringify(Object.keys(process.env))'], {
+    encoding: 'utf8', env: publicProcessEnvironment(privateEnv), windowsHide: true });
+  expect(child.status).toBe(0);
+  const names = JSON.parse(child.stdout);
+  for (const name of ['MON_BPREA_DEV_ADMIN_KEY', 'SUPABASE_SERVICE_ROLE_KEY', 'FUTURE_UNKNOWN_CREDENTIAL', 'NODE_OPTIONS', 'CHROME_LOG_FILE', 'GITHUB_TOKEN'])
+    expect(names).not.toContain(name);
+  expect(JSON.stringify(publicProcessEnvironment(privateEnv))).not.toContain('synthetic-private');
+  expect(publicProcessEnvironment({ Path: 'public-tool-path', TEMP: 'public-temp', unknown: 'synthetic-private' }))
+    .toEqual({ Path: 'public-tool-path', TEMP: 'public-temp' });
 });
 it('préflight expiré, incomplet, futur ou relatif à une autre tête ne permet aucun appel', async () => {
   for (const change of [{ checkedAt: new Date(at - 300_001).toISOString() }, { checkedAt: new Date(at + 1).toISOString() },

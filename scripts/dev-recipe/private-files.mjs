@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fail, validateRun } from './contract.mjs';
+import { fail, validateRun, publicProcessEnvironment } from './contract.mjs';
 
 export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 export function protectDirectory(dir) {
@@ -24,7 +24,7 @@ foreach ($recipeSid in @($recipeOwner.Value, 'S-1-5-18', 'S-1-5-32-544')) {
 Set-Acl -LiteralPath $recipePath -AclObject $recipeAcl
 if (-not (Get-Acl -LiteralPath $recipePath).AreAccessRulesProtected) { throw 'ACL' }`;
   try { execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', script],
-    { env: { ...process.env, MON_BPREA_DEV_PRIVATE_DIR: dir }, stdio: 'pipe' }); }
+    { env: { ...publicProcessEnvironment(process.env), MON_BPREA_DEV_PRIVATE_DIR: dir }, windowsHide: true, stdio: 'pipe' }); }
   catch { fail('private'); }
 }
 export function runDirectory(run, sha, { create = false } = {}) {

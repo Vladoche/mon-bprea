@@ -1,6 +1,12 @@
 # Validation du lot 6.5.4.B — préparation de recette DEV
 
-**29–30 octobre 2026, Europe/Paris — EN ATTENTE D'AUTORISATION. Phase 0 uniquement.** La recette hébergée T01–T12 n'est pas exécutée. Aucun compte, lien, session étudiante, écriture pédagogique, changement Auth/SQL ou nettoyage DEV. Le [runbook opérationnel](../deploiement/RUNBOOK-RECETTE-DEV-6-5-4B.md) porte les propositions exactes A/B/C/D, bornes, risques, protections, scénarios et critères d'arrêt.
+**29–30 octobre 2026, Europe/Paris — A REÇU, EN ATTENTE DE B/C/D.** La recette hébergée T01–T12 n'est pas exécutée. Aucun compte, lien, session étudiante, écriture pédagogique, changement Auth/SQL ou nettoyage DEV. Le [runbook opérationnel](../deploiement/RUNBOOK-RECETTE-DEV-6-5-4B.md) porte les propositions exactes A/B/C/D, bornes, risques, protections, scénarios et critères d'arrêt.
+
+## Suivi après accord A — 30 octobre, vers 07:23–07:31 Paris
+
+Accord humain explicite : **« Oui j'autorise le point A avec la protection »**. L'isolation de deux nouveaux UUID et les droits existants, sans nouvelle copie technique, sont acceptés dans le périmètre présenté ; **A n'est plus à redemander**. B/C/D restent absents. Reçu privé rattaché au run et au SHA ; aucune création de compte, lien, session ou mutation pédagogique. Git/main, trois CI, identité/Free/ledger, catalogue complet et privilèges revérifiés : inchangés. Le comptage ciblé des deux adresses synthétiques initiales donne zéro/zéro, sans liste d'utilisateurs ni donnée Auth extraite.
+
+Avant B, la revue a révélé que le lancement Chromium aurait hérité de l'environnement Node, donc d'une éventuelle clé administrative future. **Aucune clé administrative n'était présente et aucun navigateur n'a été lancé avec elle.** Correction préventive : liste fermée d'environnement public pour Chromium et les commandes Git/Python/ACL ; aucune variable privée ou de diagnostic héritée. Test avec un véritable sous-processus synthétique, puis suites rejouées. Le SHA corrigé et ses trois CI seront fixés dans la description de PR ; l'artefact sera reconstruit, sans réutiliser un manifeste d'ancien SHA. Les identités restent deux au maximum et A garde son périmètre ; B portera sur le nouveau run exact. La clé administrative reste à fournir uniquement dans le processus privé, jamais dans le chat.
 
 ## Git et périmètre réellement autorisé
 
@@ -11,7 +17,7 @@
 | PR #30 | GitHub : merged=true, closed, merged_at 2026-10-29T19:26:03Z, SHA de fusion identique ; les lots précédents sont dans son historique |
 | Branche | `feature/lot6-5-4b-recette-hebergee-dev`, créée depuis origin/main ; pas de travail sur main |
 | Mandat reçu | Phase 0 : revue, métadonnées DEV en lecture seule, scripts/artefact/fixtures/procédures/tests locaux |
-| A / B / C / D | **Aucun accord reçu.** Les anciennes autorisations 6.5.3.B ne sont pas réutilisées |
+| A / B / C / D | **A reçu le 30 octobre, protection acceptée ; B/C/D absents.** Les anciennes autorisations 6.5.3.B ne sont pas réutilisées |
 | Exclus | Toute opération PROD, compte historique/camarade, SMTP externe, achat, Edge Function, migration/GRANT/RLS, déploiement Pages, fusion et modification de protection main |
 | Secrets/copies | Aucune clé administrative demandée/lue, aucun contenu de la sauvegarde technique consulté/copié, aucune donnée Auth/pédagogique renvoyée au modèle ; seules métadonnées et booléens de présence |
 
@@ -47,7 +53,7 @@ Les seuls booléens hébergés lus indiquent : profils historiques présents ; *
 
 La [copie 6.5.3.B](EXECUTION-LOT6-5-3B-2026-10-29.md) protège quatre tables avant migration ; elle exclut Auth et les écritures nouvelles. Elle ne devient pas une sauvegarde complète par la présente comparaison. Son contenu n'a pas été lu ; échéance de réexamen le **5 novembre 2026**, sans purge/prolongation implicite.
 
-Proposition à A : isoler la recette par deux UUID neufs, aucune suppression/modification globale, budgets stricts et arrêt sur anomalie ; faire accepter explicitement les limites de reprise et le risque résiduel. **Protection non encore acceptée.** Une nouvelle copie éventuelle et son stockage/conservation nécessitent un mandat propre ; aucune extraction dans Codex cloud ou CI. Pas de perte acceptable présumée au motif que DEV est fictif ou Free.
+Protection **acceptée par A** : isoler la recette par deux UUID neufs, aucune suppression/modification globale, budgets stricts et arrêt sur anomalie, limites de reprise et risque résiduel présentés. Une nouvelle copie éventuelle et son stockage/conservation nécessitent un mandat propre ; aucune extraction dans Codex cloud ou CI. Pas de perte d'historique autorisée au motif que DEV est fictif ou Free.
 
 ## Dispositif préparé et limites
 
@@ -59,7 +65,7 @@ Le préparateur utilise seulement la configuration publishable locale ignorée, 
 
 ## Matrice de recette hébergée
 
-Champs communs de cette matrice préparatoire : **date 29/10/2026 Paris ; base SHA 78971e1 ; environnement DEV ; run hébergé aucun ; autorisations A/B/C absentes ; résultat réel aucun parcours exécuté ; méthode prévue JWT utilisateur + relecture réelle selon le runbook**. Lors d'une exécution, remplacer ces champs par heure précise/SHA/run/accord réellement reçus pour chaque sous-cas. Aucun succès local ci-dessous ne transforme un statut hébergé.
+Champs communs de cette matrice préparatoire : **date initiale 29/10/2026 Paris, suivi A le 30/10 ; base SHA 78971e1 ; environnement DEV ; run hébergé aucun ; A reçu, B/C absents ; résultat réel aucun parcours exécuté ; méthode prévue JWT utilisateur + relecture réelle selon le runbook**. Lors d'une exécution, remplacer ces champs par heure précise/SHA/run/accord réellement reçus pour chaque sous-cas. Aucun succès local ci-dessous ne transforme un statut hébergé.
 
 | ID | Prérequis / composant / attendu | Résultat réel et statut DEV | Limite / décision requise |
 | --- | --- | --- | --- |
@@ -82,8 +88,8 @@ Node **24.22.0**, `npm ci` et installation Chromium réussis. Aucune dépendance
 
 | Vérification | Résultat exécuté / limite |
 | --- | --- |
-| Tests ciblés outils/artefact | **19 tests** inclus dans la passe finale : refus de cibles, préflight/accords, créneau durable, pannes de génération/remise, SDK réel avec transport synthétique, serveur silencieux/préfixe/traversée, fingerprint altéré, CLI fermée, vérification de liens du run et exclusion Pages ; aucune RLS déduite de ces mocks |
-| npm test | **480 tests / 47 fichiers** réussis le 30/10 à 06:47 Paris ; réseau boucle locale exécuté hors sandbox après refus EACCES de la sandbox Windows lors de la première passe du 29 |
+| Tests ciblés outils/artefact | **20 tests** inclus dans la passe finale : refus de cibles, préflight/accords, créneau durable, pannes de génération/remise, SDK réel avec transport synthétique, serveur silencieux/préfixe/traversée, fingerprint altéré, CLI fermée, isolation des secrets dans un vrai sous-processus, vérification de liens du run et exclusion Pages ; aucune RLS déduite de ces mocks |
+| npm test | **481 tests / 47 fichiers** réussis le 30/10 à 07:30 Paris après isolation de l'environnement des sous-processus ; réseau boucle locale exécuté hors sandbox après refus EACCES de la sandbox Windows lors de la première passe du 29 |
 | npm run test:e2e -- --workers=2 | **84/84**, environ 1,5 minute ; passe finale du 30/10 après npm test ; profils temporaires, HTTP synthétique, aucun endpoint DEV/PROD |
 | npm run build:auth-sdk | SDK 2.118.0 reconstruit ; diff bundle versionné nul |
 | Métadonnées PostgreSQL natives | Trois migrations reconstruites ; comparaison catalogue et droits effectifs concordante, cluster arrêté ; Auth simulé seulement |
@@ -96,6 +102,6 @@ La présence des tests de sécurité ne prouve pas leur exécution. Les résulta
 
 Fixtures hébergées créées : **zéro** ; aucun UUID de nettoyage, aucune session utilisateur DEV, aucun résidu pédagogique attribuable à ce lot. Dossiers locaux préparatoires/synthétiques ignorés et clusters arrêtés conservés ; aucun fichier utilisateur/sauvegarde précédente supprimé. Le sort des futurs comptes, sessions et fichiers de recette se décidera au point D, sur liste privée exacte.
 
-**Préparation disponible — recette hébergée non validée.** Présenter A avec SHA testé, choix de protection, bornes, risques, arrêt et nettoyage séparé. Attendre ensuite B avant Auth puis C avant pédagogie, et D avant toute suppression. Toute modification de configuration Auth, nouvelle migration/RPC/RLS/GRANT, copie technique, clôture fonctionnelle ou reprise complète exige un mandat propre.
+**Préparation disponible, A reçu — recette hébergée non validée.** Présenter B avec le SHA corrigé testé, le run exact et les opérations Auth bornées ; ne pas redemander A. Attendre B avant Auth puis C avant pédagogie, et D avant toute suppression. Toute modification de configuration Auth, nouvelle migration/RPC/RLS/GRANT, copie technique, clôture fonctionnelle ou reprise complète exige un mandat propre.
 
 Les quinze P0 et D01–D14 restent à examiner séparément. Aucun lancement public, validation juridique, camarade invité, abonnement, SMTP externe, fusion ou production. Un défaut démontré peut conduire à **RECETTE PARTIELLE — CORRECTIF REQUIS**, jamais à une modification hébergée pour verdir.
