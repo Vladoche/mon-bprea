@@ -163,3 +163,39 @@ it('V atteint PostgREST, et les jetons de liens étrangers restent bloqués avan
   expect(verify('synthetic-run-token')).toBe(true); expect(verify('synthetic-run-token')).toBe(true);
   expect(verify('synthetic-run-token')).toBe(false);
 });
+
+it('le vrai SDK peut modifier le mot de passe avec ses champs PKCE nuls, sans autre droit Auth', async () => {
+  let mutations = 0;
+  const sent = [], user = { id: A, email, role: 'authenticated', aud: 'authenticated' };
+  const jwt = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: A, role: 'authenticated', exp: 2000000000 })).toString('base64url')}.${Buffer.from('synthetic-signature').toString('base64url')}`;
+  const gate = browserGate({ getIds: () => [A], getEmails: () => [email], publicKey: key,
+    mayVerify: () => false, mayWrite: () => false, consumeMutation: () => false, consumeAuth: () => ++mutations <= 60 });
+  const client = createClient(DEV_API, key, { auth: { persistSession: false, autoRefreshToken: false, flowType: 'pkce' },
+    global: { fetch: async (url, options = {}) => {
+      const headers = Object.fromEntries(new Headers(options.headers).entries());
+      const request = { url: String(url), method: options.method || 'GET', headers, body: options.body || '' };
+      if (!gate(request)) throw new TypeError('Synthetic gate rejection');
+      if (request.method === 'PUT') sent.push(JSON.parse(request.body));
+      return new Response(JSON.stringify(user), { headers: { 'content-type': 'application/json' } });
+    } } });
+  expect((await client.auth.setSession({ access_token: jwt, refresh_token: 'synthetic-refresh' })).error).toBeNull();
+  expect((await client.auth.updateUser({ password: 'SyntheticOnlyPassword654b!' })).error).toBeNull();
+  expect(sent).toEqual([{ password: 'SyntheticOnlyPassword654b!', code_challenge: null, code_challenge_method: null }]);
+  expect(mutations).toBe(1);
+});
+
+it('le filtre mot de passe refuse les autres champs Auth et ne consomme pas leur budget', () => {
+  let mutations = 0;
+  const gate = browserGate({ getIds: () => [A], getEmails: () => [email], publicKey: key,
+    mayVerify: () => false, mayWrite: () => false, consumeMutation: () => false, consumeAuth: () => ++mutations <= 60 });
+  const jwt = `eyJheader.${Buffer.from(JSON.stringify({ sub: A, role: 'authenticated' })).toString('base64url')}.synthetic`;
+  const request = { url: `${DEV_API}/auth/v1/user`, method: 'PUT', headers: { apikey: key, authorization: `Bearer ${jwt}` } };
+  for (const change of [{ email }, { password: 42 }, { code_challenge: null },
+    { password: 'fixture', email }, { password: 'fixture', data: {} }, { password: 'fixture', app_metadata: {} },
+    { password: 'fixture', nonce: 'fixture' }, { password: 'fixture', code_challenge: 'fixture' },
+    { password: 'fixture', code_challenge_method: 's256' }])
+    expect(gate({ ...request, body: JSON.stringify(change) })).toBe(false);
+  expect(mutations).toBe(0);
+  expect(gate({ ...request, body: JSON.stringify({ password: 'fixture', code_challenge: null, code_challenge_method: null }) })).toBe(true);
+  expect(mutations).toBe(1);
+});

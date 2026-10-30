@@ -137,8 +137,12 @@ export function browserGate({ getIds, getEmails, mayVerify, mayWrite, consumeMut
         if (method === 'POST' && url.pathname === '/auth/v1/verify')
           allowed = mayVerify(JSON.parse(body));
         if (method === 'POST' && url.pathname === '/auth/v1/logout') allowed = !!payload;
-        if (method === 'PUT' && url.pathname === '/auth/v1/user' && !!payload)
-          allowed = Object.keys(JSON.parse(body)).join(',') === 'password';
+        if (method === 'PUT' && url.pathname === '/auth/v1/user' && !!payload) {
+          const change = JSON.parse(body);
+          // Le SDK ajoute ces deux champs nulls même pour un mot de passe seul.
+          allowed = typeof change.password === 'string' && Object.keys(change).every(name =>
+            name === 'password' || (['code_challenge', 'code_challenge_method'].includes(name) && change[name] === null));
+        }
         return allowed && consumeAuth();
       }
       if (!url.pathname.startsWith('/rest/v1/')) return false;

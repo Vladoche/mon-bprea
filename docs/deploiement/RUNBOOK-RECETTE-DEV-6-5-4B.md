@@ -137,6 +137,10 @@ Avant D, `stop` ferme le serveur et les navigateurs, sans appel administratif lo
 
 ## Reprise, corrections et livraison
 
+Avant toute saisie de clé sous Windows, vérifier le lancement réel de Chromium dans **le même environnement d'exécution** que la session opérateur, ainsi que la console interactive. Le cache du sandbox et celui du compte Windows peuvent différer ; une installation réussie hors sandbox ne prouve pas le lancement dans le sandbox. Ces contrôles restent sans clé ni appel distant et précèdent la réservation d'un run de recette.
+
+Le vrai SDK ajoute `code_challenge:null` et `code_challenge_method:null` à un PUT de mot de passe. Le garde les accepte seulement lorsqu'ils sont nuls, avec `password` de type chaîne ; tout autre champ reste refusé. L'échec réseau d'un filtre local n'est ni un refus serveur ni une preuve RLS. Un lien déjà vérifié reste consommé même si la définition du mot de passe échoue ensuite : conserver le créneau et l'UUID, réconcilier l'état et préparer une reprise distincte, sans générer spontanément un nouveau lien.
+
 Résultat incertain : arrêter ; relire de façon ciblée l'UUID reçu ou les comptages des deux seules adresses si aucun UUID n'a été acquitté. Ne pas supprimer un fichier `attempt`/`session-started`, recréer un run ou relancer pour contourner cette garde. Toute reprise ou génération supplémentaire doit être explicitement définie et autorisée après diagnostic.
 
 Défaut applicatif démontré : reproduire localement, correctif Git minimal et tests rejoués. Dérive SQL/Auth/configuration : consigner et demander mandat distinct ; ne pas modifier DEV pour verdir. Une livraison **RECETTE PARTIELLE — CORRECTIF REQUIS** est possible. Sans A/B/C, livrer la préparation avec **EN ATTENTE D'AUTORISATION**.

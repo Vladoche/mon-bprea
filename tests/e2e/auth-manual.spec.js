@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { sessionFor } from './course-quiz-api.js';
 import { authIdentity } from '../helpers/personal-browser.js';
+import { browserGate, DEV_API } from '../../scripts/dev-recipe/contract.mjs';
 
 // HTTP synthétique : exerce le vrai SDK/callback/service/UI, jamais une preuve RLS.
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
@@ -9,8 +10,11 @@ const site = 'http://127.0.0.1:4173/mon-bprea/';
 const token = 'synthetic_manual_callback_not_a_real_token';
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 
-async function install(page) {
-  const fixture = { verify: [], passwords: 0, recover: 0, error: null, hold: null };
+async function install(page, { guarded = false } = {}) {
+  const fixture = { verify: [], passwords: 0, recover: 0, error: null, hold: null, authMutations: 0, blocked: [] };
+  const gate = browserGate({ getIds: () => [sessionFor('A').user.id], getEmails: () => [sessionFor('A').user.email],
+    publicKey: 'sb_publishable_syntheticManualAuth', mayVerify: body => body.type === 'invite' && body.token_hash === token,
+    mayWrite: () => false, consumeMutation: () => false, consumeAuth: () => ++fixture.authMutations <= 60 });
   await page.clock.install({ time: new Date('2026-10-28T12:00:00Z') });
   await page.route('**/assets/auth-config.json*', route => route.fulfill({ json: {
     enabled: true, environment: 'development', url: origin,
@@ -18,6 +22,11 @@ async function install(page) {
   } }));
   await page.route(`${origin}/**`, async route => {
     const request = route.request(), path = new URL(request.url()).pathname;
+    // Normalisation uniquement pour cette fixture HTTP, jamais de requête vers DEV.
+    if (guarded && !gate({ url: `${DEV_API}${path}${new URL(request.url()).search}`, method: request.method(),
+      headers: await request.allHeaders(), body: request.postData() || '' })) {
+      fixture.blocked.push({ path, method: request.method() }); return route.abort();
+    }
     const respond = (json, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(json) });
     if (path.endsWith('/verify')) {
       fixture.verify.push(request.postDataJSON());
@@ -37,6 +46,17 @@ async function install(page) {
   });
   return fixture;
 }
+
+test('callback invitation : le garde de recette accepte la requête native de mot de passe du SDK', async ({ page }) => {
+  const fixture = await install(page, { guarded: true });
+  await page.goto(`${site}authentification.html?token_hash=${token}&type=invite`);
+  await page.getByRole('button', { name: 'Continuer l’activation', exact: true }).click();
+  await page.getByLabel('Nouveau mot de passe', { exact: true }).fill('SyntheticOnlyPassword654b!');
+  await page.getByLabel('Confirmer le mot de passe', { exact: true }).fill('SyntheticOnlyPassword654b!');
+  await page.getByRole('button', { name: 'Définir le mot de passe', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Ton compte est activé', exact: true })).toBeVisible();
+  expect(fixture.passwords).toBe(1); expect(fixture.authMutations).toBe(2); expect(fixture.blocked).toEqual([]);
+});
 
 for (const type of ['invite', 'recovery']) {
   test(`callback ${type} : aucune vérification avant clic, double clic unique et réponse tardive contrôlée`, async ({ page }) => {

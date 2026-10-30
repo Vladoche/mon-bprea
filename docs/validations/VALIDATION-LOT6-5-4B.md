@@ -1,8 +1,24 @@
-# Validation du lot 6.5.4.B — préparation de recette DEV
+# Validation du lot 6.5.4.B — recette DEV partielle
 
-**29–30 octobre 2026, Europe/Paris — A REÇU, EN ATTENTE DE B/C/D.** La recette hébergée T01–T12 n'est pas exécutée. Aucun compte, lien, session étudiante, écriture pédagogique, changement Auth/SQL ou nettoyage DEV. Le [runbook opérationnel](../deploiement/RUNBOOK-RECETTE-DEV-6-5-4B.md) porte les propositions exactes A/B/C/D, bornes, risques, protections, scénarios et critères d'arrêt.
+**30 octobre 2026, Europe/Paris — RECETTE PARTIELLE, CORRECTIF OPÉRATEUR VALIDÉ LOCALEMENT.** A et les trois opérations B sont autorisés ; une reprise unique du bootstrap a été autorisée après diagnostic. C et D restent absents. Une invitation A a été générée et remise en mémoire à A1 ; Auth confirme le compte et une connexion. La définition du mot de passe est bloquée par le filtre de recette, reproduite hors ligne puis corrigée. Aucun succès de cette étape n'est revendiqué sur DEV après correction. Invitation B et récupération A non tentées ; aucune mutation pédagogique, migration, modification de configuration hébergée ou suppression. Le [runbook opérationnel](../deploiement/RUNBOOK-RECETTE-DEV-6-5-4B.md) conserve les bornes et critères d'arrêt.
 
-## Suivi après accord A — 30 octobre, vers 07:23–07:31 Paris
+## Exécution partielle et arrêt conservateur — 30 octobre
+
+Frontend testé : **18b0478daf2879c80b5fbb75b2e5bb67993ea112** ; run **r654b-20261030-302521a0f692**, même artefact, mêmes deux adresses approuvées, aucune identité historique ciblée. B reçu : **« Oui j'autorise les trois opérations du point B »**. Les valeurs des clés, liens, JWT, mots de passe, e-mails synthétiques exacts et UUID restent exclus du présent rapport.
+
+Le bootstrap initial s'arrête vers **08:02 Paris**, avant tout créneau ou requête Auth : Chromium est recherché dans le cache vide du sandbox ; `setRawMode EPERM` apparaît ensuite à la fermeture de console. Le même démarrage sans secret réussit hors sandbox, directement puis par le mécanisme imbriqué du formulaire. Réconciliation ciblée zéro/zéro, aucun appel distant antérieur. Plan privé et 27 contrôles synthétiques de reprise, puis accord humain **« Autoriser la reprise unique »**. Un adaptateur privé conserve le marqueur initial et ajoute un verrou exclusif ; aucun fichier de tentative supprimé, compteur réinitialisé ou artefact réétiqueté. La saisie masquée transmet une clé DEV existante au seul processus de confiance ; environnement Chromium filtré.
+
+Préflight vers **08:23–08:26 Paris** : identité/Free/ledger corrects, catalogue et privilèges inchangés, Auth et Data API relus, public et graphql_public cochés, schéma privé exclu, signup/anonyme off, callback local unique. Les indicateurs Data API 0/10 et 0/15 restent une observation d'interface, sans déduction de résultat RLS.
+
+Vers **08:26 Paris**, un seul `generateLink invite/A` est acquitté ; UUID reçu privé, lien remis à A1, URL nettoyée. Le titulaire confirme le lien puis signale **« Le service est injoignable. Vérifie ta connexion puis réessaie. »** après **« Définir le mot de passe »**. Lecture Auth ciblée : un compte A, e-mail confirmé et connexion enregistrée ; B absent. Ces booléens ne prouvent ni l'enregistrement du mot de passe choisi ni une politique RLS. Aucun lien régénéré.
+
+Défaut démontré avec le vrai SDK 2.118.0 et HTTP entièrement synthétique : `updateUser({ password })` émet aussi `code_challenge:null` et `code_challenge_method:null`. Le filtre exigeait la seule clé `password`, bloquait le PUT avant le fournisseur et produisait le message réseau. Avant correction : zéro PUT transmis par la fixture ; après correction : un PUT et activation synthétique réussie. Le filtre accepte uniquement le mot de passe et ces champs **nuls** ; e-mail, métadonnées, nonce et valeurs PKCE actives restent refusés. Aucun changement de droits Auth/Supabase.
+
+Arrêt explicite des quatre contextes et du serveur vers **12:18 Paris**, sans appel administratif de déconnexion ni suppression hébergée. État durable : **1/3 créneaux administratifs réservé, 2 requêtes Auth mutantes comptées, 0/140 mutations pédagogiques**. Les deux créneaux restants ne sont pas réattribués. Compte A et fichiers privés conservés ; sessions/refresh/JWT distants potentiellement résiduels. Toute reprise doit réconcilier ces objets et le lien déjà consommé ; ne pas relancer le run ou rejouer invite A. D reste nécessaire pour un nettoyage ciblé.
+
+Correctif local : **483 tests unitaires/intégration et 85 E2E réussis**, SDK reconstruit identique, régression navigateur avec vrai SDK et garde de recette. Les trois CI de la nouvelle tête doivent être vérifiés séparément ; les verts de 18b0478 ne valent pas pour ce correctif. La recette DEV reste partielle et les scénarios non exécutés ci-dessous ne sont pas validés par les tests synthétiques.
+
+## Historique après accord A — 30 octobre, vers 07:23–07:31 Paris
 
 Accord humain explicite : **« Oui j'autorise le point A avec la protection »**. L'isolation de deux nouveaux UUID et les droits existants, sans nouvelle copie technique, sont acceptés dans le périmètre présenté ; **A n'est plus à redemander**. B/C/D restent absents. Reçu privé rattaché au run et au SHA ; aucune création de compte, lien, session ou mutation pédagogique. Git/main, trois CI, identité/Free/ledger, catalogue complet et privilèges revérifiés : inchangés. Le comptage ciblé des deux adresses synthétiques initiales donne zéro/zéro, sans liste d'utilisateurs ni donnée Auth extraite.
 
@@ -17,9 +33,9 @@ Avant B, la revue a révélé que le lancement Chromium aurait hérité de l'env
 | PR #30 | GitHub : merged=true, closed, merged_at 2026-10-29T19:26:03Z, SHA de fusion identique ; les lots précédents sont dans son historique |
 | Branche | `feature/lot6-5-4b-recette-hebergee-dev`, créée depuis origin/main ; pas de travail sur main |
 | Mandat reçu | Phase 0 : revue, métadonnées DEV en lecture seule, scripts/artefact/fixtures/procédures/tests locaux |
-| A / B / C / D | **A reçu le 30 octobre, protection acceptée ; B/C/D absents.** Les anciennes autorisations 6.5.3.B ne sont pas réutilisées |
+| A / B / C / D | **A/B reçus le 30 octobre, protection et reprise unique acceptées ; C/D absents.** Les anciennes autorisations 6.5.3.B ne sont pas réutilisées |
 | Exclus | Toute opération PROD, compte historique/camarade, SMTP externe, achat, Edge Function, migration/GRANT/RLS, déploiement Pages, fusion et modification de protection main |
-| Secrets/copies | Aucune clé administrative demandée/lue, aucun contenu de la sauvegarde technique consulté/copié, aucune donnée Auth/pédagogique renvoyée au modèle ; seules métadonnées et booléens de présence |
+| Secrets/copies | Clé administrative saisie localement et masquée, valeur jamais fournie au modèle, au navigateur, à Git ou aux logs ; aucun contenu de la sauvegarde technique consulté/copié ; seules métadonnées et booléens ciblés Auth relus |
 
 La tête finale testée et les résultats CI sont consignés dans la description de PR, sans nouveau commit documentaire qui invaliderait leur référence. Le manifeste d'artefact privé porte le SHA effectivement préparé ; le SHA de base ci-dessus n'est pas une fausse preuve d'exécution de scripts encore non committés.
 
@@ -57,7 +73,7 @@ Protection **acceptée par A** : isoler la recette par deux UUID neufs, aucune s
 
 ## Dispositif préparé et limites
 
-[scripts/dev-recipe](../../scripts/dev-recipe/contract.mjs) : cible DEV codée et URL/ref indépendantes, callback exact, deux adresses synthétiques de run au domaine réservé, trois slots invite A/B et recovery A, préflight opérateur frais, accords A/B/C explicites, réservation durable avant appel, refus des redirections/listes/suppressions/retries. Clé administrative seulement dans l'environnement Node ; aucun lien affiché, enregistré ou retourné. Transfert ponctuel en mémoire vers Chromium isolé et serveur local silencieux prévu, **non exécuté avec un vrai lien**.
+[scripts/dev-recipe](../../scripts/dev-recipe/contract.mjs) : cible DEV codée et URL/ref indépendantes, callback exact, deux adresses synthétiques de run au domaine réservé, trois slots invite A/B et recovery A, préflight opérateur frais, accords A/B/C explicites, réservation durable avant appel, refus des redirections/listes/suppressions/retries. Clé administrative seulement dans le processus de confiance ; aucun lien affiché dans un rapport, enregistré ou retourné au modèle. Le transfert ponctuel en mémoire vers Chromium isolé et le serveur silencieux ont été exécutés pour le seul lien invite A.
 
 Quatre contextes A1/A2/B1/V, refus des comptes historiques et autres origines, budget 60 requêtes Auth mutantes/140 pédagogiques, pas de batch/DELETE. V et les tentatives A/B doivent atteindre le vrai serveur ; un refus local ne valide pas RLS. Une session consommée/crashée n'est pas relancée aveuglément ; diagnostic ciblé nécessaire. Les scripts historiques locaux, leurs politiques de cible et les trois jobs CI sont conservés.
 
@@ -65,18 +81,18 @@ Le préparateur utilise seulement la configuration publishable locale ignorée, 
 
 ## Matrice de recette hébergée
 
-Champs communs de cette matrice préparatoire : **date initiale 29/10/2026 Paris, suivi A le 30/10 ; base SHA 78971e1 ; environnement DEV ; run hébergé aucun ; A reçu, B/C absents ; résultat réel aucun parcours exécuté ; méthode prévue JWT utilisateur + relecture réelle selon le runbook**. Lors d'une exécution, remplacer ces champs par heure précise/SHA/run/accord réellement reçus pour chaque sous-cas. Aucun succès local ci-dessous ne transforme un statut hébergé.
+Champs communs actualisés : **30/10/2026 Paris ; frontend SHA 18b0478 ; DEV ; run r654b-20261030-302521a0f692 ; A/B et reprise unique reçus, C/D absents**. T01 n'est exécuté que partiellement ; aucun autre scénario complet. La correction du filtre et les tests locaux ne valent pas résultat DEV.
 
 | ID | Prérequis / composant / attendu | Résultat réel et statut DEV | Limite / décision requise |
 | --- | --- | --- | --- |
-| T01 | A/B ; invitation, activation volontaire, profil, connexion/logout/reload, cas négatifs | Aucun compte/lien/session créé — **EN ATTENTE D'AUTORISATION** | B séparé, deux comptes maximum ; expiration réelle à attendre si revendiquée |
-| T02 | A/B, progression C ; recovery A, nouveau mot de passe et progression préservée | Aucune récupération — **EN ATTENTE D'AUTORISATION** | Un créneau recovery A ; réglage secure password change actuel conservé |
+| T01 | A/B ; invitation, activation volontaire, profil, connexion/logout/reload, cas négatifs | Invite A acquittée, confirmation/connexion Auth relues ; mot de passe bloqué par le garde — **ÉCHEC** du parcours partiel | Correctif local vérifié, non rejoué sur DEV ; B non tenté, autres sous-cas NON EXÉCUTÉS |
+| T02 | A/B, progression C ; recovery A, nouveau mot de passe et progression préservée | Aucune récupération — **NON EXÉCUTÉ** | B reçu ; progression C absente, créneau recovery A conservé |
 | T03 | A/B/C ; profils/colonnes, dix tables/neuf RPC, A/B/V et témoins | Catalogue/droits seulement concordants ; JWT/REST **EN ATTENTE D'AUTORISATION** | Signup/anonyme négatifs NON EXÉCUTÉS : contingence de création à autoriser séparément ; pas de faux vert d'un refus avant serveur |
 | T04 | C ; Drill dix snapshots, premières réponses, entraînements/idempotence, Dashboard | Aucune donnée écrite — **EN ATTENTE D'AUTORISATION** | Calcul sur exercices réalisés, historique conservé |
 | T05 | C ; cours done:false, score zéro/meilleur, tentatives/UUID, CAS | Aucune donnée écrite — **EN ATTENTE D'AUTORISATION** | Version récente préservée, aucun dernier horodatage gagnant |
 | T06 | C ; botanique, parents/terminaux/fin/révisions, retry et orphelines | Aucune donnée écrite — **EN ATTENTE D'AUTORISATION** | Statuts spéciaux seulement si effectivement exercés, aucun parent inventé |
 | T07 | C ; ITK huit champs, apparence auto/clair/sombre/saisons, A2 et CAS | Aucune préférence envoyée — **EN ATTENTE D'AUTORISATION** | Deux domaines distincts, auto conservé |
-| T08 | C ; A1/A2, hors ligne/reload/reprise, A→B→A | Aucun contexte connecté — **EN ATTENTE D'AUTORISATION** | Site intégral offline non promis ; cache fiable et outbox à vérifier |
+| T08 | C ; A1/A2, hors ligne/reload/reprise, A→B→A | Seul A1 a confirmé un lien ; convergence/offline non exercés — **EN ATTENTE D'AUTORISATION C** | Contextes fermés sans nettoyage hébergé ; cache et outbox à vérifier |
 | T09 | C ; export dix sources + caches, propriétaire, exclusions/deux passes/v1 | Aucun export DEV — **EN ATTENTE D'AUTORISATION** | Multi-page pleine non démontrée par petit volume ; extension de dispositif/budget distincte si nécessaire |
 | T10 | C ; analyse/annulation, import compatible, répétition/conflits, JSON A refusé sous B, limites et A2 neuf | Aucun import DEV — **EN ATTENTE D'AUTORISATION** | Séries absentes, CAS avancé, session terminée absente, manifeste/privacy bloqués, Auth non restaurable |
 | T11 | C ; réseau/timeout/réponse perdue après commit, quota/CAS/reprise | Aucune injection hébergée — **EN ATTENTE D'AUTORISATION** | Relecture et réconciliation, aucun retry aveugle ni faux acquittement |
@@ -88,9 +104,9 @@ Node **24.22.0**, `npm ci` et installation Chromium réussis. Aucune dépendance
 
 | Vérification | Résultat exécuté / limite |
 | --- | --- |
-| Tests ciblés outils/artefact | **20 tests** inclus dans la passe finale : refus de cibles, préflight/accords, créneau durable, pannes de génération/remise, SDK réel avec transport synthétique, serveur silencieux/préfixe/traversée, fingerprint altéré, CLI fermée, isolation des secrets dans un vrai sous-processus, vérification de liens du run et exclusion Pages ; aucune RLS déduite de ces mocks |
-| npm test | **481 tests / 47 fichiers** réussis le 30/10 à 07:30 Paris après isolation de l'environnement des sous-processus ; réseau boucle locale exécuté hors sandbox après refus EACCES de la sandbox Windows lors de la première passe du 29 |
-| npm run test:e2e -- --workers=2 | **84/84**, environ 1,5 minute ; passe finale du 30/10 après npm test ; profils temporaires, HTTP synthétique, aucun endpoint DEV/PROD |
+| Tests ciblés outils/artefact | **22 tests** inclus dans la passe finale : refus de cibles, préflight/accords, créneau durable, pannes de génération/remise, SDK réel avec transport synthétique, serveur silencieux/préfixe/traversée, fingerprint altéré, CLI fermée, isolation des secrets dans un vrai sous-processus, liens du run, exclusion Pages et PUT natif du mot de passe ; aucune RLS déduite de ces mocks |
+| npm test | **483 tests / 47 fichiers** réussis le 30/10 vers 12:18 Paris après correction du filtre SDK ; passe précédente 481 avant recette conservée comme historique seulement |
+| npm run test:e2e | **85/85**, environ une minute, huit workers ; passe du 30/10 après npm test ; profils temporaires, HTTP synthétique, aucun appel DEV/PROD |
 | npm run build:auth-sdk | SDK 2.118.0 reconstruit ; diff bundle versionné nul |
 | Métadonnées PostgreSQL natives | Trois migrations reconstruites ; comparaison catalogue et droits effectifs concordante, cluster arrêté ; Auth simulé seulement |
 | Stack Supabase locale complète | Docker absent ; `npm run test:supabase` refuse avant réseau faute de stack/configuration dédiée. **NON EXÉCUTÉ localement**, pgTAP et vrais JWT A/B réservés au job éphémère supabase-security |
@@ -100,8 +116,8 @@ La présence des tests de sécurité ne prouve pas leur exécution. Les résulta
 
 ## Résidus, décisions et conclusion
 
-Fixtures hébergées créées : **zéro** ; aucun UUID de nettoyage, aucune session utilisateur DEV, aucun résidu pédagogique attribuable à ce lot. Dossiers locaux préparatoires/synthétiques ignorés et clusters arrêtés conservés ; aucun fichier utilisateur/sauvegarde précédente supprimé. Le sort des futurs comptes, sessions et fichiers de recette se décidera au point D, sur liste privée exacte.
+Fixtures hébergées créées : **un compte A**, UUID effectivement reçu et conservé en privé ; compte confirmé et connexion Auth observée. Invitation B et récupération A non tentées. Aucune mutation pédagogique envoyée ; aucune donnée hébergée supprimée. Contextes temporaires fermés, dossiers préparatoires/preuves minimisées et clusters arrêtés conservés ; aucune sauvegarde précédente supprimée. Sessions/refresh/JWT distants potentiellement résiduels. Le sort du seul compte A, de ses objets associés et des fichiers privés se décidera au point D sur liste exacte, après relecture ; aucun nettoyage autorisé à ce jour.
 
-**Préparation disponible, A reçu — recette hébergée non validée.** Présenter B avec le SHA corrigé testé, le run exact et les opérations Auth bornées ; ne pas redemander A. Attendre B avant Auth puis C avant pédagogie, et D avant toute suppression. Toute modification de configuration Auth, nouvelle migration/RPC/RLS/GRANT, copie technique, clôture fonctionnelle ou reprise complète exige un mandat propre.
+**Recette partielle, A/B acquis — activation complète non validée sur DEV.** Le correctif du filtre est vérifié localement ; le run arrêté n'est pas relancé automatiquement et invite A n'est pas rejoué. Préparer une reprise ciblée tenant compte du compte déjà confirmé et du lien consommé, sans changer les bornes ou réattribuer un créneau par défaut. C reste nécessaire avant pédagogie, D avant toute suppression. Toute modification de configuration Auth, nouvelle migration/RPC/RLS/GRANT, copie technique, clôture fonctionnelle ou reprise complète exige un mandat propre.
 
 Les quinze P0 et D01–D14 restent à examiner séparément. Aucun lancement public, validation juridique, camarade invité, abonnement, SMTP externe, fusion ou production. Un défaut démontré peut conduire à **RECETTE PARTIELLE — CORRECTIF REQUIS**, jamais à une modification hébergée pour verdir.
