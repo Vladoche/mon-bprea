@@ -1,15 +1,16 @@
-// Exécution MANUELLE réservée aux points A/B/C. Aucune commande de suppression.
+// Exécution MANUELLE réservée aux points A/B/C, ou R/B/C en continuation. Aucun DELETE.
 import { chromium } from '@playwright/test';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { execFileSync } from 'node:child_process';
 import { existsSync, openSync, closeSync, writeFileSync, fsyncSync } from 'node:fs';
 import { join } from 'node:path';
-import { DEV_SITE, DEV_PROJECT, MAX_MUTATIONS, MAX_AUTH_REQUESTS, UUID, validateEnvironment, validateRun, browserGate,
+import { DEV_API, DEV_SITE, DEV_PROJECT, MAX_MUTATIONS, UUID, validateEnvironment, validateRun, browserGate,
   operationSlot, syntheticEmail, publicProcessEnvironment, safeMessage, fail } from './contract.mjs';
 import { ROOT, runDirectory, readPrivate, createPrivate, reserveSlot, artifactHash } from './private-files.mjs';
 import { generateTestLink } from './generate-test-links.mjs';
 import { createRecipeServer } from './serve.mjs';
+import { HISTORY_RUN, HISTORY_SHA, startContinuation, campaignBudget, campaignCounts } from './continuation.mjs';
 
 let browser, server, terminal;
 try {
@@ -22,38 +23,37 @@ try {
   const sha = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: ROOT, env: childEnv, encoding: 'utf8' }).trim();
   validateRun(run, sha);
   const dir = runDirectory(run, sha), plan = readPrivate(dir, 'plan.json');
-  if (plan.run !== run || plan.sha !== sha || plan.project !== DEV_PROJECT) fail('artifact');
+  if (![1, 2].includes(plan.version) || plan.run !== run || plan.sha !== sha || plan.project !== DEV_PROJECT) fail('artifact');
   const artifact = readPrivate(dir, 'artifact.json');
   if (artifact.sha !== sha || artifact.hash !== artifactHash(dir)) fail('artifact');
   if (execFileSync('git', ['status', '--porcelain', '--untracked-files=normal'], { cwd: ROOT, env: childEnv, encoding: 'utf8' }).trim()) fail('artifact');
-  // Une seule session opérateur par run, même après crash. Pas de reprise aveugle.
-  createPrivate(dir, 'session-started.json', { sha, startedAt: new Date().toISOString() });
+  const continuation = plan.version === 2;
+  const journalDir = continuation ? runDirectory(HISTORY_RUN, HISTORY_SHA) : dir;
+  const inherited = continuation ? startContinuation({ dir, parentDir: journalDir, run, sha })
+    : { identityRun: run, owned: new Map(), counts: campaignCounts(dir) };
+  // Une seule session opérateur par run/campagne, même après crash.
+  if (!continuation) createPrivate(dir, 'session-started.json', { sha, startedAt: new Date().toISOString() });
   terminal = createInterface({ input: stdin, output: stdout });
   stdout.write(`DEV ${DEV_PROJECT}\nRun ${run}\nSHA ${sha}\nRelire le point A du runbook : 2 comptes, 3 liens, ${MAX_MUTATIONS} mutations max, aucun nettoyage.\n`);
-  const aText = `AUTORISER A ${run} ${sha}`;
+  const phase = continuation ? 'R' : 'A';
+  if (continuation) stdout.write(`Continuation de ${HISTORY_RUN} : A existant, invite A interdite ; 1/3 liens, 2/60 Auth hérités. B puis recovery A seulement après accord R. C/D distincts.\n`);
+  const aText = `AUTORISER ${phase} ${run} ${sha}`;
   if (await terminal.question(`Après accord explicite, saisir ${aText} : `) !== aText) fail('approval');
-  createPrivate(dir, 'authorization-A.json', { run, sha, at: new Date().toISOString(), scope: 'runbook-6.5.4.B-point-A' });
+  createPrivate(dir, `authorization-${phase}.json`, { run, sha, at: new Date().toISOString(),
+    scope: continuation ? 'runbook-6.5.4.C-point-R' : 'runbook-6.5.4.B-point-A' });
   const key = readPrivate(dir, 'auth-config.json').publishableKey;
   server = createRecipeServer(dir, key);
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(4173, '127.0.0.1', resolve); });
   browser = await chromium.launch({ headless: false, env: childEnv, args: ['--disable-logging'] });
-  const owned = new Map(), verifications = new Set(), contexts = {}, pages = {};
-  let writeEnabled = false, mutationCount = 0, authCount = 0;
-  const allow = browserGate({ getIds: () => [...owned.values()], getEmails: () => [...owned.keys()].map(actor => syntheticEmail(run, actor)),
+  const owned = inherited.owned, verifications = new Set(), contexts = {}, pages = {};
+  const budget = campaignBudget(journalDir, inherited.counts), requestReservations = new WeakMap();
+  let writeEnabled = false, evidenceFailed = false;
+  const allow = browserGate({ getIds: () => [...owned.values()], getEmails: () => [...owned.keys()].map(actor => syntheticEmail(inherited.identityRun, actor)),
     mayWrite: () => writeEnabled, publicKey: key,
     mayVerify: ({ type, token_hash: token }) => ['invite', 'recovery'].includes(type)
       && (verifications.has(`${type}:${token}`) || token === `invalid-token-${run}`),
-    consumeAuth: () => {
-      if (authCount >= MAX_AUTH_REQUESTS) return false;
-      createPrivate(dir, `auth-request-${String(++authCount).padStart(3, '0')}.json`, { at: new Date().toISOString() });
-      return true;
-    },
-    consumeMutation: () => {
-      if (mutationCount >= MAX_MUTATIONS) return false;
-      // Chaque tentative réservée durablement avant l'envoi, même refusée ou interrompue.
-      createPrivate(dir, `mutation-${String(++mutationCount).padStart(3, '0')}.json`, { at: new Date().toISOString() });
-      return true;
-    } });
+    consumeAuth: () => !evidenceFailed && budget.consume('auth'),
+    consumeMutation: () => !evidenceFailed && budget.consume('mutations') });
   async function fresh(label) {
     // A2 est aussi le contexte neuf pour recovery A ; aucun profil personnel chargé.
     // Une ancienne instance reste ouverte jusqu'à la fermeture volontaire de la session.
@@ -64,10 +64,25 @@ try {
     await context.route('**/*', async route => {
       try {
         const request = route.request();
-        if (allow({ url: request.url(), method: request.method(), headers: await request.allHeaders(), body: request.postData() || '' }))
+        if (!evidenceFailed && allow({ url: request.url(), method: request.method(), headers: await request.allHeaders(), body: request.postData() || '' })) {
+          const url = new URL(request.url());
+          if (url.origin === DEV_API && request.method() !== 'GET') {
+            const kind = url.pathname.startsWith('/auth/v1/') ? 'auth' : 'mutations';
+            requestReservations.set(request, { kind, index: budget.counts[kind] });
+          }
           await route.continue();
-        else await route.abort('blockedbyclient');
-      } catch { await route.abort('blockedbyclient').catch(() => {}); }
+        } else await route.abort('blockedbyclient');
+      } catch { evidenceFailed = true; await route.abort('blockedbyclient').catch(() => {}); }
+    });
+    context.on('response', response => {
+      const request = response.request(), reservation = requestReservations.get(request);
+      if (!reservation) return;
+      try {
+        // Métadonnées seulement. Ni URL complète, headers, corps, JWT ou mot de passe.
+        createPrivate(dir, `response-${reservation.kind}-${String(reservation.index).padStart(3, '0')}.json`,
+          { at: new Date().toISOString(), context: label, method: request.method(),
+            path: new URL(response.url()).pathname, status: response.status() });
+      } catch { evidenceFailed = true; }
     });
     contexts[label] = context; pages[label] = await context.newPage();
     await pages[label].goto(`${DEV_SITE}connexion.html`, { waitUntil: 'domcontentloaded' });
@@ -96,20 +111,24 @@ try {
     if (extra) fail('input');
     const slot = operationSlot(type, actor), previous = {};
     for (const name of ['invite-A', 'invite-B', 'recovery-A']) {
-      if (existsSync(join(dir, `${name}.attempt.json`))) previous[name] = readPrivate(dir, `${name}.attempt.json`);
+      if (existsSync(join(journalDir, `${name}.attempt.json`))) previous[name] = readPrivate(journalDir, `${name}.attempt.json`);
     }
     const proof = readPrivate(dir, 'preflight.json');
-    await generateTestLink({ env: process.env, run, sha, proof, type, actor, previous,
-      confirmA: async () => true, // Point A explicite obtenu au début de CETTE session.
+    await generateTestLink({ env: process.env, run, sha, proof, type, actor, previous, identityRun: inherited.identityRun,
+      confirmA: async () => true, // A ou R explicite obtenu au début de CETTE session.
       confirmB: async () => {
         const text = `AUTORISER B ${type} ${actor} ${run}`;
         return await terminal.question(`Un seul generateLink ${type}/${actor}, création Auth possible, remise en mémoire au contexte isolé ; saisir ${text} : `) === text;
       },
-      reserve: async name => reserveSlot(dir, name),
+      reserve: async name => {
+        if (evidenceFailed || campaignCounts(journalDir).admin >= 3) fail('spent');
+        reserveSlot(journalDir, name);
+      },
       record: async (name, value) => {
-        if (name !== slot || !UUID.test(value.id)) fail('uncertain');
+        if (name !== slot || !UUID.test(value.id) || (actor === 'B' && value.id === owned.get('A'))
+            || (owned.has(actor) && owned.get(actor) !== value.id)) fail('uncertain');
         owned.set(actor, value.id);
-        const fd = openSync(join(dir, `${name}.attempt.json`), 'r+');
+        const fd = openSync(join(journalDir, `${name}.attempt.json`), 'r+');
         try { writeFileSync(fd, JSON.stringify({ ...value, run, sha, at: new Date().toISOString() })); fsyncSync(fd); }
         finally { closeSync(fd); }
       },

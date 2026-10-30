@@ -4,9 +4,9 @@ import { DEV_API, DEV_CALLBACK, DEV_PROJECT, UUID, fail, validateEnvironment, va
   syntheticEmail, operationSlot, boundedAdminFetch, buildDevLink } from './contract.mjs';
 
 export async function generateTestLink({ env, run, sha, proof, type, actor, previous, confirmA, confirmB,
-  reserve, record, present, now = Date.now, makeAdmin }) {
+  reserve, record, present, now = Date.now, makeAdmin, identityRun = run }) {
   validateEnvironment(env);
-  const slot = operationSlot(type, actor), email = syntheticEmail(run, actor);
+  const slot = operationSlot(type, actor), email = syntheticEmail(identityRun, actor);
   validatePreflight(proof, run, sha, now(), type, actor);
   if (previous?.[slot]) fail('spent');
   const existing = previous?.['invite-A'];

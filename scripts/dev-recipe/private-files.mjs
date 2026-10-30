@@ -44,7 +44,9 @@ export function readPrivate(dir, name) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 export function createPrivate(dir, name, value) {
-  writeFileSync(join(dir, name), `${JSON.stringify(value, null, 2)}\n`, { flag: 'wx', mode: 0o600 });
+  const fd = openSync(join(dir, name), 'wx', 0o600);
+  try { writeFileSync(fd, `${JSON.stringify(value, null, 2)}\n`); fsyncSync(fd); }
+  finally { closeSync(fd); }
 }
 export function reserveSlot(dir, slot) {
   // Le fichier ne sera JAMAIS supprimé par l'outil, même en cas d'échec.
