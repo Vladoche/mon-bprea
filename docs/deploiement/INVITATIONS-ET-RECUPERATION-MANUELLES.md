@@ -1,5 +1,7 @@
 # Invitations et récupération manuelles, sans SMTP externe
 
+**Complément 6.5.4.B, 30 octobre 2026 :** un [dispositif DEV séparé](RUNBOOK-RECETTE-DEV-6-5-4B.md) est préparé pour `wcckbyhrtroittbfophv` seulement. Les outils 6.5.3.A décrits ci-dessous gardent intégralement leur refus des projets hébergés. Le nouveau dispositif borne deux comptes de run et trois générations, exige A puis B par créneau, réserve durablement avant l'appel et transfère le seul callback en mémoire à Chromium isolé ; aucun lien dans le terminal. **Aucun vrai lien/compte DEV généré**, accords absents ; [preuve et limites](../validations/VALIDATION-LOT6-5-4B.md). Ni pédagogie C ni suppression D ne sont couvertes par B ; SMTP externe, camarades et PROD restent exclus.
+
 **Lot 6.5.3.A — 28 octobre 2026. Outil livré exclusivement pour la stack éphémère locale. Aucune utilisation DEV/PROD ni ouverture aux camarades autorisée.** Après le lot 6.5.2, l'exploitant a choisi définitivement pour la feuille de route actuelle la solution B : génération administrative et transmission privée individuelle. Supabase Free, aucun abonnement, domaine acheté, Brevo, fournisseur SMTP externe ou service transactionnel supplémentaire.
 
 Ce choix remplace les étapes SMTP des plans futurs ; il ne change pas les faits de l'[audit historique](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md). La [validation du lot](../validations/VALIDATION-LOT6-5-3A.md) distingue tests applicatifs et essais Auth/PostgreSQL réellement exécutés. Les quinze [P0](../rgpd/DOSSIER-PREOUVERTURE.md) restent bloquants.

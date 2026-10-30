@@ -1,5 +1,7 @@
 # Plan de mise à niveau Supabase DEV
 
+**Suivi 6.5.4.B, 30 octobre 2026 :** [préparation de la recette](RUNBOOK-RECETTE-DEV-6-5-4B.md), [preuves](../validations/VALIDATION-LOT6-5-4B.md). Identité, trois migrations et contrats des dix tables/neuf RPC revérifiés en lecture seule ; aucune mise à niveau supplémentaire exécutée. Un outil DEV distinct prépare deux identités et un frontend local, sans assouplir les runners éphémères. Les lettres A–G de ce plan historique ne sont pas les accords **A recette, B liens, C pédagogie, D nettoyage** du nouveau runbook. Ces quatre accords restent absents ; toute modification SQL/Auth/configuration et toute nouvelle copie technique nécessitent leurs propres décisions. Auth Pages reste off.
+
 **Actualisation 6.5.3.B, 29 octobre 2026 : étape base achevée sous A/B.** DEV seul **`wcckbyhrtroittbfophv`** ; copie applicative native, restauration PostgreSQL partielle et seule migration personnelle réalisées. [Preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md). PROD exclu ; recette connectée non exécutée.
 
 Le [guide de sauvegarde Free](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) et le [runbook](RUNBOOK-MIGRATION-DEV-6-5-3B.md) décrivent le résultat et les limites sans Auth/Storage/Vault. Le schéma a désormais trois migrations, dix tables et quinze fonctions, comparés à Git sans dérive. Les autorisations A/B ne couvrent pas les étapes Auth/liens/frontend/recette ci-dessous, qui restent ultérieures.
