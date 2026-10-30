@@ -1,5 +1,7 @@
 # Restauration personnelle JSON — lot 6.5.4.A
 
+**Suivi 6.5.4.B, 30 octobre 2026 :** le [runbook DEV T09–T12](../deploiement/RUNBOOK-RECETTE-DEV-6-5-4B.md) prépare export/analyse/annulation, premières intentions compatibles, relectures, import répété, conflit récent, refus A sous B, appareil neuf et barrières privacy. [État : EN ATTENTE D'AUTORISATION](../validations/VALIDATION-LOT6-5-4B.md), aucun import DEV exécuté. Les cas manquants proviendront d'intentions jamais envoyées ; aucun historique immuable supprimé pour simuler une perte. Aucun contrat, moteur, RPC, révision ou garantie ci-dessous n'est modifié pour obtenir un résultat vert.
+
 ## Audit préalable de faisabilité
 
 Base auditée : `2478032a38fb1f54c6e651409ba9ae32cec3597d`, dernier `origin/main` après fetch ; PR #29 confirmée fusionnée. Les trois migrations et les neuf RPC existantes sont les seuls contrats SQL. Aucun accès de recette à DEV/PROD, aucune migration ou modification de privilège.
