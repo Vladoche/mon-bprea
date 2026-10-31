@@ -1,5 +1,9 @@
 # Développement et stratégie de tests
 
+## Régression export après conflit — lot 6.5.4.C
+
+`npm test -- tests/unit/restore-conflict-roundtrip.test.js tests/unit/restore-model.test.js tests/integration/restore-service.test.js` : **54 tests**, dont sept régressions nouvelles. Les vrais modèles produisent un cliché pending puis une opération conflict, encore courante ou rangée après résolution ITK ; le véritable export v1 reste analysable sans rendre les archives exécutables. Références inconnues, archive non résolue/autre type, états inconnus et payload/RPC divergents restent refusés. Les trois scénarios valides échouaient avant le correctif. Suite complète : **499 tests/49 fichiers puis 85 E2E** ; réponse HTTP synthétique distincte de la [recette DEV partielle](validations/VALIDATION-LOT6-5-4C.md).
+
 ## Continuation du run DEV consommé — lot 6.5.4.C
 
 `npm test -- tests/integration/dev-recipe-continuation.test.js tests/unit/dev-recipe.test.js tests/integration/dev-recipe.test.js` : 28 tests ciblés, dont 9 nouveaux scénarios de filiation, A existant, refus réinvitation A/troisième identité, compteurs historiques/bornes, SHA/artefact/fixture altérés, ancien token, concurrence, interruption et perte de remise. Fichiers/réponses synthétiques seulement, aucun DEV. Réservation exclusive et fsync avant envoi ; suppressions de marqueurs simulées uniquement dans les dossiers créés par ces tests.

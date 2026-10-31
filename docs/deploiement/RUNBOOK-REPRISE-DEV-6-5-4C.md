@@ -1,6 +1,22 @@
 # Reprise de la recette DEV — lot 6.5.4.C
 
-**30 octobre 2026 — préparation locale et réconciliation DEV en lecture seule ; accord R absent.** La [validation](../validations/VALIDATION-LOT6-5-4C.md) distingue les résultats réellement acquis des parcours en attente. La matrice **T01–T12 et tous ses sous-cas** reste celle du [runbook 6.5.4.B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Aucune nouvelle autorisation n'est déduite de la fusion #31.
+**31 octobre 2026 — R/C/C1 exécutés, recette DEV partielle et correctif JSON local ; nouvel artefact à autoriser, D absent.** La [validation](../validations/VALIDATION-LOT6-5-4C.md) distingue les résultats acquis des parcours restants. La matrice **T01–T12 et ses sous-cas** reste celle du [runbook B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Les sections préparatoires conservées plus bas décrivent la provenance ; elles n'autorisent pas à relancer les phases consommées.
+
+## Phase corrective après C1
+
+R/C/C1 ont été approuvés et exécutés au frontend **f9bee0ca926e59bfb98c983d7e27b6ff74976624**, continuation **r654b-20261030-5353c94969bc**. Closeout : **3/3 générations, 22/60 Auth, 102/140 tentatives**, deux comptes et 34 lignes. La seconde copie JSON est refusée avant restauration après conflit résolu. Son fichier original et trois intentions absentes sont conservés ; la modification concurrente du cours est déjà acquittée, ne pas la rejouer.
+
+Le correctif local compare exactement le contenu des références hors état transitoire contrôlé et accepte la référence résolue à une archive resolved-operation ; cette archive reste inactive. Avant une nouvelle exécution :
+
+1. Conserver les anciens contextes fermés, closeouts, marqueurs, reçus, compteurs et artefacts. Arrêt C1 : 30/10 à 19:26 UTC ; aucune révocation distante déduite de cette fermeture.
+2. Vérifier le correctif localement, le committer et contrôler les trois jobs CI sur la nouvelle tête. Préparer **un artefact distinct**, avec SHA/empreinte propres et filiation vers l'artefact f9bee0ca, dans la même continuation et avec le journal parent commun. Aucun réétiquetage de l'ancien manifeste, nouveau run, compte, lien ou reset.
+3. Relever les compteurs restants et les mêmes UUID privés ; relire DEV/schéma/droits/Auth/Data API avant lancement. Aucune clé administrative, migration ou suppression hébergée nécessaire.
+4. Présenter **C2** sur SHA/artefact exacts, identités, plan scellé et budgets hérités. Périmètre : T03/T08/T10–T12 restants, trois intentions du JSON intact, données concurrentes conservées, réimport/double clic, refus A sous B, bascule A→B→A avec intention en attente, barrière locale synthétique et expiration seulement si réellement observée.
+5. Nouvelle session temporaire, connexions humaines sans mot de passe communiqué. Les intentions locales nécessaires à la bascule gardent UUID/payloads d'origine, préparés sous interruption contrôlée avant envoi. Pas de copie globale d'outbox, suppression d'historique ou nouvelle identité.
+6. Autoriser uniquement les RPC/intention prévues, sous plafonds globaux et sous-plafonds conservés. Réserver durablement chaque retry et réconcilier les réponses incertaines avant la suite. Les retraits restent limités aux caches synthétiques sélectionnés, avec aperçu/confirmation ; aucun close-account/DELETE hébergé.
+7. Relever les résultats, fermer la phase puis présenter **D distinctement**, avec UUID, lignes/cascades, sessions et objets hors SQL. Aucun nettoyage implicite.
+
+Sans C2, le correctif reste **RÉUSSI EN LOCAL UNIQUEMENT**, restauration finale en attente. Sans D, conserver et documenter les résidus. Copie technique 6.5.3.B : réexamen du 5 novembre inchangé, sans lecture/prolongation automatique.
 
 ## État à reprendre
 
