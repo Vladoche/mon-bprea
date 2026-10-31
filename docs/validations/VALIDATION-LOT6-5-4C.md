@@ -1,6 +1,6 @@
 # Validation du lot 6.5.4.C — reprise sécurisée de la recette DEV
 
-**Bilan du 31 octobre 2026, Europe/Paris : Auth revérifiée sur DEV, recette pédagogique partielle, défaut JSON corrigé localement.** Sa vérification hébergée exige un accord sur le nouvel artefact exact. Aucun nettoyage D, fusion, déploiement ou ouverture publique. Les constats du [lot B](VALIDATION-LOT6-5-4B.md) restent inchangés.
+**Bilan du 31 octobre 2026, Europe/Paris : recette partielle conservée au choix explicite de l'exploitant ; C2 non autorisée et non lancée.** Auth revérifiée sur DEV, défaut JSON corrigé localement et vérifié en CI ; ses contrôles DEV restants ne sont pas exécutés. Aucun nettoyage D, fusion, déploiement ou ouverture publique. Les constats du [lot B](VALIDATION-LOT6-5-4B.md) restent inchangés.
 
 ## Provenance, cible et accords
 
@@ -15,6 +15,7 @@
 | R | Accord explicite reçu pour invitation B puis récupération A au SHA ci-dessus ; reprise unique du démarrage approuvée, sans nouvelle opération administrative |
 | C | Accord explicite reçu avant T03–T12 : A/B existants, plafonds historiques, copies JSON privées et retraits locaux synthétiques inclus |
 | C1 | Reprise unique approuvée : **17 tentatives et 13 Auth conservées**, 123/47 restantes ; une tentative de réserve réaffectée au négatif corrigé |
+| C2 | Proposition au frontend **5c910b748fae0b7747c8192424e7ecd49c86a520** ; réponse du 31/10 : **« Je préfère conserver la recette partielle »**. Aucun lancement, appel Auth ou mutation C2 |
 | D | **NON AUTORISÉ, NON EXÉCUTÉ** |
 
 UUID, adresses, accords et empreintes détaillées restent privés et ignorés. Aucun mot de passe, clé administrative, lien personnel, TokenHash, JWT ou export personnel dans Git/Actions. Aucun accès PROD, compte historique ciblé, migration, RLS, GRANT, configuration Auth/Data API, SMTP, achat ou dépendance modifié.
@@ -110,6 +111,8 @@ Code corrigé : Node **24.22.0**, npm ci réussi sans vulnérabilité signalée 
 
 Docker/CLI Supabase absents : suites réelles locales **NON EXÉCUTÉES** sur le poste, refus avant réseau ; aucune redirection DEV. Contrôler les trois jobs unit-integration, e2e et supabase-security sur la dernière tête de PR et lier les résultats dans sa description. Les verts f9bee0ca ne valident pas le correctif ultérieur. Pages garde Auth désactivée et exclut outils/configurations DEV, runs et JSON privés.
 
-**Suite :** artefact distinct au nouveau HEAD propre, lié à la même continuation et au journal parent ; accord correctif sur SHA exact, sans nouveau compte/lien/reset. Puis D distinct, avec UUID privés, lignes/cascades, sessions et résidus. Sans accord, conservation des données et bilan partiel. Aucun P0/D01–D14, ouverture aux camarades ou clôture DEV validé.
+**Décision finale reçue le 31/10 : conserver la recette partielle.** L'artefact correctif distinct **5c910b748fae0b7747c8192424e7ecd49c86a520** a été préparé, avec filiation et plan scellé ; **38 contrôles hors ligne** passent, dont refus du démarrage sans accord, conservation des compteurs et des deux intentions compatibles, dépendance botanique bloquée. C2 est **NON AUTORISÉE / NON EXÉCUTÉE** : zéro appel Auth et zéro mutation supplémentaires. Ancien artefact, JSON et réservations intacts ; aucun nouveau frontend exécuté sur DEV après f9bee0ca.
+
+**D reste distinct et non autorisé : A/B et leurs 34 lignes sont conservés.** Le dossier privé de résidus décrit UUID ciblés, cascades et sessions ; aucune suppression n'est proposée implicitement par le choix du bilan partiel. Toute reprise ultérieure ou nettoyage exige son accord applicable. Aucun P0/D01–D14, ouverture aux camarades ou clôture complète DEV validé. Le correctif reste **RÉUSSI EN LOCAL ET CI UNIQUEMENT**, avec limites DEV explicites ci-dessus.
 
 [Procédure de reprise](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md) · [contrat JSON](../architecture/RESTAURATION-DONNEES-PERSONNELLES.md) · [tests](../TESTS.md)

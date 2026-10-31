@@ -1,6 +1,6 @@
 # Reprise de la recette DEV — lot 6.5.4.C
 
-**31 octobre 2026 — R/C/C1 exécutés, recette DEV partielle et correctif JSON local ; nouvel artefact à autoriser, D absent.** La [validation](../validations/VALIDATION-LOT6-5-4C.md) distingue les résultats acquis des parcours restants. La matrice **T01–T12 et ses sous-cas** reste celle du [runbook B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Les sections préparatoires conservées plus bas décrivent la provenance ; elles n'autorisent pas à relancer les phases consommées.
+**31 octobre 2026 — R/C/C1 exécutés, recette partielle conservée au choix de l'exploitant ; C2 non autorisée, D absent.** Le correctif JSON est vérifié localement et en CI ; aucun frontend corrigé exécuté sur DEV. La [validation](../validations/VALIDATION-LOT6-5-4C.md) distingue les résultats acquis des parcours restants. La matrice **T01–T12 et ses sous-cas** reste celle du [runbook B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Les procédures ci-dessous ne donnent aucun accord de relance.
 
 ## Phase corrective après C1
 
@@ -17,6 +17,8 @@ Le correctif local compare exactement le contenu des références hors état tra
 7. Relever les résultats, fermer la phase puis présenter **D distinctement**, avec UUID, lignes/cascades, sessions et objets hors SQL. Aucun nettoyage implicite.
 
 Sans C2, le correctif reste **RÉUSSI EN LOCAL UNIQUEMENT**, restauration finale en attente. Sans D, conserver et documenter les résidus. Copie technique 6.5.3.B : réexamen du 5 novembre inchangé, sans lecture/prolongation automatique.
+
+**Décision reçue le 31/10 : « Je préfère conserver la recette partielle ».** C2 préparée au SHA 5c910b748fae0b7747c8192424e7ecd49c86a520, puis non autorisée/non exécutée ; reçu négatif privé conservé. Aucun lancement, compteur ou marqueur historique réinitialisé. Le nouveau SHA de livraison documentaire ne réétiquette aucun frontend précédemment exécuté. A/B, 34 lignes et fichiers privés restent présents ; D non autorisé. La procédure corrective ci-dessus demeure une proposition, sans lancement automatique.
 
 ## État à reprendre
 
