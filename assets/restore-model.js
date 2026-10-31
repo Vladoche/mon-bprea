@@ -16,6 +16,16 @@ export const canonical = value => JSON.stringify(value, (_, item) => record(item
 const check = (condition, code = 'invalid') => { if (!condition) failRestore(code); };
 const keys = (value, allowed, required = allowed) => check(record(value) && required.every(key => Object.hasOwn(value, key)) && Object.keys(value).every(key => allowed.includes(key)));
 const safe = value => Number.isSafeInteger(value) && value >= 0;
+const operationStates = ['pending', 'confirmed', 'conflict', 'blocked', 'error'];
+function sameConflictOperation(left, right) {
+  if (!record(left) || !record(right) || !validUUID(left.id)) return false;
+  const { state: leftState, ...leftContent } = left;
+  const { state: rightState, ...rightContent } = right;
+  // A conflict keeps the snapshot taken before the live operation changes state.
+  // Its identity, payload and delivery metadata must still match exactly.
+  return operationStates.includes(leftState) && operationStates.includes(rightState) &&
+    canonical(leftContent) === canonical(rightContent);
+}
 const dateKeys = new Set(['generatedAt', 'created_at', 'updated_at', 'started_at', 'answered_at', 'completed_at', 'client_updated_at', 'email_confirmed_at', 'last_sign_in_at', 'startedAt', 'answeredAt', 'completedAt', 'updatedAt', 'lastReconciledAt']);
 
 // JSON.parse keeps only the last duplicate member. Detect those before parsing
@@ -93,7 +103,11 @@ function localDocument(domain, source, scope) {
   for (const archive of source.archives || []) check(['confirmed', 'resolved-operation', 'resolved-conflict', 'resolved-dependent', 'superseded-unsent'].includes(archive.kind), 'archive');
   for (const conflict of source.conflicts) {
     check(typeof conflict.id === 'string' && typeof conflict.resolved === 'boolean', 'archive');
-    if (conflict.operation) check(source.operations.some(op => op.id === conflict.operation.id && canonical(op) === canonical(conflict.operation)), 'archive');
+    if (conflict.operation) {
+      const candidates = [...source.operations, ...(conflict.resolved ? (source.archives || [])
+        .filter(item => item.kind === 'resolved-operation').map(item => item.operation) : [])];
+      check(candidates.some(op => op?.id === conflict.operation.id && sameConflictOperation(op, conflict.operation)), 'archive');
+    }
   }
   // v1 deliberately excluded raw sources and manifest summaries. Validate the
   // executable part with its original domain validator, NEVER turn descriptors
@@ -105,7 +119,7 @@ function localDocument(domain, source, scope) {
   if (domain === 'settings') validateSettingsDocument(executable, scope);
   for (const op of source.operations) {
     check(validUUID(op.id), 'uuid');
-    check(['pending', 'confirmed', 'conflict', 'blocked', 'error'].includes(op.state));
+    check(operationStates.includes(op.state));
     check(op.dependsOn === undefined || op.dependsOn === null || typeof op.dependsOn === 'string' || Array.isArray(op.dependsOn));
     if (domain === 'drill') {
       keys(op.payload, op.type === 'series' ? ['p_unit', 'p_week', 'p_started_at', 'p_questions'] : ['p_question_id', 'p_answer', 'p_answered_at', 'p_operation_id']);

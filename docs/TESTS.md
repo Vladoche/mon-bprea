@@ -1,5 +1,15 @@
 # Développement et stratégie de tests
 
+## Régression export après conflit — lot 6.5.4.C
+
+`npm test -- tests/unit/restore-conflict-roundtrip.test.js tests/unit/restore-model.test.js tests/integration/restore-service.test.js` : **54 tests**, dont sept régressions nouvelles. Les vrais modèles produisent un cliché pending puis une opération conflict, encore courante ou rangée après résolution ITK ; le véritable export v1 reste analysable sans rendre les archives exécutables. Références inconnues, archive non résolue/autre type, états inconnus et payload/RPC divergents restent refusés. Les trois scénarios valides échouaient avant le correctif. Suite complète : **499 tests/49 fichiers puis 85 E2E** ; réponse HTTP synthétique distincte de la [recette DEV partielle](validations/VALIDATION-LOT6-5-4C.md).
+
+## Continuation du run DEV consommé — lot 6.5.4.C
+
+`npm test -- tests/integration/dev-recipe-continuation.test.js tests/unit/dev-recipe.test.js tests/integration/dev-recipe.test.js` : 28 tests ciblés, dont 9 nouveaux scénarios de filiation, A existant, refus réinvitation A/troisième identité, compteurs historiques/bornes, SHA/artefact/fixture altérés, ancien token, concurrence, interruption et perte de remise. Fichiers/réponses synthétiques seulement, aucun DEV. Réservation exclusive et fsync avant envoi ; suppressions de marqueurs simulées uniquement dans les dossiers créés par ces tests.
+
+`npm run dev-recipe:continue` prépare hors ligne un artefact distinct au HEAD propre, lié à la campagne historique ; mêmes identités/fixtures/journal parent, aucune réinitialisation ou import de session. Préparation/lancement uniques, sans forçage ; `dev-recipe:session` exige **R** pour ce plan v2. [Runbook de reprise](deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md), [validation factuelle](validations/VALIDATION-LOT6-5-4C.md). C/D distincts, aucun nettoyage automatique ; scripts/lineage exclus de Pages. CI et runners réels locaux inchangés, jamais redirigés DEV.
+
 ## Préparation de recette DEV — lot 6.5.4.B
 
 `npm test -- tests/unit/dev-recipe.test.js tests/integration/dev-recipe.test.js tests/integration/auth-artifact.test.js` vérifie sans accès hébergé les cibles fermées, accords séparés, préflight à horloge contrôlée, créneau durable avant appel, absence de retry sur résultat incertain, contrat du SDK installé et redirections refusées. Le serveur local est testé sous `/mon-bprea/`, avec refus des chemins privés ; le fingerprint d'artefact détecte une modification. Le proxy autorise les requêtes V jusqu'au serveur et bloque les liens/comptes historiques ; un refus de proxy n'est jamais une preuve RLS. Fixtures, clés et réponses entièrement synthétiques.
