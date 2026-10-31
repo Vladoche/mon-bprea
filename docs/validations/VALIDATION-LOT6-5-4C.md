@@ -74,7 +74,7 @@ Exécutions du **30/10/2026** avec vrais comptes fictifs et JWT étudiants, SDK 
 
 Le correctif [restore-model.js](../../assets/restore-model.js) exclut **uniquement l'état transitoire** de la comparaison entre ces références ; les états restent contrôlés. UUID, payload/RPC, dépendances, révisions et métadonnées de livraison doivent correspondre exactement. Un conflit **résolu seulement** peut référencer son opération dans une archive resolved-operation. Référence inconnue, autre archive, état inconnu et payload divergent restent refusés. Aucun descripteur d'archive ne devient une intention exécutable ; format, portée/identité, privacy et SQL inchangés.
 
-Sept régressions synthétiques utilisent les vrais modèles cours/ITK, l'export v1 et son analyse : les trois cas valides échouaient avant correction et passent ensuite ; altérations toujours refusées. Le JSON DEV original est accepté **hors ligne sans modification** après correction. Cela ne prouve pas encore sa restauration hébergée.
+Sept régressions synthétiques utilisent les vrais modèles cours/ITK, l'export v1 et son analyse : les trois cas valides échouaient avant correction et passent ensuite ; altérations toujours refusées. Le JSON DEV original est accepté **hors ligne sans modification** après correction. Le plan conserve **deux intentions compatibles** (QCM et réponse Drill) avec leurs UUID. La troisième, botanique, garde une dépendance exportée non rétablissable par le contrat 6.5.4.A : elle reste **bloquée, sans envoi**, dans le fichier privé intact. Aucun retrait de dépendance pour la rendre artificiellement compatible. Ces constats hors ligne ne prouvent pas encore la restauration hébergée.
 
 ## Compteurs et résidus
 
