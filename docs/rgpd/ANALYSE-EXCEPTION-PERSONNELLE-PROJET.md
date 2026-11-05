@@ -1,6 +1,6 @@
 # Activité personnelle ou RGPD applicable — analyse ciblée
 
-**5 novembre 2026, lot 6.5.5.C. Recommandation prête à approuver, sans avis juridique définitif.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) ; elles ne tranchent pas D01. Sept comptes confirmés, exploitant et six autres adultes, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
+**5 novembre 2026, lot 6.5.5.D. Choix du cadre RGPD approuvé par l’exploitant.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md). Sept comptes confirmés, exploitant et six autres adultes, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
 
 ## Sources officielles et portée
 
@@ -18,12 +18,12 @@ Consultation du **05/11/2026** : [RGPD, art. 2/4 sur CNIL](https://www.cnil.fr/f
 
 **Branche 1 :** l'exception pourrait être défendue pour les traitements réellement limités à un cercle personnel/amical, si cette condition est établie. Les faits fournis ne suffisent pas à affirmer qu'elle est acquise. Aucun questionnaire intime supplémentaire n'est recommandé. Les obligations propres des fournisseurs, la sécurité et l'information honnête ne disparaissent pas par cette qualification.
 
-**Branche 2 :** si RGPD applicable, la personne physique exploitante qui décide des finalités/moyens est responsable dans ce cadre, sans établissement conjoint présumé. Utiliser le registre R01–R05, les bases proposées, la notice accessible, le canal, les durées, les pièces fournisseurs et les procédures déjà préparés. Une société, une convention de formation ou un DPO ne sont pas créés par défaut ; les critères propres à ces obligations doivent être examinés. Le faible effectif ne dispense pas automatiquement du registre pour une activité régulière.
+**Branche 2 :** si RGPD applicable, la personne physique exploitante qui décide des finalités/moyens est responsable dans ce cadre, sans établissement conjoint présumé. Utiliser le registre R01–R05, les bases approuvées, la notice accessible, le canal, les durées, les pièces fournisseurs et les procédures déjà préparés. Une société, une convention de formation ou un DPO ne sont pas créés par défaut ; les critères propres à ces obligations doivent être examinés. Le faible effectif ne dispense pas automatiquement du registre pour une activité régulière.
 
-## Proposition D01 soumise à l'exploitant
+## Décision D01 approuvée le 5 novembre 2026
 
-**Préparer et exploiter selon le socle RGPD applicable, sans revendiquer l'exception personnelle.** C'est le choix prudent recommandé compte tenu de l'incertitude sur le cercle de camarades et le service organisé en ligne. Il réutilise les protections existantes et demeure compatible avec les deux qualifications. Il ne déclare ni responsabilité civile définitive ni conformité technique déjà acquise.
+Vladimir Fouillade applique le cadre RGPD au projet sans revendiquer l’exception personnelle ou domestique. Il assume le rôle de responsable du traitement pour les finalités et moyens qu’il détermine. Cette décision prudente tient au service organisé en ligne et au contexte du cercle de camarades. La qualification des rôles des fournisseurs reste appréciée par flux.
 
-Pour clore P0-01 : approbation de ce cadre et identité de désignation autorisée en privé, puis mentions publiques adaptées dans la notice avec contact opérationnel. Si l'exploitant veut fonder l'ouverture sur l'exception, demander une clarification ciblée sur le **caractère strictement personnel/amical du cercle et le périmètre des flux publics/privés**, sans relancer un audit général. Aucune consultation juridique extérieure obligatoire n'est inventée pour le choix prudent.
+L’identité civile et l’adresse officielle vladimir.fouillade@hotmail.fr sont autorisées dans la notice, y compris accessible sans compte. L’autorisation se limite à ces coordonnées. Le contact est déjà public et le fond de la V1.0 est approuvé. La mise en ligne de la notice complète relève de P0-05.
 
-[D03 — bases](REGISTRE-TRAITEMENTS.md), [D11 — AIPD](DECISIONS-A-VALIDER.md#screening-aipd--5-novembre-2026) et accès au terminal D12 restent des analyses distinctes. Invitation demandée, notice remise, activation et consentement éventuel ne sont pas interchangeables. Aucun formulaire de consentement générique n'est ajouté.
+P0-01 est clos pour le choix de cadre et la désignation. D03 et D11 sont approuvées sur leurs périmètres respectifs. L’accès au terminal et l’information préalable restent suivis séparément. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [bases R01–R05](REGISTRE-TRAITEMENTS.md), [analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md).

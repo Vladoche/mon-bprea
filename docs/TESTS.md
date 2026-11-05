@@ -1,5 +1,11 @@
 # Développement et stratégie de tests
 
+## Notice et accès au terminal — lot 6.5.5.D
+
+`d12-storage.spec.js` relève les noms et les types d’accès, sans journaliser les valeurs d’authentification. L’horloge contrôlée distingue l’effet du masquage de l’anecdote de la présence de sa date. Les actions réelles montrent les écritures visiteur, le cas du thème hérité et, via HTTP simulé, la session et l’outbox personnelle conservée après déconnexion. Les scénarios existants vérifient aussi l’UUID de provenance dès l’aperçu d’import et la barrière de retrait limitée au compte sélectionné. Les essais couvrent le navigateur, séparément de la RLS.
+
+`notice-preview.spec.js` rend la même source que `npm run preopening:notice`. Six combinaisons sans JavaScript couvrent 320/390/1280 px, clair/sombre, sommaire et fragments relatifs, focus, contraste et absence de requête annexe. L’artefact Pages réel et les pages en contextes vierges vérifient séparément l’exclusion de la notice et de ses liens, la configuration Auth vide/désactivée et le contact. [Validation D](validations/VALIDATION-LOT6-5-5D.md).
+
 ## Capacité confirmée et contact public — lot 6.5.5.C
 
 La politique JSON fixe définitivement **sept comptes, exploitant compris et six autres adultes**, contact officiel et droit de publication. Les fixtures synthétiques de `preopening.test.js` couvrent le septième/huitième, place exploitant réservée, attente, doublon, incertitude, comptes fictifs bloqués, récupération à capacité pleine et inscription libre/anonyme refusée. Le helper de décisions conserve identité/preuves/approbations et refuse de transférer des attestations depuis une autre adresse ; les vérifications opérationnelles, dont consultation régulière, restent exigées. Aucun compte créé pour prouver le plafond administratif.

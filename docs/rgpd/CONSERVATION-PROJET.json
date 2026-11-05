@@ -10,6 +10,20 @@
     "hostedDeletionTarget": "2027-07-30",
     "executionAuthorized": false
   },
+  "agreedResidualRetention": {
+    "decidedOn": "2026-11-05",
+    "ordinaryBackups": { "usefulGenerations": 2, "maxDaysPerCopy": 14, "subjectToDocumentedRotation": true },
+    "closedSupportAndRightsRequestsDays": 30,
+    "ordinaryEmailDaysAfterClosure": 30,
+    "operatorTemporaryLinkHoursAfterObservedActivationOrExpiry": 24,
+    "erasureLedgerDaysAfterLastRelatedCopyRemoved": 30,
+    "incidentEvidenceDaysAfterResolution": 90,
+    "incidentEvidenceReviewEveryDays": 30,
+    "contactAvailableUntil": "2027-08-31",
+    "contactContinuesForNecessaryFollowUps": true,
+    "localRemoval": "assisted_voluntary",
+    "historicalBackup": { "date": "2026-10-29", "ordinaryRotation": false, "indicativeReviewOn": "2026-11-12" }
+  },
   "rules": [
     { "category": "auth_profiles", "trigger": "fin_relation_a_definir", "durationMs": null },
     { "category": "pedagogical_history", "trigger": "fin_finalite_pedagogique_a_definir", "durationMs": null },

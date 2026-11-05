@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, realpathSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync, readdirSync, realpathSync, rmSync } from 'node:fs';
 import { resolve, join, sep } from 'node:path';
 
 const temporary = resolve('.tmp');
@@ -27,7 +27,8 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
     const result = prepare();
     expect(result.stderr).toBe('');
     expect(result.status).toBe(0);
-    expect(JSON.parse(readFileSync(join(result.output, 'assets/auth-config.json'), 'utf8')).enabled).toBe(false);
+    expect(JSON.parse(readFileSync(join(result.output, 'assets/auth-config.json'), 'utf8')))
+      .toMatchObject({ enabled: false, url: '', publishableKey: '' });
     for (const page of ['connexion', 'authentification', 'mot-de-passe-oublie', 'profil', 'contact'])
       expect(existsSync(join(result.output, `${page}.html`))).toBe(true);
     expect(readFileSync(join(result.output, 'assets/supabase-client.js'), 'utf8')).toContain('./vendor/supabase.js?v=auth-test');
@@ -38,9 +39,12 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
       '.tmp/maintenance-local/inventory-before.json', '.tmp/.maintenance.lock',
       'scripts/preopening/operator.mjs', 'scripts/preopening/backup.mjs', 'scripts/preopening/policy.json',
       'scripts/preopening/exercise-local.mjs', 'scripts/preopening/notice-preview.mjs', '.tmp/preopening-operator-655b/operator.json',
-      '.tmp/preopening-operator/operator.json', 'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md', 'confidentialite.html',
+      '.tmp/preopening-operator/operator.json', 'docs', '.tmp', '.github', 'confidentialite.html',
       'node_modules/@supabase/supabase-js/package.json', 'auth-config.local.json', 'tests/helpers/auth-http.js'])
       expect(existsSync(join(result.output, privateFile)), privateFile).toBe(false);
+    for (const page of readdirSync(result.output).filter(name => name.endsWith('.html'))) {
+      expect(readFileSync(join(result.output, page), 'utf8'), page).not.toMatch(/href=["'][^"']*confidentialite\.html/i);
+    }
     const contact = readFileSync(join(result.output, 'contact.html'), 'utf8');
     const policy = JSON.parse(readFileSync('scripts/preopening/policy.json', 'utf8'));
     expect(contact).toContain(`href="mailto:${policy.contact.email}"`);

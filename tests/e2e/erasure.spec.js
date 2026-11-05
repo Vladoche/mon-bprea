@@ -61,6 +61,11 @@ test('sélection, outbox signalée, focus/annulation puis retrait A conservant B
   await expect(page.locator('[data-erase-status]')).toContainText('Effacement local confirmé');
   expect(await read(page, CACHES.courses, scope(accounts.A.id))).toBeNull();
   expect(await read(page, CACHES.courses, scope(accounts.B.id))).toEqual(original.b);
+  const privacy = await page.evaluate(async ({ database, a, b }) => {
+    const { readScopedSnapshot } = await import('/mon-bprea/assets/personal-idb.js');
+    return Promise.all([a, b].map(async key => (await readScopedSnapshot(database, key)).privacy));
+  }, { database: CACHES.courses, a: scope(accounts.A.id), b: scope(accounts.B.id) });
+  expect(privacy).toEqual([expect.objectContaining({ blocked: true, epoch: expect.any(String) }), null]);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe('{"visiteur":{"done":true}}');
   expect(api.writes).toEqual([]); await captures(page, 'termine');
   await expect(page.locator('[data-closure-availability]')).toContainText('Clôture en préparation');

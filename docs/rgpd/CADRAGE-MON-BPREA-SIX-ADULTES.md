@@ -22,7 +22,7 @@ Les finalités R01–R05 restent celles du [registre](REGISTRE-TRAITEMENTS.md) :
 
 Revoir D01/D02/D03/D09/D11/D12 et la notice **avant** : élargissement du cercle/plafond, mineurs ou dépendance imposée, usage institutionnel, instruction d'un formateur, accès ou transmission des scores à un tiers, notation à conséquence, données sensibles, croisement externe, publicité/mesure d'audience, nouveau fournisseur, durée prolongée ou changement de finalité. Une convention d'établissement, une société ou un DPO ne sont pas inventés pour ce cadre.
 
-L'indépendance et les finalités sont actées (P0-02/09). La qualification personnelle/domestique reste distincte : [deux branches et prudence RGPD](ANALYSE-EXCEPTION-PERSONNELLE-PROJET.md). Le contact officiel est vladimir.fouillade@hotmail.fr ; sa publication sur les pages publiques est expressément autorisée par C. Cela ne valide ni identité civile à publier, ni adresse postale, ni accès à la messagerie. Identité de désignation et mentions finales éventuelles à approuver séparément.
+L'indépendance et les finalités sont actées (P0-02/09). D01 retient le [cadre RGPD](ANALYSE-EXCEPTION-PERSONNELLE-PROJET.md) sans revendiquer l’exception personnelle ou domestique. Le contact officiel est vladimir.fouillade@hotmail.fr ; sa publication sur les pages publiques est expressément autorisée par C. D01 autorise aussi le nom de l’exploitant dans la notice. La portée se limite au nom et à cette adresse. La publication de la notice attend les conditions P0-05.
 
 ## Méthode de preuve conservée
 

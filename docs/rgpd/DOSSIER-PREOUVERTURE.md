@@ -1,8 +1,8 @@
-# Dossier de préouverture — suivi courant 6.5.5.C
+# Dossier de préouverture — suivi courant 6.5.5.D
 
-**5 novembre 2026 : P0-02 et P0-09 résolus sur les décisions explicites ; treize portes encore à compléter, approuver ou recetter.** La [matrice courante unique](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) porte pour chaque P0 décision, nouvel arbitrage, preuve, manque, action locale/hébergée, intervention humaine et statut. [D01–D14 réconciliées](DECISIONS-A-VALIDER.md), [bilan C](../validations/VALIDATION-LOT6-5-5C.md), [arbitrages finaux courts](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md).
+**5 novembre 2026. Sept P0 résolus et huit ouverts.** La [matrice des quinze portes](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) donne les preuves et conditions restantes. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [D01–D14](DECISIONS-A-VALIDER.md), [validation D](../validations/VALIDATION-LOT6-5-5D.md).
 
-Cadre actuel : sept comptes confirmés **un exploitant et six autres adultes**, invitation individuelle uniquement, facultatif/gratuit/non commercial/indépendant, résultats privés sans notation officielle ni remontée. Fermeture 30/06/2027, préavis/export 31/05, suppression active au plus tard 30/07 ; clôture assistée et sauvegarde hebdomadaire choisies. Aucun succès juridique, MFA, RPO réel ou PROD prêt déduit de ces choix. C intègre le contact officiel public vladimir.fouillade@hotmail.fr et sa publication autorisée ; aucune autre identité n’est approuvée. Contact accessible sans compte, vérifications opérationnelles de boîte encore absentes. Aucun accès Supabase hébergé, nettoyage D, T11, compte/lien réel ou déploiement dans C.
+Sept comptes adultes confirmés, exploitant et six autres participants. Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. La V1.0 est approuvée sur le fond et préparée hors Pages. D12 et les garanties fournisseur applicables restent à compléter avant publication.
 
 ## Historique daté — ne vaut pas état courant des P0
 
@@ -41,11 +41,11 @@ Une invitation peut créer immédiatement Auth/profil : aucun lien pour les cinq
 
 Ces états s'appliquent à un **objet précis** : une copie peut être validée techniquement en local tout en étant préparée mais non activée sur l'hébergement. La [matrice de preuves](MATRICE-CONFORMITE-ET-PREUVES.md) et la [validation](../validations/VALIDATION-LOT6-4-4.md) portent les résultats d'exécution ; les présentes cases ne sont pas cochées par un test vert.
 
-Les tâches ci-dessous peuvent être cumulées par l'exploitant ; aucune direction, équipe ou relation institutionnelle n'est requise par défaut. Identité/contact et accès doivent encore être validés. Noms, habilitations détaillées, contrats et dossiers nominatifs restent dans un espace interne restreint. Pour lever une ligne, consigner : ID, version/périmètre, décision motivée, preuve interne contrôlée, personne validatrice, date et éventuelle revue. La décision ne résulte pas d'un test vert.
+Les tâches ci-dessous peuvent être cumulées par l'exploitant ; aucune direction, équipe ou relation institutionnelle n'est requise par défaut. L’identité et le contact approuvés figurent dans la notice. Les habilitations détaillées, contrats et dossiers nominatifs restent dans un espace interne restreint. Pour lever une ligne, consigner : ID, version/périmètre, décision motivée, preuve interne contrôlée, personne validatrice, date et éventuelle revue. La décision ne résulte pas d'un test vert.
 
 ## P0 — référence courante
 
-Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan courant](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les anciennes mentions « aucun P0 levé » décrivent exclusivement les lots datés ci-dessus. P0-02/09 sont désormais clos ; aucune autre clôture n'est revendiquée. D12 reste une dépendance de la notice et du circuit préalable, sans dispenser du canal effectif et des droits assistés.
+Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan courant](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les anciennes mentions « aucun P0 levé » décrivent exclusivement les lots datés ci-dessus. P0-01/02/03/04/06/09/10 sont clos dans leurs périmètres. D12 reste une dépendance de la notice et du circuit préalable, sans dispenser du canal effectif et des droits assistés.
 
 ## P1 — préparation du déploiement, après autorisations distinctes
 
@@ -57,7 +57,7 @@ Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan coura
 | URL/callback et artefact | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : Site URL locale /mon-bprea/ et callback exact unique sans wildcard ; aucun retour reçu éprouvé | Opérateur frontend/Auth | Préserver DEV local ; artefact public off, artefact DEV séparé à autoriser |
 | Invitation et récupération | PRÉPARÉ MAIS NON ACTIVÉ | Générateur manuel et capture SMTP de régression distincts, aucun destinataire réel | Opérateur comptes | Recette hébergée autorisée puis vérifier information préalable, usage unique et expiration |
 | Paramètres Auth | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : signup/anonyme off, e-mail on ; JWT/OTP 3600 s, rotation on ; écart Secure password change off | Opérateur Auth / sécurité | Décider réglages et durées puis recette réelle dédiée ; ne pas copier les 120/60 s de tests |
-| Accès au terminal D12 | DÉCISION À VALIDER | Inventaire localStorage/IndexedDB/traceurs prêt, analyse d'exemption non approuvée | Responsable / conseil/DPO | Justifier nécessité par usage et durée ; si finalité non exemptée, concevoir son consentement préalable |
+| Accès au terminal D12 | DÉCISION À VALIDER | [Analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) exécutée et adaptations proposées | Responsable | Trancher, recetter et informer sur les accès facultatifs |
 | Artefact Pages exact | VALIDÉ TECHNIQUEMENT en local | Préparation et audit sous `/mon-bprea/`, Auth off ; pas de réponse CDN réelle | Opérateur frontend | Revalider SHA/digest et notice approuvée dans la future recette autorisée, avant publication |
 | Retour arrière | DÉCISION À VALIDER | 6.5.2 : plan d'arrêt/retour sûr par incident préparé, non approuvé ni exécuté | Exploitant / sécurité | Autoriser méthode serveur de confinement/reprise, préserver données et réconcilier effacements avant restauration |
 | Sauvegardes/restauration | BLOQUANT pour la mise en service | Plan réel, durées, accès et preuve de réapplication des effacements manquants | Opérateur base et référent droits | Essai isolé autorisé, inventaire des suppressions postérieures et contrôle avant réouverture |

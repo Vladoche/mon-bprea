@@ -45,7 +45,9 @@ test('Artefact Pages : toutes les pages en contextes vierges, réseau et stockag
       expect(external, file).toEqual([]); expect(errors, file).toEqual([]);
       expect(cookies, file).toEqual([]); expect(cookiesFromResponses, file).toEqual([]);
       expect(inventory.indexedDB, file).toEqual([]); expect(inventory.cacheAPI, file).toEqual([]); expect(inventory.serviceWorkers, file).toEqual([]);
-      expect(inventory.localStorage.some(key => key.startsWith('bprea-auth')), file).toBe(false);
+      expect(inventory.localStorage, file).toEqual([]);
+      expect(inventory.sessionStorage, file).toEqual([]);
+      await expect(page.locator('a[href*="confidentialite.html"]'), file).toHaveCount(0);
       results.push({ file, external, cookies, cookiesFromResponses, ...inventory });
     } finally { await context.close(); }
   }

@@ -1,57 +1,31 @@
-# Spécification de l'information publique — projet 6.4.4
+# Information publique et intégration future de la notice V1.0
 
-**Actualisation 6.5.5.C du 5 novembre 2026 :** le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) fixe sept comptes confirmés, exploitant compris et six autres adultes, fermeture 30/06/2027, préavis/export 31/05 et suppression active au plus tard 30/07. Clôture assistée et sauvegarde hebdomadaire choisies ; [procédures opérables préparées](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md), [P0 courants](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les états 6.4/6.5.1 datés ci-dessous sont historiques ; leurs propositions dépassées ne remplacent pas ces décisions. Contact officiel public autorisé : vladimir.fouillade@hotmail.fr, [page autonome](../../contact.html). La boîte reste à vérifier en exploitation. Aucun service activé ou garantie hébergée déduits.
+**5 novembre 2026 · lot 6.5.5.D.** Contenu approuvé sur le fond. Les points déterminants D12 et fournisseurs, la revue des modifications substantielles et l’autorisation de publication restent ouverts. La page [Contact et assistance](../../contact.html) sert déjà de canal public sans compte.
 
+## Aperçu de la version préparée
 
-**NON VALIDÉ — 28 octobre 2026.** La future page `confidentialite.html` n'est ni créée, ni ajoutée à l'artefact, ni publiée comme notice définitive. [Projet de texte](POLITIQUE-CONFIDENTIALITE-PROJET.md), [décisions](DECISIONS-A-VALIDER.md), [portes P0](DOSSIER-PREOUVERTURE.md). Une mention « À VALIDER » ne doit pas être livrée comme information officielle aux étudiants.
+`npm run preopening:notice` génère `confidentialite.html` dans un nouveau dossier privé et ignoré `.tmp/preopening-notice-preview-*`. Ouvrir le fichier dans un navigateur. Le texte a une source unique, [la V1.0](POLITIQUE-CONFIDENTIALITE-PROJET.md). Le bandeau d’aperçu et la directive d’indexation sont propres à ce rendu. Le rendu destiné à une future intégration utilise `noticeHtml(markdown, { preview: false })` et le même texte, après validation de la version exacte. Le script de prévisualisation écrit uniquement dans le dossier privé.
 
-## Périmètre courant 6.5.5.C
+La page est statique et autonome. Sommaire, accès direct à l’essentiel, liens et contact fonctionnent sans JavaScript ni compte. La palette reprend les couleurs de Mon BPREA et suit le mode clair/sombre du système, sans lecture de préférence locale. L’aperçu peut être consulté hors connexion. Les liens externes ouvrent la destination au clic.
 
-Sept comptes confirmés : exploitant et six autres adultes, service privé sur invitation, indépendant, facultatif/gratuit/non commercial, résultats privés sans note officielle ni remontée. Fermeture 30/06/2027, export/préavis 31/05, suppression active au plus tard 30/07. Clôture assistée retenue et reprise applicative hebdomadaire à démontrer. Le [texte court](POLITIQUE-CONFIDENTIALITE-PROJET.md) et son aperçu local `npm run preopening:notice` sont préparés ; la notice reste exclue de Pages. Seule la page autonome contact.html est intégrée à l’artefact public dans C, sans se présenter comme notice définitive. La version finale doit rester accessible sans JavaScript/Auth et avant la collecte volontaire de l'adresse, après complétion des mentions réelles et approbation.
+## Liens préparés pour la mise en ligne
 
-## Contact public livré indépendamment de la notice — C
+Ces cibles sont des exemples prêts à intégrer dans le lot de publication. Les chemins relatifs partent d’une page à la racine du site et fonctionnent sous `/mon-bprea/`. Garder le libellé « Confidentialité et données personnelles » et un accès dans le HTML, y compris après le rendu du pied de page par l’application. N’ajouter aucune query, adresse personnelle de participant ni donnée de lien temporaire.
 
-[contact.html](../../contact.html) contient uniquement les informations approuvées : projet personnel facultatif/indépendant, sept comptes confirmés, e-mail officiel autorisé, assistance/connexion/récupération/données/suppression/incidents/participation, précautions de courriel. Aucun nom civil supplémentaire ni formulaire. Le mailto et le texte sont statiques ; le seul script de thème est facultatif. Les 17 autres pages proposent un lien statique de footer, conservé dans le footer partagé avec JavaScript ; récupération et demandes de suppression renvoient au contact même hors compte. Tests sous `/mon-bprea/`, sans Auth/JavaScript, clavier et 320/390/1280 px, clair/sombre : [validation C](../validations/VALIDATION-LOT6-5-5C.md).
-
-Cette page ne vaut pas notice complète approuvée et n'autorise aucune collecte d'adresse pour invitation. Une fusion future publiera automatiquement ce contact via Pages. La notice préparatoire et les dossiers opérateur sont exclus de l'artefact ; aucune page `confidentialite.html` livrée. La notice finale devra être disponible sans compte **avant** collecte et après approbation explicite.
-
-## Contenu de notice à approuver avant réalisation publique
-
-| Partie proposée | Fait technique utilisable | Mention/décision encore nécessaire |
+| Emplacement | Valeur de href ou référence pour le message | Contrôle attendu |
 | --- | --- | --- |
-| Responsable et contact | E-mail officiel public approuvé ; aucune identité civile déduite du dépôt | D01/D02/D04 : personne physique responsable potentielle si RGPD applicable, identité civile finale à approuver séparément, preuves opérationnelles de boîte à compléter, critères DPO sans désignation automatique, canal fonctionnel sans compte |
-| Finalités et bases | Cinq finalités R01–R05 ; aide à révision sans badges/classement ou sanction automatique implémentée | D03/D09 : base par finalité, périmètre B/C désormais renseigné, qualifications à approuver ; aucune case d'acceptation générale |
-| Mode visiteur | Progression/préférences locales, pas d'API pédagogique Supabase ; IP/logs Pages distincts | Qualification des accès au terminal D12, durées et conseils sur appareil partagé |
-| Compte configuré | Auth/e-mail/UUID, profil privé, dix tables, quatre caches v2, session SDK, marqueur de continuité, outboxes/conflits/imports | Informations réellement ouvertes et catégories nécessaires ; aucune promesse de déploiement depuis Git |
-| Source des données | Saisies, calculs descriptifs et invitation native préparée ; import visiteur explicite | D10 : origine réelle des adresses, collecte directe/indirecte, caractère obligatoire et conséquences de non-fourniture |
-| Export | JSON du compte vérifié avec dix tables et compléments locaux normalisés ; visiteur séparé | Présenter la copie comme partielle : Auth interne, logs/backups, bruts exclus, marqueurs techniques et autres appareils demandent un complément ; portabilité conditionnelle |
-| Effacement local | Choix et confirmation par catégorie, serveur conservé, perte possible de non synchronisé | Signaler la barrière personnelle UUID restante, la reprise explicite et la limite des anciens scripts visiteur |
-| Clôture | Prototype réauthentifié et strictement éphémère ; aucun service hébergé disponible | D04/D08/D13 : service ou procédure alternative réellement disponible, exceptions et reprise en cas de non-confirmation ; ne pas annoncer le prototype aux étudiants comme opérationnel |
-| Limites de suppression | Copies téléchargées/CSV/PDF/impressions, e-mails, autres appareils, logs et backups distincts | Délais fournisseurs, assistance légitime après clôture et traitement des restaurations ; aucun « tout effacé partout » |
-| Durées | Pas de purge automatique ; JSON non validé, durées nulles | D07 : calendrier acté 31/05–30/06–30/07/2027 et durées résiduelles ou critères motivés par catégorie, y compris outboxes/imports/barrières, demandes et preuves ; pas de conservation indéfinie déclarée conforme |
-| Destinataires et transferts | Pages, Supabase configuré, Outlook.com / Hotmail personnel identifié ; liens tiers sur clic | D05/D06 : contrats/rôles, chaîne réelle, lieux et garanties ; aucune mention « uniquement UE » sans pièces |
-| Droits et recours | Fonctions techniques décrites avec limites, pas de rectification d'historique par invention | D04 : circuit effectif ; information sur accès, rectification, effacement, limitation, opposition et portabilité selon conditions, retrait si consentement applicable, réclamation CNIL |
-| Versions et accessibilité | Site statique, thèmes saisonniers/horaires, clair/sombre à préserver | Version/date approuvées, historique d'information proportionné, langage adapté aux sept titulaires adultes confirmés, visiteur public distinct |
+| Accueil `index.html` | `confidentialite.html` | Visible avant le premier usage de la sauvegarde locale |
+| Pied de page de toutes les pages et pied de page dynamique | `confidentialite.html` | Présent en navigation clavier, avec et sans JavaScript |
+| Connexion `connexion.html` | `confidentialite.html#compte-et-invitation` | Avant la saisie |
+| Information individuelle avant l’invitation et message de remise | URL absolue `https://vladoche.github.io/mon-bprea/confidentialite.html` | Preuve privée minimale de version et de date avant collecte de l’adresse |
+| Activation et récupération sur `authentification.html` | `confidentialite.html#compte-et-invitation` | Lien disponible aussi si la preuve est invalide ou expirée, sans propagation de la query |
+| `mot-de-passe-oublie.html` | `confidentialite.html#compte-et-invitation` | Lisible avant de solliciter l’assistance |
+| `profil.html` | `confidentialite.html#vos-droits-et-la-cloture` et `confidentialite.html#stockage-sur-votre-appareil` | À proximité des rubriques correspondantes, même sans session |
 
-Références officielles relues le 28/10/2026 : [CNIL — articles 12–14 et droits](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), [GitHub Pages — données de visites](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection). Leur consultation ne remplace pas les faits contractuels et décisions de l'exploitant.
+## Conditions avant publication
 
-## Points d'entrée à réaliser dans un lot autorisé
+1. Mettre en œuvre et recetter les choix D12. Adapter le texte aux accès réellement observés. Confirmer les données, destinataires et garanties applicables à la cible et au circuit de remise. Faire approuver explicitement les éventuels changements substantiels.
+2. Sous autorisation distincte, générer la page finale, activer les liens et vérifier l’artefact exact avant fusion. Le constructeur `prepare-pages.py` prend les HTML racine, les types autorisés sous `assets/` et les PDF sous `documents/`. Dans D, source, outil et aperçus restent hors de ces racines, et les valeurs de href ci-dessus ne sont pas activées.
+3. Contrôler publiquement le rendu, les liens et le contact depuis l’URL finale après publication autorisée, puis consigner version, date et preuve. Pour une collecte ultérieure, la notice doit déjà être disponible et remise avant de recevoir une adresse. L’activation et les invitations ont des autorisations distinctes.
 
-Les cibles et ancres ci-dessous sont des **spécifications de liens futurs**, pas des fichiers présents. Liens HTML statiques relatifs au préfixe du site ; aucun identifiant, e-mail, token ou URL de retour dans leur query.
-
-| Origine | Accès et cible future | Moment de l'information / contrôle attendu |
-| --- | --- | --- |
-| Accueil `index.html` | Lien explicite « Confidentialité et données personnelles » vers `confidentialite.html` | Accessible sans compte avant usage des sauvegardes pertinentes ; notice visiteur intelligible |
-| Pied de page commun | Même lien sur les 18 pages publiques, y compris états d'erreur | Accessible au clavier/mobile, sans dépendre d'une session ou d'un chargement Supabase ; vérifier le préfixe `/mon-bprea/` |
-| Connexion `connexion.html` | Lien près du formulaire vers la partie compte | Visible avant saisie/envoi ; expliquer la persistance de session et le poste partagé |
-| Invitation : message et activation | Lien vers la notice validée dans le dispositif d'information **avant invitation**, puis dans le message approuvé et `authentification.html` | D10 : source indirecte de l'adresse et version communiquée. Le seul e-mail technique ne suffit pas à prouver toute l'information préalable |
-| Récupération `mot-de-passe-oublie.html` et callback | Lien statique avant envoi et après lien invalide/expiré | Aucune copie de `token_hash` dans le lien ou le référent ; pas de tracking supplémentaire |
-| Profil `profil.html` | Lien près de « Mes données personnelles » et « Effacement et clôture » vers sections droits/limites | Disponible aussi lorsque Auth est désactivé ou la session perdue ; le contact sans compte reste trouvable |
-
-## Recette future et publication
-
-1. Faire approuver texte complet, contact, durées, bases, prestataires/transferts, public et analyse AIPD. Publier seulement des coordonnées autorisées ; retirer les notes internes de la version destinée aux personnes.
-2. Implémenter dans un lot autorisé une page sans authentification requise, avec HTML sémantique, titres ordonnés, liens explicites, focus visible et paragraphes courts. Garder la notice accessible si JavaScript/Auth échoue ; aucune case générique présentée comme base légale.
-3. Tester accueil/footer/formulaires/callback/profil, clavier et zoom, mobile/ordinateur, clair/sombre et saisons/horaires ; vérifier la lisibilité des avertissements et l'absence de débordement. Ces critères ne constituent pas une certification globale d'accessibilité.
-4. Préparer l'artefact exact : page et liens publics, aucun `docs/rgpd/`, JSON de conservation, fixture, serveur ou secret ; contrôler version/digest et accès avant toute invitation. Les documents préparatoires peuvent rester publics dans Git avec leur avertissement, sans être la notice du service.
-5. Faire décider et tracer séparément publication, configuration hébergée, activation et invitations. Aucune de ces opérations n'est autorisée par la présente spécification ; les P0 ouverts maintiennent l'ouverture bloquée.
+L’aperçu, la recette locale et l’approbation du fond ont chacun une portée distincte. La fusion vers `main` déclenche automatiquement la construction et le déploiement Pages. [Workflow](../../.github/workflows/deploy.yml), [validation D](../validations/VALIDATION-LOT6-5-5D.md).
