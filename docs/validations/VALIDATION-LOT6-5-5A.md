@@ -2,6 +2,10 @@
 
 **5 novembre 2026, Europe/Paris. Livraison locale ; aucune ouverture ou opération Supabase hébergée dans ce lot.** Le mandat autorise le nettoyage ciblé démontré, les outils/tests/documents et commits locaux. Les décisions privées ou hébergées sont préparées, jamais déduites d'une absence de réponse.
 
+**Complément autorisé le 5 novembre : livraison GitHub de la branche et conservation de la sauvegarde du 29 octobre.** La copie et ses résidus restent en place sous ACL privées. Un reçu `decision-conservation-20261105.json` est ajouté dans ce dossier privé après contrôle des neuf empreintes ; aucun dump ni manifeste historique modifié, aucune nouvelle échéance d'effacement fixée. Le 12 novembre est une revue proposée seulement. Cette décision ne valide pas la politique générale D07 ni l'ouverture. Les mentions d'absence de push/CI et de décision encore attendue dans le bilan initial ci-dessous décrivent sa clôture locale avant ce complément ; le résultat distant est à vérifier sur la PR, jamais déduit des tests locaux.
+
+La lecture actualisée d'`origin/main` confirme la fusion du bilan du 4 novembre par la PR #33, commit `7729cdbe45e72b45cec783c3034d2b0fccf7025a`, arbre identique à `178eb68`. Les deux commits de ce lot sont conservés et le présent complément documentaire est ajouté avant publication de la branche. Aucun déploiement/fusion sur `main`, accès DEV/PROD ou nettoyage D autorisé par ce mandat.
+
 ## Reprise Git et protection de l'existant
 
 Worktree initial propre, branche documentaire `docs/lot6-5-4c-validation-c2-20261104`, HEAD **178eb68dee02d605697c462929c10259d0fc5a7d**. Le bilan C2 du 4 novembre y est déjà committé, descendant de la fusion connue **04c1acab86dc3f013fa9ed76f82fced69a710f63** / PR #32. Aucune preuve nouvelle de sa fusion à `main` revendiquée. Nouvelle branche locale : **feature/lot6-5-5a-preouverture-maintenance-tmp**. Le rapport [6.5.4.C](VALIDATION-LOT6-5-4C.md) et son historique du 31 octobre restent inchangés.
@@ -53,7 +57,7 @@ Procédures préparées : information avant adresse et invitation, récupératio
 
 ## Actions en attente, hors mandat hébergé
 
-1. **Copie du 29 octobre :** décision de conservation temporaire/remplacement/retrait, proposition bornée au 12 novembre sans aucune prolongation exécutée.
+1. **Copie du 29 octobre : conservation confirmée.** Copie et résidus conservés, reçu privé de l'accord ajouté ; revue conseillée le 12 novembre, sans autorisation automatique de retrait et sans nouvelle date limite inventée.
 2. **D sur DEV :** autorisation distincte et cibles fraîches ; A/B, 36 lignes historiques et leurs copies conservés. Aucune suppression exécutée.
 3. **Réserves de recette :** décider T11 et autres sous-cas ; vraie expiration seulement avec mandat ciblé, sans rejouer C2 ni annoncer les mocks comme acquis.
 4. **D01–D14/P0 :** finaliser les petites pièces privées et décisions, notice/canal, conservation, sécurité et reprise/clôture effectivement testées sur données fictives isolées.

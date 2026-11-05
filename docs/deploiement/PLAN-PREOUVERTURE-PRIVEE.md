@@ -2,11 +2,15 @@
 
 **État au 5 novembre 2026 : préparation locale terminée, ouverture non autorisée.** Ce plan actualise le [dossier de préouverture](../rgpd/DOSSIER-PREOUVERTURE.md) sans réécrire ses états historiques. Les [procédures courtes d'exploitation](EXPLOITATION-PRIVEE-SIX-ADULTES.md) regroupent l'assistance quotidienne. Les décisions ci-dessous sont des propositions ; aucune signature de l'exploitant n'est déduite d'un test.
 
+**Instruction complémentaire du 5 novembre :** livraison de la branche sur GitHub autorisée et **conservation de la sauvegarde du 29 octobre expressément confirmée**. Un reçu local protégé est ajouté auprès de la copie ; dumps et manifeste historique inchangés, neuf empreintes conformes. Aucune nouvelle échéance de suppression choisie. Le 12 novembre reste une revue conseillée, pas un accord d'effacement. Cette décision ponctuelle ne valide pas D07 globalement ni les portes d'ouverture.
+
 ## Périmètre et provenance
 
 Service personnel indépendant de l'établissement, facultatif, privé, sur invitation : l'exploitant et cinq camarades adultes au maximum. Résultats individuels privés, sans accès formateur ni notation officielle. Horizon de fermeture : juin 2027, jour non choisi. GitHub Pages et Supabase Free, aucun achat, domaine ou SMTP externe. La gratuité et l'absence d'abonnement sont réaffirmées par le mandat de ce lot ; aucun consentement individuel n'est présumé.
 
 Le worktree initial était propre. La fusion connue `04c1aca` de la PR #32 est disponible localement. Le bilan du 4 novembre est **déjà committé dans `178eb68`**, descendant de cette fusion ; sa présence dans ce commit local ne prouve pas son intégration à `main`. La branche de ce lot part de `178eb68` et conserve intégralement la [validation 6.5.4.C](../validations/VALIDATION-LOT6-5-4C.md), y compris l'historique du 31 octobre. Aucun fetch/push ou nouveau contrôle GitHub distant dans ce lot.
+
+Lors du complément de livraison autorisé, `git fetch origin` confirme **`origin/main` à `7729cdbe45e72b45cec783c3034d2b0fccf7025a`**, fusion de la [PR #33](https://github.com/Vladoche/mon-bprea/pull/33), contenant `178eb68` et de même arbre. Le bilan C2 est donc intégré à `main` à cette observation. La phrase précédente décrit la préparation locale initiale ; aucune fusion de ce nouveau lot n'est autorisée.
 
 | Niveau de preuve | Résultat disponible | Limite à maintenir |
 | --- | --- | --- |
@@ -62,7 +66,9 @@ Les catégories reprennent la méthode [A–F du cadrage](../rgpd/CADRAGE-MON-BP
 
 Déjà actés dans leur périmètre : absence de SMTP externe et liens manuels ; pour la copie du 29 octobre, dossier privé hors dépôt, dispense de chiffrement du volume, exclusion cloud **déclarée**, réexamen au 5 novembre sans purge ; report T11 et absence d'autorisation D. Ce ne sont ni une validation juridique, ni une approbation de conservation générale.
 
-## Sauvegarde du 29 octobre : décision préparée aujourd'hui
+## Sauvegarde du 29 octobre : conservation décidée
+
+**Décision explicite de l'exploitant le 5 novembre : conserver en l'état la copie et ses résidus associés.** Le reçu privé `decision-conservation-20261105.json` trace l'accord et le contrôle des neuf empreintes sans modifier le manifeste d'origine. Aucun dépôt/cloud supplémentaire, nouvelle copie, modification d'ACL, suppression ou accès hébergé. Une future suppression nécessitera une nouvelle décision ; aucune date limite n'est inventée. Les constats et options préparatoires ci-dessous gardent leur portée historique.
 
 Inspection **locale en lecture seule**, sans appel DEV : copie présente hors `.tmp`, **210 440 377 octets / 5 206 fichiers**, ACL de racine protégées, aucun point de réanalyse observé. Le manifeste conserve son échéance du **5 novembre 2026** et sept jours initiaux : **9 fichiers référencés, 9 empreintes conformes**. Sa restauration native partielle reste celle observée le 29 octobre, pas une nouvelle restauration de ce lot. L'exclusion cloud et la dispense de chiffrement restent des déclarations/décisions antérieures, pas de nouveaux contrôles techniques. Aucun chemin privé, manifeste ou export n'entre dans Git.
 
@@ -74,7 +80,7 @@ La copie contient l'état applicatif avant les six tables personnelles : elle ne
 | Remplacement puis retrait de l'ancienne copie | Autoriser séparément une nouvelle copie pertinente et son essai isolé ; réconcilier les effacements, puis décider du sort de chaque ancien résidu. Aucun remplacement lancé ici |
 | Retrait sans remplacement | Accepter explicitement la perte de cette capacité limitée et l'absence d'autre copie utile ; décision ciblée sur son emplacement privé, jamais via le nettoyeur `.tmp` |
 
-Recommandation : décider rapidement une conservation temporaire bornée tant que D/T11 et la reprise restent ouverts, puis réexaminer sa valeur réelle. La date seule ne démontre ni inutilité ni droit à prolongation. Les preuves de campagne et cette sauvegarde ont des politiques distinctes.
+La conservation est maintenant autorisée pour cette copie. Réexamen conseillé le 12 novembre et lors de la clôture D/T11, afin de préciser sa valeur et la suite ; aucune purge ne découle de cette recommandation. Les durées générales D07 restent à décider et les preuves de campagne gardent leur politique distincte.
 
 ## Droit applicable et choix de prudence
 
@@ -90,7 +96,7 @@ Le fournisseur recommande des exports réguliers pour Free ; aucune sauvegarde/P
 
 ## Chemin court jusqu'à une décision d'ouverture
 
-1. **Aujourd'hui : copie du 29 octobre.** Prendre la décision privée de conservation/remplacement/retrait, sans purge implicite ; les preuves `.tmp/dev-recipe` sont déjà préservées et maîtrisées en volume.
+1. **Copie du 29 octobre : conservation confirmée.** Garder la copie, ses résidus et le reçu protégé ; revue conseillée le 12 novembre, sans purge implicite. Les preuves `.tmp/dev-recipe` sont préservées et maîtrisées en volume.
 2. **Clore les réserves de campagne si retenu.** Autorisation D distincte avec cibles fraîches et inventaire privé, sans toucher A/B ici ; T11 exige son mandat, des compteurs frais et une vraie expiration. Les autres sous-cas non acquis doivent être traités ou faire l'objet d'une acceptation motivée, jamais renommés « réussis ».
 3. **Décider le petit dossier humain.** Note D01/D02/D09/D11 ; canal D04 ; finalités/notice/terminal D03/D10/D12 ; pièces fournisseurs D05/D06 ; durées et exploitation D07/D08/D13. Une même personne peut cumuler ces tâches. Conserver les pièces nominatives hors Git.
 4. **Rendre les procédures opérables.** Outil manuel de confiance pour l'environnement futur, encore absent hors campagne ; clôture native et reprise/effacements sur données fictives isolées ; compléter seulement les preuves manquantes, sans rejouer toute C2.

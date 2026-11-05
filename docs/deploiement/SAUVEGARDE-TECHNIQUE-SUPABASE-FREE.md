@@ -1,5 +1,7 @@
 # Sauvegarde technique Supabase Free — lot 6.5.3.B
 
+**Décision complémentaire du 5 novembre 2026 : conservation expressément demandée par l'exploitant.** Copie et résidus conservés à leur emplacement privé ; neuf empreintes reconfirmées, reçu protégé ajouté, dumps et manifeste historique intacts. Aucune nouvelle date d'effacement fixée ; revue du 12 novembre simplement conseillée. La décision de conservation ponctuelle est actée, sans approbation globale de D07/D08/D13 ni opération Supabase hébergée.
+
 **Réexamen local du 5 novembre 2026 :** copie présente hors dépôt, ACL protégées, neuf fichiers du manifeste et neuf empreintes conformes. Échéance et politique inchangées, aucune prolongation/suppression ; [décision préparée](PLAN-PREOUVERTURE-PRIVEE.md), [politique minimale proposée](EXPLOITATION-PRIVEE-SIX-ADULTES.md). Aucun accès DEV/PROD. Les résultats datés du 29 octobre ci-dessous restent distincts de cette seule vérification d'intégrité.
 
 **29 octobre 2026 : copie applicative réalisée et restauration PostgreSQL partielle vérifiée avant migration.** Cible exclusive : `wcckbyhrtroittbfophv`, Mon BPREA DEV, Free, eu-west-1, PostgreSQL 17.11.0.003. La [preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md) distingue la préparation du 28 octobre, les autorisations A/B et les résultats réels. PROD est exclu.
