@@ -1,5 +1,8 @@
 # Préparation des droits — spécifications 6.4.2 à 6.4.4
 
+**Actualisation 6.5.5.B du 5 novembre 2026 :** le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) prévoit sept comptes exploitant compris (hypothèse à confirmer), fermeture 30/06/2027, préavis/export 31/05 et suppression active au plus tard 30/07. Clôture assistée et sauvegarde hebdomadaire choisies ; [procédures opérables préparées](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md), [P0 courants](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les états 6.4/6.5.1 datés ci-dessous sont historiques ; leurs propositions dépassées ne remplacent pas ces décisions. Aucun service activé ou garantie hébergée déduits.
+
+
 **Préparation 6.4.1, actualisée après 6.4.2/6.4.3 et recette 6.4.4 le 28 octobre 2026.** Les faits et sources renvoient à l'[inventaire](INVENTAIRE-DONNEES.md). Copie technique, effacement local et prototype de clôture sont développés ; leur état d'exécution relève de la [matrice des preuves](MATRICE-CONFORMITE-ET-PREUVES.md). Les décisions juridiques et procédures hébergées restent non validées/non activées.
 
 ## Conditions communes avant réalisation

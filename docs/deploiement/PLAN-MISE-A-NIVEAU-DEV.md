@@ -33,7 +33,7 @@ Ordre proposé : **A préconditions → B base → C Auth → D liens manuels �
 | Retour sûr | Désigner version frontend sûre Auth off, mesure autorisée de suspension serveur si fuite, règles de réconciliation des effacements, assistance et critères de reprise | Simple retour de fichier proposé comme restauration de données ou suppression automatique de tables |
 | Déclencheurs automatiques | Relire intégration DEV (off lors de R13), workflows et cible liée ; pas de déploiement Pages ni de migration automatique souhaités | Activation distante inattendue ou partage de cible avec un autre environnement |
 
-Pour six adultes, conserver Supabase Free et les moyens existants. La [copie 6.5.3.B](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) et sa restauration partielle ont été vérifiées avant migration. Auth reste exclu ; le dossier est protégé, dispensé de chiffrement par l’exploitant et déclaré hors cloud. Sept jours jusqu’au réexamen du 5 novembre, sans purge automatique ni validation générale de D07/D08/D13.
+Politique 6.5.5.B : pour sept comptes envisagés exploitant compris (hypothèse à confirmer), conserver Supabase Free et les moyens existants. Les constats de copie qui suivent restent historiques. La [copie 6.5.3.B](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md) et sa restauration partielle ont été vérifiées avant migration. Auth reste exclu ; le dossier est protégé, dispensé de chiffrement par l’exploitant et déclaré hors cloud. Sept jours jusqu’au réexamen du 5 novembre, sans purge automatique ni validation générale de D07/D08/D13.
 
 ## B — Base PostgreSQL
 

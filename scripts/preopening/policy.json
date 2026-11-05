@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "referenceDate": "2026-11-05",
+  "capacity": { "total": 7, "includesOperator": true, "confirmationRequired": true, "enforcement": "administrative" },
+  "publicSignup": false,
+  "anonymousSignIn": false,
+  "administrators": 1,
+  "exportStartsOn": "2027-05-31",
+  "serviceClosesOn": "2027-06-30",
+  "hostedDeletionTarget": "2027-07-30",
+  "backup": { "frequencyDays": 7, "maximumAgeHours": 168, "warningAgeHours": 144, "completeAuthRecovery": false },
+  "tables": ["profiles", "drill_series", "drill_answers", "drill_training_attempts", "course_states", "quiz_attempts", "botanical_sessions", "botanical_answers", "itk_settings", "appearance_preferences"],
+  "excludedBackupScopes": ["auth", "storage", "vault", "project-settings", "secrets", "browser-caches", "unsynced-data", "provider-logs"]
+}

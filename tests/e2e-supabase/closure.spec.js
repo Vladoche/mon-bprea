@@ -11,6 +11,7 @@ import { personalScope } from '../../assets/drill-personal-store.js';
 import { TABLES } from '../../assets/export-sources.js';
 import { questions, stamp, parameters } from '../fixtures/export.js';
 import { botanicalSession, botanicalAnswer } from '../fixtures/personal-data.js';
+import { closurePreflight, POLICY } from '../../scripts/preopening/preflight.mjs';
 
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 async function invoke(student, token, body, method = 'POST') {
@@ -146,6 +147,87 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
   finally {
     await secondContext?.close(); await page.close();
     for (const student of students.toReversed()) try { await student.cleanup(); } catch { failure = new Error('Nettoyage ciblé des seuls comptes fictifs de clôture incomplet.'); }
+    if (failure) throw failure;
+  }
+});
+
+test('Clôture assistée native — préflight unitaire, dix cascades, refresh refusé et autre participant préservé', async () => {
+  test.setTimeout(120000);
+  const students = []; let a, attempted = false, confirmedAbsent = false, stage = 'fixtures isolées', failure;
+  try {
+    a = await createDrillStudent(); students.push(a);
+    const b = await createDrillStudent(); students.push(b);
+    // Le helper vérifie mon-bprea-lot6-1-local et 127.0.0.1:54321 AVANT la création.
+    // Aucun A/B DEV historique, aucun titulaire ou e-mail réel.
+    await seedPersonalTables(a, 1); await seedPersonalTables(b, 1);
+    const beforeA = await readPersonalTables(a), beforeB = await readPersonalTables(b);
+    expect(Object.values(beforeA).every(rows => rows.length > 0)).toBe(true);
+    const session = (await a.client.auth.getSession()).data.session;
+    const claims = JSON.parse(Buffer.from(session.access_token.split('.')[1], 'base64url'));
+    const admin = createClient(a.environment.url, a.environment.adminKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }).auth.admin;
+    stage = 'inventaire Auth éphémère complet et borné';
+    const accounts = []; let complete = false;
+    for (let page = 1; page <= 100; page++) {
+      const listed = await admin.listUsers({ page, perPage: 100 });
+      expect(listed.error === null && Array.isArray(listed.data.users)).toBe(true);
+      accounts.push(...listed.data.users.map(user => ({ id: user.id, email: user.email,
+        kind: [a.userId, b.userId].includes(user.id) ? 'participant' : 'fixture',
+        state: user.email_confirmed_at ? 'active' : 'pending', privileged: user.role !== 'authenticated' })));
+      if (listed.data.users.length < 100) { complete = true; break; }
+    }
+    expect(complete).toBe(true);
+    const now = new Date().toISOString();
+    const plan = {
+      target: { environment: 'local', projectRef: 'mon-bprea-lot6-1-local', siteUrl: LOCAL_SITE, callback: `${LOCAL_SITE}authentification.html` },
+      inventory: { projectRef: 'mon-bprea-lot6-1-local', observedAt: now, complete: true, publicSignup: false, anonymousSignIn: false,
+        // Participants synthétiques représentant la procédure future ; distincts des fictifs DEV réservés à D.
+        accounts,
+        dependenciesChecked: true, cascadeCount: 11, storageObjectsForTarget: 0,
+        targetRows: Object.fromEntries(POLICY.tables.map(name => [name, beforeA[name].length])) },
+      userId: a.userId, confirmUserId: a.userId, identityChecked: true, requestConfirmed: true, exportOffered: true, previousResult: 'none',
+      sessionsPlan: 'native-delete-refresh-expiry-check', cachesPlan: 'assisted-per-device', backupsPlan: 'reconcile-before-restore', failurePlan: 'stop-read-state-no-blind-retry',
+    };
+    stage = 'préflight de la seule cible';
+    expect(closurePreflight(plan, now).tablesChecked).toBe(10);
+    expect(Boolean((await a.client.auth.getUser()).data.user?.id === a.userId)).toBe(true);
+    stage = 'suppression administrative native unique'; attempted = true;
+    const deletion = await admin.deleteUser(a.userId, false);
+    expect(deletion.error === null).toBe(true);
+    stage = 'postcontrôle Auth avant toute confirmation';
+    const lookup = await admin.getUserById(a.userId);
+    confirmedAbsent = lookup.error?.status === 404 && lookup.error?.code === 'user_not_found';
+    expect(confirmedAbsent).toBe(true);
+    const old = createClient(a.environment.url, a.environment.publishableKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+    });
+    stage = 'dix tables et autre participant';
+    for (const [name, spec] of Object.entries(TABLES)) {
+      const result = await old.from(name).select(spec.owner).eq(spec.owner, a.userId);
+      expect(result.error === null && result.data.length === 0).toBe(true);
+    }
+    expect(isDeepStrictEqual(await readPersonalTables(b), beforeB)).toBe(true);
+    stage = 'ancien refresh et reconnexion refusés';
+    const detached = createClient(a.environment.url, a.environment.publishableKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
+    expect(Boolean((await detached.auth.refreshSession({ refresh_token: session.refresh_token })).error)).toBe(true);
+    expect(Boolean((await detached.auth.signInWithPassword({ email: a.email, password: a.password })).error)).toBe(true);
+    stage = 'JWT encore non expiré et écriture empêchée par la dépendance réelle';
+    expect(claims.exp * 1000 > Date.now()).toBe(true);
+    const write = await old.rpc('personal_record_quiz', { p_attempt_id: randomUUID(), p_lesson_id: 'matiere-organique', p_score: 1, p_total: 1, p_completed_at: stamp });
+    expect(write.error?.code === '23503').toBe(true);
+    expect(claims.exp * 1000 > Date.now()).toBe(true);
+    expect(isDeepStrictEqual(await readPersonalTables(b), beforeB)).toBe(true);
+  } catch { failure = new Error(`Clôture native locale non validée : ${stage}. Aucun identifiant, secret ou résultat journalisé.`); }
+  finally {
+    for (const student of students.toReversed()) {
+      // Une suppression tentée n'est jamais répétée aveuglément ; en cas d'incertitude,
+      // échec explicite puis retrait de la seule stack éphémère par le workflow existant.
+      if (student === a && attempted) {
+        if (!confirmedAbsent && !failure) failure = new Error('Clôture native locale incertaine : postcontrôle requis, aucune répétition.');
+        continue;
+      }
+      try { await student.cleanup(); } catch { failure = new Error('Nettoyage ciblé des seules fixtures de clôture native incomplet.'); }
+    }
     if (failure) throw failure;
   }
 });

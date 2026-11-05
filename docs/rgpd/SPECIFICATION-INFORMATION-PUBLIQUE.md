@@ -1,10 +1,13 @@
 # Spécification de l'information publique — projet 6.4.4
 
+**Actualisation 6.5.5.B du 5 novembre 2026 :** le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) prévoit sept comptes exploitant compris (hypothèse à confirmer), fermeture 30/06/2027, préavis/export 31/05 et suppression active au plus tard 30/07. Clôture assistée et sauvegarde hebdomadaire choisies ; [procédures opérables préparées](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md), [P0 courants](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les états 6.4/6.5.1 datés ci-dessous sont historiques ; leurs propositions dépassées ne remplacent pas ces décisions. Aucun service activé ou garantie hébergée déduits.
+
+
 **NON VALIDÉ — 28 octobre 2026.** La future page `confidentialite.html` n'est ni créée, ni ajoutée à l'artefact, ni publiée comme notice définitive. [Projet de texte](POLITIQUE-CONFIDENTIALITE-PROJET.md), [décisions](DECISIONS-A-VALIDER.md), [portes P0](DOSSIER-PREOUVERTURE.md). Une mention « À VALIDER » ne doit pas être livrée comme information officielle aux étudiants.
 
-## Actualisation de périmètre 6.5.1
+## Périmètre courant 6.5.5.B
 
-Méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md). B : outil personnel indépendant, six adultes maximum dans l'espace personnel, usage facultatif, résultats privés sans accès formateur ni évaluation officielle prévus, fin de formation juin 2027. Ces faits remplacent les anciennes questions de public dans la présente spécification ; ils ne valident pas D01–D14. D : information courte accessible avant invitation et collecte pertinente, avec les limites administratives/fournisseur. E/F : identité/contact, bases, durées dont fermeture, contrats/transferts effectifs restent à compléter/tester. Aucune publication ici.
+Sept comptes adultes envisagés exploitant compris (hypothèse à confirmer), service privé sur invitation, indépendant, facultatif/gratuit/non commercial, résultats privés sans note officielle ni remontée. Fermeture 30/06/2027, export/préavis 31/05, suppression active au plus tard 30/07. Clôture assistée retenue et reprise applicative hebdomadaire à démontrer. Le [texte court](POLITIQUE-CONFIDENTIALITE-PROJET.md) et son aperçu local `npm run preopening:notice` sont préparés ; aucune page racine n'est livrée à Pages. La version finale doit rester accessible sans JavaScript/Auth et avant la collecte volontaire de l'adresse, après complétion des mentions réelles et approbation.
 
 ## Contenu à approuver avant réalisation publique
 
@@ -19,10 +22,10 @@ Méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md). B : outil personnel indépen
 | Effacement local | Choix et confirmation par catégorie, serveur conservé, perte possible de non synchronisé | Signaler la barrière personnelle UUID restante, la reprise explicite et la limite des anciens scripts visiteur |
 | Clôture | Prototype réauthentifié et strictement éphémère ; aucun service hébergé disponible | D04/D08/D13 : service ou procédure alternative réellement disponible, exceptions et reprise en cas de non-confirmation ; ne pas annoncer le prototype aux étudiants comme opérationnel |
 | Limites de suppression | Copies téléchargées/CSV/PDF/impressions, e-mails, autres appareils, logs et backups distincts | Délais fournisseurs, assistance légitime après clôture et traitement des restaurations ; aucun « tout effacé partout » |
-| Durées | Pas de purge automatique ; JSON non validé, durées nulles | D07 : horizon juin 2027, T/fenêtre et durées ou critères motivés par catégorie, y compris outboxes/imports/barrières, demandes et preuves ; pas de conservation indéfinie déclarée conforme |
+| Durées | Pas de purge automatique ; JSON non validé, durées nulles | D07 : calendrier acté 31/05–30/06–30/07/2027 et durées résiduelles ou critères motivés par catégorie, y compris outboxes/imports/barrières, demandes et preuves ; pas de conservation indéfinie déclarée conforme |
 | Destinataires et transferts | Pages, Supabase configuré, chaîne messagerie à préciser ; liens tiers sur clic | D05/D06 : contrats/rôles, chaîne réelle, lieux et garanties ; aucune mention « uniquement UE » sans pièces |
 | Droits et recours | Fonctions techniques décrites avec limites, pas de rectification d'historique par invention | D04 : circuit effectif ; information sur accès, rectification, effacement, limitation, opposition et portabilité selon conditions, retrait si consentement applicable, réclamation CNIL |
-| Versions et accessibilité | Site statique, thèmes saisonniers/horaires, clair/sombre à préserver | Version/date approuvées, historique d'information proportionné, langage adapté aux six adultes, visiteur public distinct |
+| Versions et accessibilité | Site statique, thèmes saisonniers/horaires, clair/sombre à préserver | Version/date approuvées, historique d'information proportionné, langage adapté aux sept adultes envisagés, visiteur public distinct |
 
 Références officielles relues le 28/10/2026 : [CNIL — articles 12–14 et droits](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), [GitHub Pages — données de visites](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages#data-collection). Leur consultation ne remplace pas les faits contractuels et décisions de l'exploitant.
 
