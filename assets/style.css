@@ -351,7 +351,7 @@ summary:focus-visible,
     .drill-workspace, .drill-week-strip, .drill-unit-card,
     .dashboard-panel, .dashboard-metrics, .dashboard-filters,
     .calendar-board, .calendar-notice, .calendar-dialog,
-    .exam-preparation, .daily-fact, .appearance-dialog
+    .exam-preparation, .daily-fact
   ) {
     transition: background-color .18s ease, color .18s ease, border-color .18s ease;
   }

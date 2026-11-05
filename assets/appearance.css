@@ -19,3 +19,5 @@
 @media(max-width:350px){#app-header .header-in{column-gap:6px}#app-header .brand-copy small{max-width:112px;font-size:8px}.header-actions{gap:4px}}
 @media print{.header-actions,.appearance-dialog{display:none!important}}
 .appearance-sync-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}.appearance-dialog .btn{white-space:normal;font-size:12px;max-width:100%}.appearance-dialog details{margin:12px 0;padding:12px;border:1px solid var(--line);border-radius:8px}.appearance-dialog summary{cursor:pointer;font-weight:700}.appearance-dialog details .btn{margin:4px 0}#appearance-import-preview{margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}
+/* Le fond et le texte du dialogue adoptent la nouvelle palette au même instant. */
+.appearance-dialog .btn{transition:transform .18s}
