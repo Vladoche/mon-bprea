@@ -1,16 +1,21 @@
 // Serveur réservé aux tests : sources à /, artefact Pages versionné à /mon-bprea/.
 import { createServer } from 'node:http';
 import { spawnSync } from 'node:child_process';
-import { createReadStream, existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, mkdtempSync, realpathSync, statSync } from 'node:fs';
 import { dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { checkedPath } from './maintenance/tmp-inventory.mjs';
+import { ownTestBuild } from './maintenance/tmp-build.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const temporary = join(root, '.tmp');
 mkdirSync(temporary, { recursive: true });
 if (realpathSync(temporary) !== temporary) throw new Error('Le dossier temporaire doit rester dans le dépôt.');
+checkedPath(root, temporary);
+if (existsSync(join(temporary, '.maintenance.lock'))) throw new Error('Maintenance locale en cours.');
 const runDirectory = mkdtempSync(join(temporary, 'e2e-'));
 const published = join(runDirectory, 'public');
+let cleanupBuild;
 const prepared = spawnSync(process.env.PYTHON || 'python', [
   join(root, 'scripts', 'prepare-pages.py'), '--version', 'e2e-lot5-1', '--output', published,
 ], { encoding: 'utf8' });
@@ -18,6 +23,7 @@ if (prepared.error || prepared.status !== 0) {
   console.error(prepared.error?.message || prepared.stderr);
   process.exitCode = 1;
 } else {
+  cleanupBuild = ownTestBuild(root, runDirectory);
   const mime = {
     '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
     '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
@@ -56,8 +62,6 @@ if (prepared.error || prepared.status !== 0) {
 }
 
 process.on('exit', () => {
-  // Seul ce répertoire neuf est effacé, après vérification du chemin réel dans le workspace.
-  if (existsSync(runDirectory) && realpathSync(runDirectory).startsWith(temporary + sep + 'e2e-')) {
-    rmSync(runDirectory, { recursive: true, force: true });
-  }
+  try { cleanupBuild?.(); }
+  catch { console.warn('Artefact de test conservé : contrôle local de maintenance nécessaire.'); }
 });
