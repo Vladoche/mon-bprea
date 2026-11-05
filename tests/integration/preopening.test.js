@@ -87,6 +87,7 @@ describe('contact et clôture préparés sans identité ou opération inventée'
     for (const mutate of [v => { v.confirmUserId = account(1).id; }, v => { v.identityChecked = false; },
       v => { delete v.inventory.targetRows.profiles; }, v => { v.inventory.storageObjectsForTarget = 1; },
       v => { v.inventory.cascadeCount = 10; }, v => { v.previousResult = 'uncertain'; },
+      v => { v.inventory.accounts[1].state = 'uncertain'; },
       v => { v.inventory.accounts[1].kind = 'fixture'; }]) {
       const value = closure(); mutate(value); expect(() => closurePreflight(value, now)).toThrow();
     }

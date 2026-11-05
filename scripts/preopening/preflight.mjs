@@ -90,6 +90,7 @@ export function closurePreflight(input, now) {
   requireThat(uuid.test(input.userId) && input.confirmUserId === input.userId, 'exact_uuid');
   requireThat(input.inventory.accounts.filter(a => a.id === input.userId).length === 1, 'account_missing');
   requireThat(input.inventory.accounts.find(a => a.id === input.userId).kind !== 'fixture', 'fixtures_require_separate_D');
+  requireThat(input.inventory.accounts.find(a => a.id === input.userId).state !== 'uncertain', 'uncertain_read_before_retry');
   requireThat(input.identityChecked === true && input.requestConfirmed === true && input.exportOffered === true, 'identity_or_request');
   requireThat(['none', 'verified-no-mutation'].includes(input.previousResult), 'uncertain_read_before_retry');
   requireThat(input.inventory.dependenciesChecked === true && input.inventory.cascadeCount === 11
