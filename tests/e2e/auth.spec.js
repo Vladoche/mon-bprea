@@ -84,6 +84,7 @@ test('auth mobile sombre : préférences et historiques conservés, contenus pub
   await page.setViewportSize({ width: 390, height: 844 });
   const saved = {
     'bprea-demo-appearance-v1': '{"version":1,"season":"winter","brightness":"dark"}',
+    'bprea-demo-appearance-device-v1': '{"version":1,"season":"winter","brightness":"dark"}',
     'bprea-demo-progress-v1': '{"matiere-organique":{"done":true,"score":2}}',
     'bprea-demo-drill-v1': '{"version":1,"series":{}}',
     'monbprea.botanical.v1': '{"schemaVersion":1,"answers":[],"sessions":[]}',

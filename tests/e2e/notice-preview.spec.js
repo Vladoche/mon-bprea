@@ -9,7 +9,7 @@ test.use({ javaScriptEnabled: false });
 
 for (const width of [320, 390, 1280]) {
   for (const colorScheme of ['light', 'dark']) {
-    test(`aperçu V1.0 sans JavaScript, ${width}px ${colorScheme}`, async ({ page }) => {
+    test(`aperçu V1.1 sans JavaScript, ${width}px ${colorScheme}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme });
       await page.route('**/*', route => route.abort());
@@ -18,8 +18,8 @@ for (const width of [320, 390, 1280]) {
       page.on('request', request => requests.push(new URL(request.url()).pathname));
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notice de confidentialité de Mon BPREA');
-      await expect(page.getByRole('note')).toContainText('La publication attend les vérifications finales');
-      await expect(page.locator('main')).toContainText('Version 1.0 · 5 novembre 2026');
+      await expect(page.getByRole('note')).toContainText('Les modifications et la publication restent à approuver');
+      await expect(page.locator('main')).toContainText('Version 1.1 en préparation · 5 novembre 2026');
       await expect(page.locator('main')).toContainText('Vladimir Fouillade');
       await expect(page.locator('script, iframe, form')).toHaveCount(0);
       await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex,nofollow');
@@ -67,6 +67,8 @@ for (const width of [320, 390, 1280]) {
       });
       expect(Math.min(...contrast)).toBeGreaterThanOrEqual(4.5);
       expect(requests).toEqual([path]);
+      await page.locator('#stockage-sur-votre-appareil').scrollIntoViewIfNeeded();
+      await page.screenshot({ path: testInfo.outputPath('notice-stockage.png'), animations: 'disabled' });
     });
   }
 }

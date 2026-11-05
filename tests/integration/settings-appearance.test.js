@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { appearanceRuntime, appearanceStorage } from '../helpers/appearance-runtime.js';
 
 const KEY = 'bprea-demo-appearance-v1';
+const REMEMBERED = 'bprea-demo-appearance-device-v1';
 beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-20T10:00:00+02:00')); });
 afterEach(() => vi.useRealTimers());
 
@@ -49,7 +50,7 @@ describe('Passage du thème synchrone aux préférences personnelles', () => {
   });
 
   it('retire A au rejet ou au changement de compte et retrouve le visiteur sans effacer A', () => {
-    const storage = appearanceStorage({ [KEY]: JSON.stringify({ version: 1, season: 'spring', brightness: 'light' }) });
+    const storage = appearanceStorage({ [REMEMBERED]: JSON.stringify({ version: 1, season: 'spring', brightness: 'light' }) });
     const { api } = appearanceRuntime(storage);
     const writerA = vi.fn(), writerB = vi.fn();
     api.setSource('personal', { version: 1, season: 'winter', brightness: 'dark' }, writerA);
@@ -68,7 +69,7 @@ describe('Passage du thème synchrone aux préférences personnelles', () => {
 
   it('un compte vide garde le rendu provisoire de l’appareil sans importer ses choix dans le modèle personnel', () => {
     const raw = JSON.stringify({ version: 1, season: 'winter', brightness: 'dark' });
-    const { api, storage } = appearanceRuntime(appearanceStorage({ [KEY]: raw }));
+    const { api, storage } = appearanceRuntime(appearanceStorage({ [REMEMBERED]: raw }));
     const writer = vi.fn();
     api.setSource('personal', null, writer);
     expect(api.getState()).toEqual({ season: 'winter', time: 'night', theme: 'dark' });
@@ -76,7 +77,7 @@ describe('Passage du thème synchrone aux préférences personnelles', () => {
     expect(writer).not.toHaveBeenCalled();
     api.updatePreferences({ brightness: 'light' });
     expect(writer.mock.calls[0][0]).toMatchObject({ season: 'auto', brightness: 'light' });
-    expect(storage.getItem(KEY)).toBe(raw);
+    expect(storage.getItem(REMEMBERED)).toBe(raw);
   });
 
   it('recalcule aux retours de page, aux seuils et passages de saison sans modifier les choix', () => {

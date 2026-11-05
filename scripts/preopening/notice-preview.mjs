@@ -80,7 +80,7 @@ export function noticeHtml(markdown, { preview = true } = {}) {
   <a class="skip" href="#contenu">Aller au contenu</a>
   <header><p class="wrap">Mon BPREA · Espace de révision</p></header>
   <main class="wrap" id="contenu" tabindex="-1">
-    ${preview ? '<aside role="note"><strong>Aperçu local de la version 1.0.</strong> Le fond a été approuvé le 5 novembre 2026. La publication attend les vérifications finales.</aside>' : ''}
+    ${preview ? '<aside role="note"><strong>Aperçu local de la version 1.1.</strong> Le fond de la version 1.0 a été approuvé le 5 novembre 2026. Les modifications et la publication restent à approuver.</aside>' : ''}
     ${blocks.join('\n    ')}
   </main>
 </body>

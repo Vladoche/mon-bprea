@@ -3,7 +3,7 @@ import { getSupabaseClient } from './supabase-client.js';
 import { lessons } from './content.js';
 import { recordQuizAttempt } from './exam-stats.js';
 import { createCourseQuizRepository, personalScope, clone, LocalCourseQuizError } from './course-quiz-store.js';
-import { mutateCourse, recordPersonalQuiz, prepareNextOperation, acknowledgeOperation, reconcileHistory, projectProgress, resolveConflict } from './course-quiz-model.js';
+import { mutateCourse, recordPersonalQuiz, prepareNextOperation, acknowledgeOperation, reconcileHistory, projectProgress, resolveConflict, validUUID, CourseQuizSyncError } from './course-quiz-model.js';
 import { previewLegacyImport, applyLegacyImport } from './course-quiz-import.js';
 import { createCourseQuizTransport, classifyCourseQuizError } from './course-quiz-transport.js';
 import { delayFor } from './sync-runtime.js';
@@ -257,11 +257,15 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
     } finally { wrote(current); }
   }
 
-  function provenance() {
-    let id = storage.getItem(IMPORT_PROVENANCE_KEY);
-    if (id === null) { id = randomUUID(); storage.setItem(IMPORT_PROVENANCE_KEY, id); }
-    if (!/^[0-9a-f-]{36}$/i.test(id)) throw new LocalCourseQuizError('La provenance de la sauvegarde locale est illisible. Aucun import n’est lancé.');
+  function readProvenance() {
+    const id = storage.getItem(IMPORT_PROVENANCE_KEY);
+    if (id !== null && !validUUID(id)) throw new CourseQuizSyncError('import_ambiguous', 'La provenance de la sauvegarde locale est illisible. Aucun import n’est lancé.');
     return id;
+  }
+  function checkImportSource(preview) {
+    if (storage.getItem(VISITOR_PROGRESS_KEY) !== preview.raw || readProvenance() !== preview.provenance) {
+      throw new CourseQuizSyncError('import_source_changed', 'La sauvegarde locale a changé depuis la prévisualisation. Annule puis examine à nouveau son contenu.');
+    }
   }
   const service = {
     async start() { await ready; return snapshot(); },
@@ -276,7 +280,8 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
       if (mode !== 'personal' || view.error) return { available: false, error: view.error || 'Un compte vérifié est nécessaire pour importer.' };
       try {
         const raw = storage.getItem(VISITOR_PROGRESS_KEY);
-        return { ...previewLegacyImport(raw, catalogue), scope, provenance: raw === null ? null : provenance() };
+        const preview = previewLegacyImport(raw, catalogue);
+        return { ...preview, scope, generation, provenance: preview.available ? readProvenance() : null };
       } catch (error) { return { available: false, error: error.message || 'La sauvegarde locale est inaccessible.' }; }
     },
     async confirmImport(preview) {
@@ -285,8 +290,9 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
       if (intendedGeneration !== generation || intendedScope !== scope) return { error: 'Le compte a changé. Aucun import n’a été créé dans le nouveau compte.' };
       const current = generation; const repo = repository;
       let saving = false;
-      if (mode !== 'personal' || view.error || !preview?.available || preview.error || preview.scope !== scope) return { error: 'L’import doit être prévisualisé et confirmé pour ce compte.' };
+      if (mode !== 'personal' || view.error || !preview?.available || preview.error || preview.scope !== scope || preview.generation !== current) return { error: 'L’import doit être prévisualisé et confirmé pour ce compte.' };
       try {
+        checkImportSource(preview);
         const replay = document.imports.some(manifest => manifest.raw === preview.raw && manifest.provenance === preview.provenance);
         if (!replay) {
           if (auth.getState().status !== 'authenticated') return { error: 'Une connexion est nécessaire pour vérifier l’historique du compte avant un premier import. La sauvegarde locale reste intacte.' };
@@ -297,10 +303,14 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
           if (!active(current)) return { error: 'Le compte a changé. Prévisualise à nouveau la sauvegarde pour ce compte.' };
           if (pulledVersion < requested) return { error: 'L’historique distant n’a pas pu être vérifié. Aucun import nouveau n’est créé ; réessaie après le retour de la connexion.' };
         }
-        if (storage.getItem(VISITOR_PROGRESS_KEY) !== preview.raw || provenance() !== preview.provenance) return { error: 'La sauvegarde locale a changé depuis la prévisualisation. Annule puis examine à nouveau son contenu.' };
         writing(); saving = true;
         const commit = await repo.change(saved => {
-          const result = applyLegacyImport(saved, { raw: preview.raw, provenance: preview.provenance, catalogue }, randomUUID);
+          // Recheck inside the transaction, after the account and erasure guards.
+          checkImportSource(preview);
+          const provenance = preview.provenance ?? randomUUID();
+          const result = applyLegacyImport(saved, { raw: preview.raw, provenance, catalogue }, randomUUID);
+          // A manifest must never commit without its durable source identifier.
+          if (preview.provenance === null) storage.setItem(IMPORT_PROVENANCE_KEY, provenance);
           return { result, saved: clone(saved) };
         }, () => active(current));
         return committed(commit, current);

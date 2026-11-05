@@ -45,13 +45,13 @@ for (const width of [320, 390, 1280]) {
 test('contact autonome : préférences saisonnières et clair/sombre conservées, aucun appel Auth', async ({ page }) => {
   await page.clock.install({ time });
   const saved = { version: 1, season: 'winter', brightness: 'dark' };
-  await page.addInitScript(value => localStorage.setItem('bprea-demo-appearance-v1', JSON.stringify(value)), saved);
+  await page.addInitScript(value => localStorage.setItem('bprea-demo-appearance-device-v1', JSON.stringify(value)), saved);
   const requests = [];
   page.on('request', request => requests.push(new URL(request.url())));
   await page.goto(`${prefix}contact.html`);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('bprea-demo-appearance-v1')))).toEqual(saved);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('bprea-demo-appearance-device-v1')))).toEqual(saved);
   expect(requests.every(url => url.origin === 'http://127.0.0.1:4173')).toBe(true);
   expect(requests.some(url => /auth-config|supabase|app\.js/.test(url.pathname))).toBe(false);
 });

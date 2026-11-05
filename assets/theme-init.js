@@ -1,10 +1,12 @@
 // Script classique synchrone avant CSS : choix de l’appareil, puis Auth asynchrone.
 (function () {
   'use strict';
-  const STORAGE_KEY = 'bprea-demo-appearance-v1';
+  const STORAGE_KEY = 'bprea-demo-appearance-device-v1';
+  const ARCHIVED_KEY = 'bprea-demo-appearance-v1';
   const LEGACY_KEY = 'bprea-demo-theme-v1';
   const seasons = ['auto', 'spring', 'summer', 'autumn', 'winter'];
   const brightnesses = ['auto', 'light', 'dark'];
+  const automatic = { version: 1, season: 'auto', brightness: 'auto' };
   // Convention locale, remplaçable ultérieurement par un fournisseur solaire.
   const timePeriods = [
     { start: 6, end: 10, name: 'morning' },
@@ -12,30 +14,16 @@
     { start: 18, end: 22, name: 'twilight' }
   ];
 
-  function readPreferences(fallback) {
-    let raw = null;
-    let legacy = null;
-    try {
-      raw = localStorage.getItem(STORAGE_KEY);
-      legacy = localStorage.getItem(LEGACY_KEY);
-    } catch { if (fallback) return { ...fallback }; }
-    let saved;
-    try { saved = JSON.parse(raw); } catch {}
-    const valid = saved && typeof saved === 'object' && !Array.isArray(saved) && saved.version === 1;
-    const preferences = {
-      ...(valid ? saved : {}),
-      ...(!valid && raw !== null ? { unrecognizedPreferencesArchive: [raw] } : {}),
-      version: 1,
-      season: valid && seasons.includes(saved.season) ? saved.season : 'auto',
-      brightness: valid && brightnesses.includes(saved.brightness)
-        ? saved.brightness : brightnesses.includes(legacy) && legacy !== 'auto' ? legacy : 'auto'
-    };
-    // Ne jamais remplacer une valeur existante illisible ou d'une version future.
-    // L'ancienne clé est conservée intégralement, y compris après migration.
-    if (raw === null && (legacy === 'light' || legacy === 'dark')) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)); } catch {}
-    }
-    return preferences;
+  function parse(raw) {
+    try { return JSON.parse(raw); } catch { return null; }
+  }
+  function decodeRemembered(raw) {
+    const value = parse(raw);
+    return value?.version === 1 && seasons.includes(value.season) && brightnesses.includes(value.brightness) &&
+      Object.keys(value).length === 3 ? value : null;
+  }
+  function readRemembered() {
+    try { return decodeRemembered(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
   }
 
   function getLocalTimePeriod(date) {
@@ -53,8 +41,9 @@
     return { season, time, theme: time === 'night' ? 'dark' : 'light' };
   }
 
-  let preferences = readPreferences();
-  let unsaved = false;
+  let remembered = readRemembered();
+  let devicePreferences = remembered || automatic;
+  let preferences = devicePreferences;
   let source = 'device';
   let personalWriter = null;
   let provisional = null;
@@ -71,31 +60,30 @@
   }
 
   function updatePreferences(patch) {
-    if (source !== 'device') {
-      provisional = null;
-      preferences = { version: 1,
-        season: seasons.includes(patch.season) ? patch.season : preferences.season,
-        brightness: brightnesses.includes(patch.brightness) ? patch.brightness : preferences.brightness,
-        updatedAt: new Date().toISOString() };
-      refresh();
-      window.dispatchEvent(new CustomEvent('bprea:preferences-change', { detail: { saved: false, pending: !!personalWriter } }));
-      if (personalWriter) personalWriter({ ...preferences });
-      return false; // Only the asynchronous adapter can confirm a personal save.
-    }
-    // Relire la sauvegarde pour préserver les champs d'un autre onglet / futur compte.
-    const stored = unsaved ? preferences : readPreferences(preferences);
+    provisional = null;
     preferences = {
-      ...stored,
-      season: seasons.includes(patch.season) ? patch.season : stored.season,
-      brightness: brightnesses.includes(patch.brightness) ? patch.brightness : stored.brightness,
-      updatedAt: new Date().toISOString()
+      version: 1,
+      season: seasons.includes(patch.season) ? patch.season : preferences.season,
+      brightness: brightnesses.includes(patch.brightness) ? patch.brightness : preferences.brightness,
+      ...(personalWriter ? { updatedAt: new Date().toISOString() } : {})
     };
-    let saved = false;
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)); saved = true; } catch {}
-    unsaved = !saved;
+    if (source === 'device') devicePreferences = preferences;
+    preferencesChanged();
+    if (personalWriter) personalWriter({ ...preferences });
+    return false;
+  }
+
+  function preferencesChanged() {
     refresh();
-    window.dispatchEvent(new CustomEvent('bprea:preferences-change', { detail: { saved } }));
-    return saved;
+    window.dispatchEvent(new CustomEvent('bprea:preferences-change'));
+  }
+  function reloadDevicePreferences() {
+    const previous = remembered;
+    remembered = readRemembered();
+    if (devicePreferences === (previous || automatic)) devicePreferences = remembered || automatic;
+    if (source === 'device') preferences = devicePreferences;
+    if (provisional) provisional = remembered || automatic;
+    preferencesChanged();
   }
 
   window.BpreaAppearance = Object.freeze({
@@ -106,7 +94,45 @@
     refresh,
     updatePreferences,
     getSource: () => source,
-    getDevicePreferences: () => readPreferences(),
+    getDevicePreferences: () => ({ ...devicePreferences }),
+    getRemembered: () => remembered && { ...remembered },
+    reloadDevicePreferences,
+    remember() {
+      if (source !== 'device') return 'Indisponible pendant la vérification du compte.';
+      const { season, brightness } = preferences;
+      if (season === 'auto' && brightness === 'auto') return 'L’apparence automatique est disponible sur toutes les pages.';
+      try {
+        const previous = localStorage.getItem(STORAGE_KEY);
+        if (previous !== null && !decodeRemembered(previous)) return 'Le choix mémorisé est illisible ou d’une autre version. Il est conservé.';
+        const next = { version: 1, season, brightness };
+        const raw = JSON.stringify(next);
+        if (raw !== previous) localStorage.setItem(STORAGE_KEY, raw);
+        remembered = devicePreferences = preferences = next;
+        preferencesChanged();
+        return null;
+      } catch { return 'Le stockage local est indisponible. Ce choix reste actif sur cette page.'; }
+    },
+    forget() {
+      if (source !== 'device') return 'Indisponible pendant la vérification du compte.';
+      try {
+        localStorage.removeItem(STORAGE_KEY);
+        remembered = null;
+        preferencesChanged();
+        return null;
+      } catch { return 'Le stockage local est indisponible. Le retrait n’a pas abouti.'; }
+    },
+    recallArchived() {
+      if (source !== 'device') return 'Indisponible pendant la vérification du compte.';
+      try {
+        const saved = parse(localStorage.getItem(ARCHIVED_KEY));
+        const season = saved?.version === 1 && seasons.includes(saved.season) ? saved.season : null;
+        const brightness = saved?.version === 1 && brightnesses.includes(saved.brightness) ? saved.brightness : null;
+        const legacy = brightness === null ? localStorage.getItem(LEGACY_KEY) : null;
+        if (!season && !brightness && !['light', 'dark'].includes(legacy)) return 'Aucune ancienne apparence lisible.';
+        updatePreferences({ season: season || 'auto', brightness: brightness || (['light', 'dark'].includes(legacy) ? legacy : 'auto') });
+        return null;
+      } catch { return 'Le stockage local est indisponible. Les anciens choix sont conservés.'; }
+    },
     // Applying a verified/cache value never calls the writer and never touches
     // visitor storage. No identity is passed into the visual runtime.
     setSource(next, value, writer = null) {
@@ -114,23 +140,21 @@
       personalWriter = source === 'personal' ? writer : null;
       // An empty account has no verified preference yet. Keep only the device
       // rendering provisionally; the editable personal model remains auto/auto.
-      provisional = source === 'personal' && !value ? readPreferences() : null;
-      unsaved = false;
-      preferences = source === 'device' ? readPreferences() : {
+      provisional = source === 'personal' && !value ? remembered || automatic : null;
+      preferences = source === 'device' ? devicePreferences : {
         version: 1, season: seasons.includes(value?.season) ? value.season : 'auto',
         brightness: brightnesses.includes(value?.brightness) ? value.brightness : 'auto',
         ...(value?.updatedAt ? { updatedAt: value.updatedAt } : {})
       };
-      refresh();
-      window.dispatchEvent(new CustomEvent('bprea:preferences-change'));
+      preferencesChanged();
     },
     applyPreferences(value) {
       if (!value || !seasons.includes(value.season) || !brightnesses.includes(value.brightness)) return false;
       provisional = null;
       preferences = { version: 1, season: value.season, brightness: value.brightness,
         ...(value.updatedAt ? { updatedAt: value.updatedAt } : {}) };
-      refresh();
-      window.dispatchEvent(new CustomEvent('bprea:preferences-change'));
+      if (source === 'device') devicePreferences = preferences;
+      preferencesChanged();
       return true;
     }
   });
@@ -139,11 +163,6 @@
   window.addEventListener('pageshow', () => refresh());
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
   window.addEventListener('storage', event => {
-    if (source !== 'device') return;
-    if (event.key !== STORAGE_KEY && event.key !== LEGACY_KEY && event.key !== null) return;
-    preferences = readPreferences();
-    unsaved = false;
-    refresh();
-    window.dispatchEvent(new CustomEvent('bprea:preferences-change'));
+    if (event.key === STORAGE_KEY || event.key === null) reloadDevicePreferences();
   });
 })();

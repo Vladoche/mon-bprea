@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
-import { createCourseQuizService, VISITOR_PROGRESS_KEY } from '../../assets/course-quiz-service.js';
+import { createCourseQuizService, IMPORT_PROVENANCE_KEY, VISITOR_PROGRESS_KEY } from '../../assets/course-quiz-service.js';
 import { createCourseQuizRepository, personalScope } from '../../assets/course-quiz-store.js';
 import { getUnitExamStats } from '../../assets/exam-stats.js';
 import { reconcileHistory } from '../../assets/course-quiz-model.js';
@@ -211,15 +211,45 @@ describe('service cours/QCM — réseau simulé, aucune preuve Auth/RLS distante
     const raw = JSON.stringify({ [lessonId]: { done: true, score: 2, quizAttempts: [{ score: 2, total: 3, completedAt: at }, { score: 2, total: 3, completedAt: at }], future: ['keep'] }, progressArchive: ['old'] });
     storage.setItem(VISITOR_PROGRESS_KEY, raw); const f = await initialized();
     expect(f.remote.sent).toEqual([]); const preview = await f.service.previewImport(); expect(preview.summary).toMatchObject({ courses: 1, attempts: 2 });
-    expect((await f.service.confirmImport(preview)).error).toBeNull();
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
+    const confirmations = await Promise.all([f.service.confirmImport(preview), f.service.confirmImport(preview)]);
+    expect(confirmations.filter(result => result.error === null)).toHaveLength(1);
+    expect(confirmations.find(result => result.error).error).toMatch(/changé/);
     const manifest = (await f.repo(userA).read()).imports[0]; expect(manifest.raw).toBe(raw); expect(Object.keys(manifest.attemptIds)).toHaveLength(2);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBe(manifest.provenance);
     f.service.stop(); const reload = fixture({ remote: f.remote }); await reload.service.start();
-    expect((await reload.service.confirmImport(await reload.service.previewImport())).replayed).toBe(true);
+    const replay = await reload.service.previewImport();
+    expect(replay.provenance).toBe(manifest.provenance);
+    expect((await reload.service.confirmImport(replay)).replayed).toBe(true);
     await reload.service.synchronize(); expect(f.remote.histories.get(userA).attempts).toHaveLength(2);
     expect(storage.getItem(VISITOR_PROGRESS_KEY)).toBe(raw);
+    storage.removeItem(IMPORT_PROVENANCE_KEY);
+    expect((await reload.service.confirmImport(replay)).error).toMatch(/changé/);
+    expect((await reload.service.confirmImport(await reload.service.previewImport())).error).toMatch(/provenance/);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
     storage.setItem(VISITOR_PROGRESS_KEY, raw.replace('"done":true', '"done":false'));
     expect((await reload.service.confirmImport(await reload.service.previewImport())).error).toBeTruthy();
     expect((await reload.repo(userA).read()).imports).toHaveLength(1);
+  });
+  it('revérifie la source après le scan du compte et invalide un aperçu antérieur au passage A–B–A', async () => {
+    const raw = JSON.stringify({ [lessonId]: { done: true } });
+    storage.setItem(VISITOR_PROGRESS_KEY, raw);
+    const f = await initialized();
+    const preview = await f.service.previewImport();
+    f.remote.connections.get(userA).readHistory.mockImplementationOnce(async () => {
+      storage.setItem(VISITOR_PROGRESS_KEY, raw + ' ');
+      return { courses: [], attempts: [] };
+    });
+    expect((await f.service.confirmImport(preview)).error).toMatch(/changé/);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
+    const current = await f.service.previewImport();
+    for (const id of [userB, userA]) {
+      f.auth.emit('authenticated', id); await f.service.start(); await f.service.synchronize();
+      expect((await f.service.confirmImport(current)).error).toMatch(/pour ce compte/);
+      expect((await f.repo(id).read()).imports).toEqual([]);
+    }
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
+    expect(f.remote.sent).toEqual([]);
   });
   it('ne confirme pas un enregistrement si la transaction de stockage échoue', async () => {
     let fail = false;

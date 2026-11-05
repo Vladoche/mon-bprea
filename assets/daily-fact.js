@@ -2,7 +2,6 @@ import { lessons } from './content.js';
 import { loadResourceCatalog } from './resources.js';
 
 export const DAILY_FACT_EPOCH = '2026-01-01';
-export const DAILY_FACT_STORAGE_KEY = 'bprea-demo-daily-fact-dismissed-v1';
 
 const dayFormat = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit',
@@ -13,7 +12,6 @@ const isRecord = value => value !== null && typeof value === 'object' && !Array.
 const text = value => typeof value === 'string' ? value.trim() : '';
 const isId = value => typeof value === 'string' && /^[a-z0-9][a-z0-9-]*$/.test(value);
 let factsPromise;
-let dismissedInMemory = null;
 
 /** A civil day in Paris, independently of the visitor's browser time zone. */
 export function getParisDay(date = new Date()) {
@@ -91,19 +89,6 @@ async function fetchFacts() {
   }
 }
 
-function readDismissedDay(day) {
-  // A refused write may coexist with a readable old value (quota/private mode).
-  if (dismissedInMemory === day) return dismissedInMemory;
-  try { return localStorage.getItem(DAILY_FACT_STORAGE_KEY); }
-  catch { return dismissedInMemory; }
-}
-
-function dismissDay(day) {
-  dismissedInMemory = day;
-  // Only this feature's key is written. No progress/preference data is removed.
-  try { localStorage.setItem(DAILY_FACT_STORAGE_KEY, day); } catch { /* Keep the in-page choice. */ }
-}
-
 function element(tag, className, value) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -149,13 +134,14 @@ export async function initDailyFact(root) {
   if (data.error || data.warnings.length) console.warn('[Anecdote quotidienne]', data.error || data.warnings.join(' '));
   if (!data.facts.length) return () => controller.abort();
   let displayedDay;
+  let dismissed = false;
 
   function render() {
     if (signal.aborted) return;
     const day = getParisDay();
-    const hidden = readDismissedDay(day) === day;
-    if (day === displayedDay) { root.hidden = hidden; return; }
+    if (day === displayedDay) { root.hidden = dismissed; return; }
     displayedDay = day;
+    dismissed = false;
     const fact = selectDailyFact(data.facts, day);
     const icon = element('span', 'daily-fact-icon');
     icon.append(leafIcon());
@@ -170,19 +156,19 @@ export async function initDailyFact(root) {
     content.append(heading, element('p', 'daily-fact-text', fact.text), details);
     const close = element('button', 'daily-fact-dismiss', '×');
     close.type = 'button';
-    close.setAttribute('aria-label', 'Masquer l’anecdote pour aujourd’hui');
-    close.title = 'Masquer pour aujourd’hui';
+    close.setAttribute('aria-label', 'Masquer l’anecdote sur cette page');
+    close.title = 'Masquer sur cette page';
     close.addEventListener('click', () => {
       if (getParisDay() !== displayedDay) { render(); return; }
       const hadFocus = document.activeElement === close;
-      dismissDay(displayedDay);
+      dismissed = true;
       root.hidden = true;
       if (hadFocus) (root.closest('main') || document.getElementById('app-main'))?.focus({ preventScroll: true });
     });
     root.replaceChildren(icon, content, close);
     root.dataset.factId = fact.id;
     root.dataset.factDate = day;
-    root.hidden = hidden;
+    root.hidden = false;
   }
 
   render();
@@ -191,8 +177,5 @@ export async function initDailyFact(root) {
   signal.addEventListener('abort', () => window.clearInterval(interval), { once: true });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); }, { signal });
   window.addEventListener('pageshow', render, { signal });
-  window.addEventListener('storage', event => {
-    if (event.key === DAILY_FACT_STORAGE_KEY || event.key === null) render();
-  }, { signal });
   return () => controller.abort();
 }

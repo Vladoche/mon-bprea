@@ -107,6 +107,8 @@ export function projectLocal(domain, document, scope, { allowMapKeys = false } =
   return { data: result, omitted: context.omitted };
 }
 export function projectVisitor(domain, value) {
+  if (domain === 'rememberedAppearance') domain = 'appearance';
+  if (domain === 'rememberedItk') domain = 'itk';
   const context = { omitted: 0 };
   if (domain === 'legacyTheme' && !['light', 'dark'].includes(value) || domain === 'dismissed' && !/^\d{4}-\d\d-\d\d$/.test(value)) fail('invalid');
   if (['courseProvenance', 'botanicalProvenance'].includes(domain)) {

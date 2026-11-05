@@ -248,6 +248,7 @@ test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au 
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('winter');
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
+  await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
   await page.keyboard.press('Escape');
   const navigation = page.getByRole('navigation', { name: 'Navigation principale' });
   await navigation.getByRole('button', { name: 'Afficher les sous-rubriques de Outils' }).click();
@@ -266,6 +267,7 @@ test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('light');
+  await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   await page.reload();

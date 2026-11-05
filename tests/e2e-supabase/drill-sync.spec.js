@@ -25,7 +25,7 @@ test('Drill réel : multi-appareils, insertion non acquittée, hors ligne persis
     await configureDrillPage(page, a.environment);
     const visitor = JSON.stringify({ version: 1, series: { 'uc3__2026-W41': makeSeries({ week: '2026-W41' }) }, future: 'préserver' });
     await page.addInitScript(raw => { if (!sessionStorage.getItem('drill-visitor-seeded')) { localStorage.setItem('bprea-demo-drill-v1', raw); sessionStorage.setItem('drill-visitor-seeded', 'yes'); }
-      localStorage.setItem('bprea-demo-appearance-v1', '{"version":1,"season":"winter","brightness":"dark"}'); }, visitor);
+      localStorage.setItem('bprea-demo-appearance-device-v1', '{"version":1,"season":"winter","brightness":"dark"}'); }, visitor);
     stage = 'connexion A et création de série'; await signInDrill(page, a);
     await page.getByRole('button', { name: 'Commencer cette série' }).click(); await synced(page);
     stage = 'première réponse, entraînement et rechargement'; await respond(page); await synced(page);

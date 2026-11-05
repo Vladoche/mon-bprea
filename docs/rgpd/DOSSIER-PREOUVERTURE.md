@@ -1,8 +1,8 @@
-# Dossier de préouverture — suivi courant 6.5.5.D
+# Dossier de préouverture — suivi courant 6.5.5.E
 
-**5 novembre 2026. Sept P0 résolus et huit ouverts.** La [matrice des quinze portes](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) donne les preuves et conditions restantes. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [D01–D14](DECISIONS-A-VALIDER.md), [validation D](../validations/VALIDATION-LOT6-5-5D.md).
+**5 novembre 2026. Sept P0 résolus et huit ouverts.** La [matrice des quinze portes](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) donne les preuves et conditions restantes. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [D01–D14](DECISIONS-A-VALIDER.md), [validation E](../validations/VALIDATION-LOT6-5-5E.md).
 
-Sept comptes adultes confirmés, exploitant et six autres participants. Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. La V1.0 est approuvée sur le fond et préparée hors Pages. D12 et les garanties fournisseur applicables restent à compléter avant publication.
+Sept comptes adultes confirmés, exploitant et six autres participants. Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. Le fond de la V1.0 est approuvé. La V1.1 reste en préparation hors Pages après recette des corrections D12. La qualification des accès et le traitement des archives résiduelles, les écarts substantiels et les garanties fournisseurs applicables restent à valider avant publication.
 
 ## Historique daté — ne vaut pas état courant des P0
 
@@ -57,7 +57,7 @@ Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan coura
 | URL/callback et artefact | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : Site URL locale /mon-bprea/ et callback exact unique sans wildcard ; aucun retour reçu éprouvé | Opérateur frontend/Auth | Préserver DEV local ; artefact public off, artefact DEV séparé à autoriser |
 | Invitation et récupération | PRÉPARÉ MAIS NON ACTIVÉ | Générateur manuel et capture SMTP de régression distincts, aucun destinataire réel | Opérateur comptes | Recette hébergée autorisée puis vérifier information préalable, usage unique et expiration |
 | Paramètres Auth | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : signup/anonyme off, e-mail on ; JWT/OTP 3600 s, rotation on ; écart Secure password change off | Opérateur Auth / sécurité | Décider réglages et durées puis recette réelle dédiée ; ne pas copier les 120/60 s de tests |
-| Accès au terminal D12 | DÉCISION À VALIDER | [Analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) exécutée et adaptations proposées | Responsable | Trancher, recetter et informer sur les accès facultatifs |
+| Accès au terminal D12 | DÉCISION À VALIDER | [Analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) et corrections recettées | Responsable | Approuver la qualification, statuer sur les résidus et intégrer les informations retenues dans la notice |
 | Artefact Pages exact | VALIDÉ TECHNIQUEMENT en local | Préparation et audit sous `/mon-bprea/`, Auth off ; pas de réponse CDN réelle | Opérateur frontend | Revalider SHA/digest et notice approuvée dans la future recette autorisée, avant publication |
 | Retour arrière | DÉCISION À VALIDER | 6.5.2 : plan d'arrêt/retour sûr par incident préparé, non approuvé ni exécuté | Exploitant / sécurité | Autoriser méthode serveur de confinement/reprise, préserver données et réconcilier effacements avant restauration |
 | Sauvegardes/restauration | BLOQUANT pour la mise en service | Plan réel, durées, accès et preuve de réapplication des effacements manquants | Opérateur base et référent droits | Essai isolé autorisé, inventaire des suppressions postérieures et contrôle avant réouverture |

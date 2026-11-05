@@ -1,8 +1,16 @@
 # Développement et stratégie de tests
 
+## Accès au terminal et mémorisations locales — lot 6.5.5.E
+
+`d12-storage.spec.js` enregistre les méthodes et noms de clés, sans consigner les valeurs Auth. Les tests utilisent l’artefact Pages et des contextes isolés. Ils distinguent la lecture avant CSS de la seule apparence mémorisée, les anciennes clés accessibles sur action, le masquage d’anecdote en mémoire de page et les commandes ITK de rappel et de retrait. Le calendrier et le CSV sont comparés pour des paramètres identiques. Le profil ne lit les sauvegardes locales qu’après la recherche demandée et peut exporter ou retirer séparément les mémorisations et les originaux hérités.
+
+`appearance-preferences.spec.js` bloque les CSS pour vérifier le premier rendu, teste les seuils horaires et les anciennes valeurs, puis contrôle le clavier et le focus en clair/sombre à 320, 390 et 1280 px. Les erreurs de quota et d’accès au stockage couvrent des dégradations différentes. Les captures synthétiques et le rapport navigateur restent ignorés. `notice-preview.spec.js` applique la même matrice sans JavaScript à la V1.1 en préparation. `privacy-artifact.spec.js` vérifie séparément le réseau, les stockages créés et l’exclusion de la notice dans l’artefact réel.
+
+Les tests d’import QCM et botanique couvrent l’annulation sans dépôt d’UUID, la confirmation, la mutation de la source pendant une relecture distante, la concurrence, le refus d’écriture, la bascule de compte et le rejeu après rechargement. Le retrait de la provenance invalide l’ancien aperçu. Les suites existantes de synchronisation et d’effacement vérifient les outboxes et la barrière `privacy`. Les réponses HTTP simulées ne valident pas RLS. Le job `supabase-security` vérifie la stack éphémère distincte. [Validation E](validations/VALIDATION-LOT6-5-5E.md).
+
 ## Notice et accès au terminal — lot 6.5.5.D
 
-`d12-storage.spec.js` relève les noms et les types d’accès, sans journaliser les valeurs d’authentification. L’horloge contrôlée distingue l’effet du masquage de l’anecdote de la présence de sa date. Les actions réelles montrent les écritures visiteur, le cas du thème hérité et, via HTTP simulé, la session et l’outbox personnelle conservée après déconnexion. Les scénarios existants vérifient aussi l’UUID de provenance dès l’aperçu d’import et la barrière de retrait limitée au compte sélectionné. Les essais couvrent le navigateur, séparément de la RLS.
+Au lot D, `d12-storage.spec.js` relevait les noms et les types d’accès. L’horloge contrôlée distinguait l’effet du masquage de l’anecdote de la présence de sa date. Les actions montraient les écritures visiteur, la migration du thème hérité et, via HTTP simulé, la session et l’outbox personnelle conservée après déconnexion. Le dépôt d’UUID dès l’aperçu d’import faisait partie des constats ensuite corrigés dans E. Les essais couvraient le navigateur, séparément de la RLS.
 
 `notice-preview.spec.js` rend la même source que `npm run preopening:notice`. Six combinaisons sans JavaScript couvrent 320/390/1280 px, clair/sombre, sommaire et fragments relatifs, focus, contraste et absence de requête annexe. L’artefact Pages réel et les pages en contextes vierges vérifient séparément l’exclusion de la notice et de ses liens, la configuration Auth vide/désactivée et le contact. [Validation D](validations/VALIDATION-LOT6-5-5D.md).
 

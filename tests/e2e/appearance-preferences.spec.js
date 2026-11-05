@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-const KEY = 'bprea-demo-appearance-v1';
+const KEY = 'bprea-demo-appearance-device-v1';
+const ARCHIVED = 'bprea-demo-appearance-v1';
 const LEGACY = 'bprea-demo-theme-v1';
 const now = new Date('2026-10-20T08:00:00.000Z');
 const openAppearance = page => page.getByRole('button', { name: 'Paramètres d’apparence', exact: true });
@@ -18,8 +19,11 @@ async function seed(page, values) {
   }, values);
 }
 
-test('thème visiteur disponible avant les CSS et avant toute vérification réseau', async ({ page }) => {
-  await seed(page, { [KEY]: JSON.stringify({ version: 1, season: 'winter', brightness: 'dark' }) });
+test('thème mémorisé disponible avant les CSS et avant toute vérification réseau', async ({ page }) => {
+  await seed(page, {
+    [KEY]: '{"version":1,"season":"winter","brightness":"dark"}',
+    [ARCHIVED]: '{"version":1,"season":"spring","brightness":"light"}',
+  });
   let releaseStyles;
   const stylesGate = new Promise(resolve => { releaseStyles = resolve; });
   await page.route(/\/assets\/[^/]+\.css(?:\?.*)?$/, async route => {
@@ -50,20 +54,20 @@ test('thème visiteur disponible avant les CSS et avant toute vérification rés
   expect(privateRequests).toEqual([]);
 });
 
-test('dialogue clavier, archives visiteur intactes et variantes desktop/mobile', async ({ page }, testInfo) => {
-  const unknown = JSON.stringify({ version: 9, season: 'ocean', future: { preserve: true } });
+test('dialogue clavier, choix de page distinct, priorité de la reprise et archives intactes', async ({ page }, testInfo) => {
   const histories = {
     [LEGACY]: 'dark',
+    [ARCHIVED]: '{"version":1,"season":"spring","brightness":"light","future":{"preserve":true}}',
     'bprea-demo-itk-v1': '{"crop":"tomate","variety":"Marmande","cover":"serre","area":"120","month":"5","year":"2028","soil":"limoneux","water":"standard"}',
     'bprea-demo-progress-v1': '{"matiere-organique":{"done":true,"score":2}}',
     'bprea-demo-drill-v1': '{"version":1,"series":{}}',
     'monbprea.botanical.v1': '{"schemaVersion":1,"answers":[],"sessions":[]}',
   };
-  await seed(page, { ...histories, [KEY]: unknown });
+  await seed(page, histories);
   await page.goto('/mon-bprea/itk.html');
   await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
-  await expect(page.locator('#appearance-save')).toContainText('visiteur');
-  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(unknown);
+  await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
+  await expect(page.locator('html')).toHaveAttribute('data-season', 'autumn');
   await openAppearance(page).focus();
   await page.keyboard.press('Enter');
   const dialog = dialogFor(page);
@@ -79,6 +83,10 @@ test('dialogue clavier, archives visiteur intactes et variantes desktop/mobile',
   await expect(season).toBeFocused();
   await page.keyboard.press('Shift+Tab');
   await expect(close).toBeFocused();
+  await dialog.getByRole('button', { name: 'Reprendre une ancienne apparence' }).press('Enter');
+  await expect(season).toHaveValue('spring');
+  await expect(brightness).toHaveValue('light');
+  await close.focus();
   await page.keyboard.press('Tab');
   await expect(season).toBeFocused();
   await page.keyboard.press('End');
@@ -87,21 +95,35 @@ test('dialogue clavier, archives visiteur intactes et variantes desktop/mobile',
   await expect(brightness).toBeFocused();
   await page.keyboard.press('End');
   await expect(brightness).toHaveValue('dark');
-  await expect(page.locator('#appearance-save')).toContainText('enregistrées sur cet appareil');
-  for (const width of [1280, 390]) {
+  await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
+  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBeNull();
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-season', 'autumn');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await openAppearance(page).press('Enter');
+  await season.selectOption('winter');
+  const remember = dialog.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' });
+  for (const width of [320, 390, 1280]) {
     await page.setViewportSize({ width, height: 900 });
     for (const theme of ['light', 'dark']) {
       await brightness.selectOption(theme);
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
+      await brightness.focus();
+      await page.keyboard.press('Tab');
+      await expect(remember).toBeFocused();
+      expect(await remember.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      await page.screenshot({ path: testInfo.outputPath(`appearance-visitor-${width}-${theme}.png`), fullPage: false, animations: 'disabled' });
+      await dialog.screenshot({ path: testInfo.outputPath(`appearance-visitor-${width}-${theme}.png`), animations: 'disabled' });
     }
   }
+  await remember.press('Enter');
+  await expect(page.locator('#appearance-save')).toHaveText('Apparence mémorisée sur cet appareil.');
+  await dialog.screenshot({ path: testInfo.outputPath('appearance-remembered.png'), animations: 'disabled' });
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
   await expect(openAppearance(page)).toBeFocused();
   const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), KEY);
-  expect(saved).toMatchObject({ version: 1, season: 'winter', brightness: 'dark', unrecognizedPreferencesArchive: [unknown] });
+  expect(saved).toEqual({ version: 1, season: 'winter', brightness: 'dark' });
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -110,10 +132,10 @@ test('dialogue clavier, archives visiteur intactes et variantes desktop/mobile',
 
 test('auto reste auto pendant les seuils horaires, saisons et changements d’heure locaux', async ({ page }) => {
   const original = JSON.stringify({ version: 1, season: 'auto', brightness: 'auto' });
-  await seed(page, { [KEY]: original });
+  await seed(page, { [ARCHIVED]: original });
   await page.goto('/mon-bprea/itk.html');
   await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
-  await expect(page.locator('#appearance-save')).toContainText('visiteur');
+  await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
   for (const [instant, season, time, theme] of [
     ['2026-02-28T22:59:00.000Z', 'winter', 'night', 'dark'],
     ['2026-03-01T05:00:00.000Z', 'spring', 'morning', 'light'],
@@ -137,7 +159,8 @@ test('auto reste auto pendant les seuils horaires, saisons et changements d’he
   await expect(page.locator('html')).toHaveAttribute('data-time', 'twilight');
   await page.clock.fastForward(60000);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(original);
+  expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBeNull();
+  expect(await page.evaluate(key => localStorage.getItem(key), ARCHIVED)).toBe(original);
 });
 
 test('erreur de stockage : choix temporaire visible, sauvegarde et anciennes clés préservées', async ({ page }) => {
@@ -152,12 +175,13 @@ test('erreur de stockage : choix temporaire visible, sauvegarde et anciennes cl�
     };
   }, { key: KEY, legacy: LEGACY, original });
   await page.goto('/mon-bprea/itk.html');
-  await expect(page.locator('#appearance-save')).toContainText('visiteur');
+  await expect(page.locator('#appearance-save')).toHaveText('Apparence mémorisée sur cet appareil.');
   await openAppearance(page).click();
   await dialogFor(page).getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await expect(page.locator('#appearance-save')).toContainText('stockage local est indisponible');
-  await expect(page.locator('#appearance-save')).toContainText('page seulement');
+  await dialogFor(page).getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).press('Enter');
+  await expect(page.locator('#appearance-action-message')).toContainText('stockage local est indisponible');
+  await expect(page.locator('#appearance-action-message')).toContainText('actif sur cette page');
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(original);

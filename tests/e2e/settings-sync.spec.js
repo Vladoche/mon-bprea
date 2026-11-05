@@ -137,18 +137,30 @@ test('comptes : réponse ITK tardive de A ignorée sous B et caches récupérés
   await expectItk(page, itkParameters); expect(await settingsRecords(page)).toHaveLength(2);
 });
 
-test('visiteur : génération et apparence conservées, erreurs de stockage annoncées sans supprimer la source', async ({ page }) => {
+test('visiteur : écriture ITK refusée, résultat utilisable et mémorisation précédente intacte', async ({ page }) => {
   await page.goto(itkPath); await generateItk(page); await expect(page.locator('#itk-sync-status')).toContainText('visiteur');
   await chooseAppearance(page, 'spring', 'light'); await closeAppearance(page); await captureMatrix(page, 'visitor');
-  const before = await page.evaluate(() => localStorage.getItem('bprea-demo-itk-v1'));
-  await page.evaluate(() => { const original = Storage.prototype.setItem; Storage.prototype.setItem = function(key, value) { if (key === 'bprea-demo-itk-v1' || key === 'bprea-demo-appearance-v1') throw new DOMException('Synthetic quota', 'QuotaExceededError'); return original.call(this, key, value); }; });
-  await generateItk(page, { ...itkParameters, area: '888' }); await expect(page.locator('#itk-action-message')).toContainText(/pas enregistr|pas sauvegard/i); await expect(page.locator('#csv-export')).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem('bprea-demo-itk-v1'))).toBe(before); await captureMatrix(page, 'storage-error');
+  const remember = page.getByRole('button', { name: 'Mémoriser les paramètres du dernier calcul' });
+  await remember.click();
+  const before = await page.evaluate(() => localStorage.getItem('bprea-demo-itk-device-v1'));
+  expect(JSON.parse(before)).toEqual(itkParameters);
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key, value) {
+      if (key === 'bprea-demo-itk-device-v1') throw new DOMException('Synthetic quota', 'QuotaExceededError');
+      return original.call(this, key, value);
+    };
+  });
+  await generateItk(page, { ...itkParameters, area: '888' }); await remember.click();
+  await expect(page.locator('#itk-action-message')).toContainText('Le stockage local est indisponible');
+  await expect(page.locator('#csv-export')).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem('bprea-demo-itk-device-v1'))).toBe(before);
+  await captureMatrix(page, 'storage-error');
 });
 
 test('compte vide : rendu sombre de l’appareil conservé après récupération sans préférence personnelle inventée', async ({ page }) => {
   const source = '{"version":1,"season":"winter","brightness":"dark"}';
-  const api = createSettingsAPI(); await api.install(page.context(), 'A', { 'bprea-demo-appearance-v1': source });
+  const api = createSettingsAPI(); await api.install(page.context(), 'A', { 'bprea-demo-appearance-device-v1': source });
   await page.goto(itkPath); await settingsSynced(page);
   await settingsAction(page, 'save', 'appearance', { version: 1, season: 'summer', brightness: 'light' }); await settingsSynced(page);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
@@ -167,7 +179,7 @@ test('compte vide : rendu sombre de l’appareil conservé après récupération
   await page.reload(); await settingsSynced(page);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(api.rows.appearance.has(accounts.B.id)).toBe(false);
-  expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-v1'))).toBe(source);
+  expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-device-v1'))).toBe(source);
 });
 
 test('apparence personnelle : stockage refusé, choix temporaire honnête et source visiteur préservée', async ({ page }) => {
