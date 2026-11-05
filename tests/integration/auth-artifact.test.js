@@ -36,6 +36,8 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
       'scripts/dev-recipe/prepare-continuation.mjs', 'scripts/dev-recipe/continuation.mjs', '.tmp/dev-recipe/lineage.json', '.tmp/dev-recipe/plan.json',
       'scripts/maintenance/tmp-prune.mjs', 'scripts/maintenance/tmp-policy.mjs', 'scripts/maintenance/tmp-inventory.mjs',
       '.tmp/maintenance-local/inventory-before.json', '.tmp/.maintenance.lock',
+      'scripts/preopening/operator.mjs', 'scripts/preopening/backup.mjs', 'scripts/preopening/policy.json',
+      'scripts/preopening/exercise-local.mjs', 'scripts/preopening/notice-preview.mjs', '.tmp/preopening-operator-655b/operator.json',
       'node_modules/@supabase/supabase-js/package.json', 'auth-config.local.json', 'tests/helpers/auth-http.js'])
       expect(existsSync(join(result.output, privateFile)), privateFile).toBe(false);
     expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).toContain('sans service d’envoi automatique d’e-mails');
