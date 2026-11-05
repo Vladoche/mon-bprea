@@ -1,5 +1,21 @@
 # Reprise de la recette DEV — lot 6.5.4.C
 
+**4 novembre 2026 — C2 exécutée et fermée : correctif JSON validé contre DEV au frontend local 5c910b748fae0b7747c8192424e7ecd49c86a520.** T03/T08/T10/T12 réussis ; expiration JWT T11 **NON EXÉCUTÉE**, report choisi explicitement par l'exploitant. [Bilan actuel, SHA et preuves](../validations/VALIDATION-LOT6-5-4C.md). Compteurs cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives** ; **36 lignes** conservées (26 A/10 B). Aucun nouveau compte/lien, nettoyage, déploiement ou changement Auth/RLS.
+
+## État actuel à conserver
+
+Même campagne/continuation, artefact existant et JSON original intacts. Le plan privé de reprise est lié aux six sources scellées et aux anciens journaux ; les 1 635 empreintes historiques ont été revérifiées. Les deux seules créations compatibles QCM/Drill sont maintenant confirmées : ne pas les rejouer. Dépendance botanique bloquée, cours concurrent révision 6, témoins B et archives inactives conservés.
+
+Les connexions ont été automatisées sur demande par collage aveugle du presse-papiers, sans lecture ni journalisation du mot de passe. Après un arrêt d'observation lors de la connexion B réussie, la réouverture de l'outil de saisie a reçu son accord précis ; aucune répétition de B ni relance C2. Le seul retrait local ITK synthétique a été confirmé dans le contexte temporaire, puis sa barrière vérifiée. Serveur/navigateur/contrôleur fermés, branche locale d'origine rétablie.
+
+Pour le dernier contrôle T11, ne pas réutiliser le préflight périmé ou redémarrer le dispositif C2 consommé. Préparer un mandat ciblé pour une nouvelle session, vérifier identité/compteurs frais, garder le JWT signé uniquement en mémoire et attendre l'échéance réelle. Pas de nouvelle invitation/récupération, réglage de durée ou répétition des scénarios acquis. Tant que la sonde n'a pas eu lieu, garder **NON EXÉCUTÉ**.
+
+**D demeure distincte et non autorisée.** Inventaire privé : deux UUID exacts du run, 36 lignes, onze FK/cascades, sept lignes de sessions A/quatre B et zéro objet Storage à la lecture du 4 novembre ; deux JSON et archives locales conservés. Préparer tout nettoyage sur inventaire frais et accord propre, avec risques de cascades et copies résiduelles. Ne pas confondre fermeture du banc, révocation des JWT, clôture de compte et ouverture du service. Réexamen de la copie technique le 5 novembre inchangé.
+
+## Historique et procédures antérieures
+
+Les états et demandes suivants sont conservés à leur date ; ils n'autorisent aucune relance et ne décrivent pas les compteurs actuels.
+
 **31 octobre 2026 — R/C/C1 exécutés, recette partielle conservée au choix de l'exploitant ; C2 non autorisée, D absent.** Le correctif JSON est vérifié localement et en CI ; aucun frontend corrigé exécuté sur DEV. La [validation](../validations/VALIDATION-LOT6-5-4C.md) distingue les résultats acquis des parcours restants. La matrice **T01–T12 et ses sous-cas** reste celle du [runbook B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Les procédures ci-dessous ne donnent aucun accord de relance.
 
 ## Phase corrective après C1
