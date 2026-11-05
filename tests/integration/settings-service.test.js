@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
-import { createSettingsService, VISITOR_ITK_KEY, VISITOR_APPEARANCE_KEY, LEGACY_THEME_KEY } from '../../assets/settings-service.js';
+import { createSettingsService, REMEMBERED_ITK_KEY, VISITOR_ITK_KEY, VISITOR_APPEARANCE_KEY, LEGACY_THEME_KEY } from '../../assets/settings-service.js';
 import { createSettingsRepository, personalScope } from '../../assets/settings-store.js';
 import { queueSettings, reconcileSettings } from '../../assets/settings-model.js';
 import { MemoryStorage } from '../helpers/memory-storage.js';
@@ -41,7 +41,11 @@ async function initialized(options) { const f = fixture(options); await f.servic
 describe('persistance et service des paramètres — réseau simulé, sans preuve RLS', () => {
   it('préserve visiteur et sources anciennes, sans import implicite dans A', async () => {
     const raw = JSON.stringify(itk); storage.setItem(VISITOR_ITK_KEY, raw); storage.setItem(LEGACY_THEME_KEY, 'dark');
-    const visitor = await initialized({ auth: authFixture(null) }); expect(visitor.service.getState().view.itk).toEqual(itk); expect(visitor.service.getState().view.appearance).toEqual({ version: 1, season: 'auto', brightness: 'dark' });
+    const getItem = vi.spyOn(storage, 'getItem');
+    const visitor = await initialized({ auth: authFixture(null) });
+    expect(visitor.service.getState().view).toEqual({ itk: null, appearance: null, error: null });
+    expect((await visitor.service.save('itk', { ...itk, area: '111' })).error).toBeTruthy();
+    expect(getItem).not.toHaveBeenCalled();
     const personal = await initialized(); expect(personal.service.getState().view.itk).toBeNull(); expect(personal.remote.sent).toEqual([]); expect(storage.getItem(VISITOR_ITK_KEY)).toBe(raw); expect(storage.getItem(LEGACY_THEME_KEY)).toBe('dark');
   });
   it('refuse données historiques invalides et conserve original', async () => {
@@ -97,6 +101,18 @@ describe('persistance et service des paramètres — réseau simulé, sans preuv
     storage.setItem(VISITOR_ITK_KEY, JSON.stringify(itk)); const f = await initialized(); const preview = await f.service.previewImport('itk'); const connection = f.remote.connections.get(A); const read = connection.readSettings.getMockImplementation();
     connection.readSettings.mockImplementation(async () => { storage.setItem(VISITOR_ITK_KEY, JSON.stringify({ ...itk, area: '2' })); return read(); });
     expect((await f.service.confirmImport(preview)).error).toMatch(/source locale a changé/); expect((await f.repo(A).read()).operations).toEqual([]);
+  });
+  it('privilégie les paramètres mémorisés lors de l’examen et refuse le repli historique d’un aperçu devenu caduc', async () => {
+    const remembered = { ...itk, area: '222' };
+    storage.setItem(VISITOR_ITK_KEY, JSON.stringify(itk));
+    storage.setItem(REMEMBERED_ITK_KEY, JSON.stringify(remembered));
+    const f = await initialized();
+    const preview = await f.service.previewImport('itk');
+    expect(preview).toMatchObject({ value: remembered, source: REMEMBERED_ITK_KEY });
+    storage.removeItem(REMEMBERED_ITK_KEY);
+    expect((await f.service.confirmImport(preview)).error).toMatch(/source locale a changé/);
+    expect(await f.repo(A).read()).toMatchObject({ imports: [], operations: [] });
+    expect(await f.service.previewImport('itk')).toMatchObject({ value: itk, source: VISITOR_ITK_KEY });
   });
   it('annule toute transaction si stockage échoue, sans annoncer enregistré', async () => {
     let fail = false; const f = await initialized({ repositoryFactory: scope => { const repo = createSettingsRepository(scope, { indexedDB }); return { ...repo, change: (...args) => fail ? Promise.reject(Object.assign(new Error('stockage plein'), { code: 'local_storage' })) : repo.change(...args) }; } });

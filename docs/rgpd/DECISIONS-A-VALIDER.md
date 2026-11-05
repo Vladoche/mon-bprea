@@ -1,6 +1,6 @@
 # Décisions D01–D14 et risques — suivi du 5 novembre 2026
 
-**Lot 6.5.5.D.** Décisions et attestations reçues dans le [reçu D](RECU-ARBITRAGES-2026-11-05.md). La [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) suit les conditions de clôture. Les états datés sont conservés dans les validations et dans Git.
+**Suivi au lot 6.5.5.E.** Décisions et attestations reçues dans le [reçu D](RECU-ARBITRAGES-2026-11-05.md). La [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) suit les conditions de clôture. Les états datés sont conservés dans les validations et dans Git.
 
 ## Réconciliation des quatorze décisions
 
@@ -17,7 +17,7 @@
 | D09 | **ACTÉE.** Sept comptes adultes au total, dont un exploitant, gratuit et volontaire, privé, fermeture le 30/06/2027 | Maintenir ce périmètre et le plafond administratif |
 | D10 | **VOLONTARIAT ET REMISE INDIVIDUELLE ACTÉS SUR LE FOND.** La V1.0 décrit la fourniture directe de l’adresse après information | Valider le canal final, la remise de la notice accessible avant collecte et la preuve minimale de sa version/date |
 | D11 | **APPROUVÉE.** AIPD complète non jugée nécessaire dans le périmètre examiné ci-dessous | Réexaminer au changement significatif ou à l’apparition d’un risque élevé |
-| D12 | **ANALYSÉE, OUVERTE.** Usages fonctionnels distincts des lectures facultatives. [Inventaire et solution préparée](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) | Choisir, recetter et informer sur les adaptations nécessaires avant publication et ouverture |
+| D12 | **CORRECTIONS RECETTÉES, DÉCISION OUVERTE.** Exemptions proposées par usage et mémorisations commandées séparément. [Qualification et preuves](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) | Approuver la qualification des accès actifs, arbitrer la nécessité des archives résolues et copies brutes résiduelles et relire les écarts de la V1.1 avant publication |
 | D13 | **CHOIX ACTÉ.** Exploitant seul administrateur, MFA/récupération et secrets protégés | Preuves distinctes de D04 sur la cible, le poste et la gestion des accès |
 | D14 | **OUVERTURE SUSPENDUE.** G1 autorise la branche, la PR et les contrôles CI ordinaires. V1.0 approuvée sur le fond | Autorisation de publication séparée. Cible, réserves T11/D et autres preuves opérationnelles avant autorisation d’activation et invitations |
 

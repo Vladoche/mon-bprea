@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { appearanceRuntime, appearanceStorage } from '../helpers/appearance-runtime.js';
 
-const KEY = 'bprea-demo-appearance-v1';
+const KEY = 'bprea-demo-appearance-device-v1';
+const ARCHIVED = 'bprea-demo-appearance-v1';
 const auto = { season: 'auto', brightness: 'auto' };
 
 beforeEach(() => {
@@ -38,24 +39,28 @@ describe('Résolution de l’apparence', () => {
     expect(api.resolve({ season: 'auto', brightness: 'dark' }, new Date(2026, 6, 20, 12))).toEqual({ season: 'summer', time: 'night', theme: 'dark' });
   });
 
-  it('revient aux choix automatiques pour les valeurs enregistrées invalides et refuse un correctif invalide', () => {
-    const storage = appearanceStorage({ [KEY]: JSON.stringify({ version: 1, season: 'typhon', brightness: 'sepia', futureField: 'conserver' }) });
+  it('revient à Auto si la mémorisation est illisible et préserve sa valeur lors d’un enregistrement', () => {
+    const invalid = '{"version":1,"season":"typhon","brightness":"sepia","futureField":"conserver"}';
+    const storage = appearanceStorage({ [KEY]: invalid });
     const { api } = appearanceRuntime(storage);
-    expect(api.getPreferences()).toMatchObject({ version: 1, season: 'auto', brightness: 'auto', futureField: 'conserver' });
+    expect(api.getPreferences()).toMatchObject(auto);
     api.updatePreferences({ season: 'summer', brightness: 'dark' });
     api.updatePreferences({ season: 'invalide', brightness: 'invalide' });
     expect(api.getState()).toEqual({ season: 'summer', time: 'night', theme: 'dark' });
-    expect(JSON.parse(storage.getItem(KEY)).futureField).toBe('conserver');
+    expect(api.remember()).toMatch(/conservé/);
+    expect(storage.getItem(KEY)).toBe(invalid);
   });
 
-  it('préserve les préférences illisibles et de version future, puis les archive lors d’un choix explicite', () => {
+  it('conserve à l’identique les anciennes préférences illisibles ou de version future', () => {
     for (const raw of ['{illisible', JSON.stringify({ version: 9, season: 'ocean', custom: 'ne pas perdre' })]) {
-      const storage = appearanceStorage({ [KEY]: raw, 'bprea-demo-progress-v1': 'historique' });
+      const storage = appearanceStorage({ [ARCHIVED]: raw, 'bprea-demo-progress-v1': 'historique' });
       const { api } = appearanceRuntime(storage);
-      expect(api.getPreferences()).toMatchObject({ season: 'auto', brightness: 'auto', unrecognizedPreferencesArchive: [raw] });
-      expect(storage.getItem(KEY)).toBe(raw);
+      expect(api.getPreferences()).toMatchObject(auto);
+      expect(api.recallArchived()).toMatch(/Aucune ancienne apparence/);
       api.updatePreferences({ brightness: 'dark' });
-      expect(JSON.parse(storage.getItem(KEY)).unrecognizedPreferencesArchive).toEqual([raw]);
+      expect(api.remember()).toBeNull();
+      expect(storage.getItem(ARCHIVED)).toBe(raw);
+      expect(JSON.parse(storage.getItem(KEY))).toEqual({ version: 1, season: 'auto', brightness: 'dark' });
       expect(storage.getItem('bprea-demo-progress-v1')).toBe('historique');
     }
   });

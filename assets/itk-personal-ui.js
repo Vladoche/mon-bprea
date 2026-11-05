@@ -1,4 +1,5 @@
-import { getSettingsService } from './settings-service.js';
+import { getSettingsService, readSettingsSource, REMEMBERED_ITK_KEY, VISITOR_ITK_KEY } from './settings-service.js';
+import { validateItk } from './settings-model.js';
 import { crops } from './content.js';
 
 const defaults = { crop: 'tomate', variety: 'Marmande', cover: 'serre', area: '100', month: '5', year: '2028', soil: 'limoneux', water: 'standard' };
@@ -17,7 +18,7 @@ export function itkDisplayParameters(saved = {}) {
     water: ['standard', 'limitee'].includes(source.water) ? source.water : defaults.water };
 }
 const labels = {
-  visitor: 'Mode visiteur · paramètres enregistrés sur cet appareil uniquement.', loading: 'Chargement des paramètres personnels…',
+  visitor: 'Mode visiteur · mémorisation facultative.', loading: 'Chargement des paramètres personnels…',
   saving: 'Enregistrement des paramètres sur cet appareil…', local: 'Paramètres enregistrés sur cet appareil.',
   pending: 'Paramètres enregistrés sur cet appareil · synchronisation en attente.', syncing: 'Synchronisation des paramètres en cours…',
   synced: 'Paramètres synchronisés.', offline: 'Hors ligne · paramètres conservés sur cet appareil.',
@@ -34,14 +35,61 @@ export function describeItk(value) {
 export function bindItkPersonal(form, root, { servicePromise = getSettingsService(), applyValues, clearResult } = {}) {
   root.innerHTML = `<p id="itk-sync-status" role="status" aria-live="polite"></p><p id="itk-sync-detail"></p><div class="itk-sync-actions"><button type="button" class="btn btn-outline" id="itk-refresh">Actualiser les paramètres</button><button type="button" class="btn btn-outline" id="itk-restore" hidden>Restaurer les paramètres du compte</button><button type="button" class="btn btn-outline" id="itk-import" hidden>Examiner les paramètres locaux</button></div><div id="itk-conflicts"></div><p id="itk-action-message" role="status"></p><dialog class="itk-import-dialog" aria-labelledby="itk-import-title"><h2 id="itk-import-title">Importer les paramètres ITK</h2><p>Ces paramètres proviennent du mode visiteur de cet appareil. Vérifie qu’ils t’appartiennent. La confirmation remplace volontairement les derniers paramètres du compte après vérification de sa version.</p><p id="itk-import-preview"></p><p id="itk-import-message" role="status"></p><button type="button" class="btn btn-primary" id="itk-import-confirm">Confirmer l’import ITK</button><button type="button" class="btn btn-outline" id="itk-import-cancel">Annuler</button></dialog>`;
   const find = id => root.querySelector(`#${id}`);
+  find('itk-sync-detail').insertAdjacentHTML('afterend', `
+    <div id="itk-device" hidden>
+      <div class="itk-sync-actions" role="group" aria-label="Paramètres de cet appareil">
+        <button type="button" class="btn btn-outline" id="itk-remember" disabled>Mémoriser les paramètres du dernier calcul</button>
+        <button type="button" class="btn btn-outline" id="itk-recall">Charger les paramètres mémorisés</button>
+        <button type="button" class="btn btn-outline" id="itk-forget">Retirer les paramètres mémorisés</button>
+      </div>
+      <details>
+        <summary>Anciens paramètres sur cet appareil</summary>
+        <p>Si tu avais déjà utilisé l’outil, tu peux charger ton ancien formulaire.</p>
+        <button type="button" class="btn btn-outline" id="itk-recall-archived">Charger les anciens paramètres</button>
+      </details>
+    </div>`);
   const dialog = root.querySelector('dialog');
   let service, snapshot, source = null, epoch = 0, dirty = false, latest = null, loaded = '', preview = null, conflictMarkup = '', writing = 0;
+  let lastCalculation = null;
   const raw = () => Object.fromEntries(new FormData(form));
   const announce = message => { find('itk-action-message').textContent = message || ''; };
   const apply = value => { applyValues(value || defaults); loaded = fingerprint(raw()); dirty = false; find('itk-restore').hidden = true; };
+  const loadedMessage = 'Paramètres chargés. Génère l’itinéraire pour recalculer les résultats.';
+  find('itk-remember').addEventListener('click', () => {
+    if (snapshot?.mode !== 'visitor' || !lastCalculation) return;
+    try {
+      const previous = readSettingsSource('itk');
+      if (!previous.absent && !previous.value) { announce(previous.error); return; }
+      const value = JSON.stringify(lastCalculation);
+      if (previous.raw !== value) localStorage.setItem(REMEMBERED_ITK_KEY, value);
+      announce('Paramètres du dernier calcul mémorisés dans ce navigateur.');
+    } catch { announce('Le stockage local est indisponible. Le calendrier et l’export restent utilisables.'); }
+  });
+  find('itk-recall').addEventListener('click', () => {
+    if (snapshot?.mode !== 'visitor') return;
+    const saved = readSettingsSource('itk');
+    if (saved.value) apply(saved.value);
+    announce(saved.value ? loadedMessage : saved.absent ? 'Aucun paramètre mémorisé dans ce navigateur.' : saved.error);
+  });
+  find('itk-forget').addEventListener('click', () => {
+    if (snapshot?.mode !== 'visitor') return;
+    try {
+      localStorage.removeItem(REMEMBERED_ITK_KEY);
+      announce('Mémorisation retirée. Le formulaire et le calendrier affichés restent disponibles.');
+    } catch { announce('Le stockage local est indisponible. Le retrait n’a pas abouti.'); }
+  });
+  find('itk-recall-archived').addEventListener('click', () => {
+    if (snapshot?.mode !== 'visitor') return;
+    try {
+      const value = JSON.parse(localStorage.getItem(VISITOR_ITK_KEY));
+      if (!value || typeof value !== 'object' || Array.isArray(value)) { announce('Aucun ancien formulaire lisible.'); return; }
+      apply(itkDisplayParameters(value));
+      announce(loadedMessage);
+    } catch { announce('L’ancien formulaire ne peut pas être chargé. Sa copie est conservée.'); }
+  });
   function showAvailable() {
     find('itk-restore').hidden = snapshot?.mode !== 'personal' || !dirty || !latest || fingerprint(latest) === fingerprint(raw());
-    if (dirty) find('itk-sync-detail').textContent = `${latest && fingerprint(latest) !== loaded ? 'Version du compte disponible. ' : ''}Formulaire modifié, non enregistré. La synchronisation préserve ta saisie et le calendrier déjà affiché.`;
+    if (dirty && snapshot?.mode === 'personal') find('itk-sync-detail').textContent = `${latest && fingerprint(latest) !== loaded ? 'Version du compte disponible. ' : ''}Formulaire modifié, non enregistré. La synchronisation préserve ta saisie et le calendrier déjà affiché.`;
   }
   form.addEventListener('input', () => { dirty = fingerprint(raw()) !== loaded; showAvailable(); });
   form.addEventListener('change', () => { dirty = fingerprint(raw()) !== loaded; showAvailable(); });
@@ -91,21 +139,22 @@ export function bindItkPersonal(form, root, { servicePromise = getSettingsServic
       snapshot = state;
       const next = `${state.mode}:${state.scope}:${state.sync.state === 'session'}`;
       if (source !== next) {
-        if (source !== null) { epoch++; apply(defaults); clearResult(); announce(''); }
+        if (source !== null) {
+          epoch++; apply(defaults); clearResult(); announce('');
+          lastCalculation = null;
+          find('itk-remember').disabled = true;
+        }
         source = next; latest = null; preview = null; conflictMarkup = '';
         if (dialog.open) dialog.close();
       }
       const usable = state.mode !== 'blocked' && state.sync.state !== 'session';
       latest = usable ? state.view.itk : null;
-      if (state.mode === 'visitor' && !latest) {
-        try { latest = itkDisplayParameters(JSON.parse(localStorage.getItem('bprea-demo-itk-v1'))); }
-        catch { latest = itkDisplayParameters(); }
-      }
       if (!dirty && !writing && latest && fingerprint(latest) !== loaded) apply(latest);
       const domain = state.sync.domains?.itk || state.sync;
       find('itk-sync-status').textContent = state.mode === 'personal' && domain.state === 'synced' && !latest
         ? 'Aucun paramètre ITK enregistré sur le compte.' : labels[state.mode === 'visitor' ? 'visitor' : domain.state] || labels.session;
-      find('itk-sync-detail').textContent = state.view.error || domain.error || state.sync.error || (state.mode === 'personal' ? 'Seuls les huit paramètres sont sauvegardés. Le calendrier et les exports sont recalculés ici. Le cache personnel reste sur cet appareil après déconnexion et n’est pas chiffré.' : 'Le calendrier et les exports sont calculés sur cet appareil.');
+      find('itk-sync-detail').textContent = state.view.error || domain.error || state.sync.error || (state.mode === 'personal' ? 'Générer l’itinéraire enregistre les huit paramètres dans le compte. Le calendrier et les exports sont calculés ici. Le cache personnel reste sur cet appareil après déconnexion et n’est pas chiffré.' : 'Tu peux mémoriser les huit paramètres du dernier calcul dans ce navigateur, puis les charger à la demande ou les retirer.');
+      find('itk-device').hidden = state.mode !== 'visitor';
       find('itk-refresh').hidden = state.mode === 'visitor';
       find('itk-import').hidden = !usable || state.mode !== 'personal';
       const conflicts = (state.sync.conflicts || []).filter(item => item.domain === 'itk');
@@ -133,6 +182,11 @@ export function bindItkPersonal(form, root, { servicePromise = getSettingsServic
       try {
         const activeService = await ready;
         if (!activeService || current !== epoch) return;
+        if (snapshot.mode === 'visitor') {
+          lastCalculation = validateItk(parameters) ? parameters : null;
+          find('itk-remember').disabled = !lastCalculation;
+          return;
+        }
         const result = await activeService.save('itk', parameters);
         if (current !== epoch) return;
         if (result?.error) { announce(`Calendrier généré, paramètres non sauvegardés : ${result.error}`); return; }

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
-import { createBotanicalService, VISITOR_PROGRESS_KEY } from '../../assets/botanical-sync-service.js';
+import { createBotanicalService, IMPORT_PROVENANCE_KEY, VISITOR_PROGRESS_KEY } from '../../assets/botanical-sync-service.js';
 import { createBotanicalRepository, personalScope } from '../../assets/botanical-personal-store.js';
 import { calculateStats } from '../../assets/botanical-engine.js';
 import { botanicalSession, botanicalAnswer, PERSONAL_DATA_TIME as at } from '../fixtures/personal-data.js';
@@ -240,12 +240,20 @@ describe('service botanique — réseau simulé, aucune preuve Auth/RLS distante
     const raw = JSON.stringify({ schemaVersion: 1, sessions: [s], answers: [botanicalAnswer(s), orphan] }); storage.setItem(VISITOR_PROGRESS_KEY, raw);
     const f = await initialized(); const preview = await f.service.previewImport();
     expect(preview.available).toBe(true); expect((await f.repo(userA).read()).operations).toEqual([]);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
     expect((await f.service.confirmImport(preview)).error).toBeNull(); const before = await f.repo(userA).read();
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBe(before.imports[0].provenance);
     expect(before.imports).toHaveLength(1); expect(before.imports[0].raw).toBe(raw); await f.service.synchronize();
     f.service.stop(); const reload = fixture({ remote: f.remote }); await reload.service.start(); await reload.service.synchronize();
     expect((await reload.service.confirmImport(await reload.service.previewImport())).error).toBeNull();
     expect((await reload.repo(userA).read()).operations.map(op => op.id)).toEqual(before.operations.map(op => op.id));
     expect(f.remote.histories.get(userA).answers).toHaveLength(1); expect(storage.getItem(VISITOR_PROGRESS_KEY)).toBe(raw);
+    const pending = await reload.service.previewImport();
+    const manifests = (await reload.repo(userA).read()).imports;
+    storage.removeItem(IMPORT_PROVENANCE_KEY);
+    expect((await reload.service.confirmImport(pending)).error).toMatch(/changé/);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
+    expect((await reload.repo(userA).read()).imports).toEqual(manifests);
   });
   it('refuse un premier import si le scan frais échoue et si la source a changé après prévisualisation', async () => {
     const s = botanicalSession('legacy'); const raw = JSON.stringify({ schemaVersion: 1, sessions: [s], answers: [botanicalAnswer(s)] });
@@ -255,7 +263,21 @@ describe('service botanique — réseau simulé, aucune preuve Auth/RLS distante
     connection.readHistory.mockResolvedValue({ sessions: [], answers: [] });
     storage.setItem(VISITOR_PROGRESS_KEY, raw + ' ');
     expect((await f.service.confirmImport(preview)).error).toMatch(/changé/); expect((await f.repo(userA).read()).operations).toEqual([]);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
     expect(storage.getItem(VISITOR_PROGRESS_KEY)).toBe(raw + ' ');
+  });
+  it('annule le manifeste et les opérations si le navigateur refuse l’écriture de la provenance', async () => {
+    const session = botanicalSession('quota');
+    const raw = JSON.stringify({ schemaVersion: 1, sessions: [session], answers: [botanicalAnswer(session)] });
+    storage.setItem(VISITOR_PROGRESS_KEY, raw);
+    const f = await initialized();
+    const preview = await f.service.previewImport();
+    vi.spyOn(storage, 'setItem').mockImplementation(() => { throw new Error('Quota'); });
+    expect((await f.service.confirmImport(preview)).error).toBeTruthy();
+    expect(await f.repo(userA).read()).toMatchObject({ imports: [], operations: [] });
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
+    expect(storage.getItem(VISITOR_PROGRESS_KEY)).toBe(raw);
+    expect(f.remote.sent).toEqual([]);
   });
   it('expose seulement un résumé de refus d’import et cache les archives lors du passage à B', async () => {
     const f = await initialized(); const s = botanicalSession('collision'); await play(f.service, s); await f.service.synchronize();

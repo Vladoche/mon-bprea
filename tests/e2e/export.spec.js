@@ -73,6 +73,8 @@ test('visiteur : sélection locale explicite, raw étranger exclu et sauvegarde 
   const raw = JSON.stringify({ lesson: { done: false, score: 0, quizScoreArchive: ['FOREIGN_PRIVATE'] } });
   const api = createExportAPI(); await api.install(page.context(), null, { 'bprea-demo-progress-v1': raw }); await page.goto(path);
   await expect(page.locator('[data-export-prepare]')).toBeDisabled(); await expect(page.locator('[data-export-device]')).toBeDisabled();
+  await expect(page.locator('[data-export-sources] input')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Rechercher les sauvegardes locales' }).click();
   await page.locator('[data-export-sources] input[value=courses]').check(); await page.locator('[data-export-confirm]').check();
   await page.getByRole('button', { name: 'Consulter la sélection locale', exact: true }).click();
   await expect(page.getByRole('region', { name: 'Données locales de cet appareil' }).locator('pre')).toContainText('"done": false');

@@ -92,6 +92,7 @@ test('sélection ITK préserve apparence et visiteur, modification depuis aperç
 test('mode visiteur : choix séparé de provenance, export facultatif puis retrait ciblé', async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('bprea-demo-progress-v1', '{"test":{"done":false}}'); localStorage.setItem('bprea-demo-progress-provenance-v1', 'origine-fictive'); });
   await page.goto(path); await expect(page.locator('[data-erase-personal] input').first()).toBeDisabled();
+  await page.getByRole('button', { name: 'Rechercher les sauvegardes locales' }).click();
   await page.locator('[data-export-sources] input[value="courses"]').check(); await page.locator('[data-export-confirm]').check();
   await page.getByRole('button', { name: 'Consulter la sélection locale', exact: true }).click();
   await expect(page.getByLabel('Contenu normalisé de la sélection locale', { exact: true })).toBeVisible();

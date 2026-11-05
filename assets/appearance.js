@@ -1,4 +1,5 @@
 import { getSettingsService } from './settings-service.js';
+import { subscribePrivacy } from './privacy-events.js';
 
 const seasonLabels = { spring: 'Printemps', summer: 'Été', autumn: 'Automne', winter: 'Hiver' };
 const timeLabels = { morning: 'matin', day: 'journée', twilight: 'crépuscule', night: 'nuit' };
@@ -48,6 +49,14 @@ export function initAppearance() {
     </div>
     <p class="appearance-current" id="appearance-current" role="status"></p>
     <p class="appearance-save" id="appearance-save" role="status">Choix de cet appareil · vérification du mode de sauvegarde…</p>
+    <div id="appearance-device" hidden>
+      <p id="appearance-device-help">Tu peux garder ta saison et ta luminosité pour les prochaines pages de ce navigateur. Le retrait laisse le rendu actuel sur cette page.</p>
+      <div class="appearance-sync-actions" role="group" aria-label="Apparence de cet appareil" aria-describedby="appearance-device-help">
+        <button type="button" class="btn btn-outline" id="appearance-remember">Mémoriser mon apparence sur cet appareil</button>
+        <button type="button" class="btn btn-outline" id="appearance-forget" hidden>Retirer l’apparence mémorisée</button>
+        <button type="button" class="btn btn-outline" id="appearance-recall">Reprendre une ancienne apparence</button>
+      </div>
+    </div>
     <div class="appearance-sync-actions"><button type="button" class="btn btn-outline" id="appearance-sync-refresh" hidden>Actualiser l’apparence</button><button type="button" class="btn btn-outline" id="appearance-restore" hidden>Utiliser la version du compte</button><button type="button" class="btn btn-outline" id="appearance-import" hidden>Examiner les choix locaux</button></div><div id="appearance-conflicts"></div><p id="appearance-action-message" role="status"></p>
     <section id="appearance-import-preview" hidden aria-labelledby="appearance-import-title"><h3 id="appearance-import-title">Importer les choix d’apparence</h3><p>Ces choix viennent du mode visiteur de cet appareil. Confirme seulement s’ils t’appartiennent. La source et ses archives restent conservées.</p><p id="appearance-import-values"></p><p id="appearance-import-message" role="status"></p><button type="button" class="btn btn-primary" id="appearance-import-confirm">Confirmer l’import d’apparence</button><button type="button" class="btn btn-outline" id="appearance-import-cancel">Annuler l’import</button></section>`;
   document.body.append(dialog);
@@ -62,7 +71,17 @@ export function initAppearance() {
     const preferences = appearance.getPreferences();
     const state = appearance.getState();
     const dark = state.theme === 'dark';
-    if (!dialog.open || !protectedDialog) { season.value = preferences.season; brightness.value = preferences.brightness; }
+    const device = appearance.getSource() === 'device';
+    find('appearance-device').hidden = !device;
+    if (device) {
+      const remembered = appearance.getRemembered();
+      find('appearance-remember').disabled = preferences.season === 'auto' && preferences.brightness === 'auto';
+      find('appearance-forget').hidden = !remembered;
+      save.textContent = !remembered ? 'Choix de cette page.'
+        : keyOf(remembered) === keyOf(preferences) ? 'Apparence mémorisée sur cet appareil.'
+        : 'Choix de cette page. Les prochaines pages reprendront l’apparence mémorisée.';
+    }
+    if (device || !dialog.open || !protectedDialog) { season.value = preferences.season; brightness.value = preferences.brightness; }
     toggle.querySelector('.theme-icon').innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${dark ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>' : '<path d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z"/>'}</svg>`;
     toggle.querySelector('.theme-label').textContent = dark ? 'Mode clair' : 'Mode sombre';
     toggle.setAttribute('aria-label', dark ? 'Activer le mode clair' : 'Activer le mode sombre');
@@ -72,9 +91,9 @@ export function initAppearance() {
   }
   function change(patch) {
     protectedDialog = dialog.open;
-    const saved = appearance.updatePreferences(patch);
-    if (appearance.getSource() === 'device') save.textContent = saved ? 'Préférences enregistrées sur cet appareil.' : 'Le stockage local est indisponible. Ce choix reste actif pour cette page seulement.';
-    else if (appearance.getSource() === 'blocked') save.textContent = snapshot?.sync.state === 'storage-error'
+    announce('');
+    appearance.updatePreferences(patch);
+    if (appearance.getSource() === 'blocked') save.textContent = snapshot?.sync.state === 'storage-error'
       ? 'Erreur de stockage : choix temporaire appliqué, non enregistré.'
       : 'Choix temporaire appliqué. Identité à vérifier ; choix non enregistré.';
     available();
@@ -90,6 +109,20 @@ export function initAppearance() {
   toggle.addEventListener('click', () => change({ brightness: appearance.getState().theme === 'dark' ? 'light' : 'dark' }));
   window.addEventListener('bprea:appearance-change', update);
   window.addEventListener('bprea:preferences-change', update);
+  find('appearance-remember').addEventListener('click', () => announce(appearance.remember() || 'Apparence mémorisée pour les prochaines pages.'));
+  find('appearance-forget').addEventListener('click', () => {
+    const error = appearance.forget();
+    if (!error) {
+      const remember = find('appearance-remember');
+      (remember.disabled ? find('appearance-recall') : remember).focus();
+    }
+    announce(error || 'Apparence mémorisée retirée. Le rendu actuel reste sur cette page.');
+  });
+  find('appearance-recall').addEventListener('click', () => announce(appearance.recallArchived() || 'Ancienne apparence appliquée à cette page.'));
+  const unsubscribePrivacy = subscribePrivacy(phase => {
+    if (phase === 'settled') appearance.reloadDevicePreferences();
+  });
+  window.addEventListener('pagehide', unsubscribePrivacy, { once: true });
   async function persist(value) {
     const current = epoch; inFlight++;
     save.textContent = 'Choix temporaire appliqué · enregistrement sur cet appareil…';
@@ -102,11 +135,11 @@ export function initAppearance() {
     finally { if (current === epoch) { inFlight = Math.max(0, inFlight - 1); available(); } }
   }
   function renderStatus(state) {
-    if (!state) return;
+    if (!state || state.mode === 'visitor') return;
     const domain = state.sync.domains?.appearance || state.sync;
     const labels = { loading: 'Chargement des choix personnels…', saving: 'Enregistrement sur cet appareil…', local: 'Choix enregistrés sur cet appareil.', pending: 'Choix enregistrés sur cet appareil · synchronisation en attente.', syncing: 'Synchronisation des choix en cours…', synced: 'Choix synchronisés.', offline: 'Hors ligne · choix enregistrés sur cet appareil, synchronisation en attente.', conflict: 'Conflit d’apparence à résoudre.', error: 'Erreur de synchronisation. Choix conservés sur cet appareil.', 'storage-error': 'Erreur de stockage. Le choix temporaire n’est pas enregistré.', session: 'Identité à vérifier. Les choix personnels sont masqués.' };
-    save.textContent = state.mode === 'visitor' ? 'Choix du mode visiteur conservés sur cet appareil.'
-      : state.mode === 'personal' && domain.state === 'synced' && !state.view.appearance ? 'Aucun choix d’apparence enregistré sur le compte. Rendu provisoire de cet appareil.' : labels[domain.state] || labels.session;
+    save.textContent = state.mode === 'personal' && domain.state === 'synced' && !state.view.appearance
+      ? 'Aucun choix d’apparence enregistré sur le compte. Rendu provisoire de cet appareil.' : labels[domain.state] || labels.session;
   }
   find('appearance-sync-refresh').addEventListener('click', async () => { try { await service.retry(); } catch { announce('Actualisation indisponible. Les choix enregistrés restent conservés.'); } });
   find('appearance-restore').addEventListener('click', () => { if (latest) { protectedDialog = false; appearance.applyPreferences(latest); available(); } });

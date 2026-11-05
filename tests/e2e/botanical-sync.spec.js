@@ -110,17 +110,22 @@ test('botanique : import explicite, annulation, provenance et orpheline sans mut
   const session = botanicalSession('botanical-ui-import', { mode: 'discovery', completedAt: '2026-10-21T12:01:00.000Z' });
   const raw = JSON.stringify({ schemaVersion: 1, sessions: [session], answers: [botanicalAnswer(session), botanicalAnswer(botanicalSession('orphan-session'))], sourceArchive: ['à conserver'] });
   const api = createBotanicalAPI(); await api.install(page.context(), 'A', raw); await page.goto(botanicalPath); await botanicalSynced(page);
+  const provenance = () => page.evaluate(() => localStorage.getItem('monbprea.botanical.provenance.v1'));
   await expectBotanicalHistory(page, { attempted: 0 }); expect(api.answers.size).toBe(0);
   await importButton(page).click(); const dialog = page.getByRole('dialog', { name: 'Importer l’historique botanique local' });
   await expect(dialog).toContainText('autre personne'); await expect(dialog).toContainText(/orpheline|sans session/i);
+  expect(await provenance()).toBeNull();
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.answers.size).toBe(0);
+  expect(await provenance()).toBeNull();
   await importButton(page).click(); await captureMatrix(page, 'import');
   await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await botanicalSynced(page);
   await expectBotanicalHistory(page, { attempted: 1, correct: 1, incorrect: 0, rate: '100 %' }); expect(api.answers.size).toBe(1);
   const document = (await botanicalRecords(page))[0]; expect(document.imports).toHaveLength(1); expect(JSON.stringify(document.imports)).toContain('orphan-session');
+  expect(await provenance()).toBe(document.imports[0].provenance);
   await page.reload(); await botanicalSynced(page); await importButton(page).click();
   await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await botanicalSynced(page);
   expect(api.answers.size).toBe(1); expect((await botanicalRecords(page))[0].imports).toHaveLength(1);
+  expect(await provenance()).toBe(document.imports[0].provenance);
   expect(await page.evaluate(key => localStorage.getItem(key), botanicalStorageKey)).toBe(raw);
 });
 

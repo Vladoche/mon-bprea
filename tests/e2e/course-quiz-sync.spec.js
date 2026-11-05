@@ -113,16 +113,18 @@ test('import volontaire : prévisualisation, annulation et manifeste réutilisé
   await open(); const dialog = page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' });
   await expect(dialog).toContainText('pas nécessairement liée au compte');
   await expect(dialog).toContainText('Tentatives QCM exploitables');
-  const previewId = await provenance();
-  expect(previewId).toMatch(/^[0-9a-f-]{36}$/i);
+  expect(await provenance()).toBeNull();
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.attempts.size).toBe(0);
-  expect(await provenance()).toBe(previewId);
+  expect(await provenance()).toBeNull();
   await open(); await capture(page,'import-desktop-light');
   await page.setViewportSize({ width: 390, height: 844 }); await capture(page,'import-mobile-light');
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); await setTheme(page,'dark'); await open(); await capture(page,'import-mobile-dark');
   await page.setViewportSize({ width: 1280, height: 900 }); await capture(page,'import-desktop-dark');
   await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await synced(page);
+  const confirmedId = await provenance();
+  expect(confirmedId).toMatch(/^[0-9a-f-]{36}$/i);
   await expect(page.locator('#quiz-history li')).toHaveCount(2); expect(api.attempts.size).toBe(2);
+  expect(await provenance()).toBe(confirmedId);
   const ids = await page.locator('#quiz-history li').evaluateAll(rows => rows.map(row => row.dataset.attemptId)); expect(new Set(ids).size).toBe(2);
   await page.reload(); await synced(page); await open(); await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click();
   await expect(page.locator('#course-quiz-action-message')).toContainText('déjà enregistré');
@@ -133,7 +135,7 @@ test('import volontaire : prévisualisation, annulation et manifeste réutilisé
 test('conflit explicite, focus stable et choix conservé avec nouvel UUID sur mobile sombre', async ({ page }) => {
   const api = createCourseQuizAPI(); await api.install(page.context());
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.addInitScript(() => localStorage.setItem('bprea-demo-appearance-v1', JSON.stringify({ version: 1, season: 'winter', brightness: 'dark' })));
+  await page.addInitScript(() => localStorage.setItem('bprea-demo-appearance-device-v1', JSON.stringify({ version: 1, season: 'winter', brightness: 'dark' })));
   await page.goto(course); await synced(page);
   await page.locator('#mark-done').check(); await synced(page);
   api.restOffline = true;

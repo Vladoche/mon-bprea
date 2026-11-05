@@ -11,6 +11,7 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
   let failure = null;
   const history = {
     'bprea-demo-appearance-v1': '{"version":1,"season":"winter","brightness":"dark"}',
+    'bprea-demo-appearance-device-v1': '{"version":1,"season":"winter","brightness":"dark"}',
     'bprea-demo-progress-v1': '{"matiere-organique":{"done":true,"score":2}}',
     'bprea-demo-drill-v1': '{"version":1,"series":{}}',
     'monbprea.botanical.v1': '{"schemaVersion":1,"answers":[],"sessions":[]}',

@@ -70,13 +70,16 @@ export async function initExportUI(root, { auth, configuration } = {}) {
   }
   function inspect() {
     find('confirm').checked = false;
-    const fieldset = find('sources'); fieldset.querySelectorAll('label').forEach(node => node.remove());
+    find('confirm').disabled = false;
+    const fieldset = find('sources'); fieldset.hidden = false;
+    fieldset.querySelectorAll('label').forEach(node => node.remove());
     for (const source of service.inspectDevice()) {
       const label = document.createElement('label'), input = document.createElement('input');
       input.type = 'checkbox'; input.value = source.domain; input.disabled = source.status !== 'present';
       label.append(input, document.createTextNode(` ${source.label} — ${source.status === 'present' ? 'présent' : source.status === 'absent' ? 'absent' : 'indisponible'}`));
       fieldset.append(label);
     }
+    find('device-status').textContent = 'Recherche terminée. Sélectionne uniquement les sauvegardes que tu peux consulter.';
     updateDeviceButton();
   }
   listen(find('inspect'), 'click', inspect); listen(find('sources'), 'change', updateDeviceButton); listen(find('confirm'), 'change', updateDeviceButton);
@@ -100,7 +103,10 @@ export async function initExportUI(root, { auth, configuration } = {}) {
       find('device-status').textContent = 'Téléchargement local déclenché, propriété non vérifiée. Consulte la couverture et les exclusions dans le fichier.';
     } catch { find('device-status').textContent = 'Copie locale indisponible ou trop volumineuse. Aucun fichier tronqué n’a été créé.'; }
   });
-  inspect();
+  find('sources').hidden = true;
+  find('confirm').disabled = true;
+  find('inspect').textContent = 'Rechercher les sauvegardes locales';
+  find('device-status').textContent = 'Lance la recherche pour voir les sauvegardes de ce navigateur.';
   const dispose = () => { disposeRestore(); service.stop(); unsubscribe(); authUnsubscribe(); clearFiles(); abort.abort(); root.replaceChildren(); };
   window.addEventListener('pagehide', dispose, { once: true, ...options });
   return dispose;

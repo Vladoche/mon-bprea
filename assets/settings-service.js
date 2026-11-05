@@ -1,26 +1,29 @@
 import { getAuthService } from './auth-service.js';
 import { getSupabaseClient } from './supabase-client.js';
 import { createSettingsRepository, personalScope } from './settings-store.js';
-import { clone, domains, equal, validateValue, validateAppearance, queueSettings, prepareSettingsOperation, acknowledgeSettings, reconcileSettings, resolveSettingsConflict, LocalSettingsError, SettingsSyncError, valueFromRow } from './settings-model.js';
+import { clone, domains, equal, validateValue, queueSettings, prepareSettingsOperation, acknowledgeSettings, reconcileSettings, resolveSettingsConflict, SettingsSyncError, valueFromRow } from './settings-model.js';
 import { createSettingsTransport, classifySettingsError } from './settings-transport.js';
 import { delayFor } from './sync-runtime.js';
 import { subscribePrivacy } from './privacy-events.js';
-export const VISITOR_ITK_KEY = 'bprea-demo-itk-v1';
-export const VISITOR_APPEARANCE_KEY = 'bprea-demo-appearance-v1';
-export const LEGACY_THEME_KEY = 'bprea-demo-theme-v1';
-const sourceKey = domain => domain === 'itk' ? VISITOR_ITK_KEY : VISITOR_APPEARANCE_KEY;
+import { VISITOR_SOURCES } from './export-sources.js';
+export const VISITOR_ITK_KEY = VISITOR_SOURCES.itk.key;
+export const VISITOR_APPEARANCE_KEY = VISITOR_SOURCES.appearance.key;
+export const LEGACY_THEME_KEY = VISITOR_SOURCES.legacyTheme.key;
+export const REMEMBERED_ITK_KEY = VISITOR_SOURCES.rememberedItk.key;
 const unavailable = error => ({ itk: null, appearance: null, error });
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 function broadcastChannel() { try { return globalThis.BroadcastChannel ? new BroadcastChannel('mon-bprea-settings-personal-v1') : null; } catch { return null; } }
-export function readSettingsSource(domain, storage = globalThis.localStorage) {
-  let raw; let source = sourceKey(domain);
+export function readSettingsSource(domain, storage, { archived = false } = {}) {
+  let source = archived ? (domain === 'itk' ? VISITOR_ITK_KEY : VISITOR_APPEARANCE_KEY)
+    : domain === 'itk' ? REMEMBERED_ITK_KEY : VISITOR_SOURCES.rememberedAppearance.key;
   try {
-    raw = storage.getItem(source);
-    if (domain === 'appearance' && raw === null) {
+    storage ??= globalThis.localStorage;
+    let raw = storage.getItem(source);
+    if (archived && domain === 'appearance' && raw === null) {
       source = LEGACY_THEME_KEY; raw = storage.getItem(source);
       if (['light', 'dark'].includes(raw)) return { raw, source, value: { version: 1, season: 'auto', brightness: raw }, error: null };
     }
-    if (raw === null) return { raw, source, value: null, error: 'Aucun choix local à importer.' };
+    if (raw === null) return { raw, source, value: null, absent: true, error: 'Aucun choix local à importer.' };
     let parsed; try { parsed = JSON.parse(raw); } catch { return { raw, source, value: null, error: 'Le document local est illisible. Il est conservé sans modification.' }; }
     let value = parsed;
     if (domain === 'appearance' && record(parsed)) {
@@ -30,8 +33,12 @@ export function readSettingsSource(domain, storage = globalThis.localStorage) {
     return { raw, source, value, error: null };
   } catch { return { raw: null, source, value: null, error: 'Le stockage local est inaccessible.' }; }
 }
+function readImportSource(domain, storage) {
+  const remembered = readSettingsSource(domain, storage);
+  return remembered.absent ? readSettingsSource(domain, storage, { archived: true }) : remembered;
+}
 export function createSettingsService({ auth, configuration, repositoryFactory = createSettingsRepository, transportFactory = createSettingsTransport,
-  storage = globalThis.localStorage, now = () => Date.now(), randomUUID = () => globalThis.crypto.randomUUID(), schedule = setTimeout, cancel = clearTimeout, broadcast = broadcastChannel() } = {}) {
+  storage, now = () => Date.now(), randomUUID = () => globalThis.crypto.randomUUID(), schedule = setTimeout, cancel = clearTimeout, broadcast = broadcastChannel() } = {}) {
   let mode = 'blocked'; let scope = null; let document = null; let repository = null; let transport = null;
   let view = unavailable('Vérification du compte…'); let state = 'loading'; let error = null; let generation = 0; let stopped = false;
   let ready; let running = null; let controller; let timer; let writes = 0; let lastStatus; let pullVersion = 1; let pulledVersion = 0; let lastPull = 0; let failures = 0; let localVersion = 0;
@@ -61,7 +68,6 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
   }
   async function refresh(current = generation, repo = repository) { const version = localVersion; const saved = await repo.read(); if (active(current) && version === localVersion) { update(saved); notify(); } }
   function invalidate() { generation++; writes = 0; controller?.abort(); cancel(timer); timer = null; running = null; }
-  function visitorView() { return { itk: readSettingsSource('itk', storage).value, appearance: readSettingsSource('appearance', storage).value, error: null }; }
   async function identity(authState) {
     const previous = lastStatus; lastStatus = authState.status;
     const userId = ['authenticated', 'offline'].includes(authState.status) ? authState.user?.id : null;
@@ -74,7 +80,7 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
     invalidate(); scope = next; document = null; repository = null; transport = null; error = null; failures = 0; lastPull = 0; pullVersion = 1; pulledVersion = 0;
     if (!userId || !next) {
       const visitor = authState.status === 'anonymous' || authState.status === 'unavailable' && configuration.configurationError !== 'network';
-      mode = visitor ? 'visitor' : 'blocked'; state = visitor ? 'visitor' : 'session'; view = visitor ? visitorView() : unavailable(authState.error || 'Identité indisponible. Aucune donnée privée affichée.'); notify(); return;
+      mode = visitor ? 'visitor' : 'blocked'; state = visitor ? 'visitor' : 'session'; view = unavailable(visitor ? null : authState.error || 'Identité indisponible. Aucune donnée privée affichée.'); notify(); return;
     }
     mode = 'personal'; state = authState.status === 'offline' ? 'offline' : 'loading'; view = unavailable('Chargement du cache personnel…'); notify();
     const current = generation; repository = repositoryFactory(scope, { onCommit: () => broadcast?.postMessage(next) }); transport = transportFactory(configuration.client, auth, userId);
@@ -171,20 +177,12 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
     async save(domain, value) {
       if (!domains.includes(domain) || !validateValue(domain, value)) return { error: 'Les paramètres sont invalides. La sauvegarde source reste intacte.' };
       const intended = generation; await ready; if (intended !== generation) return { error: 'Le compte a changé pendant le chargement.' };
-      if (mode !== 'visitor') return localChange(saved => queueSettings(saved, domain, value, randomUUID));
-      try {
-        let next = value;
-        if (domain === 'appearance') {
-          const raw = storage.getItem(VISITOR_APPEARANCE_KEY); let previous; try { previous = JSON.parse(raw); } catch { /* Archive below. */ }
-          next = validateAppearance(previous) ? { ...previous, ...value } : { ...value, ...(raw !== null ? { unrecognizedPreferencesArchive: [...(Array.isArray(previous?.unrecognizedPreferencesArchive) ? previous.unrecognizedPreferencesArchive : []), raw] } : {}) };
-        }
-        storage.setItem(sourceKey(domain), JSON.stringify(next)); view = visitorView(); notify(); return { value: clone(value), error: null, savedLocally: true };
-      } catch { return { error: 'Les paramètres ne sont pas enregistrés : le stockage local est inaccessible ou plein.' }; }
+      return localChange(saved => queueSettings(saved, domain, value, randomUUID));
     },
     async previewImport(domain) {
       const intended = generation; const intendedScope = scope; await ready;
       if (intended !== generation || intendedScope !== scope || mode !== 'personal' || !domains.includes(domain)) return { available: false, error: 'Un compte vérifié est nécessaire. Examine à nouveau les paramètres pour ce compte.' };
-      const source = readSettingsSource(domain, storage);
+      const source = readImportSource(domain, storage);
       if (source.error) return { ...source, domain, available: false };
       try { await freshPull(intended); return { ...source, domain, available: true, scope, remote: clone(document.remote[domain]), divergent: !!document.remote[domain] && !equal(source.value, valueFromRow(domain, document.remote[domain])) }; }
       catch (issue) { return { ...source, domain, available: false, error: issue.message }; }
@@ -193,14 +191,14 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
       const intended = generation; const intendedScope = scope; await ready;
       if (intended !== generation || intendedScope !== scope || mode !== 'personal' || !preview?.available || preview.error || preview.scope !== scope || !validateValue(preview.domain, preview.value)) return { error: 'L’import doit être examiné et confirmé pour ce compte.' };
       try {
-        const source = readSettingsSource(preview.domain, storage);
+        const source = readImportSource(preview.domain, storage);
         if (source.raw !== preview.raw || source.source !== preview.source || !equal(source.value, preview.value)) return { error: 'La source locale a changé. Examine à nouveau les paramètres avant de confirmer.' };
         const proof = document.imports.find(item => item.domain === preview.domain && item.raw === preview.raw && item.source === preview.source);
         if (proof) return { error: null, replayed: true, operationId: proof.operationId, savedLocally: true };
         await freshPull(intended);
         if (!equal(preview.remote, document.remote[preview.domain])) return { error: 'La version du compte a changé depuis l’aperçu. Examine à nouveau les deux versions avant de confirmer.' };
         return localChange(saved => {
-          const checkedSource = readSettingsSource(preview.domain, storage);
+          const checkedSource = readImportSource(preview.domain, storage);
           if (checkedSource.raw !== preview.raw || checkedSource.source !== preview.source || !equal(checkedSource.value, preview.value)) throw new SettingsSyncError('import', 'La source locale a changé. Examine à nouveau les paramètres avant de confirmer.');
           if (!equal(saved.remote[preview.domain], preview.remote)) throw new SettingsSyncError('import', 'La version du compte a changé. Examine à nouveau les deux versions avant de confirmer.');
           const replay = saved.imports.find(item => item.domain === preview.domain && item.raw === preview.raw && item.source === preview.source);
@@ -250,7 +248,6 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
   if (broadcast) broadcast.onmessage = event => { if (mode === 'personal' && event.data === scope) { const current = generation; refresh(current, repository).then(() => { if (active(current)) requestSync(); }).catch(issue => { if (active(current)) { state = 'storage-error'; error = issue.message; view = unavailable(error); notify(); } }); } };
   const listen = (target, event, fn) => { if (target?.addEventListener) { target.addEventListener(event, fn); listeners.push(() => target.removeEventListener(event, fn)); } };
   listen(globalThis.window, 'online', () => service.retry());
-  listen(globalThis.window, 'storage', event => { if (mode === 'visitor' && [VISITOR_ITK_KEY, VISITOR_APPEARANCE_KEY, LEGACY_THEME_KEY].includes(event.key)) { view = visitorView(); notify(); } });
   listen(globalThis.document, 'visibilitychange', () => { if (!globalThis.document.hidden) requestSync(now() - lastPull >= 60000); });
   return service;
 }

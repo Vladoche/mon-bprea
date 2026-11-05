@@ -5,7 +5,7 @@ import { makeSeries, answerFor, bankQuestions } from '../fixtures/drill.js';
 const now = new Date('2026-10-20T08:00:00.000Z');
 const calendar = JSON.parse(readFileSync(new URL('../fixtures/calendar.json', import.meta.url), 'utf8'));
 const drillKey = 'bprea-demo-drill-v1';
-const appearanceKey = 'bprea-demo-appearance-v1';
+const appearanceKey = 'bprea-demo-appearance-device-v1';
 
 test.beforeEach(async ({ page }) => {
   // Chaque scénario reçoit un contexte neuf sans stockage préexistant.
@@ -194,6 +194,7 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('winter');
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
+  await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
@@ -210,10 +211,11 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), file).toBe(true);
   }
-  await page.getByRole('button', { name: 'Masquer l’anecdote pour aujourd’hui' }).click();
+  await page.getByRole('button', { name: 'Masquer l’anecdote sur cette page' }).click();
   await expect(anecdote).toBeHidden();
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(anecdote).toBeVisible();
+  await page.getByRole('button', { name: 'Masquer l’anecdote sur cette page' }).click();
   await expect(anecdote).toBeHidden();
   await page.clock.setSystemTime(new Date('2026-10-20T21:59:30Z'));
   await page.clock.fastForward(60000);

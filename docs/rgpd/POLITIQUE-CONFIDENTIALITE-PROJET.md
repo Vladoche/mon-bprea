@@ -1,6 +1,6 @@
 # Notice de confidentialité de Mon BPREA
 
-Version 1.0 · 5 novembre 2026
+Version 1.1 en préparation · 5 novembre 2026
 
 Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour sept adultes au total, dont l’exploitant et six autres participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
 
@@ -12,7 +12,7 @@ Vladimir Fouillade détermine l’usage des données et les moyens utilisés pou
 
 La participation est volontaire. Si vous souhaitez un compte, vous recevez cette notice avant de communiquer votre adresse. Vous fournissez et confirmez vous-même l’adresse utilisée pour l’invitation et la récupération. L’exploitant vous remet le lien individuellement. Vous choisissez votre mot de passe dans l’interface. Vous pouvez réviser sans compte si vous préférez garder votre progression sur cet appareil.
 
-Les données proviennent de vos saisies et exercices, des calculs de résultats et des identifiants techniques générés par le service. Un compte utilise votre adresse, un identifiant de compte, des données de session et un profil minimal avec un pseudo facultatif. Il peut synchroniser les cours, réponses, tentatives, scores et préférences, ainsi que les derniers paramètres de génération d’itinéraire technique. L’import de données du mode visiteur dans un compte est distinct de la connexion et demande une confirmation.
+Les données proviennent de vos saisies et exercices, des calculs de résultats et des identifiants techniques générés par le service. Un compte utilise votre adresse, un identifiant de compte, des données de session et un profil minimal avec un pseudo facultatif. Il peut synchroniser les cours, réponses, tentatives, scores et préférences, ainsi que les derniers paramètres de génération d’itinéraire technique. Pour importer des données du mode visiteur dans votre compte, vous examinez d’abord la source locale puis confirmez l’import. Pour les cours et QCM et pour la botanique, un identifiant local de provenance peut être créé à la confirmation. Il aide à distinguer les sauvegardes et à éviter les doublons. Sur un appareil partagé, vérifiez que la sauvegarde vous appartient.
 
 ## Finalités et base juridique
 
@@ -28,9 +28,15 @@ Lorsqu’une obligation légale impose une opération, par exemple répondre à 
 
 ## Stockage sur votre appareil
 
-En visiteur, la progression des cours et QCM, les historiques Drill et botanique, les derniers paramètres ITK et les préférences restent dans ce navigateur. Le site lit aussi les préférences et l’état de masquage de l’anecdote dès l’affichage des pages qui les utilisent. Un masquage ne vaut que pour le jour en cours. La date enregistrée, comme les autres données locales, peut rester en mémoire du navigateur après la fin de son effet.
+En visiteur, la progression des cours et QCM ainsi que les historiques Drill et botanique restent dans le navigateur utilisé pour réviser. L’anecdote peut être masquée sur la page en cours. Elle revient au rechargement, sur une autre page ou le lendemain.
 
-Sur un navigateur connecté, les jetons de session et un repère de continuité aident à retrouver l’accès. Des copies locales par compte conservent la progression et les paramètres, ainsi que les opérations en attente, les conflits et les copies liées aux imports. Ces stockages servent au fonctionnement de Mon BPREA, sans publicité ni mesure d’audience intégrée.
+Vous pouvez changer l’apparence pour la page en cours ou demander de la mémoriser dans ce navigateur. Les pages vérifient au chargement si cette mémorisation a été demandée afin d’appliquer la saison et la luminosité dès l’affichage, y compris sur la page Contact. Vous pouvez retirer le choix mémorisé dans les paramètres d’apparence.
+
+Le générateur d’itinéraire technique (ITK) calcule le calendrier et ses exports sur votre appareil. En visiteur, vous pouvez demander de mémoriser les huit paramètres du dernier calcul, les charger à la demande ou retirer cette mémorisation dans le générateur. Le formulaire et le calendrier affichés restent disponibles après ce retrait. En mode personnel, générer l’itinéraire enregistre les huit paramètres dans les réglages synchronisés du compte.
+
+Les anciennes apparences et les anciens formulaires restent dans leur clé locale d’origine. Les commandes de reprise des anciennes valeurs ou d’examen d’un import dans le compte les consultent à votre demande. L’ancienne date de masquage n’est plus utilisée pour afficher l’anecdote. Le profil permet de rechercher les sauvegardes locales, de les exporter et de les retirer par catégorie, y compris les anciennes.
+
+Sur un navigateur connecté, les jetons de session et un repère de continuité aident à retrouver l’accès. Des copies locales par compte conservent la progression et les paramètres, ainsi que les opérations en attente, les conflits et les preuves liées aux imports. L’accès aux données nécessaires à la reprise de session, à la révision ou à la mémorisation locale demandée relève des exemptions fonctionnelles de l’article 82 de la loi Informatique et Libertés. Le site n’intègre ni publicité ni mesure d’audience.
 
 Les copies locales persistent généralement jusqu’à leur retrait ou à un effacement par le navigateur. Se déconnecter met fin à la session sur ce navigateur et conserve la progression. L’effacement local par catégorie se fait depuis le profil sur l’appareil concerné. Il peut laisser un marqueur minimal qui empêche un ancien onglet de recréer les données. Utilisez de préférence votre propre profil de navigateur. Vous pouvez aussi gérer les données du site dans les réglages du navigateur, après avoir vérifié vos exports et ce qui reste à synchroniser.
 
