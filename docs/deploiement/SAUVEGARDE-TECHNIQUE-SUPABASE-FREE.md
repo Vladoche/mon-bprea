@@ -1,5 +1,7 @@
 # Sauvegarde technique Supabase Free — lot 6.5.3.B
 
+**Réexamen local du 5 novembre 2026 :** copie présente hors dépôt, ACL protégées, neuf fichiers du manifeste et neuf empreintes conformes. Échéance et politique inchangées, aucune prolongation/suppression ; [décision préparée](PLAN-PREOUVERTURE-PRIVEE.md), [politique minimale proposée](EXPLOITATION-PRIVEE-SIX-ADULTES.md). Aucun accès DEV/PROD. Les résultats datés du 29 octobre ci-dessous restent distincts de cette seule vérification d'intégrité.
+
 **29 octobre 2026 : copie applicative réalisée et restauration PostgreSQL partielle vérifiée avant migration.** Cible exclusive : `wcckbyhrtroittbfophv`, Mon BPREA DEV, Free, eu-west-1, PostgreSQL 17.11.0.003. La [preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md) distingue la préparation du 28 octobre, les autorisations A/B et les résultats réels. PROD est exclu.
 
 L’exploitant a autorisé la copie applicative et le dossier protégé, choisi `pg_dump` natif puis autorisé B. Il réserve DEV au fictif, dispense cette copie de chiffrement du volume et déclare le dossier exclu de toute synchronisation cloud. Ces décisions concernent cette intervention ; elles ne valident ni une politique générale de conservation ni l’ouverture aux étudiants.
@@ -8,7 +10,7 @@ L’exploitant a autorisé la copie applicative et le dossier protégé, choisi 
 
 Une **archive custom unique** contient structure et données de `public` et `bprea_private`. Les deux fichiers SQL sont dérivés hors ligne de cette archive : ils partagent le même snapshot de données, contrairement aux deux dumps CLI séparés envisagés initialement. Les catalogues et droits sont relevés avant/après ; aucune dérive constatée.
 
-Ce dispositif ne constitue pas une sauvegarde complète Supabase. Les comptes et mécanismes Auth, Storage, Vault, secrets, rôles globaux, configuration hébergée et copies fournisseur sont exclus. La restauration de l’application avec ses comptes opérationnels n’est pas démontrée. L’export JSON individuel reste partiel et sa réimportation reste un lot ultérieur : [note de préparation](PREPARATION-RESTAURATION-COMPTE-JSON.md).
+Ce dispositif ne constitue pas une sauvegarde complète Supabase. Les comptes et mécanismes Auth, Storage, Vault, secrets, rôles globaux, configuration hébergée et copies fournisseur sont exclus. La restauration de l’application avec ses comptes opérationnels n’est pas démontrée. L’export JSON individuel reste partiel ; la [réimportation limitée livrée en 6.5.4.A](../architecture/RESTAURATION-DONNEES-PERSONNELLES.md) ne restaure ni Auth ni un projet complet. La [note préparatoire](PREPARATION-RESTAURATION-COMPTE-JSON.md) conserve son contexte historique.
 
 | Catégorie | Inclusion effective avant migration | Récupération et limite |
 | --- | --- | --- |
