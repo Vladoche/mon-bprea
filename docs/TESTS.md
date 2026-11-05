@@ -1,5 +1,13 @@
 # Développement et stratégie de tests
 
+## Capacité confirmée et contact public — lot 6.5.5.C
+
+La politique JSON fixe définitivement **sept comptes, exploitant compris et six autres adultes**, contact officiel et droit de publication. Les fixtures synthétiques de `preopening.test.js` couvrent le septième/huitième, place exploitant réservée, attente, doublon, incertitude, comptes fictifs bloqués, récupération à capacité pleine et inscription libre/anonyme refusée. Le helper de décisions conserve identité/preuves/approbations et refuse de transférer des attestations depuis une autre adresse ; les vérifications opérationnelles, dont consultation régulière, restent exigées. Aucun compte créé pour prouver le plafond administratif.
+
+`contact.spec.js` teste l'artefact Pages réel sous `/mon-bprea/` sans Auth : mailto exact, adresse sélectionnable, pas de formulaire/API ni requête tierce, navigation depuis accueil/connexion/récupération/callback/profil avec et sans JavaScript ; 320/390/1280 px clair/sombre, clavier/focus et absence de débordement, préférence saisonnière sombre conservée. Le test d'artefact prouve contact inclus, Auth off, notice complète et dossiers privés exclus. Vérification visuelle et limites lecteur d'écran : [validation C](validations/VALIDATION-LOT6-5-5C.md). Aucune ouverture du client mail et aucun courriel envoyé.
+
+`npm run preopening:notice` crée désormais un nouveau dossier privé `preopening-notice-preview-*` à chaque exécution, sans écraser l'aperçu B. Le rendu accepte le lien mailto approuvé, sans script. `init preopening-operator` préremplit seulement les décisions reçues ; `contact` reste en échec tant que les preuves opérationnelles manquent. Aucun test de boîte ne peut être déduit des fixtures ou des vérifications navigateur.
+
 ## Résolution de préouverture — lot 6.5.5.B
 
 `tests/integration/preopening.test.js` vérifie sur fixtures synthétiques : sept comptes exploitant compris (ou sa place réservée), refus du huitième, décompte non confirmé, comptes en attente/incertains/fictifs, absence d'inscription libre/anonyme, récupération inconnue/réinvitation, élévation de rôle, cible/callback/inventaire périmés, bilan sans e-mails/résultats, contact vide et clôture unitaire avec dépendances/sessions/caches/copies. Le plafond est **administratif**, pas un quota Supabase ni une nouvelle preuve RLS. Aucun transport n'est invoqué par les préflights.

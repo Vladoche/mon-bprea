@@ -69,7 +69,7 @@ function header() {
   $('.header-actions').prepend(account);
   initAuthHeader(account);
   initNavigation($('#primary-navigation'), page);
-  $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><span>Contenus de démonstration non officiels · ${page === 'dashboard' ? 'Source des résultats précisée dans le Tableau de bord' : 'Données pédagogiques conservées sur cet appareil'}</span></div>`;
+  $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><a href="contact.html">Contact et assistance</a><span>Contenus de démonstration non officiels · ${page === 'dashboard' ? 'Source des résultats précisée dans le Tableau de bord' : 'Données pédagogiques conservées sur cet appareil'}</span></div>`;
   document.title = `${title} · Mon BPREA`;
 }
 function unitCard(u) {

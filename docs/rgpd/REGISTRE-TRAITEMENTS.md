@@ -1,6 +1,6 @@
 # Projet de registre des traitements — lot 6.4.1
 
-**PROJET INTERNE NON VALIDÉ — actualisé le 5 novembre 2026, lot 6.5.5.B.** Ce fichier public ne constitue ni le registre complet de l'exploitant ni la politique de confidentialité. Il en prépare les fiches sans coordonnées personnelles, contrat privé ou information de sécurité confidentielle. Méthode actualisée [A–F du cadrage](CADRAGE-MON-BPREA-SIX-ADULTES.md) ; identifiants techniques de données inchangés. Identifiants des données/flux dans l'inventaire et [Flux et prestataires](FLUX-ET-PRESTATAIRES.md). Bases proposées non approuvées ; calendrier principal reçu par mandat B, durées résiduelles distinctes. Périmètre/indépendance D02/D09 actés.
+**PROJET INTERNE NON VALIDÉ — actualisé le 5 novembre 2026, lot 6.5.5.C.** Ce fichier public ne constitue ni le registre complet de l'exploitant ni la politique de confidentialité. Il en prépare les fiches sans coordonnées personnelles, contrat privé ou information de sécurité confidentielle. Méthode actualisée [A–F du cadrage](CADRAGE-MON-BPREA-SIX-ADULTES.md) ; identifiants techniques de données inchangés. Identifiants des données/flux dans l'inventaire et [Flux et prestataires](FLUX-ET-PRESTATAIRES.md). Bases proposées non approuvées ; calendrier principal reçu par mandat B, durées résiduelles distinctes. Périmètre/indépendance D02/D09 actés.
 
 **C :** l'article 30 distingue le registre du responsable de celui du sous-traitant. Le projet rassemble finalités, personnes, données, destinataires, transferts, délais et sécurité ; les bases légales et risques complètent ce socle. Source : [CNIL — registre](https://www.cnil.fr/fr/RGPD-le-registre-des-activites-de-traitement), consultée le 27/10/2026. La qualification personnelle/domestique et la désignation de la personne physique exploitante restent à valider (D01) ; ne pas invoquer automatiquement la dérogation des petites structures pour des traitements pédagogiques réguliers.
 
@@ -10,9 +10,9 @@
 | --- | --- |
 | Responsable du traitement / représentant éventuel | B : exploitant personnel indépendant déterminant le service ; responsable potentiel comme personne physique si le RGPD s'applique. E : D01 doit acter ce rôle, identité/contact autorisés et territoire en interne, sans publication automatique d'adresse personnelle. Voir l'analyse des deux branches. |
 | Responsables conjoints / donneur d'instructions | B : aucun rôle institutionnel, service imposé, accès formateur ou remontée officielle prévus. B : D02 actée par mandat B ; réexaminer si les pratiques changent ; aucun conjoint ni contrat pédagogique présumé. |
-| DPO / point de contact droits | Désignation éventuelle et canal opérationnel à confirmer (D04), aucun contact inventé. |
+| DPO / point de contact droits | Contact officiel public approuvé en C : voir la page de contact. Vérifications opérationnelles encore requises ; aucun DPO automatiquement désigné. |
 | Gestionnaire du registre et validation | Exploitant ; date/version et décisions approuvées à tenir en privé après D01, sans créer une fonction supplémentaire. |
-| Personnes concernées | A : visiteurs de pages publiques, distincts des comptes. B : sept comptes adultes envisagés, exploitant compris (hypothèse à confirmer avant invitation), facultatif, gratuit, sans publicité/non commercial ; fermeture le 30 juin 2027. D09 actée ; décompte séparé P0-14. |
+| Personnes concernées | A : visiteurs de pages publiques, distincts des comptes. B : sept comptes adultes confirmés, exploitant et six autres participants, facultatif, gratuit, sans publicité/non commercial ; fermeture le 30 juin 2027. D09 actée ; décompte séparé P0-14. |
 | Statut des traitements | A : capacités relues sur la fusion #24 `39a5196…`, copie partielle, retrait local et clôture locale éphémère préparés ; Auth publique désactivée. Ni volume ni activité étudiante hébergée vérifiés. |
 
 ## Options de licéité à instruire si RGPD applicable (C/D/E)
@@ -27,14 +27,14 @@ La qualification reste ouverte dans l'[analyse personnelle/domestique](ANALYSE-E
 
 Pour ce service gratuit sans relation contractuelle établie, la proposition est **l'intérêt légitime motivé par finalité R01–R05** (art. 6 §1 f), selon les bilans des cinq fiches ci-dessous. Elle privilégie les attentes d'un adulte qui demande une révision privée, la minimisation, l'alternative visiteur et l'absence de conséquence officielle. Les erreurs d'apprentissage restent confidentielles : leur faible enjeu officiel ne supprime pas le risque d'exposition. Opposition et clôture doivent être réellement accessibles ; informer des limites du maintien d'un compte si les traitements nécessaires sont refusés, sans conséquence sur la formation.
 
-Conditions non encore remplies : D01/identité, approbation du bilan et de la notice, contact réel, durées résiduelles, fournisseurs et mesures effectives. **Aucune base n'est déjà acquise**, aucun contrat, consentement ou mandat d'intérêt public n'est inventé. Le consentement n'est pas proposé par défaut pour contourner ces manques ; si une fonctionnalité future exige un choix juridiquement distinct, l'analyser spécifiquement. [CNIL — intérêt légitime](https://www.cnil.fr/fr/les-bases-legales/interet-legitime) et [art. 6–7](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre2), relus le 05/11/2026. Les justifications propres au projet sont des recommandations, non une validation de la CNIL.
+Conditions non encore remplies : D01/identité, approbation du bilan et de la notice, vérification du contact retenu, durées résiduelles, fournisseurs et mesures effectives. **Aucune base n'est déjà acquise**, aucun contrat, consentement ou mandat d'intérêt public n'est inventé. Le consentement n'est pas proposé par défaut pour contourner ces manques ; si une fonctionnalité future exige un choix juridiquement distinct, l'analyser spécifiquement. [CNIL — intérêt légitime](https://www.cnil.fr/fr/les-bases-legales/interet-legitime) et [art. 6–7](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre2), relus le 05/11/2026. Les justifications propres au projet sont des recommandations, non une validation de la CNIL.
 
 ## R01 — Accéder à un compte personnel et le sécuriser
 
 | Rubrique | Fiche préparatoire |
 | --- | --- |
 | Finalité / statut | A : permettre connexion sur invitation, activation, récupération et session personnelle. Capacité développée, Auth publique désactivée. Ne comprend pas la création libre de comptes. |
-| Responsable / personnes | B : sept comptes adultes envisagés, exploitant compris sous hypothèse à confirmer, exploitant indépendant ; E : qualification juridique D01 à approuver ; D02/D09 actées. |
+| Responsable / personnes | B : sept comptes adultes confirmés, exploitant et six autres participants, exploitant indépendant ; E : qualification juridique D01 à approuver ; D02/D09 actées. |
 | Données et origine | A01–A04/A06–A07 : adresse transmise par l'invitant, UUID et métadonnées Auth, preuves temporaires, session SDK et marqueur local ; mot de passe saisi directement. F04/F07/F08/F10. Source de l'adresse et relation avec l'invitant : D10, importante pour information indirecte. |
 | Base proposée — approbation requise | D03, art. 6 §1 f proposé : intérêt à fournir et sécuriser l'accès individuel volontairement demandé. E-mail/UUID nécessaires au compte invité et à la récupération ; visiteur sans compte possible mais sans reprise distante. Impact : compte compromis, lien exposé ; garanties : accès propriétaire, liens individuels, aucune réutilisation commerciale, contact et clôture. Conditions restantes : approbation du bilan, canal/MFA effectifs et mesures des autres P0. |
 | Destinataires / prestataires | A : titulaire via interface, Auth/SDK, service d'invitation de confiance préparé. F : opérateurs effectivement habilités, chaîne Supabase/SMTP/messagerie et rôles. Aucun accès formateur aux comptes n'est démontré par le frontend. |
@@ -49,7 +49,7 @@ Conditions non encore remplies : D01/identité, approbation du bilan et de la no
 | Rubrique | Fiche préparatoire |
 | --- | --- |
 | Finalité / statut | A : retrouver un profil minimal privé et un pseudo facultatif ; pas d'annuaire public ni de classement. |
-| Responsable / personnes | B : titulaires des sept comptes envisagés (décompte à confirmer) ; E : D01 à approuver ; D02/D09 actées. |
+| Responsable / personnes | B : titulaires des sept comptes confirmés (exploitant inclus) ; E : D01 à approuver ; D02/D09 actées. |
 | Données et origine | A05 : UUID fourni par Auth, pseudo saisi par l'utilisateur, dates serveur. Table `public.profiles`. E-mail affiché depuis Auth, pas dupliqué dans le profil SQL. |
 | Base proposée — approbation requise | D03, art. 6 §1 f proposé : retrouver son profil minimal et l'identification choisie. UUID nécessaire au rattachement ; pseudo facultatif laissé vide ou retirable, sans annuaire. Alternative UUID seul à conserver si le pseudo n'a pas d'utilité demandée. Impact de réidentification limité par absence de diffusion et accès propriétaire ; nécessité et facultativité effectives à approuver/vérifier. |
 | Destinataires / prestataires | A : seul compte propriétaire via SELECT propre, Supabase DB ; E/F : administrateurs habilités et chaîne fournisseur. Pas de vue des profils d'autres comptes autorisée par les policies. |
@@ -81,7 +81,7 @@ Cette finalité regroupe états de cours, résultats, historiques d'entraînemen
 | Rubrique | Fiche préparatoire |
 | --- | --- |
 | Finalité / statut | A : reprendre les huit derniers paramètres ITK, les choix saison/luminosité, masquer l'anecdote du jour. Pas de stockage du document ITK complet ni d'historique du rendu automatique. |
-| Responsable / personnes | A : visiteurs ; B : sept comptes adultes envisagés (hypothèse exploitant compris) ; E : D01 à approuver ; D02/D09 actées. |
+| Responsable / personnes | A : visiteurs ; B : sept comptes adultes confirmés (exploitant inclus) ; E : D01 à approuver ; D02/D09 actées. |
 | Données et origine | I01–I03/P01–P05/X01 : saisie formulaire et choix explicites, date facultative de préférence, données techniques de synchronisation/import ; saison et heure de rendu calculées localement. |
 | Base proposée — approbation requise | D03, art. 6 §1 f proposé : retrouver les seuls derniers paramètres ITK et choix d'interface demandés, sans historique du rendu ni document ITK complet. Alternative locale conservée, aucune donnée de localisation/météo supplémentaire. Faible intrusion attendue, mais caches/bruts à limiter ; suppression/rectification des choix possibles. Nécessité et durée de chaque copie à approuver avec D12 (terminal distinct). |
 | Destinataires / prestataires | A : profil navigateur ; Supabase pour derniers paramètres/choix personnels configurés ; téléchargement/impression utilisateur pour résultats reconstruits. Aucun service météo/solaire constaté. F : admins et copies OS éventuelles. |

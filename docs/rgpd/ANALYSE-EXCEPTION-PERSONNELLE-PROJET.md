@@ -1,6 +1,6 @@
 # Activité personnelle ou RGPD applicable — analyse ciblée
 
-**5 novembre 2026, lot 6.5.5.B. Recommandation prête à approuver, sans avis juridique définitif.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) ; elles ne tranchent pas D01. Sept comptes envisagés, exploitant compris sous hypothèse à confirmer, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
+**5 novembre 2026, lot 6.5.5.C. Recommandation prête à approuver, sans avis juridique définitif.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) ; elles ne tranchent pas D01. Sept comptes confirmés, exploitant et six autres adultes, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
 
 ## Sources officielles et portée
 

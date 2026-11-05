@@ -3,7 +3,7 @@ import { mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { resolve, join, sep, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { protectDirectory, createPrivate } from '../dev-recipe/private-files.mjs';
-import { emptyPrivateConfiguration, contactCheck, invitationPreflight, closurePreflight, requireThat, fresh, digest, instant } from './preflight.mjs';
+import { emptyPrivateConfiguration, withConfirmedDecisions, contactCheck, invitationPreflight, closurePreflight, requireThat, fresh, digest, instant } from './preflight.mjs';
 import { checkDirectory, regularFile, verifyBackup, currentSchemaHash, makeManifest, insideRepository } from './backup.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -28,10 +28,10 @@ export function run(args, now = new Date().toISOString()) {
   requireThat(args.length === 2 && ['init', 'contact', 'invitation', 'closure', 'seal', 'backup'].includes(command), 'usage');
   const directory = privateDirectory(name, command === 'init');
   if (command === 'init') {
-    createPrivate(directory, 'operator.json', emptyPrivateConfiguration());
+    createPrivate(directory, 'operator.json', withConfirmedDecisions(emptyPrivateConfiguration()));
     createPrivate(directory, 'backup-context.json', { projectRef: null, backupDirectory: null, ledgerReviewedAt: null, protectionChecked: false });
     createPrivate(directory, 'deletions.json', []);
-    return { status: 'DOSSIER PRIVÉ CRÉÉ — AUCUN CONTACT INVENTÉ, AUCUNE CONNEXION', files: ['operator.json', 'backup-context.json', 'deletions.json'] };
+    return { status: 'DOSSIER PRIVÉ CRÉÉ — DÉCISIONS INTÉGRÉES, VÉRIFICATIONS OPÉRATIONNELLES REQUISES, AUCUNE CONNEXION', files: ['operator.json', 'backup-context.json', 'deletions.json'] };
   }
   if (command === 'contact') return contactCheck(json(directory, 'operator.json'), now);
   if (command === 'invitation') return invitationPreflight(json(directory, 'invitation.json'), json(directory, 'operator.json'), now);

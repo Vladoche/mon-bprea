@@ -1,0 +1,32 @@
+/* Page autonome : le contenu et le mailto restent utilisables sans JavaScript/Auth. */
+.contact-wrap{width:min(760px,calc(100% - 36px));margin-inline:auto}
+.contact-page .skip-link{position:fixed;top:8px;left:8px;z-index:100;padding:10px 16px;background:var(--white);transform:translateY(-160%)}
+.contact-page .skip-link:focus{transform:translateY(0)}
+.contact-header{padding:22px 0;background:var(--white);border-bottom:1px solid var(--line)}
+.contact-header .contact-wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.contact-brand{font-size:21px;font-weight:800;line-height:1.4}
+.contact-brand span{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.contact-header nav{display:flex;gap:18px}
+.contact-page a{color:var(--green);text-decoration:underline;text-underline-offset:4px}
+.contact-header a{display:inline-block;padding-block:8px}
+.contact-page main{font-size:17px;line-height:1.75;overflow-wrap:anywhere}
+.contact-intro{padding-top:44px}
+.contact-page h1{font-size:clamp(2rem,5vw,2.8rem);margin-bottom:24px}
+.contact-page h2{font-size:23px;margin-bottom:16px}
+.contact-page section{margin-block:32px}
+.contact-card,.contact-care{padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--white)}
+.contact-card{border-top:4px solid var(--green)}
+.contact-address{font-size:clamp(1rem,3.5vw,1.3rem);font-weight:750;user-select:text;margin-block:20px}
+.contact-address a{display:inline-block;padding-block:8px;max-width:100%}
+.contact-help{font-size:14px}
+.contact-page li{margin-bottom:10px;color:var(--muted)}
+.contact-page ul{padding-left:24px}
+.contact-page strong{color:var(--text)}
+.contact-care{background:var(--color-surface-soft)}
+.contact-page footer{margin-top:48px;padding-block:26px;color:var(--muted);font-size:13px}
+/* Sans theme-init, suivre le choix système. Avec JS, garder saisons/horaires et préférence existante. */
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme]){color-scheme:dark;--bg:#121b15;--white:#1b2920;--text:#e0eade;--muted:#b5c6b7;--line:#425749;--green:#a6d4af;--green-light:#294431;--color-surface-soft:#223429;--color-focus:#a5bdff}
+}
+@media(max-width:390px){.contact-card,.contact-care{padding:18px}.contact-page main{font-size:16px}}
+@media print{.contact-page header,.contact-page footer,.contact-page .skip-link{display:none}.contact-page main{color:#000}.contact-page section{break-inside:avoid}}
