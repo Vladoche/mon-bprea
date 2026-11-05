@@ -1,5 +1,11 @@
 # Développement et stratégie de tests
 
+## Reprise corrective C2 — 4 novembre 2026
+
+La [validation 6.5.4.C](validations/VALIDATION-LOT6-5-4C.md) distingue les preuves CI rapprochées, les tests locaux et les vrais scénarios DEV autorisés. Préparation locale sous Node **24.22.0** : `npm ci` hors ligne, **499 tests / 49 fichiers**, puis **85 E2E**, plus dix groupes hors ligne de gardes/filiation. Le premier démarrage E2E refusé sur localhost est consigné séparément ; l'exécution suivante autorisée a réussi. Aucun runner Supabase réel redirigé vers DEV ; CLI/Docker absents sur le poste, ces suites locales restent **NON EXÉCUTÉES**. La CI éphémère distincte vérifiée comporte **386 assertions pgTAP et 31 parcours réels**.
+
+C2 utilise l'artefact frontend existant **5c910b7**, servi localement contre DEV, les deux comptes fictifs et le journal cumulatif : T03/T08/T10/T12 réussis, deux seules RPC QCM/Drill confirmées, JSON original intact, botanique bloquée et privacy conservée. **Expiration JWT T11 NON EXÉCUTÉE**, report choisi par l'exploitant ; ne pas déduire sa réussite des 3600 s configurées ou des mocks. Contrôleur/navigateur/serveur fermés ; compteurs finaux **3/3 liens, 29/60 Auth, 104/140 tentatives**. Garder les marqueurs consommés ; une future sonde exige un périmètre et des préconditions frais, sans répétition des tests acquis. Les limites historiques et la décision D restent distinctes.
+
 ## Régression export après conflit — lot 6.5.4.C
 
 `npm test -- tests/unit/restore-conflict-roundtrip.test.js tests/unit/restore-model.test.js tests/integration/restore-service.test.js` : **54 tests**, dont sept régressions nouvelles. Les vrais modèles produisent un cliché pending puis une opération conflict, encore courante ou rangée après résolution ITK ; le véritable export v1 reste analysable sans rendre les archives exécutables. Références inconnues, archive non résolue/autre type, états inconnus et payload/RPC divergents restent refusés. Les trois scénarios valides échouaient avant le correctif. Suite complète : **499 tests/49 fichiers puis 85 E2E** ; réponse HTTP synthétique distincte de la [recette DEV partielle](validations/VALIDATION-LOT6-5-4C.md).

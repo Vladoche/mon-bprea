@@ -1,5 +1,79 @@
 # Validation du lot 6.5.4.C — reprise sécurisée de la recette DEV
 
+**Bilan du 4 novembre 2026 : correctif JSON validé contre Supabase DEV ; T03/T08/T10/T12 C2 réussis. Expiration JWT T11 NON EXÉCUTÉE, report explicitement choisi par l'exploitant.** Banc fermé, deux comptes fictifs A/B et **36 lignes** conservés, D non autorisée et non exécutée. Aucun accès PROD, déploiement Pages ou invitation réelle. Les autres limites historiques restent explicites ; tous les sous-cas du lot ne sont pas déclarés acquis.
+
+## Reprise du 4 novembre — provenance et accords
+
+L'audit local, la consultation GitHub, la lecture DEV, la préparation locale puis C2 ont reçu leurs accords successifs. Campagne **r654b-20261030-302521a0f692**, continuation **r654b-20261030-5353c94969bc** : le dispositif privé **C2-reprise-20261104** n'est pas un nouveau run. Le refus C2 du 31 octobre est conservé, la nouvelle décision ajoutée séparément. Aucun compteur ni marqueur consommé n'a été réinitialisé.
+
+| Référence distincte | SHA / observation vérifiée le 4 novembre |
+| --- | --- |
+| HEAD local avant/après le checkout temporaire ; tête finale de PR #32 | **fd7e41dff4cd022eeb93e08712b491fd78a28b09**, branche feature/lot6-5-4c-reprise-recette-dev |
+| Commit du correctif JSON | **30333b4ecfffb0107b19ec7a018df774b618db1d** |
+| Fusion distante [PR #32](https://github.com/Vladoche/mon-bprea/pull/32) et `main` observé | **04c1acab86dc3f013fa9ed76f82fced69a710f63**, fusion le 31/10 à 09:14:50 UTC ; arbre **4b75f38c160d6f95238122b7cc7b74cb15c327ad**, identique à fd7e41d |
+| Frontend C2 préparé puis réellement exécuté en navigateur | **5c910b748fae0b7747c8192424e7ecd49c86a520** |
+| Empreinte de cet artefact frontend conservé | **544a72e3adeab34b9cb5d09a2eb50ce106ae3199afdb16def38862a03a0cc7ef** |
+| Dernier frontend exécuté contre DEV avant cette reprise | **f9bee0ca926e59bfb98c983d7e27b6ff74976624** |
+| Plan de reprise scellé | **77075ff015c4e91796ef710452f953fdbb950bb704d7f94728cbc89674567949**, lié au plan original **9e7902c0b20ab9777397ae5f268a08292b85c44c35f416bbcf51889b47551416** |
+
+Le frontend 5c910b7 a été servi **localement**, sous `http://127.0.0.1:4173/mon-bprea/`, avec l'API du seul projet DEV **wcckbyhrtroittbfophv**. Aucun déploiement sur un hébergement DEV ou Pages. Aucun fetch/pull/push, lancement de CI, nouvelle fusion ou accès PROD pendant la recette du 4 novembre ; sa livraison Git est distincte. Le checkout temporaire a été fermé puis la branche d'origine rétablie sans déplacer sa référence ; seules les actualisations documentaires sont ajoutées au worktree.
+
+## CI distante rapprochée le 4 novembre
+
+Les quatre runs, tentative 1, ont été consultés et sont réussis. Les checkout des jobs PR sont des fusions temporaires, distinctes des têtes de code.
+
+| Code rapproché / checkout CI réel | Qualité : unit-integration / e2e | Sécurité : supabase-security |
+| --- | --- | --- |
+| C2 **5c910b7** ; checkout **6897d35a79d93636f58f4580f7bcd22b0547689b**, arbre identique **72e97eabf0079dc75b4405d1f99d7e8aecad567b** | [Run 41186409484](https://github.com/Vladoche/mon-bprea/actions/runs/41186409484) : [124494120733](https://github.com/Vladoche/mon-bprea/actions/runs/41186409484/job/124494120733) / [124494120593](https://github.com/Vladoche/mon-bprea/actions/runs/41186409484/job/124494120593) | [Run 41186409473, job 124494120489](https://github.com/Vladoche/mon-bprea/actions/runs/41186409473/job/124494120489) |
+| Tête finale **fd7e41d** ; checkout **571c547fc5988e8bc4fe1b26f3deb344e4c1c213**, arbre identique **4b75f38c160d6f95238122b7cc7b74cb15c327ad** | [Run 41187268830](https://github.com/Vladoche/mon-bprea/actions/runs/41187268830) : [124496617980](https://github.com/Vladoche/mon-bprea/actions/runs/41187268830/job/124496617980) / [124496618266](https://github.com/Vladoche/mon-bprea/actions/runs/41187268830/job/124496618266) | [Run 41187268828, job 124496618087](https://github.com/Vladoche/mon-bprea/actions/runs/41187268828/job/124496618087) |
+
+Résultats : **499 tests / 49 fichiers**, **85 E2E** ; sécurité **386 assertions pgTAP et 31 parcours Supabase éphémères**. Cette CI reste distincte de C2 et ne déploie pas le site.
+
+## Préflight et exécution C2 observés
+
+Avant le démarrage unique : DEV ACTIVE_HEALTHY, Free, eu-west-1 ; catalogue et privilèges complets identiques aux références après normalisation des ordres/fins de ligne. Trois migrations, dix tables, 98 colonnes, 95 contraintes, 24 index, 11 triggers, 24 politiques et 15 fonctions dont neuf RPC conservés. RLS et privilèges de colonnes de profiles inchangés. Auth et Data API relus sans Save : signup/anonyme/manual linking désactivés, JWT 3600 s, rotation activée/réutilisation 10 s, public/graphql_public exposés et bprea_private non exposé. Aucun réglage changé.
+
+Lecture ciblée initiale du **04/11 à 18:10:36 UTC** : mêmes deux UUID/adresses confirmés, **24 lignes A et 10 B**, dix témoins B inchangés, trois intentions d'origine encore absentes et cours concurrent déjà confirmé à la révision 6. Préflight âgé de moins de cinq minutes au lancement. Les lectures administratives ne sont pas présentées comme des preuves RLS.
+
+Les connexions ont finalement été automatisées à la demande de l'exploitant par collage aveugle du même mot de passe fourni dans son presse-papiers local. Aucun contenu du presse-papiers, mot de passe ou JWT lu, affiché ou enregistré par l'outil de saisie. Les gardes du contrôleur sont restés actifs. Les outils opérateurs complémentaires, privés et tracés, n'ont créé aucun contexte ni modifié aucune route ; les six sources scellées sont intactes.
+
+Le contrôle natif des fenêtres Chrome échouait sur leur identification. Le premier outil de saisie a ensuite perdu son observation pendant une connexion B : le POST Auth **27 a répondu 200**, puis l'identité B a été vérifiée par le scénario suivant, sans répétition. Le contrôle automatique a refusé sa réouverture ; après l'accord supplémentaire **« Oui, connecter A et poursuivre les tests »**, la seule connexion A suivante a été soumise une fois. Les anciens reçus, l'arrêt et les versions de l'outil sont conservés. C2 n'a pas été redémarrée.
+
+| Scénario restant | Résultat réellement observé le 4 novembre | Portée / limite |
+| --- | --- | --- |
+| T03, lectures après peuplement | **RÉUSSI SUR DEV** : 50 SELECT réels sur dix tables ; zéro ligne étrangère et zéro donnée personnelle visiteur, réponses visiteur 401 | Aucun nouveau négatif mutateur ; JWT distincts des catalogues administratifs |
+| T08, A→B→A | **RÉUSSI SUR DEV** : ITK 300/100/300 ; deux intentions A en attente gardent les mêmes UUID/payloads ; aucun envoi A sous B ni écriture pédagogique par la bascule | Le blocage réseau local n'est pas un refus RLS ; aucune nouvelle preuve d'une réponse A déjà en vol pendant la bascule |
+| T10, correctif et JSON original | **RÉUSSI SUR DEV** : analyse/annulation sans écriture ; confirmation/double clic produisent exactement deux RPC réelles, **personal_record_quiz** et **drill_record_answer**, HTTP 200 sous A ; mêmes identifiants/corps d'origine, une ligne chacun | Botanique toujours bloquée par sa dépendance ; cours révision 6 et UUID techniques des séries conservés, aucune archive réveillée |
+| T10, répétition et identité | **RÉUSSI SUR DEV** : reload/réanalyse sans doublon ni nouvel envoi, application désactivée ; JSON A refusé sous B ; import/export désactivés en visiteur ; B inchangé | Refus du fichier applicatif ; aucune tentative d'écriture croisée n'en est déduite |
+| T12, cache synthétique et privacy | **RÉUSSI** : aperçu/annulation sans perte puis seul ITK local A1 retiré, zéro opération non confirmée sélectionnée ; apparence/autres domaines/B/serveur conservés ; ancienne copie refusée avant/après reprise explicite des caches | Contexte temporaire seulement ; aucun DELETE hébergé ou close-account. Aperçu et confirmation automatisés à la demande de l'exploitant |
+| T11, expiration JWT réelle | **NON EXÉCUTÉE** ; choix explicite **« Terminer avec l'expiration non exécutée »**, puis **« On finira ce dernier contrôle plus tard »** | Le contrôle automatique avait refusé la sonde anticipée ; aucune sonde d'expiration envoyée ni durée accélérée. Ne pas déclarer ce sous-cas acquis |
+
+Captures de l'aperçu répété et du retrait ITK examinées visuellement ; preuves privées ignorées. Les interruptions/export annulé précédemment acquis n'ont pas été rejoués.
+
+## Closeout C2, budgets et D
+
+Serveur, navigateur temporaire, contrôleur et outil de saisie arrêtés. La relecture ciblée du **04/11 à 18:43:46 UTC** confirme **26 lignes A + 10 B = 36**, les dix témoins B identiques, QCM/Drill uniques, botanique absente et cours révision 6 conservé.
+
+| Budget cumulatif | Final | Dépense C2 / reste global |
+| --- | --- | --- |
+| Comptes / liens administratifs | **2/2 ; 3/3** | Aucun compte/lien ajouté ; zéro lien disponible |
+| Auth mutantes | **29/60** | **7** sur le plafond additionnel de 18 ; **31** restantes |
+| Tentatives pédagogiques | **104/140** | **2** sur le plafond additionnel de 8 ; **36** restantes |
+| Groupe JSON | **8/14** | 6 avant C2 ; autres groupes inchangés : RLS 49, Drill 8, cours 11, botanique 12, paramètres 12, appareils 0, interruptions/privacy 3, réserve 1 |
+| Lignes applicatives | **36/150** | Deux créations : drill_answers (A 3/B 1) et quiz_attempts (A 6/B 1) ; autres comptages historiques inchangés |
+
+**D NON AUTORISÉE / NON EXÉCUTÉE.** Inventaire privé daté : deux cibles exactes liées au run, lignes par table, onze FK/cascades, **sept lignes de sessions A et quatre B**, zéro objet Storage chacun, deux JSON originaux et archives/artefacts/preuves locaux. Un nombre de sessions ne prouve pas leur validité ; fermer le banc ne révoque pas immédiatement les JWT distants. Toute identité historique et PROD sont exclus. Les copies téléchargées et preuves locales survivraient au nettoyage hébergé ; aucune purge implicite. Copie technique 6.5.3.B non consultée/prolongée/purgée, réexamen du 5 novembre maintenu.
+
+Après fermeture, **1 635 fichiers historiques**, les six sources scellées, l'artefact C2 et le JSON original ont été revérifiés intacts. Nouveaux reçus ajoutés au même journal cumulatif. Références privées : C2-closeout-review.json, postcheck-response-001.json, expiry-decision-001.json et D-preparation-private-20261104.json sous le dispositif ignoré ; aucun secret ou contenu individuel dans Git.
+
+Tests locaux exécutés le 4 novembre pendant la préparation : Node **24.22.0**, **npm ci** hors ligne réussi, **npm test 499/499 (49 fichiers)** puis **npm run test:e2e 85/85**, dix groupes hors ligne de gardes réussis. Le premier démarrage E2E refusé sur localhost n'est pas compté comme réussi ; l'exécution autorisée suivante a passé les 85 cas. Suites Supabase locales réelles **NON EXÉCUTÉES** faute de CLI/Docker, aucun runner redirigé vers DEV. Code applicatif inchangé pendant cette reprise ; Auth publique désactivée.
+
+**Décision : correctif JSON validé sur DEV, bilan C2 terminé avec T11 explicitement reporté.** Une future sonde aura son mandat ciblé, des compteurs/identités frais et un JWT signé gardé uniquement en mémoire jusqu'à expiration réelle ; ne pas relancer les marqueurs C2 consommés ni générer de lien. D reste séparée. Les négatifs Auth, autres limites historiques et P0/D01–D14 ne deviennent pas validés ; aucune ouverture ou mise en production autorisée.
+
+## Historique arrêté au 31 octobre 2026
+
+Les sections suivantes conservent les constats à cette date. C2 non autorisée, 22/60 Auth, 102/140 tentatives et 34 lignes y décrivent l'état historique, remplacé pour la reprise par les observations ci-dessus.
+
 **Bilan du 31 octobre 2026, Europe/Paris : recette partielle conservée au choix explicite de l'exploitant ; C2 non autorisée et non lancée.** Auth revérifiée sur DEV, défaut JSON corrigé localement et vérifié en CI ; ses contrôles DEV restants ne sont pas exécutés. Aucun nettoyage D, fusion, déploiement ou ouverture publique. Les constats du [lot B](VALIDATION-LOT6-5-4B.md) restent inchangés.
 
 ## Provenance, cible et accords
