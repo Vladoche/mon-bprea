@@ -1,5 +1,8 @@
 # Inventaire des données — lots 6.4.1 à 6.4.4
 
+**Actualisation 6.5.5.B du 5 novembre 2026 :** le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) prévoit sept comptes exploitant compris (hypothèse à confirmer), fermeture 30/06/2027, préavis/export 31/05 et suppression active au plus tard 30/07. Clôture assistée et sauvegarde hebdomadaire choisies ; [procédures opérables préparées](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md), [P0 courants](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les états 6.4/6.5.1 datés ci-dessous sont historiques ; leurs propositions dépassées ne remplacent pas ces décisions. Aucun service activé ou garantie hébergée déduits.
+
+
 **Audit préparatoire du 27 octobre, actualisé le 28 octobre 2026 ; aucune conformité acquise.** Référence initiale `178f7c7` ; relecture 6.4.4 sur `origin/main` **`1bddaece1ac26b21a132d0974d7692dec6e80245`**, après fusions #21–#23. Aucun projet Supabase hébergé ni profil navigateur réel n'a été consulté. Le code décrit des capacités, pas l'état des données de DEV/PROD. [Matrice des preuves](MATRICE-CONFORMITE-ET-PREUVES.md), [recette finale](../validations/VALIDATION-LOT6-4-4.md).
 
 ## Lecture et périmètre

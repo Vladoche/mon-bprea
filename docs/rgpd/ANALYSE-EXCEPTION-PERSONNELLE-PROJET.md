@@ -1,46 +1,29 @@
-# Exception personnelle ou domestique — analyse préparatoire
+# Activité personnelle ou RGPD applicable — analyse ciblée
 
-**PROJET NON VALIDÉ — 28 octobre 2026. Qualification juridique ouverte.** Méthode A–F : [cadrage](CADRAGE-MON-BPREA-SIX-ADULTES.md). Décisions existantes D01/D02/D03/D09/D11 ; aucune exemption générale déclarée.
+**5 novembre 2026, lot 6.5.5.B. Recommandation prête à approuver, sans avis juridique définitif.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md) ; elles ne tranchent pas D01. Sept comptes envisagés, exploitant compris sous hypothèse à confirmer, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
 
-## Sources officielles consultées le 28/10/2026 (C)
+## Sources officielles et portée
 
-| Source | Point vérifié et limite |
-| --- | --- |
-| [CNIL, les particuliers doivent-ils respecter le RGPD ?](https://www.cnil.fr/fr/cnil-direct/question/1817) | Le cadre strictement familial ou amical peut relever de l'exception ; un particulier peut aussi être responsable du traitement. Cette réponse ne qualifie pas Mon BPREA. |
-| [RGPD sur CNIL, chapitre I](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre1) | Art. 2 §2 c : exception personnelle/domestique ; art. 4 §7 : responsable pouvant être une personne physique. L'absence de société n'exclut donc pas ce rôle. |
-| [RGPD, chapitre II](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre2) | Principes et licéité à examiner par finalité si applicable. |
-| [CNIL, consentement](https://www.cnil.fr/fr/les-bases-legales/consentement), [intérêt légitime](https://www.cnil.fr/fr/les-bases-legales/interet-legitime) | Consentement libre/spécifique/éclairé/univoque et retrait démontrables ; intérêt légitime soumis à nécessité, attentes et mise en balance. Aucun n'est un fondement automatique. |
-| [RGPD, chapitre III](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3), [information CNIL](https://www.cnil.fr/fr/conformite-rgpd-information-des-personnes-et-transparence) | Information accessible au bon moment et droits selon leurs conditions ; distinguer collecte directe et indirecte. |
-| [RGPD, chapitre IV](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre4) | Organisation proportionnée (art. 24), prestataires, sécurité, incidents, AIPD et critères DPO ; aucune obligation de créer une équipe institutionnelle déduite. |
+Consultation du **05/11/2026** : [RGPD, art. 2/4 sur CNIL](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre1), [réponse CNIL sur les particuliers](https://www.cnil.fr/fr/cnil-direct/question/1817). L'exception vise une activité strictement personnelle/domestique ; un particulier peut être responsable du traitement. Le caractère non commercial ne remplace pas cette condition. La route [EUR-Lex demandée](https://eur-lex.europa.eu/eli/reg/2016/679/oj/fra) reste bloquée par une vérification antirobot ; le texte des articles a été lu sur CNIL, sans prétendre avoir relu le considérant 18 sur EUR-Lex.
 
-L'accès [EUR-Lex au règlement](https://eur-lex.europa.eu/legal-content/FR/TXT/?uri=CELEX:32016R0679), y compris la route ELI, a été bloqué par une vérification antirobot. Les articles ont été lus sur CNIL ; aucune lecture du considérant 18 via EUR-Lex n'est revendiquée. Aucun avis CNIL ou arrêt propre à Mon BPREA n'a été trouvé ni n'est supposé.
+## Deux branches examinées
 
-## Appréciation des faits : deux branches, sans assimilation
-
-| Critère | Éléments favorables à une sphère personnelle | Incertitude ou limite |
+| Contexte concret | Appréciation pour l'exception | Limite déterminante |
 | --- | --- | --- |
-| Auteur et but | B : développement personnel indépendant, révision de sa propre formation avec cinq camarades. | E : confirmer l'absence d'activité professionnelle/commerciale dans ce traitement ; « personnel » dans le langage courant n'est pas la qualification de l'art. 2. |
-| Cercle | B : six adultes maximum, invitations, usage facultatif. | E : nature réellement privée/amicale de la relation non établie ; une promotion n'est pas automatiquement un cercle amical. Aucun questionnaire intime n'est recommandé. |
-| Diffusion | B : résultats privés, aucun accès formateur ni remontée officielle prévus. A : RLS par UUID dans les migrations. | A : dépôt public et fichiers Pages publics distincts des comptes. F : accès effectifs, absence de partage de liens/fichiers privés et réglages hébergés à contrôler. |
-| Portée et durée | B : fin de formation juin 2027, petit effectif. | Ni six personnes, ni gratuité éventuelle, ni durée limitée ne suffisent isolément. Les visiteurs publics et leurs flux doivent être examinés séparément. |
-| Hébergement | A : Auth/PostgreSQL Supabase prévus, Pages et messagerie ; pas d'annuaire de résultats. | Un hébergement tiers ne tranche pas seul l'exception. F : contrats et traitements propres des fournisseurs ; leurs obligations ne disparaissent pas avec une éventuelle exemption de l'exploitant. |
+| Révisions avec des camarades, développement/exploitation personnels | Invitation fermée et absence de rôle institutionnel favorisent un cercle privé | Une relation de promotion n'est pas nécessairement une relation strictement familiale/amicale ; sa qualification demeure incertaine |
+| Sept personnes envisagées, adultes, volontariat, gratuité/non-commercial | Petit cercle et durée courte cohérents avec un usage personnel | Aucun seuil « sept » n'exempte automatiquement ; la gratuité seule ne tranche pas |
+| Service accessible en ligne, Auth et résultats individuels persistants | Auth/RLS peuvent limiter la diffusion des résultats au titulaire | Traitements réguliers organisés pour des tiers ; ne pas assimiler compte privé et activité juridiquement domestique |
+| Pages pédagogiques publiques, dépôt public, résultats non publics | Diffusion des contenus ne prouve pas une diffusion des résultats | Examiner séparément les flux de visiteurs/IP et les traitements propres des fournisseurs ; pas d'exemption générale du site |
+| Aucun accès formateur, usage imposé, note officielle ou transmission | Pas de finalité institutionnelle prévue, indépendance actée | Revoir la qualification avant toute évolution de ces pratiques |
 
-### Hypothèse 1 — exception applicable au traitement strictement privé de l'exploitant
+**Branche 1 :** l'exception pourrait être défendue pour les traitements réellement limités à un cercle personnel/amical, si cette condition est établie. Les faits fournis ne suffisent pas à affirmer qu'elle est acquise. Aucun questionnaire intime supplémentaire n'est recommandé. Les obligations propres des fournisseurs, la sécurité et l'information honnête ne disparaissent pas par cette qualification.
 
-D : elle pourrait être défendable si la personne agit exclusivement à titre personnel, avec un cercle réellement privé/amical, sans but professionnel/commercial ni diffusion de données hors de ce cercle, et garde la maîtrise des destinataires. E : établir ces conditions et le périmètre précis ; ne pas étendre une conclusion concernant l'espace personnel à tous les flux du site public. La présence d'un site pédagogique public sans résultats nominatifs ne prouve à elle seule ni l'exemption ni son exclusion pour chaque traitement.
+**Branche 2 :** si RGPD applicable, la personne physique exploitante qui décide des finalités/moyens est responsable dans ce cadre, sans établissement conjoint présumé. Utiliser le registre R01–R05, les bases proposées, la notice accessible, le canal, les durées, les pièces fournisseurs et les procédures déjà préparés. Une société, une convention de formation ou un DPO ne sont pas créés par défaut ; les critères propres à ces obligations doivent être examinés. Le faible effectif ne dispense pas automatiquement du registre pour une activité régulière.
 
-D : conserver information honnête, moindre accès, sécurité des comptes, export/assistance, retrait vérifié et fermeture maîtrisée. Les [P0](DOSSIER-PREOUVERTURE.md) restent les portes de sécurité et d'exploitation ; si une obligation est finalement inapplicable, consigner sa justification dans la décision existante plutôt que l'effacer silencieusement. Examiner séparément accès au terminal et engagements contractuels. Ne pas présenter les procédures volontairement maintenues comme des obligations juridiques déjà qualifiées.
+## Proposition D01 soumise à l'exploitant
 
-### Hypothèse 2 — RGPD applicable
+**Préparer et exploiter selon le socle RGPD applicable, sans revendiquer l'exception personnelle.** C'est le choix prudent recommandé compte tenu de l'incertitude sur le cercle de camarades et le service organisé en ligne. Il réutilise les protections existantes et demeure compatible avec les deux qualifications. Il ne déclare ni responsabilité civile définitive ni conformité technique déjà acquise.
 
-D : traiter l'exploitant personne physique comme responsable potentiel selon ses décisions effectives ; pas d'établissement gestionnaire présumé. Retenir les cinq fiches R01–R05, une notice courte complétée, un canal de droits et un dossier restreint des décisions et preuves. Le suivi régulier de progression ne bénéficie pas automatiquement d'une dispense de registre par sa petite taille (art. 30 §5). Un registre simple existant suffit de point de départ ; vérifier les conditions, sans exiger un logiciel de conformité.
+Pour clore P0-01 : approbation de ce cadre et identité de désignation autorisée en privé, puis mentions publiques adaptées dans la notice avec contact opérationnel. Si l'exploitant veut fonder l'ouverture sur l'exception, demander une clarification ciblée sur le **caractère strictement personnel/amical du cercle et le périmètre des flux publics/privés**, sans relancer un audit général. Aucune consultation juridique extérieure obligatoire n'est inventée pour le choix prudent.
 
-D : justifier la base de chaque finalité dans le [registre](REGISTRE-TRAITEMENTS.md), fixer des événements/durées, vérifier contrats et transferts effectifs, limiter les accès privilégiés, tester demandes/incidents et restauration. L'[exploitation proposée](PLAN-EXPLOITATION-LEGERE.md) peut être tenue par la même personne ; aucun DPO automatique n'est inféré. D04 doit confronter les critères de l'art. 37 aux usages effectifs ; le conseil extérieur est ciblé sur les doutes, pas un poste inventé.
-
-L'invitation acceptée, le compte créé volontairement, la notice reçue, le consentement juridique éventuel et la nécessité d'une fonctionnalité demandée sont **cinq objets différents**. Un usage facultatif favorise un choix libre sans prouver tous les critères d'un consentement valide. Aucune case « J'accepte le RGPD » ne doit être créée. Les mécanismes de droits restent à rendre effectivement disponibles, au-delà de l'export partiel.
-
-## Recommandation et incertitude (D/E)
-
-**Recommandation : préparer l'exploitation avec le socle simple de l'hypothèse 2 sans revendiquer d'exemption**, tant que le cercle et le caractère exclusivement personnel ne sont pas suffisamment établis. Cela réutilise les protections déjà développées et évite de fonder l'ouverture sur une supposition. Incertitude juridique **significative**, principalement sur la qualification du cercle et l'articulation des traitements publics/privés ; ce n'est pas une mesure probabiliste.
-
-L'exploitant décide D01/D02/D09 avec une motivation interne ; solliciter une clarification compétente si le doute persiste. D03/D04/D07/D08/D11/D12 restent à conclure dans le périmètre retenu. Le [screening AIPD actualisé](DECISIONS-A-VALIDER.md) recommande une appréciation distincte du risque élevé, sans dispense automatique. Aucun essai hébergé, invitation ou traitement réel supplémentaire n'est autorisé par cette analyse.
+[D03 — bases](REGISTRE-TRAITEMENTS.md), [D11 — AIPD](DECISIONS-A-VALIDER.md#screening-aipd--5-novembre-2026) et accès au terminal D12 restent des analyses distinctes. Invitation demandée, notice remise, activation et consentement éventuel ne sont pas interchangeables. Aucun formulaire de consentement générique n'est ajouté.

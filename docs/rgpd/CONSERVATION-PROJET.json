@@ -3,6 +3,13 @@
   "validated": false,
   "approval": null,
   "automaticPurgeAuthorized": false,
+  "agreedCalendar": {
+    "decidedOn": "2026-11-05",
+    "noticeAndExportStart": "2027-05-31",
+    "serviceClosesOn": "2027-06-30",
+    "hostedDeletionTarget": "2027-07-30",
+    "executionAuthorized": false
+  },
   "rules": [
     { "category": "auth_profiles", "trigger": "fin_relation_a_definir", "durationMs": null },
     { "category": "pedagogical_history", "trigger": "fin_finalite_pedagogique_a_definir", "durationMs": null },
