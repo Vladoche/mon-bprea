@@ -1,18 +1,18 @@
 # Mon BPREA — vos données et votre participation
 
-**PROJET DU 5 NOVEMBRE 2026 — NON APPROUVÉ, NON PUBLIÉ COMME NOTICE DU SERVICE.** L'identité, le contact, les bases, les durées résiduelles et les informations fournisseurs restent à compléter/faire approuver. Ce texte prépare l'information accessible sans compte avant de communiquer volontairement une adresse e-mail.
+**PROJET DU 5 NOVEMBRE 2026 — NON APPROUVÉ, NON PUBLIÉ COMME NOTICE DU SERVICE.** Version de travail 6.5.5.C. L’identité civile à mentionner, le cadre juridique, les bases, les durées résiduelles et les conditions fournisseurs déterminantes restent à vérifier/faire approuver. Ce texte prépare l'information accessible sans compte avant de communiquer volontairement une adresse e-mail.
 
 ## Un outil personnel de révision
 
 Mon BPREA est un outil personnel, gratuit, sans publicité ni objectif commercial, indépendant de votre établissement de formation. Son utilisation est facultative et réservée aux adultes invités. Les exercices et scores servent à réviser ; ils ne constituent pas une note officielle. Aucun résultat n'est transmis aux formateurs. Aucun classement public, badge ou récompense.
 
-Sept comptes sont envisagés, exploitant compris, soit six autres places : ce décompte doit encore être confirmé avant les invitations. Les pages pédagogiques publiques restent consultables sans compte ; elles ne sont pas rendues privées par ce nombre limité.
+La capacité est confirmée : **sept comptes au total, un pour l’exploitant et six pour d’autres participants adultes**. L’ouverture privée n’est pas encore autorisée. Les pages pédagogiques publiques restent consultables sans compte ; elles ne sont pas rendues privées par ce nombre limité.
 
 ## Qui exploite le service et comment le joindre ?
 
-**À compléter avant publication : identité de l'exploitant personne physique et adresse e-mail réelle autorisée pour publication.** La qualification juridique doit être approuvée ; la préparation retient par prudence les protections du RGPD sans revendiquer l'exception personnelle.
+Contact officiel : [vladimir.fouillade@hotmail.fr](mailto:vladimir.fouillade@hotmail.fr). L’exploitant a expressément autorisé sa publication, y compris sans connexion. **L’identité civile à utiliser comme responsable, si requise dans la notice finale, doit être vérifiée et approuvée séparément.** La qualification juridique doit être approuvée ; la préparation retient par prudence les protections du RGPD sans revendiquer l'exception personnelle.
 
-Le même contact doit recevoir, sans connexion au site, les questions, demandes d'invitation, récupérations de compte, demandes concernant les données, suppressions et incidents. Aucun compte GitHub ne remplace ce canal. N'envoyez jamais de mot de passe, jeton ou lien d'activation/récupération ; aucune pièce d'identité n'est demandée par défaut.
+Ce contact est présenté sans compte pour l’assistance générale, les difficultés de connexion, la récupération, les demandes relatives aux données et à la suppression, les incidents et les questions concernant la participation. La vérification opérationnelle de la boîte reste à effectuer avant ouverture. Aucun compte GitHub ne remplace ce canal. Un courriel ordinaire peut laisser des copies chez les fournisseurs et ne garantit pas la confidentialité de bout en bout. N’envoyez jamais de mot de passe, JWT, lien d’activation/récupération, sauvegarde JSON personnelle ou pièce d’identité non sollicitée.
 
 ## Quelles données, et pourquoi ?
 
@@ -28,7 +28,7 @@ L'adresse serait fournie directement et volontairement après lecture de cette n
 
 Chaque participant doit accéder uniquement à ses propres données. L'exploitant est le seul administrateur ; ses accès privilégiés sont limités aux opérations d'assistance/sécurité autorisées, sans consultation des résultats pour évaluer les personnes. Les prestataires peuvent avoir des accès techniques encadrés ; ces conditions doivent être vérifiées avant ouverture.
 
-GitHub Pages distribue les fichiers publics et journalise notamment les IP de visite pour la sécurité. Supabase fournit Auth et PostgreSQL. La messagerie existante de l'exploitant servira aux échanges individuels et à la remise des liens, sans nouveau SMTP ou service ajouté. **À compléter : fournisseur de cette boîte, conditions applicables, lieux, accès/support, rétention et garanties de transfert effectivement vérifiés.** Une région de base européenne ne signifie pas que toutes les données, journaux ou accès restent exclusivement dans l'Union européenne. Les sites de ressources externes s'ouvrent sur votre action et ont leurs propres règles.
+GitHub Pages distribue les fichiers publics et journalise notamment les IP de visite pour la sécurité. Supabase fournit Auth et PostgreSQL. Microsoft Outlook.com / Hotmail personnel est la messagerie retenue pour les échanges et la future remise individuelle des liens, sans nouveau SMTP. Ses conditions grand public et sa déclaration de confidentialité ont été examinées ; aucune garantie Microsoft 365 professionnelle ni DPA signé n’est présumé. **À compléter : rattachement des conditions au compte utilisé, lieux et accès/support effectifs, durées des copies/journaux et garanties pertinentes.** Une région de base européenne ne signifie pas que toutes les données, journaux ou accès restent exclusivement dans l'Union européenne. Les sites de ressources externes s'ouvrent sur votre action et ont leurs propres règles.
 
 ## Copies, sauvegardes et limites de récupération
 
@@ -48,6 +48,6 @@ Une demande individuelle de clôture n'attend pas cette date : elle sera assist�
 
 ## Assistance, export, correction et suppression
 
-Le contact réel indiqué en tête devra rester joignable même si votre compte est inaccessible ou fermé. Il permettra une récupération par lien individuel, une aide à l'export, une copie complémentaire ou une demande de correction, limitation, opposition ou suppression selon leurs conditions. L'export du profil et le retrait local sélectionné ne répondent pas seuls à toutes les demandes. La clôture hébergée assistée reste à recetter avant de l'annoncer opérationnelle.
+Vous pouvez écrire au contact indiqué en tête sans vous connecter, même si votre compte est inaccessible ou fermé. L’exploitant doit encore attester qu’il pourra le consulter régulièrement. Il permettra une récupération par lien individuel, une aide à l'export, une copie complémentaire ou une demande de correction, limitation, opposition ou suppression selon leurs conditions. L'export du profil et le retrait local sélectionné ne répondent pas seuls à toutes les demandes. La clôture native a été testée sur stack Supabase CI éphémère ; l’assistance réelle et la cible restent à vérifier avant de l’annoncer opérationnelle.
 
 Si le RGPD s'applique, accès, rectification, effacement, limitation et opposition s'exercent dans les conditions prévues ; la portabilité dépend notamment du fondement et n'est pas déduite de l'existence d'un JSON. Tout consentement éventuellement retenu devra pouvoir être retiré. Vous pouvez adresser une réclamation à la [CNIL](https://www.cnil.fr/fr/plaintes). L'exploitant devra expliquer les actions vérifiées, les exceptions et les résidus en attente, sans demander votre mot de passe.

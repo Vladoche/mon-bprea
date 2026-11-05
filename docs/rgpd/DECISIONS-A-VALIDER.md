@@ -1,6 +1,6 @@
 # Décisions D01–D14 et risques — suivi du 5 novembre 2026
 
-**Lot 6.5.5.B : les arbitrages explicites remplacent les demandes devenues sans objet.** [Matrice P0 courante](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md), [liste courte à décider](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md). Les anciens états datés restent dans les validations et Git ; aucune approbation juridique ou preuve opérationnelle n'est déduite du mandat. Méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md).
+**Lot 6.5.5.C : les arbitrages explicites remplacent les demandes devenues sans objet.** [Matrice P0 courante](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md), [liste courte à décider](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md). Les anciens états datés restent dans les validations et Git ; aucune approbation juridique ou preuve opérationnelle n'est déduite du mandat. Méthode [A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md).
 
 ## Réconciliation des quatorze décisions
 
@@ -9,17 +9,17 @@
 | D01 | Personnel, gratuit, sans objectif commercial ; deux branches réexaminées | Approuver la prudence RGPD applicable sans revendiquer l'exception ; identité de désignation autorisée en privé. Avis ciblé si exception revendiquée ou doute déterminant |
 | D02 | **ACTÉE** : indépendant de l'établissement, facultatif, sans note officielle/remontée/formateur | Aucun nouvel accord d'indépendance demandé ; réexaminer seulement si pratiques changent |
 | D03 | R01–R05 inchangées, nécessité/alternatives/risques et garanties précisés | Approuver les bases/bilans proposés au registre après D01 ; mesures effectives aux autres P0, aucun contrat ou consentement inventé |
-| D04 | **Choix acté** : adresse e-mail existante, contact unique hors connexion | Valeur, publication autorisée, propriété/protection/récupération et essais réels réception/réponse. Pas d'adresse fictive ni GitHub de substitution |
-| D05 | GitHub Pages/Supabase Free conservés, aucun SMTP/service ajouté ; conditions publiques relues | Applicabilité des conditions aux comptes utilisés, chaîne et fournisseur de la boîte existante, copies/logs/support. Feuille privée suffisante, aucune signature manuscrite supplémentaire exigée si conditions valablement applicables |
+| D04 | **ACTÉ C** : vladimir.fouillade@hotmail.fr, contact officiel ; publication publique expressément autorisée. Page contact autonome intégrée | Propriété effective, MFA/protection, récupération, réception extérieure, réponse et consultation régulière à attester ; aucune vérification de boîte inventée |
+| D05 | GitHub Pages/Supabase Free conservés, aucun SMTP/service ajouté ; conditions publiques relues | Applicabilité des conditions aux comptes utilisés, chaîne Outlook.com personnel identifiée, copies/logs/support et titulaire effectif à confirmer. Feuille privée suffisante, aucune signature manuscrite supplémentaire exigée si conditions valablement applicables |
 | D06 | Région DEV historique eu-west-1, clauses de transfert publiques | Lieux/accès/copies/support effectifs de la cible et de la messagerie ; aucune promesse exclusivement UE |
 | D07 | **ACTÉ** : préavis/export 31/05/2027, fermeture 30/06, suppression hébergée au plus tard 30/07 ; copie du 29/10 conservée, revue 12/11 indicative | Approuver seulement les durées résiduelles/exception/contact proposées ; aucune purge immédiate ni changement de rétention de l'ancienne copie |
-| D08 | **Choix acté** : clôture assistée native ; sauvegarde applicative hebdomadaire, perte visée sept jours | Recette native et reprise/réconciliation ; acceptation des limites Auth/projet/caches et du risque de dépassement sur poste absent. L'objectif sept jours reste mesuré, pas garanti |
-| D09 | **ACTÉE** : adultes invités, facultatif, gratuit, sans publicité/commercial, résultats privés, fin 30/06/2027 | Décompte séparé : hypothèse sept comptes exploitant compris, six autres places à confirmer avant invitation ; pas huit implicites |
+| D08 | **Choix acté** : clôture assistée native ; sauvegarde applicative hebdomadaire, perte visée sept jours | API native acquise en CI B, assistance réelle et reprise/réconciliation à compléter ; acceptation des limites Auth/projet/caches et du risque de dépassement sur poste absent. L'objectif sept jours reste mesuré, pas garanti |
+| D09 | **ACTÉE** : adultes invités, facultatif, gratuit, sans publicité/commercial, résultats privés, fin 30/06/2027 | **ACTÉ C : sept comptes au total, exploitant et six autres adultes**. Décompte définitif, plafond administratif par circuit contrôlé |
 | D10 | Modèle invitation individuelle puis activation autonome conservé, aucune inscription libre | Approuver circuit direct volontaire après notice accessible sans compte et preuve minimale de version/date avant adresse ; aucun consentement global |
 | D11 | Screening ci-dessous réexaminé, conclusion motivée proposée | Approuver absence de nécessité d'AIPD selon ces éléments ; reprendre analyse/avis ciblé si risque élevé ou changement déterminant |
 | D12 | Stockages fonctionnels inventoriés ; absence d'audience/pub dans le code | Analyse terminal proposée ci-dessous à approuver ; vérifier infrastructure et durées, ne pas étendre l'exemption aux futures fonctions |
 | D13 | **Choix acté** : exploitant seul admin, MFA/récupération, secrets de confiance, pas d'accès camarades ni abonnement payant | Preuves privées réelles MFA/rôles/récupération/poste, Auth et isolation ; sauvegarde/clôture opérables. Aucune MFA active ou PROD prêt déclaré |
-| D14 | **ACTÉ** : aucune ouverture avant prérequis ; G1 autorise push/PR/CI ordinaires seulement | Cible définitive, réserves T11/autres, D sur fictifs et mandats ciblés ; publication/activation/invitations restent interdites dans B |
+| D14 | **ACTÉ** : aucune ouverture avant prérequis ; G1 autorise push/PR/CI ordinaires seulement | Cible définitive, réserves T11/autres, D sur fictifs et mandats ciblés ; contact public autorisé dans C, notice complète/activation/invitations toujours interdites |
 
 ## D12 — proposition terminal ciblée
 
@@ -58,7 +58,7 @@ La [suppression préparée](../architecture/SUPPRESSION-DONNEES-PERSONNELLES.md)
 | Décision automatique à effet légal/similaire | Non identifié : aucune admission, sanction, certification ni transmission à des formateurs, usage indépendant acté |
 | Surveillance systématique | Non retenu sur ces faits : actions de révision volontairement validées, pas de suivi imposé de la personne ou de son activité hors révisions. Réexaminer si tracking exhaustif, usage contraint ou tableau d'observation ajouté |
 | Sensibles/hautement personnelles | Aucun champ art. 9 prévu ; erreurs et chronologie confidentielles, sans sujet intime identifié. Éviter informations sensibles dans pseudo/bruts ; données hébergées non inspectées ici. Découverte d'un tel contenu ⇒ réévaluation, pas exemption automatique |
-| Grande échelle | Non retenu : sept comptes envisagés et durée jusqu'au 30/06/2027, distincts des visiteurs publics ; aucun seuil universel déduit |
+| Grande échelle | Non retenu : sept comptes confirmés et durée jusqu'au 30/06/2027, distincts des visiteurs publics ; aucun seuil universel déduit |
 | Croisement de jeux distincts | Non identifié : domaines de révision du même service sous UUID, sans enrichissement externe ou fichier institutionnel ; réexaminer si ce fait change |
 | Personnes vulnérables | Non retenu dans la relation déclarée : adultes, facultatif, aucun pouvoir d'évaluation de l'exploitant ou effet sur la formation ; pas de mineur ni dépendance imposée identifié |
 | Technologie innovante | Non identifié : site statique/synchronisation web classiques, sans biométrie/IA de surveillance |
@@ -68,7 +68,7 @@ Un critère est établi, sans cumul actuellement identifié justifiant la préso
 
 Listes CNIL : pas de correspondance identifiée à la [liste requise](https://www.cnil.fr/sites/cnil/files/atoms/files/liste-traitements-aipd-requise.pdf) ; les formations algorithmiques citées y relèvent notamment du profilage RH, pas du cadre privé déclaré. La [liste non requise](https://www.cnil.fr/sites/cnil/files/atoms/files/liste-traitements-aipd-non-requise.pdf) ne fournit pas de dispense par analogie avec une gestion scolaire institutionnelle. Consultation **05/11/2026**, ainsi que les [neuf critères CNIL](https://www.cnil.fr/fr/ce-quil-faut-savoir-sur-lanalyse-dimpact-relative-la-protection-des-donnees-aipd) et les [lignes directrices G29/CEPD](https://www.cnil.fr/sites/default/files/atoms/files/wp248_rev.01_fr.pdf). Ce screening documenté est la pièce à approuver pour P0-10 ; aucune nouvelle analyse générale n'est demandée.
 
-## Risques concrets — revue à sept comptes envisagés — actualisation des R01–R12, pas de nouveau registre
+## Risques concrets — revue à sept comptes confirmés — actualisation des R01–R12, pas de nouveau registre
 
 La gravité se rapporte à la personne ; aucune fréquence observée en production ni note chiffrée inventée. Les protections A sont reliées à la matrice 6.4, leur état hébergé reste F.
 

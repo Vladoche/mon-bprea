@@ -2,7 +2,7 @@ import { afterAll, describe, expect, it } from 'vitest';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync, realpathSync, linkSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { POLICY, emptyPrivateConfiguration, contactCheck, invitationPreflight, closurePreflight, digest } from '../../scripts/preopening/preflight.mjs';
+import { POLICY, emptyPrivateConfiguration, withConfirmedDecisions, contactCheck, invitationPreflight, closurePreflight, digest } from '../../scripts/preopening/preflight.mjs';
 import { makeManifest, verifyBackup, localPgTarget } from '../../scripts/preopening/backup.mjs';
 import { noticeHtml } from '../../scripts/preopening/notice-preview.mjs';
 import { run } from '../../scripts/preopening/operator.mjs';
@@ -12,7 +12,7 @@ const account = n => ({ id: `655b0000-0000-4000-8000-${String(n).padStart(12, '0
 function config() {
   const result = emptyPrivateConfiguration();
   result.operatorIdentity = 'Exploitant synthétique'; result.capacityConfirmed = true;
-  result.contact = { email: 'synthetic-contact@example.invalid', publicationApproved: true, owned: true, protected: true, recoveryChecked: true, withoutAccountChecked: true, receivedAt: observedAt, repliedAt: now };
+  result.contact = { email: 'synthetic-contact@example.invalid', publicationApproved: true, owned: true, protected: true, recoveryChecked: true, monitoringConfirmed: true, withoutAccountChecked: true, receivedAt: observedAt, repliedAt: now };
   result.approvals = Object.fromEntries(Object.keys(result.approvals).map(key => [key, true]));
   return result;
 }
@@ -23,6 +23,11 @@ function input(count = 6) {
     directRequest: true, emailConfirmed: true, noticeVersion: 'synthetic-v1', identityChecked: true, previousResult: 'none' };
 }
 describe('préouverture : capacité administrative, jamais quota Supabase', () => {
+  it('la décision définitive réserve un compte exploitant et six autres, sans inscription libre', () => {
+    expect(POLICY.capacity).toMatchObject({ total: 7, includesOperator: true, operatorPlaces: 1, otherParticipants: 6, confirmationRequired: false, controlledInvitationRequired: true, enforcement: 'administrative' });
+    expect(POLICY.capacity.operatorPlaces + POLICY.capacity.otherParticipants).toBe(POLICY.capacity.total);
+    expect(POLICY.publicSignup).toBe(false); expect(POLICY.anonymousSignIn).toBe(false);
+  });
   it('permet le septième compte dans le plan hors ligne et refuse le huitième', () => {
     const result = invitationPreflight(input(), config(), now);
     expect(result).toMatchObject({ capacity: 7, occupiedIncludingOperator: 6, enforcement: 'administrative', targetChecked: true });
@@ -43,6 +48,17 @@ describe('préouverture : capacité administrative, jamais quota Supabase', () =
     expect(() => invitationPreflight(value, config(), now)).toThrow('uncertain_no_retry');
     value.inventory.accounts[2].kind = 'fixture';
     expect(() => invitationPreflight(value, config(), now)).toThrow('fixtures_require_separate_D');
+  });
+  it('une place en attente ferme aussi la capacité ; une récupération ne consomme aucune nouvelle place', () => {
+    const full = input(7); full.recipient = 'synthetic-8@example.invalid';
+    full.inventory.accounts[6].state = 'pending';
+    expect(() => invitationPreflight(full, config(), now)).toThrow('capacity_full');
+    full.type = 'recovery'; full.recipient = full.inventory.accounts[1].email;
+    expect(invitationPreflight(full, config(), now)).toMatchObject({ type: 'recovery', occupiedIncludingOperator: 7, capacity: 7 });
+  });
+  it('un résultat administratif incertain interdit aussi de continuer avec un inventaire actif', () => {
+    const value = input(); value.previousResult = 'uncertain';
+    expect(() => invitationPreflight(value, config(), now)).toThrow('uncertain_no_retry');
   });
   it('refuse réinvitation, récupération inconnue et tentative d’élévation de privilèges', () => {
     const value = input(); value.recipient = value.inventory.accounts[1].email;
@@ -69,9 +85,20 @@ describe('préouverture : capacité administrative, jamais quota Supabase', () =
   });
 });
 describe('contact et clôture préparés sans identité ou opération inventée', () => {
+  it('intègre seulement les décisions et conserve les preuves privées, sans valider le canal', () => {
+    const initial = emptyPrivateConfiguration(), decided = withConfirmedDecisions(initial);
+    expect(decided).toMatchObject({ capacityConfirmed: true, capacity: { total: 7, includesOperator: true, otherParticipants: 6 }, contact: { email: POLICY.contact.email, publicationApproved: true } });
+    expect(initial.contact.email).toBeNull(); expect(initial.capacityConfirmed).toBe(false);
+    expect(contactCheck(decided, now).missing).not.toContain('real_email');
+    expect(contactCheck(decided, now).missing).toEqual(expect.arrayContaining(['contact_owned', 'contact_protected', 'contact_recoveryChecked', 'contact_monitoringConfirmed', 'contact_receivedAt', 'contact_repliedAt', 'contact_withoutAccountChecked']));
+    const filled = { ...decided, operatorIdentity: 'Identité synthétique privée', privateReference: 'SYNTHETIC-REFERENCE',
+      contact: { ...decided.contact, owned: true, receivedAt: observedAt, privateEvidence: 'SYNTHETIC-EVIDENCE' } };
+    expect(withConfirmedDecisions(filled)).toEqual(filled);
+    expect(() => withConfirmedDecisions(config())).toThrow('contact_decision_conflict');
+  });
   it('la configuration initiale bloque le canal absent ; chaque preuve est nécessaire', () => {
     expect(contactCheck(emptyPrivateConfiguration(), now).missing).toContain('real_email');
-    for (const key of ['publicationApproved', 'owned', 'protected', 'recoveryChecked', 'withoutAccountChecked']) {
+    for (const key of ['publicationApproved', 'owned', 'protected', 'recoveryChecked', 'monitoringConfirmed', 'withoutAccountChecked']) {
       const value = config(); value.contact[key] = false; expect(contactCheck(value, now).missing).toContain(`contact_${key}`);
     }
     expect(contactCheck(config(), now).missing).toEqual([]);
@@ -97,9 +124,10 @@ describe('contact et clôture préparés sans identité ou opération inventée'
     expect(result.status).toBe(2); expect(result.stderr).not.toContain('SECRET'); expect(result.stdout).toBe('');
   });
   it('génère un aperçu sans script, sans requête et avec mode sombre et texte échappé', () => {
-    const html = noticeHtml('# Notice\n\n<script>alert(1)</script>\n\n[CNIL](https://www.cnil.fr/)');
+    const html = noticeHtml('# Notice\n\n<script>alert(1)</script>\n\n[CNIL](https://www.cnil.fr/)\n\n[Contact](mailto:synthetic-contact@example.invalid)');
     expect(html).not.toContain('<script>'); expect(html).toContain('&lt;script&gt;'); expect(html).toContain('color-scheme:light dark');
     expect(html).toContain('href="https://www.cnil.fr/"');
+    expect(html).toContain('href="mailto:synthetic-contact@example.invalid"');
   });
 });
 

@@ -28,7 +28,7 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
     expect(result.stderr).toBe('');
     expect(result.status).toBe(0);
     expect(JSON.parse(readFileSync(join(result.output, 'assets/auth-config.json'), 'utf8')).enabled).toBe(false);
-    for (const page of ['connexion', 'authentification', 'mot-de-passe-oublie', 'profil'])
+    for (const page of ['connexion', 'authentification', 'mot-de-passe-oublie', 'profil', 'contact'])
       expect(existsSync(join(result.output, `${page}.html`))).toBe(true);
     expect(readFileSync(join(result.output, 'assets/supabase-client.js'), 'utf8')).toContain('./vendor/supabase.js?v=auth-test');
     for (const privateFile of ['supabase/config.toml', 'scripts/test-supabase.mjs', 'scripts/admin-generate-auth-link.mjs', 'scripts/auth-link-local.mjs', '.env.supabase-test.local',
@@ -38,8 +38,14 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
       '.tmp/maintenance-local/inventory-before.json', '.tmp/.maintenance.lock',
       'scripts/preopening/operator.mjs', 'scripts/preopening/backup.mjs', 'scripts/preopening/policy.json',
       'scripts/preopening/exercise-local.mjs', 'scripts/preopening/notice-preview.mjs', '.tmp/preopening-operator-655b/operator.json',
+      '.tmp/preopening-operator/operator.json', 'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md', 'confidentialite.html',
       'node_modules/@supabase/supabase-js/package.json', 'auth-config.local.json', 'tests/helpers/auth-http.js'])
       expect(existsSync(join(result.output, privateFile)), privateFile).toBe(false);
+    const contact = readFileSync(join(result.output, 'contact.html'), 'utf8');
+    const policy = JSON.parse(readFileSync('scripts/preopening/policy.json', 'utf8'));
+    expect(contact).toContain(`href="mailto:${policy.contact.email}"`);
+    expect(contact).toContain('sept comptes au total');
+    expect(contact).not.toContain('assets/app.js');
     expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).toContain('sans service d’envoi automatique d’e-mails');
     expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).not.toContain('requestPasswordReset');
   });

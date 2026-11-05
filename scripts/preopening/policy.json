@@ -1,7 +1,8 @@
 {
   "version": 1,
   "referenceDate": "2026-11-05",
-  "capacity": { "total": 7, "includesOperator": true, "confirmationRequired": true, "enforcement": "administrative" },
+  "capacity": { "total": 7, "includesOperator": true, "operatorPlaces": 1, "otherParticipants": 6, "confirmationRequired": false, "confirmedOn": "2026-11-05", "enforcement": "administrative", "controlledInvitationRequired": true },
+  "contact": { "email": "vladimir.fouillade@hotmail.fr", "publicationApproved": true, "confirmedOn": "2026-11-05" },
   "publicSignup": false,
   "anonymousSignIn": false,
   "administrators": 1,

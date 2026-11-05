@@ -29,21 +29,32 @@ export function target(value) {
 export function emptyPrivateConfiguration() {
   return {
     version: 1, operatorIdentity: null, capacityConfirmed: false,
-    contact: { email: null, publicationApproved: false, owned: false, protected: false, recoveryChecked: false, withoutAccountChecked: false, receivedAt: null, repliedAt: null },
+    contact: { email: null, publicationApproved: false, owned: false, protected: false, recoveryChecked: false, monitoringConfirmed: false, withoutAccountChecked: false, receivedAt: null, repliedAt: null },
     approvals: { legalFramework: false, legalBases: false, impactAssessment: false, terminal: false, notice: false, residualRetention: false, recoveryLimits: false },
   };
+}
+// Les décisions ne sont pas des preuves d'accès, de MFA ou de réception.
+// Préserve identité, approbations, preuves réelles et champs privés supplémentaires.
+export function withConfirmedDecisions(config) {
+  requireThat(config.contact?.email == null || config.contact.email === POLICY.contact.email, 'contact_decision_conflict');
+  return { ...config, capacityConfirmed: true,
+    capacity: { ...config.capacity, total: POLICY.capacity.total, includesOperator: true, otherParticipants: POLICY.capacity.otherParticipants },
+    contact: { ...config.contact, email: POLICY.contact.email, publicationApproved: POLICY.contact.publicationApproved } };
 }
 export function contactCheck(config, now) {
   const missing = [];
   try { validateTarget('invite', config?.contact?.email); } catch { missing.push('real_email'); }
-  for (const key of ['publicationApproved', 'owned', 'protected', 'recoveryChecked', 'withoutAccountChecked'])
+  for (const key of ['publicationApproved', 'owned', 'protected', 'recoveryChecked', 'monitoringConfirmed', 'withoutAccountChecked'])
     if (config?.contact?.[key] !== true) missing.push(`contact_${key}`);
   for (const key of ['receivedAt', 'repliedAt']) {
     try { fresh(config?.contact?.[key], now, 30 * 86400_000); } catch { missing.push(`contact_${key}`); }
   }
   if (config?.contact?.receivedAt && config?.contact?.repliedAt
       && Date.parse(config.contact.repliedAt) < Date.parse(config.contact.receivedAt)) missing.push('contact_order');
-  return { status: missing.length ? 'BLOQUÉ — INFORMATION EXPLOITANT' : 'CANAL RENSEIGNÉ — PREUVES PRIVÉES À CONTRÔLER', missing };
+  return { status: missing.length
+    ? missing.includes('real_email') || missing.includes('contact_publicationApproved')
+      ? 'BLOQUÉ — INFORMATION EXPLOITANT' : 'CONTACT DÉCIDÉ — VÉRIFICATIONS OPÉRATIONNELLES REQUISES'
+    : 'CANAL RENSEIGNÉ — PREUVES PRIVÉES À CONTRÔLER', missing };
 }
 function checkInventory(input, now) {
   const expected = target(input.target);

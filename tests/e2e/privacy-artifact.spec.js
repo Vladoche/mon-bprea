@@ -17,10 +17,11 @@ async function terminalInventory(page) {
   }));
 }
 
-test('Artefact Pages : 17 documents en contextes vierges, réseau et stockages terminaux inventoriés', async ({ browser }) => {
+test('Artefact Pages : toutes les pages en contextes vierges, réseau et stockages terminaux inventoriés', async ({ browser }) => {
   test.setTimeout(90000);
   const files = (await readdir(new URL('../../', import.meta.url))).filter(file => file.endsWith('.html')).sort();
   expect(files).toContain('index.html');
+  expect(files).toContain('contact.html');
   expect(files).not.toContain('confidentialite.html');
   const queries = { 'uc.html': '?id=uc3', 'cours.html': '?id=matiere-organique', 'exercices.html': '?id=matiere-organique', 'drill.html': '?unit=uc3&week=2026-W43' };
   const results = [];

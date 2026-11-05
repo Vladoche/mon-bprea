@@ -1,5 +1,7 @@
 # Matrice des exigences, preuves et décisions — lot 6.4.4
 
+**État courant 6.5.5.C, 05/11/2026 :** sept comptes confirmés, exploitant et six autres adultes ; contact officiel public autorisé, vérifications de boîte encore manquantes. [Matrice P0 courante](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md), [preuves C](../validations/VALIDATION-LOT6-5-5C.md). Les états et anciens décomptes datés ci-dessous restent historiques ; P0-02/09 résolus, autres statuts conservés sauf progrès ciblés justifiés dans C.
+
 **RECETTE TECHNIQUE ET PRÉPARATION — AUCUNE CONFORMITÉ ACQUISE.** État au 28 octobre 2026. Les sources juridiques indiquent les textes à examiner, pas une applicabilité ou une base retenue. Les statuts ont le sens du [dossier de préouverture](DOSSIER-PREOUVERTURE.md). Fonctions validatrices **à désigner** ; aucune approbation implicite par le développeur.
 
 ## Actualisation documentaire 6.5.1
