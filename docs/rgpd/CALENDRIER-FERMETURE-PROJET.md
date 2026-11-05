@@ -1,6 +1,6 @@
 # Calendrier de fermeture — 30 juin 2027
 
-**Décision D07 reçue le 5 novembre 2026, lot 6.5.5.B. Aucune action ni automatisation déclenchée.** Elle remplace les trois scénarios candidats du 28 octobre, conservés dans Git. Les durées résiduelles restent à approuver dans la [politique de conservation](POLITIQUE-CONSERVATION-PROJET.md).
+**Décision D07 reçue le 5 novembre 2026, lot 6.5.5.B. Aucune action ni automatisation déclenchée.** Elle remplace les trois scénarios candidats du 28 octobre, conservés dans Git. Les durées résiduelles ont été approuvées dans D. Voir la [politique de conservation](POLITIQUE-CONSERVATION-PROJET.md).
 
 | Date / période | Action prévue, avec mandat d'exécution distinct | Preuve attendue |
 | --- | --- | --- |
@@ -20,6 +20,6 @@ Caches personnels/visiteur, outboxes, conflits, archives et marqueurs : proposer
 
 Sauvegardes opérateur : rotation/rétention proposées, non validées ; isoler toute reprise et réappliquer les décisions d'effacement avant reconnexion. La copie historique du 29 octobre est conservée suivant son accord spécifique du 5 novembre, sans nouvelle échéance ; le 12 novembre est une revue indicative.
 
-Journaux et copies/rétentions fournisseur : obtenir les clauses/réglages effectifs ; ne pas annoncer le 30 juillet comme date certaine d'effacement de toutes leurs copies. Messages et dossiers opérateur : durées résiduelles proposées séparément. Preuves d'incident : restriction, motif et revue individualisés, sans conservation par commodité. Copies téléchargées/imprimées : sous contrôle du destinataire, non rappelables par le serveur.
+Les clauses et réglages des fournisseurs déterminent leurs propres durées. Les messages, dossiers opérateur et preuves minimales d’incident suivent les durées résiduelles approuvées. Les copies téléchargées ou imprimées restent sous le contrôle du destinataire.
 
-Le contact devra rester utilisable pendant les clôtures et leur suivi ; proposition jusqu'au 31 août 2027, puis pendant toute demande/exception encore ouverte, à approuver. Toute exception de conservation doit identifier la catégorie minimale, la raison, la personne qui décide et une date de revue ; aucune exception générale ni suppression actuelle ne résulte de ce calendrier.
+Le contact devra rester utilisable pendant les clôtures et leur suivi ; disponibilité approuvée jusqu’au 31 août 2027, puis pendant les suivis nécessaires. Toute exception de conservation doit identifier la catégorie minimale, la raison, la personne qui décide et une date de revue ; aucune exception générale ni suppression actuelle ne résulte de ce calendrier.

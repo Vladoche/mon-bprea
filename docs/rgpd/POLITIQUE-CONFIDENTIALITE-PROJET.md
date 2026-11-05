@@ -1,53 +1,72 @@
-# Mon BPREA — vos données et votre participation
+# Notice de confidentialité de Mon BPREA
 
-**PROJET DU 5 NOVEMBRE 2026 — NON APPROUVÉ, NON PUBLIÉ COMME NOTICE DU SERVICE.** Version de travail 6.5.5.C. L’identité civile à mentionner, le cadre juridique, les bases, les durées résiduelles et les conditions fournisseurs déterminantes restent à vérifier/faire approuver. Ce texte prépare l'information accessible sans compte avant de communiquer volontairement une adresse e-mail.
+Version 1.0 · 5 novembre 2026
 
-## Un outil personnel de révision
+Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour sept adultes au total, dont l’exploitant et six autres participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
 
-Mon BPREA est un outil personnel, gratuit, sans publicité ni objectif commercial, indépendant de votre établissement de formation. Son utilisation est facultative et réservée aux adultes invités. Les exercices et scores servent à réviser ; ils ne constituent pas une note officielle. Aucun résultat n'est transmis aux formateurs. Aucun classement public, badge ou récompense.
+## Responsable et contact
 
-La capacité est confirmée : **sept comptes au total, un pour l’exploitant et six pour d’autres participants adultes**. L’ouverture privée n’est pas encore autorisée. Les pages pédagogiques publiques restent consultables sans compte ; elles ne sont pas rendues privées par ce nombre limité.
+Vladimir Fouillade détermine l’usage des données et les moyens utilisés pour Mon BPREA. Vous pouvez lui écrire sans compte à [vladimir.fouillade@hotmail.fr](mailto:vladimir.fouillade@hotmail.fr) pour demander de l’aide ou exercer vos droits. Évitez de transmettre par e-mail votre mot de passe, un lien d’accès, une pièce d’identité non demandée ou un export de vos résultats.
 
-## Qui exploite le service et comment le joindre ?
+## Compte et invitation
 
-Contact officiel : [vladimir.fouillade@hotmail.fr](mailto:vladimir.fouillade@hotmail.fr). L’exploitant a expressément autorisé sa publication, y compris sans connexion. **L’identité civile à utiliser comme responsable, si requise dans la notice finale, doit être vérifiée et approuvée séparément.** La qualification juridique doit être approuvée ; la préparation retient par prudence les protections du RGPD sans revendiquer l'exception personnelle.
+La participation est volontaire. Si vous souhaitez un compte, vous recevez cette notice avant de communiquer votre adresse. Vous fournissez et confirmez vous-même l’adresse utilisée pour l’invitation et la récupération. L’exploitant vous remet le lien individuellement. Vous choisissez votre mot de passe dans l’interface. Vous pouvez réviser sans compte si vous préférez garder votre progression sur cet appareil.
 
-Ce contact est présenté sans compte pour l’assistance générale, les difficultés de connexion, la récupération, les demandes relatives aux données et à la suppression, les incidents et les questions concernant la participation. La vérification opérationnelle de la boîte reste à effectuer avant ouverture. Aucun compte GitHub ne remplace ce canal. Un courriel ordinaire peut laisser des copies chez les fournisseurs et ne garantit pas la confidentialité de bout en bout. N’envoyez jamais de mot de passe, JWT, lien d’activation/récupération, sauvegarde JSON personnelle ou pièce d’identité non sollicitée.
+Les données proviennent de vos saisies et exercices, des calculs de résultats et des identifiants techniques générés par le service. Un compte utilise votre adresse, un identifiant de compte, des données de session et un profil minimal avec un pseudo facultatif. Il peut synchroniser les cours, réponses, tentatives, scores et préférences, ainsi que les derniers paramètres de génération d’itinéraire technique. L’import de données du mode visiteur dans un compte est distinct de la connexion et demande une confirmation.
 
-## Quelles données, et pourquoi ?
+## Finalités et base juridique
 
-Sans compte, votre profil navigateur peut conserver progression, réponses, historiques et paramètres pour reprendre vos révisions. Ces données visiteur ne sont pas synchronisées vers Supabase. Un profil partagé peut contenir les données d'une autre personne : utilisez un profil personnel et n'importez que vos propres données.
+Mon BPREA s’appuie sur l’intérêt légitime (article 6, paragraphe 1, point f du RGPD) pour les traitements nécessaires à ces cinq finalités, dans le périmètre décrit ici.
 
-Pour un compte invité, l'adresse e-mail sert à l'accès, l'activation autonome et la récupération ; le titulaire choisit seul son mot de passe, géré par Supabase Auth. Le profil utilise un identifiant technique et un pseudo facultatif. La synchronisation concerne cours, QCM, Drill, botanique, dates et résultats personnels, derniers paramètres ITK et préférences d'apparence. Le Dashboard calcule des statistiques descriptives ; les thèmes automatiques sont calculés sur l'appareil. Aucun calendrier/PDF ITK complet n'est stocké sur le serveur.
+- **R01 — Accès et sécurité du compte.** Permettre la connexion sur invitation, la reprise de session et la récupération de l’accès individuel.
+- **R02 — Profil minimal.** Rattacher les données au bon compte et afficher le pseudo que vous avez choisi, si vous en renseignez un.
+- **R03 — Progression personnelle.** Retrouver les réponses, exercices réalisés et résultats descriptifs pour aider à la révision. Aucun score n’entraîne de décision automatique ayant un effet significatif sur vous.
+- **R04 — Préférences.** Retrouver l’apparence choisie et les derniers paramètres utiles à la génération d’un itinéraire technique.
+- **R05 — Fonctionnement et sécurité.** Faire fonctionner le site, protéger les accès et diagnostiquer les erreurs ou incidents.
 
-L'adresse serait fournie directement et volontairement après lecture de cette notice, puis confirmée individuellement. Ce circuit reste à approuver. Une invitation peut créer le compte avant son activation ; sans adresse, aucun compte personnel, mais le mode visiteur reste disponible. L'acceptation d'une invitation ne vaut pas consentement global. Aucun formulaire d'inscription libre.
+Lorsqu’une obligation légale impose une opération, par exemple répondre à une demande d’exercice de droits, cette obligation fonde l’opération concernée. Les prestataires décrivent séparément les traitements qu’ils déterminent eux-mêmes.
 
-**Bases proposées si le RGPD s'applique, à approuver avant publication :** intérêt légitime à fournir et sécuriser la révision privée demandée, retrouver son profil, sa progression et ses paramètres, et exploiter le site avec un support minimal. L'analyse de nécessité et de mise en balance figure au registre préparatoire. Les obligations de réponse aux droits, si applicables, sont traitées séparément. Aucun contrat de formation ou consentement déjà obtenu n'est présumé.
+## Stockage sur votre appareil
 
-## Qui peut consulter quoi ?
+En visiteur, la progression des cours et QCM, les historiques Drill et botanique, les derniers paramètres ITK et les préférences restent dans ce navigateur. Le site lit aussi les préférences et l’état de masquage de l’anecdote dès l’affichage des pages qui les utilisent. Un masquage ne vaut que pour le jour en cours. La date enregistrée, comme les autres données locales, peut rester en mémoire du navigateur après la fin de son effet.
 
-Chaque participant doit accéder uniquement à ses propres données. L'exploitant est le seul administrateur ; ses accès privilégiés sont limités aux opérations d'assistance/sécurité autorisées, sans consultation des résultats pour évaluer les personnes. Les prestataires peuvent avoir des accès techniques encadrés ; ces conditions doivent être vérifiées avant ouverture.
+Sur un navigateur connecté, les jetons de session et un repère de continuité aident à retrouver l’accès. Des copies locales par compte conservent la progression et les paramètres, ainsi que les opérations en attente, les conflits et les copies liées aux imports. Ces stockages servent au fonctionnement de Mon BPREA, sans publicité ni mesure d’audience intégrée.
 
-GitHub Pages distribue les fichiers publics et journalise notamment les IP de visite pour la sécurité. Supabase fournit Auth et PostgreSQL. Microsoft Outlook.com / Hotmail personnel est la messagerie retenue pour les échanges et la future remise individuelle des liens, sans nouveau SMTP. Ses conditions grand public et sa déclaration de confidentialité ont été examinées ; aucune garantie Microsoft 365 professionnelle ni DPA signé n’est présumé. **À compléter : rattachement des conditions au compte utilisé, lieux et accès/support effectifs, durées des copies/journaux et garanties pertinentes.** Une région de base européenne ne signifie pas que toutes les données, journaux ou accès restent exclusivement dans l'Union européenne. Les sites de ressources externes s'ouvrent sur votre action et ont leurs propres règles.
+Les copies locales persistent généralement jusqu’à leur retrait ou à un effacement par le navigateur. Se déconnecter met fin à la session sur ce navigateur et conserve la progression. L’effacement local par catégorie se fait depuis le profil sur l’appareil concerné. Il peut laisser un marqueur minimal qui empêche un ancien onglet de recréer les données. Utilisez de préférence votre propre profil de navigateur. Vous pouvez aussi gérer les données du site dans les réglages du navigateur, après avoir vérifié vos exports et ce qui reste à synchroniser.
 
-## Copies, sauvegardes et limites de récupération
+## Prestataires et transferts
 
-Le navigateur conserve une session, des copies personnelles et parfois des envois en attente, conflits ou archives. **La déconnexion ne supprime pas la progression.** Les copies locales ne sont pas chiffrées par l'application ; éviction, panne ou effacement peuvent faire perdre les données non synchronisées.
+L’exploitant accède aux données nécessaires à la gestion du compte, à l’assistance et aux droits. Les services suivants reçoivent les données utiles à leur rôle.
 
-Un export JSON personnel et sa restauration limitée sont prévus dans le profil. Cette copie est partielle : elle ne recrée pas un compte Auth, un projet entier, les journaux, sauvegardes, données des autres appareils ou tous les bruts. Certaines relations/révisions absentes empêchent une restauration. Conservez votre fichier dans un espace privé.
+- **GitHub Pages** livre les pages publiques. GitHub indique conserver l’adresse IP des visites pour la sécurité. La première requête d’un lien d’invitation ou de récupération peut aussi contenir sa preuve temporaire, avant son retrait de l’adresse affichée. [Confidentialité et transferts de GitHub](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement#international-data-transfers)
+- **Supabase** fournit l’authentification et la base utilisée pour les profils, la progression et les préférences des comptes. Les données principales suivent la région du projet. Le support et certains traitements techniques peuvent intervenir depuis d’autres pays. Supabase documente des clauses contractuelles types pour des transferts vers Singapour et les États-Unis. [Garanties et traitements de Supabase](https://supabase.com/legal/privacy-resources/data-residency-and-transfers-faq)
+- **Microsoft Outlook.com (Hotmail personnel)** transporte les échanges d’assistance, les demandes et la remise individuelle des liens. Le fournisseur de votre boîte reçoit aussi les messages qui vous sont adressés. [Confidentialité de Microsoft](https://www.microsoft.com/fr-fr/privacy/privacystatement)
 
-L'exploitant a choisi une sauvegarde applicative hebdomadaire gratuite, avec une perte maximale visée de sept jours. Cet objectif exige une copie récente réellement restaurable et des contrôles ; il n'est pas garanti, notamment si le poste est éteint, un essai échoue ou Auth/projet est perdu. La chaîne opérationnelle reste à démontrer avant ouverture. Les demandes d'effacement doivent être réappliquées avant toute restauration pour éviter de réintroduire des données supprimées.
+GitHub et Microsoft décrivent des traitements hors de l’Espace économique européen et les garanties qu’ils utilisent selon le flux, dont les clauses contractuelles types et, pour les transferts couverts vers les États-Unis, le cadre UE–États-Unis de protection des données. Vous pouvez écrire au responsable pour connaître les garanties applicables et obtenir une copie des clauses pertinentes. Les liens pédagogiques externes mènent à des services qui appliquent leurs propres règles de confidentialité.
 
-## Fermeture et conservation
+## Durées de conservation
 
-Le service ferme le **30 juin 2027**. Le préavis et la fenêtre d'export commencent le **31 mai 2027**. Les accès normaux se terminent le 30 juin ; la suppression des comptes et des données applicatives hébergées est prévue dans les trente jours suivants, au plus tard le **30 juillet 2027**. Aucune suppression n'est déclenchée maintenant.
+- **31 mai 2027** — Début du préavis et de la période d’export.
+- **30 juin 2027** — Fermeture de l’espace personnel. Les pages pédagogiques publiques peuvent rester accessibles.
+- **30 juillet 2027 au plus tard** — Suppression prévue des comptes et des données applicatives hébergées encore actives, avec traitement des demandes individuelles au fil de l’usage.
+- **31 août 2027** — Le contact reste disponible jusque-là, puis pendant les suivis nécessaires.
 
-Une demande individuelle de clôture n'attend pas cette date : elle sera assistée par l'exploitant après vérification raisonnable du titulaire et du compte exact. L'effacement actif devra être confirmé séparément des sessions résiduelles, caches, fichiers téléchargés, sauvegardes, journaux et copies fournisseur. Un serveur ne peut effacer à distance un appareil absent ou rappeler une copie remise à son titulaire.
+Les demandes de droits et d’assistance et les courriels ordinaires sont conservés 30 jours après la clôture de la demande ou de l’échange. La copie d’un lien temporaire détenue par l’exploitant est retirée sous 24 heures après constat de son activation ou de son expiration. Les preuves minimales d’incident sont conservées 90 jours après résolution, avec une revue tous les 30 jours. Une exception doit rester motivée, limitée aux données utiles, suivie par un responsable et datée pour réexamen. Les fournisseurs peuvent conserver leurs propres journaux et copies selon leurs conditions.
 
-**À compléter et approuver avant publication :** durées des sauvegardes opérateur, dossiers d'assistance/droits, messages, marqueurs et preuves d'incident ; délais propres des fournisseurs. La proposition de deux générations de copies sur quatorze jours et de trente jours pour les dossiers clos n'est pas encore adoptée. Aucune durée légale universelle ni effacement instantané de toutes les copies n'est annoncé.
+## Sauvegardes et export
 
-## Assistance, export, correction et suppression
+La politique prévoit deux générations de sauvegardes ordinaires utiles, conservées au maximum 14 jours chacune selon les contrôles de rotation. Une copie historique distincte du 29 octobre 2026 est conservée sous revue séparée. Le journal minimal des effacements est conservé jusqu’au retrait de la dernière copie concernée, puis 30 jours. Il sert à appliquer les suppressions à nouveau si une sauvegarde est restaurée.
 
-Vous pouvez écrire au contact indiqué en tête sans vous connecter, même si votre compte est inaccessible ou fermé. L’exploitant doit encore attester qu’il pourra le consulter régulièrement. Il permettra une récupération par lien individuel, une aide à l'export, une copie complémentaire ou une demande de correction, limitation, opposition ou suppression selon leurs conditions. L'export du profil et le retrait local sélectionné ne répondent pas seuls à toutes les demandes. La clôture native a été testée sur stack Supabase CI éphémère ; l’assistance réelle et la cible restent à vérifier avant de l’annoncer opérationnelle.
+Les sauvegardes applicatives visent une reprise partielle. Leur disponibilité et leur fraîcheur conditionnent ce qui peut être récupéré. Elles ne permettent pas de recréer à elles seules l’authentification, les mots de passe ou le projet entier. Une donnée restée uniquement sur votre appareil peut être perdue.
 
-Si le RGPD s'applique, accès, rectification, effacement, limitation et opposition s'exercent dans les conditions prévues ; la portabilité dépend notamment du fondement et n'est pas déduite de l'existence d'un JSON. Tout consentement éventuellement retenu devra pouvoir être retiré. Vous pouvez adresser une réclamation à la [CNIL](https://www.cnil.fr/fr/plaintes). L'exploitant devra expliquer les actions vérifiées, les exceptions et les résidus en attente, sans demander votre mot de passe.
+L’export JSON du profil fournit une copie des données applicatives disponibles et de certains éléments locaux. Les données du mode visiteur s’exportent séparément. Pour les données d’autres appareils, certains détails internes du compte, les journaux ou les copies brutes, contactez le responsable. Les fichiers téléchargés ou imprimés restent sous votre contrôle.
+
+## Vos droits et la clôture
+
+Vous pouvez demander l’accès aux données qui vous concernent, leur rectification, leur effacement ou la limitation de leur traitement, selon les conditions du RGPD. Pour les traitements fondés sur l’intérêt légitime, vous pouvez vous opposer pour des raisons tenant à votre situation particulière. Le traitement concerné cesse sauf motif légitime impérieux prévalant sur vos intérêts, droits et libertés, ou nécessité liée à des droits en justice. Les conditions du droit à la portabilité s’apprécient séparément de l’export JSON volontaire.
+
+Pour demander la clôture, écrivez au responsable. Il vérifie votre identité de façon proportionnée, vous propose un export et traite la fermeture du compte et la suppression des données actives. Il peut vous accompagner pour retirer les données locales. Les appareils absents, téléchargements, impressions, messages et copies résiduelles des prestataires suivent des circuits distincts. Vous pouvez [adresser une réclamation à la CNIL](https://www.cnil.fr/fr/adresser-une-plainte).
+
+## Évolutions de la notice
+
+La version et sa date figurent en tête de cette page. Si l’usage des données change, la notice est mise à jour et les personnes concernées sont informées des changements importants avant leur application.

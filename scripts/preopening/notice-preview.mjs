@@ -1,4 +1,4 @@
-// Aperçu local, sans intégration au site. Source unique : projet de notice existant.
+// La source et les rendus restent hors des racines Pages.
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, join, basename } from 'node:path';
@@ -6,14 +6,86 @@ import { protectDirectory } from '../dev-recipe/private-files.mjs';
 import { checkDirectory } from './backup.mjs';
 import { requireThat } from './preflight.mjs';
 
-export function noticeHtml(markdown) {
+export function noticeHtml(markdown, { preview = true } = {}) {
   const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
   const inline = text => escape(text).replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+|mailto:[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+)\)/g, '<a href="$2" rel="noreferrer">$1</a>').replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  const body = markdown.trim().split(/\r?\n\s*\r?\n/).map(block => {
-    const heading = block.match(/^(#{1,3}) (.+)$/);
-    return heading ? `<h${heading[1].length}>${inline(heading[2])}</h${heading[1].length}>` : `<p>${inline(block.replace(/\r?\n/g, ' '))}</p>`;
-  }).join('\n');
-  return `<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow"><title>Notice Mon BPREA — aperçu local</title><style>:root{color-scheme:light dark;font:18px/1.65 system-ui}body{margin:0 auto;padding:24px;max-width:760px;overflow-wrap:anywhere}h1{font-size:1.8rem;line-height:1.25}h2{font-size:1.25rem;margin-top:2rem}a{color:light-dark(#165a3b,#9ae8bc)}a:focus-visible{outline:3px solid;outline-offset:4px}aside{border:2px solid;padding:16px}p{margin:1rem 0}</style><body><aside role="note">APERÇU LOCAL NON APPROUVÉ — mentions manquantes à compléter avant toute publication ou collecte d’adresse.</aside><main>${body}</main></body></html>`;
+  const sections = [];
+  const blocks = markdown.trim().split(/\r?\n\s*\r?\n/).map(block => {
+    const heading = block.match(/^(#{1,2}) (.+)$/);
+    if (heading?.[1] === '#') return `<h1>${inline(heading[2])}</h1>`;
+    if (heading) {
+      const label = heading[2];
+      const id = label.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      sections.push({ id, label });
+      return `<h2 id="${id}" tabindex="-1">${inline(label)}</h2>`;
+    }
+    const lines = block.split(/\r?\n/);
+    if (lines.every(line => line.startsWith('- '))) return `<ul>${lines.map(line => `<li>${inline(line.slice(2))}</li>`).join('')}</ul>`;
+    return `<p>${inline(lines.join(' '))}</p>`;
+  });
+  const firstSection = blocks.findIndex(block => block.startsWith('<h2 '));
+  if (firstSection !== -1) {
+    const links = sections.map(({ id, label }) => `<li><a href="#${id}">${inline(label)}</a></li>`).join('\n');
+    blocks.splice(firstSection, 0, `<nav aria-label="Sommaire"><strong>Dans cette notice</strong><ul>${links}</ul></nav>`);
+  }
+  return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  ${preview ? '<meta name="robots" content="noindex,nofollow">' : ''}
+  <title>Notice de confidentialité · Mon BPREA${preview ? ' · Aperçu local' : ''}</title>
+  <style>
+    :root {
+      color-scheme:light dark;
+      --background: #f7f9f2;
+      --surface: #fff;
+      --text: #24372a;
+      --green: #184e39;
+      --border: #a5baaa;
+      font: 1rem/1.65 system-ui, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #121b15;
+        --surface: #1b2920;
+        --text: #e0eade;
+        --green: #a6d4af;
+        --border: #698673;
+      }
+    }
+    body { margin: 0; background: var(--background); color: var(--text); }
+    .wrap { width: min(44rem, calc(100% - 2rem)); margin-inline: auto; }
+    header { padding-block: .85rem; background: var(--surface); border-bottom: 1px solid var(--border); }
+    header p { margin-block: 0; color: var(--green); font-weight: 750; }
+    main { padding-block: 1.25rem 3rem; overflow-wrap: anywhere; }
+    h1, h2 { color: var(--green); line-height: 1.2; }
+    h1 { font-size: clamp(1.8rem, 5vw, 2.65rem); margin-block: .8em .3em; }
+    h2 { font-size: 1.35rem; margin-block: 1.8em .5em; scroll-margin-block: 1rem; }
+    h1 + p { font-size: .95rem; }
+    a { color: var(--green); text-underline-offset: .18em; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+    ul { padding-inline-start: 1.45rem; }
+    li + li { margin-block-start: .5rem; }
+    nav, aside { border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); padding: 1rem; }
+    nav ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: .5rem 1rem; margin-block-end: 0; }
+    nav li { margin-block-start: 0; }
+    aside { border-inline-start: .25rem solid var(--green); }
+    .skip { position: absolute; inset: .5rem auto auto .5rem; padding: .5rem 1rem; background: var(--surface); transform: translateY(-200%); }
+    .skip:focus { transform: none; }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+  <header><p class="wrap">Mon BPREA · Espace de révision</p></header>
+  <main class="wrap" id="contenu" tabindex="-1">
+    ${preview ? '<aside role="note"><strong>Aperçu local de la version 1.0.</strong> Le fond a été approuvé le 5 novembre 2026. La publication attend les vérifications finales.</aside>' : ''}
+    ${blocks.join('\n    ')}
+  </main>
+</body>
+</html>
+`;
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
@@ -22,7 +94,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     checkDirectory(temporary);
     const output = mkdtempSync(join(temporary, 'preopening-notice-preview-'));
     protectDirectory(output);
-    writeFileSync(join(output, 'notice.html'), noticeHtml(readFileSync(join(root, 'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md'), 'utf8')), { flag: 'wx', mode: 0o600 });
-    process.stdout.write(`Aperçu créé sous .tmp/${basename(output)}/notice.html ; aucune page racine ou activation.\n`);
+    writeFileSync(join(output, 'confidentialite.html'), noticeHtml(readFileSync(join(root, 'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md'), 'utf8')), { flag: 'wx', mode: 0o600 });
+    process.stdout.write(`Aperçu créé sous .tmp/${basename(output)}/confidentialite.html\n`);
   } catch { process.stderr.write('Aperçu refusé : dossier neuf privé requis.\n'); process.exitCode = 2; }
 }

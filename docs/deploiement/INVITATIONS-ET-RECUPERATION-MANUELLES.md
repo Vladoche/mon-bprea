@@ -17,7 +17,7 @@ L'opérateur travaille depuis un ordinateur et un compte administrateur protég�
 
 Vérifier le projet exact, le destinataire autorisé, son accord de participation et l'adresse confirmée, l'information de confidentialité approuvée remise avant collecte/invitation, le canal privé de transmission et le callback exact. **Une invitation peut créer immédiatement l'utilisateur Auth et son profil**, avant son activation. Ne jamais générer pour un participant avant ces préconditions et la décision d’ouverture. Politique courante : sept comptes confirmés, exploitant compris, service personnel indépendant/facultatif jusqu’au 30 juin 2027 ; aucun nouveau contrôle serveur.
 
-Le contact officiel autorisé est accessible sans compte ; ses accès/MFA/récupération et réception/réponse restent à vérifier. Le calendrier principal est acté, les durées résiduelles restent à approuver. Les pages de récupération renvoient au contact officiel et au canal connu, sans annoncer une mise en service acquise ni générer de lien.
+Le contact officiel est accessible sans compte et son fonctionnement est attesté en D04. Le calendrier et les durées résiduelles sont approuvés. [Reçu D](../rgpd/RECU-ARBITRAGES-2026-11-05.md). Les pages de récupération renvoient au contact officiel et au canal connu, sans annoncer une mise en service acquise ni générer de lien.
 
 ## Préparer exclusivement la stack de tests
 

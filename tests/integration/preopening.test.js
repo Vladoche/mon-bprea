@@ -128,6 +128,10 @@ describe('contact et clôture préparés sans identité ou opération inventée'
     expect(html).not.toContain('<script>'); expect(html).toContain('&lt;script&gt;'); expect(html).toContain('color-scheme:light dark');
     expect(html).toContain('href="https://www.cnil.fr/"');
     expect(html).toContain('href="mailto:synthetic-contact@example.invalid"');
+    expect(html).toContain('noindex,nofollow');
+    const candidate = noticeHtml('# Notice\n\n## Vos droits\n\nUn paragraphe.', { preview: false });
+    expect(candidate).toContain('id="vos-droits"');
+    expect(candidate).not.toMatch(/noindex|Aperçu local/);
   });
 });
 

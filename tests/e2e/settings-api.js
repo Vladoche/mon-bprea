@@ -11,7 +11,7 @@ export function createSettingsAPI() {
   const rows = { itk: new Map(), appearance: new Map() }, sent = [];
   const api = { rows, sent, restOffline: false, authOffline: false, loseAck: null, holdRead: null };
   api.install = async (context, account = 'A', sources = {}) => {
-    await context.addInitScript(({ session, sources }) => {
+    if (account || Object.keys(sources).length) await context.addInitScript(({ session, sources }) => {
       if (localStorage.getItem('settings-fixture-seeded')) return;
       localStorage.setItem('settings-fixture-seeded', 'yes');
       if (session) localStorage.setItem('bprea-auth-settings.invalid-/mon-bprea/', JSON.stringify(session));

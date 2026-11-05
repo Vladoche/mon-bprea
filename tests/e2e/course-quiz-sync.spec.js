@@ -107,11 +107,16 @@ test('import volontaire : prévisualisation, annulation et manifeste réutilisé
   const raw = JSON.stringify({ [lesson.id]: { done: false, score: 3, legacyQuizScore: { score: 3, total: 3 }, quizAttempts: [oldAttempt,oldAttempt], unknown: 'conservé', quizScoreArchive: ['illlisible'] }, progressArchive: ['ancienne source'] });
   const api = createCourseQuizAPI(); await api.install(page.context(),'A',raw);
   await page.goto(quiz); await synced(page); await expect(page.locator('#quiz-history li')).toHaveCount(0); expect(api.attempts.size).toBe(0);
+  const provenance = () => page.evaluate(() => localStorage.getItem('bprea-demo-progress-provenance-v1'));
+  expect(await provenance()).toBeNull();
   const open = () => page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
   await open(); const dialog = page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' });
   await expect(dialog).toContainText('pas nécessairement liée au compte');
   await expect(dialog).toContainText('Tentatives QCM exploitables');
+  const previewId = await provenance();
+  expect(previewId).toMatch(/^[0-9a-f-]{36}$/i);
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.attempts.size).toBe(0);
+  expect(await provenance()).toBe(previewId);
   await open(); await capture(page,'import-desktop-light');
   await page.setViewportSize({ width: 390, height: 844 }); await capture(page,'import-mobile-light');
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); await setTheme(page,'dark'); await open(); await capture(page,'import-mobile-dark');
