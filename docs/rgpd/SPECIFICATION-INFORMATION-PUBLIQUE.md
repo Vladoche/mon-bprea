@@ -42,7 +42,7 @@ Les cibles et ancres ci-dessous sont des **spécifications de liens futurs**, pa
 | Origine | Accès et cible future | Moment de l'information / contrôle attendu |
 | --- | --- | --- |
 | Accueil `index.html` | Lien explicite « Confidentialité et données personnelles » vers `confidentialite.html` | Accessible sans compte avant usage des sauvegardes pertinentes ; notice visiteur intelligible |
-| Pied de page commun | Même lien sur les 17 pages publiques, y compris états d'erreur | Accessible au clavier/mobile, sans dépendre d'une session ou d'un chargement Supabase ; vérifier le préfixe `/mon-bprea/` |
+| Pied de page commun | Même lien sur les 18 pages publiques, y compris états d'erreur | Accessible au clavier/mobile, sans dépendre d'une session ou d'un chargement Supabase ; vérifier le préfixe `/mon-bprea/` |
 | Connexion `connexion.html` | Lien près du formulaire vers la partie compte | Visible avant saisie/envoi ; expliquer la persistance de session et le poste partagé |
 | Invitation : message et activation | Lien vers la notice validée dans le dispositif d'information **avant invitation**, puis dans le message approuvé et `authentification.html` | D10 : source indirecte de l'adresse et version communiquée. Le seul e-mail technique ne suffit pas à prouver toute l'information préalable |
 | Récupération `mot-de-passe-oublie.html` et callback | Lien statique avant envoi et après lien invalide/expiré | Aucune copie de `token_hash` dans le lien ou le référent ; pas de tracking supplémentaire |

@@ -79,4 +79,14 @@ Priorités restantes : vérifier la messagerie/récupération ; approuver cadre 
 
 ## Reçu Git et CI
 
-Branche de livraison indiquée en tête ; PR et résultats des trois jobs à rattacher après leur observation. La fusion reste à l'exploitant ; aucun succès CI n'est inféré de la seule configuration des workflows.
+Livraison dans la [PR #36](https://github.com/Vladoche/mon-bprea/pull/36), ouverte vers main sans fusion ni déploiement. Commit fonctionnel **52aeca567231528065df710e7fca12fb0ee50245** ; contenu identique après remplacement de sa signature locale par l'identité publique GitHub/noreply. Le premier push reprenait une signature déjà présente dans l'historique main ; seul notre commit de branche a été remplacé avec bail exact, aucun historique main réécrit. Les commits livrés n'ajoutent pas d'autre coordonnée dans leur signature ; aucune purge des anciens objets/caches distants n'est affirmée.
+
+**CI de référence sur 52aeca5, relue le 05/11/2026 : trois jobs réussis**, checkout de fusion temporaire `2c9fe38` rattaché explicitement à ce SHA et à `5887f5f` dans les logs :
+
+- [unit-integration](https://github.com/Vladoche/mon-bprea/actions/runs/42052834732/job/127333204727) : 539 tests réussis / 1 ignoré, 51 fichiers ; SDK sans différence.
+- [e2e](https://github.com/Vladoche/mon-bprea/actions/runs/42052834732/job/127333206473) : **94/94**.
+- [supabase-security](https://github.com/Vladoche/mon-bprea/actions/runs/42052834768/job/127334105134) : **386 assertions pgTAP**, **11 groupes réels Supabase**, **32 parcours Chromium réels**, dont clôture native unitaire et préservation de l'autre compte ; arrêt de la stack éphémère réussi. Ces résultats ne lèvent pas T11 DEV et ne prouvent aucun réglage hébergé.
+
+Artefact local reconstruit avec la version exacte `52aeca567231528065df710e7fca12fb0ee50245` : 135 fichiers publics + `.nojekyll`, 329 références versionnées, contrôles ressources/confidentialité/Auth off réussis. SHA-256 du manifeste ordonné chemins/empreintes : `485a3442c57ad907125e752611463c2b25a5cdac2c7cf094060338424a87f1d3`. Les changements suivants de ce reçu et de trois précisions documentaires sont exclus du contenu public ; le versionnage du SHA reste à reconstruire pour une autre tête.
+
+Les **résultats finaux de la dernière tête livrée** sont consignés dans la description et la [vue Checks de la PR](https://github.com/Vladoche/mon-bprea/pull/36/checks) après observation distincte. Les réussites de 52aeca5 ne sont pas attribuées automatiquement à un nouveau SHA. La fusion reste à l'exploitant ; aucun succès CI n'est inféré de la seule configuration des workflows.
