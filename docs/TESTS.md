@@ -1,5 +1,11 @@
 # Développement et stratégie de tests
 
+## Maintenance locale — lot 6.5.5.A
+
+`tests/integration/tmp-maintenance.test.js` utilise uniquement des répertoires synthétiques sous un nouveau dossier de test : simulation readonly, volume exact, ciblage/idempotence, chemins externes, jonctions/racine détournée, preuves et réservations, runs actifs, inconnus, manifeste altéré, verrou exclusif, échec de suppression, fichier Windows réellement verrouillé et cycle de vie du build serveur. Aucune fixture n'est extraite des journaux privés de recette. Le test de lien symbolique natif se marque ignoré si Windows refuse sa création ; ne pas l'annoncer réussi. Les tests de jonction restent distincts. La [validation du lot](validations/VALIDATION-LOT6-5-5A.md) indique les résultats exécutés et limites.
+
+Le serveur marque/nettoie seulement son propre build inchangé ; après un arrêt brutal, `npm run maintenance:tmp` simule et `npm run maintenance:tmp -- --apply` retire uniquement les copies publiques prouvées, après fermeture des tests. Ne pas lancer le nettoyeur en parallèle des suites. [Politique, exclusions et restauration](developpement/MAINTENANCE-DOSSIER-TMP.md).
+
 ## Reprise corrective C2 — 4 novembre 2026
 
 La [validation 6.5.4.C](validations/VALIDATION-LOT6-5-4C.md) distingue les preuves CI rapprochées, les tests locaux et les vrais scénarios DEV autorisés. Préparation locale sous Node **24.22.0** : `npm ci` hors ligne, **499 tests / 49 fichiers**, puis **85 E2E**, plus dix groupes hors ligne de gardes/filiation. Le premier démarrage E2E refusé sur localhost est consigné séparément ; l'exécution suivante autorisée a réussi. Aucun runner Supabase réel redirigé vers DEV ; CLI/Docker absents sur le poste, ces suites locales restent **NON EXÉCUTÉES**. La CI éphémère distincte vérifiée comporte **386 assertions pgTAP et 31 parcours réels**.

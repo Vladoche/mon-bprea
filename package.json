@@ -12,6 +12,7 @@
     "dev-recipe:prepare": "node scripts/dev-recipe/prepare.mjs",
     "dev-recipe:continue": "node scripts/dev-recipe/prepare-continuation.mjs",
     "dev-recipe:session": "node scripts/dev-recipe/session.mjs",
+    "maintenance:tmp": "node scripts/maintenance/tmp-prune.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run tests/unit",
