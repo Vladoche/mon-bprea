@@ -1,6 +1,6 @@
-# Décisions D01–D14 et risques — suivi du 5 novembre 2026
+# Décisions D01–D14 et risques — suivi du 6 novembre 2026
 
-**Suivi au lot 6.5.5.E.** Décisions et attestations reçues dans le [reçu D](RECU-ARBITRAGES-2026-11-05.md). La [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) suit les conditions de clôture. Les états datés sont conservés dans les validations et dans Git.
+**Suivi au lot 6.5.5.G.** Décisions et attestations consignées dans les reçus du [5 novembre](RECU-ARBITRAGES-2026-11-05.md) et du [6 novembre](RECU-ARBITRAGE-D12-2026-11-06.md). La [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) suit les conditions de clôture. Les états datés sont conservés dans les validations et dans Git.
 
 ## Réconciliation des quatorze décisions
 
@@ -10,16 +10,16 @@
 | D02 | **ACTÉE.** Indépendance de l’établissement, aucune note officielle, remontée ou accès formateur | Réexaminer au changement de pratique |
 | D03 | **APPROUVÉE.** Intérêt légitime motivé (art. 6 §1 f), R01–R05 et mises en balance conservées. [Registre](REGISTRE-TRAITEMENTS.md) | Effectivité des garanties, droit d’opposition et bases distinctes le cas échéant |
 | D04 | **ACTÉE ET ATTESTÉE.** Contact public approuvé en C, page testée sur l’artefact. MFA, récupération, essai extérieur/réponse, consultation régulière et page hébergée attestés par l’exploitant | Avant action réelle, utiliser les contrôles de fraîcheur et les preuves privées de la procédure |
-| D05 | **DOCUMENTÉE PARTIELLEMENT.** GitHub Pages, Supabase Free, Outlook.com personnel et flux manuel. [Sources](FLUX-ET-PRESTATAIRES.md) | Rattacher les clauses à la cible et établir la couverture du canal de remise |
-| D06 | **DOCUMENTÉE PARTIELLEMENT.** Région primaire distincte du support et des accès internationaux, clauses documentées | Établir région cible et garanties applicables aux flux réels |
+| D05 | **DOCUMENTÉE SUR SOURCES PUBLIQUES.** Conditions et rôles par flux pour Pages, Supabase Free et Outlook.com personnel. Le canal de contact est acquis | Rattacher le contrat et le DPA au titulaire de la cible et confirmer les services réellement impliqués. [Preuves restantes](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes) |
+| D06 | **DOCUMENTÉE SUR SOURCES PUBLIQUES.** Région primaire, support, journaux et accès internationaux distingués | Établir la région et l’offre de la cible et rattacher les garanties aux flux retenus. [Matrice](FLUX-ET-PRESTATAIRES.md#matrice-des-lieux-transferts-et-conservations) |
 | D07 | **APPROUVÉE.** Calendrier et durées résiduelles, exceptions motivées, copie historique du 29/10 à part. [Politique](POLITIQUE-CONSERVATION-PROJET.md) | Délais fournisseur et exécution réelle dans leurs portes opérationnelles |
 | D08 | **CHOIX ACTÉ.** Clôture assistée native, sauvegarde applicative hebdomadaire visée, perte visée sept jours | Accepter limites Auth/projet/caches. Éprouver première copie, reprise et assistance réelles |
 | D09 | **ACTÉE.** Sept comptes adultes au total, dont un exploitant, gratuit et volontaire, privé, fermeture le 30/06/2027 | Maintenir ce périmètre et le plafond administratif |
-| D10 | **VOLONTARIAT ET REMISE INDIVIDUELLE ACTÉS SUR LE FOND.** La V1.0 décrit la fourniture directe de l’adresse après information | Valider le canal final, la remise de la notice accessible avant collecte et la preuve minimale de sa version/date |
+| D10 | **VOLONTARIAT ET REMISE INDIVIDUELLE ACTÉS SUR LE FOND.** La V1.0 décrit la fourniture directe de l’adresse après information | Confirmer le circuit de remise sur la cible. Valider et vérifier la remise de la notice accessible avant collecte, avec preuve minimale de sa version et de sa date |
 | D11 | **APPROUVÉE.** AIPD complète non jugée nécessaire dans le périmètre examiné ci-dessous | Réexaminer au changement significatif ou à l’apparition d’un risque élevé |
-| D12 | **PRÊTE À APPROBATION FINALE DE L’EXPLOITANT.** Qualifications par usage, archives futures minimisées et échecs partiels recettés le 6 novembre. [Qualification et preuves](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) | Approuver la règle événementielle de nécessité, la préservation de l’historique et le retrait ciblé sur décision explicite. Relire séparément les écarts de la V1.1 avant toute autorisation de publication |
+| D12 | **APPROUVÉE PAR L’EXPLOITANT LE 06/11/2026.** Qualifications par usage, nouvelles archives minimisées, historique conservé, retrait ciblé sur vérification et suivi du volume. [Reçu](RECU-ARBITRAGE-D12-2026-11-06.md) | Réexaminer en cas d’évolution significative. La rédaction finale de la V1.1 et sa publication relèvent de P0-05 |
 | D13 | **CHOIX ACTÉ.** Exploitant seul administrateur, MFA/récupération et secrets protégés | Preuves distinctes de D04 sur la cible, le poste et la gestion des accès |
-| D14 | **OUVERTURE SUSPENDUE.** G1 autorise la branche, la PR et les contrôles CI ordinaires. V1.0 approuvée sur le fond | Autorisation de publication séparée. Cible, réserves T11/D et autres preuves opérationnelles avant autorisation d’activation et invitations |
+| D14 | **OUVERTURE SUSPENDUE.** G1 autorise la branche, la PR et les contrôles CI ordinaires. V1.0 approuvée sur le fond. V1.1 en préparation | Approbation finale de la V1.1 et mandat de publication séparé. Cible, réserves T11/D et autres preuves opérationnelles avant autorisation d’activation et invitations |
 
 ## Première analyse qualitative des risques — historique 6.4, précisé ci-dessous
 
