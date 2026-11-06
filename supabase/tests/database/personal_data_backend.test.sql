@@ -167,6 +167,9 @@ grant select on pg_temp.personal_test_payloads to authenticated;
 select set_config('request.jwt.claims','{"sub":"63100000-0000-4000-8000-000000000001","role":"authenticated"}',true);
 set local role authenticated;
 
+select throws_ok($$insert into public.course_states (lesson_id,done,operation_id,base_revision)
+  values ('matiere-organique',true,'63100000-0000-4000-8000-000000000010',1)$$,
+  'PT409','personal_revision_conflict','INSERT direct avec révision initiale invalide refusé');
 select is(public.personal_save_course('matiere-organique',true,3,2,3,'63100000-0000-4000-8000-000000000010',0)->>'status','inserted','Cours créé à révision 1');
 select is(public.personal_save_course('matiere-organique',true,3,2,3,'63100000-0000-4000-8000-000000000010',0)->>'status','replayed','Retry cours exact sans nouvelle révision');
 select is(public.personal_save_course('matiere-organique',false,3,2,3,'63100000-0000-4000-8000-000000000011',1)->>'status','updated','Cours volontairement décoché');
@@ -174,7 +177,7 @@ select is((select done from public.course_states),false,'False explicite conserv
 select is(public.personal_save_course('matiere-organique',true,3,2,3,'63100000-0000-4000-8000-000000000012',1)->>'status','conflict','Révision obsolète ne rétablit pas le cours');
 select is(public.personal_save_course('matiere-organique',false,3,2,3,'63100000-0000-4000-8000-000000000011',1)->>'status','replayed','Perte acquittement résolue par opération stable');
 select is(public.personal_save_course('matiere-organique',true,3,2,3,'63100000-0000-4000-8000-000000000011',1)->>'status','conflict','Même opération avec autre état refusée');
-select throws_ok($$update public.course_states set done=true$$,'40001',null,'PATCH direct sans CAS refusé');
+select throws_ok($$update public.course_states set done=true$$,'PT409',null,'PATCH direct sans CAS refusé');
 select throws_ok($$update public.course_states set user_id='63100000-0000-4000-8000-000000000002'$$,'42501',null,'Propriétaire cours protégé');
 select throws_ok($$update public.course_states set revision=10$$,'42501',null,'Révision serveur protégée');
 select throws_ok($$select public.personal_save_course('matiere-organique',false,2,2,3,'63100000-0000-4000-8000-000000000013',2)$$,'23514',null,'Meilleur score ne baisse jamais');
@@ -221,7 +224,7 @@ select is((select parameters->>'area' from public.itk_settings),'200','Paramètr
 select throws_ok($$select public.personal_save_itk((select itk||'{"area":120}'::jsonb from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000042',2)$$,'23514',null,'ITK attend les chaînes FormData');
 select throws_ok($$select public.personal_save_itk((select itk||'{"variety":"Nantaise"}'::jsonb from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000042',2)$$,'23514',null,'Association culture/variété vérifiée');
 select throws_ok($$select public.personal_save_itk((select itk||'{"extra":"unknown"}'::jsonb from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000042',2)$$,'23514',null,'Paramètre inconnu refusé sans perte de source');
-select throws_ok($$update public.itk_settings set parameters='{}'$$,'40001',null,'CAS imposé aussi hors RPC');
+select throws_ok($$update public.itk_settings set parameters='{}'$$,'PT409',null,'CAS imposé aussi hors RPC');
 select is(public.personal_save_itk((select itk||'{"area":"1e2"}'::jsonb from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000043',2)->>'status','updated','Surface HTML valide en notation exposant acceptée');
 select is((select parameters->>'area' from public.itk_settings),'1e2','Chaîne FormData originale conservée');
 select is(public.personal_save_itk((select itk||'{"area":"100.0"}'::jsonb from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000044',3)->>'status','updated','Surface HTML entière en notation décimale acceptée');

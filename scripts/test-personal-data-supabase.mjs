@@ -472,8 +472,16 @@ try {
 
   await check('Écritures directes : le trigger impose CAS, aucune protection réservée aux RPC', async () => {
     const before = await one(a, 'itk_settings');
-    deniedRaw(await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' } }), 'PATCH sans révision/opération', '40001');
-    deniedRaw(await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision - 1, operation_id: randomUUID() }), 'PATCH révision obsolète', '40001');
+    const withoutCas = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', {
+      parameters: { ...itkParameters, area: '444' },
+    });
+    assert.equal(withoutCas.status, 409, 'PATCH sans révision/opération');
+    deniedRaw(withoutCas, 'PATCH sans révision/opération', 'PT409');
+    const staleCas = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', {
+      parameters: { ...itkParameters, area: '444' }, base_revision: before.revision - 1, operation_id: randomUUID(),
+    });
+    assert.equal(staleCas.status, 409, 'PATCH révision obsolète');
+    deniedRaw(staleCas, 'PATCH révision obsolète', 'PT409');
     assert.deepEqual(await one(a, 'itk_settings'), before);
     const valid = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision, operation_id: randomUUID() });
     assert.equal(valid.status, 200);
