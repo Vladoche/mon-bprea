@@ -1,4 +1,4 @@
-// Lot 6.6.0.C. PostgreSQL natif et Auth SQL synthétique. Aucune URL en entrée.
+// Répétition PostgreSQL natif et Auth SQL synthétique. Aucune URL en entrée.
 import assert from 'node:assert/strict';
 import { execFile, spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
@@ -34,6 +34,7 @@ const migrations = [
   '20261024083417_create_drill_sync_schema.sql',
   '20261025143831_create_personal_data_backend.sql',
   '20261106093143_restrict_application_service_role.sql',
+  '20261106174551_return_conflict_for_personal_revision.sql',
 ];
 const versions = migrations.map(name => name.split('_')[0]);
 const original = migrations.map(name => readFileSync(join(root, 'supabase/migrations', name)));
@@ -344,6 +345,18 @@ log_min_error_statement=panic
   assert.equal(state(legacy).dataHash, legacyBefore.dataHash);
   assert.deepEqual(structure(legacy), structure(install));
   assert.deepEqual(defaults(legacy), defaults(install));
+  const beforeM5 = privilege(install);
+  const dataBeforeM5 = state(install).dataHash;
+  stageMigration(4);
+  migrationUp(legacy);
+  migrationUp(install);
+  note('Frontière M5', checkBoundary(install, versions.length));
+  checkBoundary(legacy, versions.length);
+  for (const [group, records] of Object.entries(privilege(install))) {
+    assert.deepEqual(sortedJson(records), sortedJson(beforeM5[group]), group);
+  }
+  assert.equal(state(install).dataHash, dataBeforeM5);
+  assert.deepEqual(structure(legacy), structure(install));
   save('final-catalogue', structure(install));
   save('final-acl', privilege(install));
   save('ledger', ledger(install).map(row => ({ version: row.version, name: row.name,
@@ -406,7 +419,7 @@ log_min_error_statement=panic
   assert.deepEqual(ledger(restored), ledger(install));
   assert.equal(sql(restored, 'select jsonb_agg(to_jsonb(u) order by id) from auth.users u;', { user: admin }),
     sql(install, 'select jsonb_agg(to_jsonb(u) order by id) from auth.users u;', { user: admin }));
-  checkBoundary(restored, 4);
+  checkBoundary(restored, versions.length);
   note('Restauration de l’archive synthétique', { tables: 10, rows: 20, authRows: 2, history: versions, sha256: sha(readFileSync(dump)) });
   sql(install, `set role supabase_auth_admin; delete from auth.users where id='${A}';`, { user: admin });
   const survivors = Object.fromEntries(Object.entries(sourceRows).map(([table, entries]) =>
