@@ -1,8 +1,8 @@
-# Dossier de préouverture — suivi courant 6.5.5.E
+# Dossier de préouverture — suivi courant 6.5.5.G
 
-**5 novembre 2026. Sept P0 résolus et huit ouverts.** La [matrice des quinze portes](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) donne les preuves et conditions restantes. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [D01–D14](DECISIONS-A-VALIDER.md), [validation E](../validations/VALIDATION-LOT6-5-5E.md).
+**6 novembre 2026. Sept P0 résolus et huit ouverts.** La [matrice des quinze portes](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) donne les preuves et conditions restantes. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [reçu D12](RECU-ARBITRAGE-D12-2026-11-06.md), [D01–D14](DECISIONS-A-VALIDER.md), [validation G](../validations/VALIDATION-LOT6-5-5G.md).
 
-Sept comptes adultes confirmés, exploitant et six autres participants. Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. Le fond de la V1.0 est approuvé. La V1.1 reste en préparation hors Pages après recette des corrections D12. La qualification des accès et le traitement des archives résiduelles, les écarts substantiels et les garanties fournisseurs applicables restent à valider avant publication.
+Sept comptes adultes confirmés, exploitant et six autres participants. Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. Le fond de la V1.0 est approuvé. L’exploitant a approuvé D12 le 6 novembre, y compris la règle de traitement des archives résiduelles. La V1.1 reste en préparation hors Pages. Elle attend les preuves fournisseurs déterminantes, la revue de ses écarts substantiels, l’approbation du texte final et le mandat de publication. [Preuves restantes](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes).
 
 ## Historique daté — ne vaut pas état courant des P0
 
@@ -45,7 +45,7 @@ Les tâches ci-dessous peuvent être cumulées par l'exploitant ; aucune directi
 
 ## P0 — référence courante
 
-Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan courant](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les anciennes mentions « aucun P0 levé » décrivent exclusivement les lots datés ci-dessus. P0-01/02/03/04/06/09/10 sont clos dans leurs périmètres. D12 reste une dépendance de la notice et du circuit préalable, sans dispenser du canal effectif et des droits assistés.
+Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan courant](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md). Les anciennes mentions « aucun P0 levé » décrivent exclusivement les lots datés ci-dessus. P0-01/02/03/04/06/09/10 sont clos dans leurs périmètres. La qualification D12 est acquise. La publication et la preuve de remise avant collecte relèvent de P0-05 et P0-15.
 
 ## P1 — préparation du déploiement, après autorisations distinctes
 
@@ -57,7 +57,7 @@ Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan coura
 | URL/callback et artefact | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : Site URL locale /mon-bprea/ et callback exact unique sans wildcard ; aucun retour reçu éprouvé | Opérateur frontend/Auth | Préserver DEV local ; artefact public off, artefact DEV séparé à autoriser |
 | Invitation et récupération | PRÉPARÉ MAIS NON ACTIVÉ | Générateur manuel et capture SMTP de régression distincts, aucun destinataire réel | Opérateur comptes | Recette hébergée autorisée puis vérifier information préalable, usage unique et expiration |
 | Paramètres Auth | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : signup/anonyme off, e-mail on ; JWT/OTP 3600 s, rotation on ; écart Secure password change off | Opérateur Auth / sécurité | Décider réglages et durées puis recette réelle dédiée ; ne pas copier les 120/60 s de tests |
-| Accès au terminal D12 | DÉCISION À VALIDER | [Analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) et corrections recettées | Responsable | Approuver la qualification, statuer sur les résidus et intégrer les informations retenues dans la notice |
+| Accès au terminal D12 | APPROUVÉE LE 06/11/2026 | [Analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md), corrections recettées et [reçu](RECU-ARBITRAGE-D12-2026-11-06.md) | Responsable | Surveiller le volume des archives de réglages et réexaminer en cas d’évolution significative. Revoir la rédaction finale de la V1.1 en P0-05 |
 | Artefact Pages exact | VALIDÉ TECHNIQUEMENT en local | Préparation et audit sous `/mon-bprea/`, Auth off ; pas de réponse CDN réelle | Opérateur frontend | Revalider SHA/digest et notice approuvée dans la future recette autorisée, avant publication |
 | Retour arrière | DÉCISION À VALIDER | 6.5.2 : plan d'arrêt/retour sûr par incident préparé, non approuvé ni exécuté | Exploitant / sécurité | Autoriser méthode serveur de confinement/reprise, préserver données et réconcilier effacements avant restauration |
 | Sauvegardes/restauration | BLOQUANT pour la mise en service | Plan réel, durées, accès et preuve de réapplication des effacements manquants | Opérateur base et référent droits | Essai isolé autorisé, inventaire des suppressions postérieures et contrôle avant réouverture |
