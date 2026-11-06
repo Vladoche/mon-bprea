@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createClient } from '@supabase/supabase-js';
+import { CLOSURE_TABLES } from '../supabase/functions/_shared/closure-handler.js';
 
 const expectedProject = 'mon-bprea-lot6-1-local';
 const callback = 'http://127.0.0.1:4173/mon-bprea/authentification.html';
@@ -167,6 +168,16 @@ try {
     a = await activate(await invite('a'));
     b = await activate(await invite('b'));
     assert.notEqual(a.id, b.id);
+  });
+
+  await check('Clé administrative locale : API Auth disponible et Data API applicative refusée', async () => {
+    const user = accepted(await admin.auth.admin.getUserById(a.id), 'Lecture administrative Auth');
+    assert.equal(user.user?.id, a.id);
+    for (const table of CLOSURE_TABLES) {
+      const owner = table === 'profiles' ? 'id' : 'user_id';
+      const result = await admin.from(table).select(owner).eq(owner, a.id).limit(1);
+      assert.equal(result.error?.code, '42501', `Refus PostgreSQL attendu pour service_role sur ${table}.`);
+    }
   });
 
   await check('Lien invitation réutilisé, invalide et compte déjà activé refusés', async () => {

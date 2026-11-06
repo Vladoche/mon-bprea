@@ -1,7 +1,42 @@
 // Fixtures exclusivement synthétiques de la stack éphémère, jamais côté page.
+import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { promisify } from 'node:util';
 import { createClient } from '@supabase/supabase-js';
 import { createLocalLinkAdmin, generateManualAuthLink, LOCAL_PROJECT, validateLocalEnvironment } from '../../scripts/auth-link-local.mjs';
+import { publicProcessEnvironment } from '../../scripts/dev-recipe/contract.mjs';
+
+const exec = promisify(execFile);
+
+// Le profil doit être vérifiable avant d'utiliser le lien, puis après la
+// suppression du compte. Aucun JWT étudiant n'est disponible à ces étapes.
+async function readLocalProfile(id) {
+  if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id || ''))
+    throw new Error('Identifiant de profil fictif invalide.');
+  const options = { env: publicProcessEnvironment(process.env), timeout: 10_000, windowsHide: true };
+  const docker = async args => (await exec('docker', args, options)).stdout.trim();
+  const container = `supabase_db_${LOCAL_PROJECT}`;
+  try {
+    const context = process.env.DOCKER_CONTEXT || await docker(['context', 'show']);
+    if (!/^[a-z0-9][a-z0-9_.-]*$/i.test(context)) throw new Error();
+    const endpoint = await docker(['context', 'inspect', context, '--format', '{{.Endpoints.docker.Host}}']);
+    if (!/^unix:\/\/\/[^?#\r\n]+$/.test(endpoint) && !/^npipe:\/\/\/\/\.\/pipe\/(?:docker_engine|dockerDesktopLinuxEngine)$/i.test(endpoint))
+      throw new Error();
+    const target = ['--host', endpoint];
+    const info = JSON.parse(await docker([...target, 'inspect', '--format',
+      '{{json (index .Config.Labels "com.supabase.cli.project")}}', container]));
+    const bindings = JSON.parse(await docker([...target, 'inspect', '--format',
+      '{{json (index .NetworkSettings.Ports "5432/tcp")}}', container]));
+    if (info !== LOCAL_PROJECT || !bindings?.some(binding => binding.HostPort === '54322')) throw new Error();
+    const found = await docker([...target, 'exec', container, 'psql', '-X', '-qAt', '-U', 'postgres', '-d', 'postgres', '-w',
+      '-v', 'ON_ERROR_STOP=1', '-c',
+      `begin read only; select exists(select 1 from public.profiles where id = '${id}'::uuid); rollback;`]);
+    if (found === 't' || found === 'f') return found === 't';
+  } catch {
+    throw new Error('Observation du profil sur la stack Docker locale non confirmée.');
+  }
+  throw new Error('Résultat de lecture du profil fictif inattendu.');
+}
 
 export function createManualAuthFixture(environment) {
   const env = { SUPABASE_TEST_CONFIRM_LOCAL: process.env.SUPABASE_TEST_CONFIRM_LOCAL,
@@ -50,8 +85,8 @@ export function createManualAuthFixture(environment) {
       return !result.error && result.data?.user?.id === fixture.id && result.data.user.email === email;
     },
     async profileExists() {
-      const result = await adminClient.from('profiles').select('id').eq('id', fixture.id);
-      return !result.error && result.data?.length === 1 && result.data[0].id === fixture.id;
+      if (!owned.has(fixture.id)) throw new Error('Profil hors fixture.');
+      return readLocalProfile(fixture.id);
     },
     async missingRecovery() {
       // Vérifie le comportement du fournisseur lui-même, sans préflight outil.
@@ -71,8 +106,7 @@ export function createManualAuthFixture(environment) {
         const deleted = await adminClient.auth.admin.deleteUser(id);
         if (deleted.error) throw new Error('Suppression du seul compte synthétique non confirmée.');
         const absent = await adminClient.auth.admin.getUserById(id);
-        const profiles = await adminClient.from('profiles').select('id').eq('id', id);
-        if (absent.error?.code !== 'user_not_found' || profiles.error || profiles.data.length !== 0)
+        if (absent.error?.code !== 'user_not_found' || await readLocalProfile(id))
           throw new Error('Absence Auth/profil après nettoyage non confirmée.');
         owned.delete(id);
       }
