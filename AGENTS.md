@@ -1,5 +1,9 @@
 # Projet Mon BPREA
 
+## Reprendre le projet
+
+Commencer par la [fiche de reprise Codex](docs/developpement/REPRISE-CODEX.md) pour identifier le prochain chantier et les preuves déjà disponibles. Ouvrir ensuite les références utiles à la tâche.
+
 ## Architecture
 
 - Site statique hébergé sur GitHub Pages.
