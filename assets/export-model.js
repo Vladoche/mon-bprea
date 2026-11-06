@@ -1,4 +1,5 @@
 import { TABLES, MAX_BYTES, fail } from './export-sources.js';
+import { validSettingsReceipt } from './settings-model.js';
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const fields = names => Object.fromEntries(names.split(',').map(key => [key, true]));
 const map = schema => ({ $map: schema });
@@ -17,6 +18,7 @@ const payload = { ...fields('p_unit,p_week,p_started_at,p_series_id,p_question_i
   p_questions: [question], p_parameters: itk, p_preferences: appearance, p_session: botanicalSession };
 // p_answer is a scalar in Drill and an object in botanique; selected per domain.
 const op = domain => ({ ...fields('id,type,domain,seriesKey,lessonId,sessionId,questionId,state,expectedRevision,failures,retryAt,attempts,confirmedDependency'),
+  ...(domain === 'settings' ? { archiveVersion: true } : {}),
   dependsOn: domain === 'botanical' ? [true] : true,
   confirmedDependency: fields('id,revision'), payload: domain === 'botanical' ? { ...payload, p_answer: botanicalAnswer } : payload,
   rpcPayload: domain === 'botanical' ? { ...payload, p_answer: botanicalAnswer } : payload });
@@ -97,6 +99,11 @@ export function projectLocal(domain, document, scope, { allowMapKeys = false } =
   };
   result.conflicts = (document.conflicts || []).map(projectConflict);
   result.archives = (document.archives || []).map(item => {
+    if (domain === 'settings' && object(item) && Object.hasOwn(item, 'receiptVersion')) {
+      if (item.receiptVersion !== 1) fail('future');
+      if (!validSettingsReceipt(item)) fail('invalid');
+      return project(item, fields('receiptVersion,kind,id,domain,expectedRevision,predecessorId,resolution,remoteRevision'), context);
+    }
     const projected = project(Object.fromEntries(Object.entries(item).filter(([key]) => key !== 'conflict')),
       { kind: true, operation: op(domain), resolution: true }, context);
     if (item.conflict) projected.conflict = projectConflict(item.conflict);
@@ -135,7 +142,7 @@ export const DICTIONARY = Object.freeze({
   quiz_attempts: 'QCM classiques : scores et totaux, sans choix individuels conservés ; legacy_score/total peuvent être partiels.',
   botanical: 'is_revision : révision pédagogique ; revision : compteur SQL. skipped_image est une image indisponible, pas un échec.',
   settings: 'Huit paramètres ITK, aucun document complet ; auto est un choix persistant, pas le rendu de la saison/heure.',
-  local: 'Copies à relier par identifiants métier/UUID d’opération : ne pas additionner remote et projections comme des tentatives distinctes. operations.state distingue pending/confirmed/conflict/blocked/error ; conflicts.resolved et archives gardent les versions divergentes.',
+  local: 'Copies à relier par identifiants métier et UUID d’opération. Ne pas additionner remote et projections comme des tentatives distinctes. operations.state distingue pending/confirmed/conflict/blocked/error. Les conflits et archives peuvent contenir les versions divergentes ou une preuve minimale de réglage.',
 });
 export function envelope(sourceScope, data, coverage, generatedAt) {
   const result = { exportFormatVersion: 1, generatedAt, application: 'Mon BPREA', sourceScope,

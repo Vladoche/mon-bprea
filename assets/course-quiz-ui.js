@@ -80,9 +80,9 @@ export function initCourseQuizPanel(root, service) {
   dialog.addEventListener('cancel', () => { preview = null; });
   confirm.addEventListener('click', async () => {
     if (!preview) return;
-    const current = activeSource(); confirm.disabled = true;
-    const result = await service.confirmImport(preview);
-    if (current !== activeSource()) return;
+    const requested = preview; confirm.disabled = true;
+    const result = await service.confirmImport(requested);
+    if (requested !== preview) return;
     if (result.error) { select('course-quiz-import-message').textContent = result.error; return; }
     close();
     announce(result.replayed ? 'Cet import était déjà enregistré. Aucun nouvel historique n’a été créé.' : 'Import enregistré sur cet appareil. Le suivi indique les opérations restant à synchroniser ; la source d’origine est conservée.');

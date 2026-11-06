@@ -1,5 +1,11 @@
 # Développement et stratégie de tests
 
+## Archives et pannes d’import — lot 6.5.5.F
+
+`settings-model` et `settings-store` couvrent les reçus minimisés, les conflits récents complets, le chaînage incertain et les anciennes archives relues au-delà de l’ancienne borne de vingt. `restore-conflict-roundtrip` vérifie les références exactes des conflits dans les deux formats et garde les reçus hors rejeu. `export-model` vérifie l’exclusion des copies brutes et empreintes de refus du JSON du compte.
+
+`import-provenance.test.js` exerce les deux services avec un `setItem` refusé, un vrai abort fake-indexeddb après le `put`, un rechargement, la mutation de la source pendant le scan, le rejeu exact, le retour réseau après A–B–A et le retrait gardé par `privacy`. Les tests botaniques couvrent la reconnaissance des refus historiques et minimisés, l’échec du calcul de l’empreinte et le refus qui reste un refus après une bascule de compte. Dans Chromium, `botanical-sync.spec.js` avorte une transaction après écriture du marqueur, recharge et confirme la même sauvegarde simultanément dans deux onglets. `notice-preview` et `privacy-artifact` vérifient respectivement le rendu local et le périmètre Pages. Les réponses HTTP synthétiques et la sécurité RLS sur stack éphémère sont vérifiées séparément. [Validation F](validations/VALIDATION-LOT6-5-5F.md).
+
 ## Accès au terminal et mémorisations locales — lot 6.5.5.E
 
 `d12-storage.spec.js` enregistre les méthodes et noms de clés, sans consigner les valeurs Auth. Les tests utilisent l’artefact Pages et des contextes isolés. Ils distinguent la lecture avant CSS de la seule apparence mémorisée, les anciennes clés accessibles sur action, le masquage d’anecdote en mémoire de page et les commandes ITK de rappel et de retrait. Le calendrier et le CSV sont comparés pour des paramètres identiques. Le profil ne lit les sauvegardes locales qu’après la recherche demandée et peut exporter ou retirer séparément les mémorisations et les originaux hérités.

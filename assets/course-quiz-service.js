@@ -291,9 +291,10 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
       const current = generation; const repo = repository;
       let saving = false;
       if (mode !== 'personal' || view.error || !preview?.available || preview.error || preview.scope !== scope || preview.generation !== current) return { error: 'L’import doit être prévisualisé et confirmé pour ce compte.' };
+      const source = { raw: preview.raw, provenance: preview.provenance };
       try {
-        checkImportSource(preview);
-        const replay = document.imports.some(manifest => manifest.raw === preview.raw && manifest.provenance === preview.provenance);
+        checkImportSource(source);
+        const replay = document.imports.some(manifest => manifest.raw === source.raw && manifest.provenance === source.provenance);
         if (!replay) {
           if (auth.getState().status !== 'authenticated') return { error: 'Une connexion est nécessaire pour vérifier l’historique du compte avant un premier import. La sauvegarde locale reste intacte.' };
           const requested = ++pullVersion;
@@ -301,18 +302,22 @@ export function createCourseQuizService({ auth, configuration, repositoryFactory
           // A run already in progress may have captured an older request.
           if (active(current) && pulledVersion < requested && !['offline', 'session', 'storage-error', 'error'].includes(syncState)) await synchronize();
           if (!active(current)) return { error: 'Le compte a changé. Prévisualise à nouveau la sauvegarde pour ce compte.' };
-          if (pulledVersion < requested) return { error: 'L’historique distant n’a pas pu être vérifié. Aucun import nouveau n’est créé ; réessaie après le retour de la connexion.' };
+          if (pulledVersion < requested || syncState === 'session') return { error: 'L’historique distant n’a pas pu être vérifié. Aucun import nouveau n’est créé ; réessaie après le retour de la connexion.' };
         }
+        const canCommit = () => active(current) && syncState !== 'session' && (replay || auth.getState().status === 'authenticated');
+        if (!canCommit()) return { error: 'Le compte ou la session a changé. Prévisualise à nouveau la sauvegarde.' };
         writing(); saving = true;
         const commit = await repo.change(saved => {
           // Recheck inside the transaction, after the account and erasure guards.
-          checkImportSource(preview);
-          const provenance = preview.provenance ?? randomUUID();
-          const result = applyLegacyImport(saved, { raw: preview.raw, provenance, catalogue }, randomUUID);
-          // A manifest must never commit without its durable source identifier.
-          if (preview.provenance === null) storage.setItem(IMPORT_PROVENANCE_KEY, provenance);
+          checkImportSource(source);
+          const provenance = source.provenance ?? randomUUID();
+          const result = applyLegacyImport(saved, { raw: source.raw, provenance, catalogue, replayOnly: replay }, randomUUID);
+          checkImportSource(source);
+          // An aborted IDB commit can leave this source marker alone. Only the
+          // committed manifest proves that an import was accepted.
+          if (source.provenance === null) storage.setItem(IMPORT_PROVENANCE_KEY, provenance);
           return { result, saved: clone(saved) };
-        }, () => active(current));
+        }, canCommit);
         return committed(commit, current);
       } catch (error) {
         if (active(current)) { syncError = error.message; syncState = error.code === 'local_storage' ? 'storage-error' : document?.conflicts.some(item => !item.resolved) ? 'conflict' : pending() ? 'pending' : 'local'; notify(); }

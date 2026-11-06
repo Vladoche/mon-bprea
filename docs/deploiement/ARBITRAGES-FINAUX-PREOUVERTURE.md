@@ -1,10 +1,10 @@
 # Décisions et preuves encore nécessaires avant ouverture privée
 
-**5 novembre 2026 · lot 6.5.5.E.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu D](../rgpd/RECU-ARBITRAGES-2026-11-05.md). La capacité reste de sept comptes, exploitant et six autres adultes. La [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md) tient les statuts et la preuve de chaque clôture.
+**6 novembre 2026 · lot 6.5.5.F.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu D](../rgpd/RECU-ARBITRAGES-2026-11-05.md). La capacité reste de sept comptes, exploitant et six autres adultes. La [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md) tient les statuts et la preuve de chaque clôture.
 
 | Décision ou preuve restante | Action |
 | --- | --- |
-| D12 et information préalable | Approuver la qualification des usages recettés et arbitrer les archives résolues et copies brutes résiduelles. Approuver le circuit final de remise et sa preuve minimale avant collecte. [D12](../rgpd/ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) |
+| D12 et information préalable | Approuver les qualifications par usage et la règle proposée pour les résidus. Conserver les preuves nécessaires et les archives historiques en l’état. Décider d’un retrait ciblé après vérification de l’attribution et du besoin. Approuver séparément le circuit final de remise et sa preuve minimale avant collecte. [D12](../rgpd/ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) |
 | Conditions des prestataires et transferts | Confirmer la cible, son titulaire, son plan/région et les clauses applicables. Valider le canal réel de remise individuelle et ses garanties. Les durées exactes de tous les logs et le datacenter précis du webmail sont des limites documentées. [Preuves fournisseurs](../rgpd/FLUX-ET-PRESTATAIRES.md) |
 | Notice et publication | Examiner les évolutions substantielles après D12 et fournisseurs, puis autoriser seulement la publication statique de la version retenue et son contrôle public. [Spécification](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md) |
 | Limites de reprise et clôture | Accepter la reprise applicative partielle. Vérifier copie actuelle, fraîcheur, restauration isolée et journal d’effacements, chaîne opérateur de clôture et suivi des copies. [Procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md) |

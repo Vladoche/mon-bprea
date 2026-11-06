@@ -1,6 +1,6 @@
-# Plan de préouverture privée — lot 6.5.5.E
+# Plan de préouverture privée — lot 6.5.5.F
 
-**5 novembre 2026. Sept portes résolues sur quinze. Ouverture privée suspendue.** Cette matrice est le suivi courant unique. [Validation E](../validations/VALIDATION-LOT6-5-5E.md), [reçu des arbitrages](../rgpd/RECU-ARBITRAGES-2026-11-05.md), [procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md), [actions restantes](ARBITRAGES-FINAUX-PREOUVERTURE.md).
+**6 novembre 2026. Sept portes résolues sur quinze. Ouverture privée suspendue.** Cette matrice est le suivi courant unique. [Validation F](../validations/VALIDATION-LOT6-5-5F.md), [reçu des arbitrages](../rgpd/RECU-ARBITRAGES-2026-11-05.md), [procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md), [actions restantes](ARBITRAGES-FINAUX-PREOUVERTURE.md).
 
 ## Cadre acté
 
@@ -28,7 +28,7 @@ Vladimir Fouillade applique le RGPD comme responsable du traitement. Son nom et 
 | P0-12 — D07/D08/D13, reprise/incidents | Politique D07 approuvée. Vérificateur archive/manifeste/RPO et restauration PostgreSQL synthétique acquis. [Runbook](EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo) | Première copie actuelle autorisée, reprise isolée, correspondance Auth, réconciliation des effacements et routine réelle. Accepter les limites de reprise | IMPLÉMENTÉ LOCALEMENT — RECETTE REQUISE |
 | P0-13 — D08, clôture et droits | Préflight UUID/dépendances et clôture native recettée en [CI #35](https://github.com/Vladoche/mon-bprea/actions/runs/42034594308/job/127269323397). P0-04 clos et retrait local couvert par les tests | Préparer le parcours opérateur réel et vérifier identité, habilitation, cible et suivi des copies. Réglages en P0-14, clôture réelle sur demande autorisée | IMPLÉMENTÉ LOCALEMENT — RECETTE REQUISE |
 | P0-14 — D14, activation | Sept comptes confirmés en C. Préflight administratif et résultats C2 acquis dans leurs limites | Choisir la cible, traiter T11/D et les sous-cas C2 restants sous mandats séparés, préparer l’exécuteur de confiance, la reprise et le retour arrière. Décision distincte d’activation | BLOQUÉ — AUTORISATION HÉBERGÉE |
-| P0-15 — D10/D12, avant collecte | Circuit individuel et volontaire, [messages préparés](EXPLOITATION-PRIVEE-SIX-ADULTES.md#messages-préparés--à-utiliser-seulement-après-les-prérequis), contact public et notice en aperçu. [Comportements navigateur recettés](../rgpd/ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) | Approuver D12 et le circuit final, remettre la notice publiée avant collecte et consigner sa version et sa date de remise en privé. Autorisations d’ouverture et de remise requises | IMPLÉMENTÉ LOCALEMENT — RECETTE DE REMISE REQUISE |
+| P0-15 — D10/D12, avant collecte | D12 prête à approbation. Circuit individuel et volontaire, contact public et notice en aperçu. [Messages préparés](EXPLOITATION-PRIVEE-SIX-ADULTES.md#messages-préparés--à-utiliser-seulement-après-les-prérequis), [qualification et règle résiduelle](../rgpd/ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) | Approuver D12 et le circuit final, remettre la notice publiée avant collecte et consigner sa version et sa date de remise en privé. Autorisations d’ouverture et de remise requises | IMPLÉMENTÉ LOCALEMENT — RECETTE DE REMISE REQUISE |
 
 **Bilan.** 7 résolus, 1 notice en vérification finale, 2 preuves fournisseur, 3 recettes opérationnelles et 2 portes sous autorisation hébergée. [Suivi D01–D14](../rgpd/DECISIONS-A-VALIDER.md).
 
@@ -44,6 +44,6 @@ La copie partielle du **29 octobre**, conservée par décision explicite du 5 no
 
 ## Chemin indispensable avant ouverture
 
-1. Approuver la qualification D12 et le traitement des résidus, puis compléter les preuves fournisseurs déterminantes. Soumettre les écarts substantiels de la notice et obtenir une autorisation séparée pour sa publication et sa vérification publique.
+1. Approuver les qualifications D12 et le traitement événementiel des résidus proposé dans le lot F. Compléter les preuves fournisseurs déterminantes, puis examiner les écarts de notice et obtenir une autorisation séparée pour la publication et sa vérification publique.
 2. Obtenir les seules preuves administratives et recettes manquantes sur la cible choisie, sous mandats limités. Éprouver la sauvegarde actuelle et la reprise isolée, préparer la chaîne de clôture et d’invitation, et traiter les réserves de campagne séparément.
 3. Valider les portes restantes. Vérifier l’information effective avant collecte et décider séparément de l’activation et des invitations individuelles.

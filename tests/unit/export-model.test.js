@@ -47,8 +47,12 @@ describe('copie personnelle : projection de confidentialité', () => {
     const doc = emptySettingsDocument(scope); queueSettings(doc, 'appearance', { version: 1, season: 'auto', brightness: 'auto' }, () => uuid(7));
     doc.archives.push({ kind: 'confirmed', operation: doc.operations[0] });
     expect(projectLocal('settings', doc, scope).data.archives[0].operation.payload.p_preferences.season).toBe('auto');
-    const plants = botanical(scope); plants.importArchives.push({ raw: 'NO_EXPORT' });
-    expect(projectLocal('botanical', plants, scope).omitted).toBe(1);
+    const plants = botanical(scope);
+    plants.importArchives.push({ id: uuid(11), provenance: uuid(12), raw: 'NO_EXPORT', message: 'NO_EXPORT' },
+      { id: uuid(13), provenance: uuid(12), fingerprintVersion: 1, sourceDigest: 'a'.repeat(64), reason: 'import_ambiguous', cause: 'existing_identity' });
+    const result = projectLocal('botanical', plants, scope);
+    expect(result.data.excludedArchives).toEqual([{ id: uuid(11), provenance: uuid(12) }, { id: uuid(13), provenance: uuid(12) }]);
+    expect(result.omitted).toBe(6);
   });
   it('refuse portée étrangère, formats futurs et lignes étrangères dans le cache', () => {
     const doc = courses(scope);

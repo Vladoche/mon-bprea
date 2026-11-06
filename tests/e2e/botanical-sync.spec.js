@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-import { createBotanicalAPI, accounts, answerRow } from './botanical-api.js';
+import { createBotanicalAPI, accounts, answerRow, sessionRow } from './botanical-api.js';
 import { botanicalSession, botanicalAnswer } from '../fixtures/personal-data.js';
 import {
   botanicalPath, botanicalBank, botanicalStorageKey, botanicalSynced, refreshBotanical, startBotanical, botanicalMetric,
@@ -127,6 +127,52 @@ test('botanique : import explicite, annulation, provenance et orpheline sans mut
   expect(api.answers.size).toBe(1); expect((await botanicalRecords(page))[0].imports).toHaveLength(1);
   expect(await provenance()).toBe(document.imports[0].provenance);
   expect(await page.evaluate(key => localStorage.getItem(key), botanicalStorageKey)).toBe(raw);
+});
+
+test('botanique : échec du commit du refus, rechargement et reconnaissance dans deux onglets', async ({ page, context }) => {
+  const session = botanicalSession('refus-f');
+  const raw = JSON.stringify({ schemaVersion: 1, sessions: [session], answers: [], unknown: 'copie-synthétique-tierce' });
+  const api = createBotanicalAPI();
+  api.sessions.set(`${accounts.A.id}:${session.id}`, sessionRow(session, accounts.A.id, '10000000-0000-4000-8000-000000000039'));
+  await api.install(context, 'A', raw); await page.goto(botanicalPath); await botanicalSynced(page);
+  const confirm = tab => tab.getByRole('button', { name: 'Confirmer l’import', exact: true }).click();
+  const message = tab => tab.locator('#botanical-import-message');
+  const provenance = () => page.evaluate(() => localStorage.getItem('monbprea.botanical.provenance.v1'));
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (document, key) {
+      const request = put.call(this, document, key);
+      if (this.name === 'accounts' && document.importArchives?.length) {
+        IDBObjectStore.prototype.put = put;
+        this.transaction.abort();
+      }
+      return request;
+    };
+  });
+  await importButton(page).click(); await confirm(page);
+  await expect(message(page)).toContainText('stockage personnel est inaccessible ou plein');
+  const orphan = await provenance(); expect(orphan).toMatch(/^[0-9a-f-]{36}$/);
+  expect((await botanicalRecords(page))[0]).toMatchObject({ imports: [], operations: [], importArchives: [] });
+
+  const second = await context.newPage(); await second.clock.install({ time: now });
+  try {
+    await page.reload(); await second.goto(botanicalPath); await botanicalSynced(page); await botanicalSynced(second);
+    await importButton(page).click(); await importButton(second).click();
+    await Promise.all([confirm(page), confirm(second)]);
+    for (const tab of [page, second]) await expect(message(tab)).toContainText('sans manifeste établissant sa provenance commune');
+    const saved = (await botanicalRecords(page))[0];
+    expect(saved.importArchives).toHaveLength(1);
+    expect(saved.importArchives[0]).toMatchObject({ provenance: orphan, fingerprintVersion: 1, cause: 'existing_identity' });
+    expect(saved.importArchives[0]).not.toHaveProperty('raw');
+    expect(saved).toMatchObject({ imports: [], operations: [] }); expect(api.sent).toEqual([]);
+    expect(await page.evaluate(key => localStorage.getItem(key), botanicalStorageKey)).toBe(raw);
+    await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    const archive = page.locator('.botanical-import-archive');
+    await archive.locator('summary').focus(); await page.keyboard.press('Enter');
+    await expect(archive).toHaveAttribute('open', '');
+    await expect(archive.getByText('Ce refus reste enregistré dans le cache local du compte.')).toBeVisible();
+    await captureMatrix(page, 'refus-minimise');
+  } finally { await second.close(); }
 });
 
 test('botanique : divergence de réponse archivée, version du compte et résolution explicite sans double comptage', async ({ page }) => {

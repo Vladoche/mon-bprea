@@ -9,6 +9,13 @@ export const validId = value => typeof value === 'string' && [...value].length >
   value.replace(/^[\t\n\v\f\r \u00a0]+|[\t\n\v\f\r \u00a0]+$/g, '').length > 0 &&
   !/\u0000|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(value);
 export const validUUID = value => typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value) && value !== '00000000-0000-0000-0000-000000000000';
+export const validImportSourceDigest = value => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
+const importRefusalMessages = Object.freeze({
+  different_manifest: 'Cette copie ou sa provenance diffère de l’historique déjà importé. Une intervention est nécessaire ; aucune donnée n’est fusionnée ou supprimée.',
+  existing_identity: 'Un identifiant de cette sauvegarde existe déjà dans le compte sans manifeste établissant sa provenance commune. La source reste intacte et aucune fusion n’est effectuée.',
+  previous_refusal: 'Cette sauvegarde a déjà été refusée dans ce compte. Vérifie son origine avant tout nouvel import. La source reste intacte.',
+});
+export const importRefusalMessage = archive => typeof archive.raw === 'string' ? archive.message : importRefusalMessages[archive.cause];
 export class BotanicalSyncError extends Error {
   constructor(code = 'protocol', message = 'La synchronisation botanique est incohérente. Les données sont conservées.') { super(message); this.code = code; }
 }
@@ -386,7 +393,9 @@ export function validatePersonalDocument(document, scope) {
   const archiveIds = new Set();
   for (const archive of document.importArchives) {
     local(record(archive) && validUUID(archive.id) && !ids.has(archive.id) && !archiveIds.has(archive.id) && validUUID(archive.provenance) &&
-      typeof archive.raw === 'string' && typeof archive.reason === 'string' && typeof archive.message === 'string');
+      (typeof archive.raw === 'string' ? typeof archive.reason === 'string' && typeof archive.message === 'string'
+        : archive.fingerprintVersion === 1 && validImportSourceDigest(archive.sourceDigest) && archive.reason === 'import_ambiguous' &&
+          typeof archive.cause === 'string' && Object.hasOwn(importRefusalMessages, archive.cause)));
     archiveIds.add(archive.id);
   }
   for (const [id, session] of Object.entries(document.sessions)) local(id === session.id && normalizeSession(session));

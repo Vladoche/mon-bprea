@@ -19,8 +19,10 @@ for (const width of [320, 390, 1280]) {
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notice de confidentialité de Mon BPREA');
       await expect(page.getByRole('note')).toContainText('Les modifications et la publication restent à approuver');
-      await expect(page.locator('main')).toContainText('Version 1.1 en préparation · 5 novembre 2026');
+      await expect(page.locator('main')).toContainText('Version 1.1 en préparation · 6 novembre 2026');
       await expect(page.locator('main')).toContainText('Vladimir Fouillade');
+      await expect(page.locator('main')).toContainText('peut rester dans le navigateur après un échec');
+      await expect(page.locator('main')).toContainText('Les copies brutes et les empreintes des refus sont exclues');
       await expect(page.locator('script, iframe, form')).toHaveCount(0);
       await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex,nofollow');
       await expect(page.getByRole('link', { name: 'vladimir.fouillade@hotmail.fr' }))

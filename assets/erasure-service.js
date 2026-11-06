@@ -22,6 +22,7 @@ function settingsSubset(document, selected) {
   const next = structuredClone(document);
   for (const domain of selected) { next.values[domain] = null; next.remote[domain] = null; }
   for (const field of ['operations', 'conflicts', 'imports', 'archives']) next[field] = next[field].filter(item => {
+    if (field === 'archives' && (!item || Object.hasOwn(item, 'receiptVersion') && item.receiptVersion !== 1)) throw error('unknown');
     const domain = item.domain ?? item.operation?.domain ?? item.conflict?.domain;
     if (!['itk', 'appearance'].includes(domain)) throw error('unknown');
     return !selected.includes(domain);

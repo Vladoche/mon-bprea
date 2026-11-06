@@ -50,10 +50,11 @@ export function previewLegacyImport(raw, catalogue = []) {
 /** Called INSIDE the same IndexedDB transaction as the manifest and outbox.
  * Identity = provenance + exact frozen snapshot + lesson + array position.
  * Never infer identity from score/date, nor merge unrelated copies. */
-export function applyLegacyImport(document, { raw, provenance, catalogue = [] }, randomUUID = () => globalThis.crypto.randomUUID()) {
+export function applyLegacyImport(document, { raw, provenance, catalogue = [], replayOnly = false }, randomUUID = () => globalThis.crypto.randomUUID()) {
   if (!validUUID(provenance)) throw new CourseQuizSyncError('import_ambiguous', 'La provenance de cette sauvegarde est inconnue. Aucun import n’a été effectué.');
   const previous = document.imports.find(item => item.provenance === provenance && item.raw === raw);
   if (previous) return { manifestId: previous.id, replayed: true, summary: clone(previous.summary), warnings: clone(previous.warnings) };
+  if (replayOnly) throw new CourseQuizSyncError('import_unverified', 'Le manifeste d’origine n’est plus disponible. Prévisualise la sauvegarde et vérifie à nouveau l’historique du compte.');
   if (document.imports.length) throw new CourseQuizSyncError('import_ambiguous',
     'Cette sauvegarde diffère d’un historique déjà importé ou sa provenance est différente. Une résolution explicite est nécessaire pour éviter les doublons. Aucune donnée n’a été supprimée ou fusionnée.');
   const preview = previewLegacyImport(raw, catalogue);
