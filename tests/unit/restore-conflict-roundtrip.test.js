@@ -15,17 +15,23 @@ function courseConflict(resolved) {
   return archive(rows, { courses: document });
 }
 
-function archivedSettingsConflict() {
+function settingsConflict(historical) {
   const rows = restoreRows(), document = emptySettingsDocument(scope);
   queueSettings(document, 'itk', rows.itk_settings[0].parameters, () => uuid(921));
+  if (historical) delete document.operations[0].archiveVersion;
   const operation = prepareSettingsOperation(document);
   const row = { ...rows.itk_settings[0], parameters: { ...rows.itk_settings[0].parameters, area: '200' } };
   acknowledgeSettings(document, operation.id, { status: 'conflict', row }, A);
   resolveSettingsConflict(document, operation.id, 'remote');
   reconcileSettings(document, { itk: row, appearance: null }, A, stamp);
+  if (!historical) {
+    queueSettings(document, 'appearance', { version: 1, season: 'summer', brightness: 'dark' }, () => uuid(924));
+    queueSettings(document, 'appearance', { version: 1, season: 'winter', brightness: 'dark' }, () => uuid(925));
+  }
   rows.itk_settings = [row];
   return archive(rows, { settings: document });
 }
+const archivedSettingsConflict = () => settingsConflict(true);
 
 for (const resolved of [false, true]) it(`relit un vrai export de conflit cours ${resolved ? 'résolu' : 'en attente'} sans rejouer son cliché`, () => {
   const file = courseConflict(resolved), source = file.data.personalLocal.courses;
@@ -44,6 +50,18 @@ it('relit le conflit ITK résolu après rangement naturel de son opération dans
   expect(parse(file)).toEqual(file);
   const plan = planRestore(parse(file), emptyCurrent(), { scope, userId: A, at: stamp });
   expect(plan.domains.settings.actions.some(action => action.type === 'queue' && action.id === uuid(921))).toBe(false);
+});
+
+it('relit le reçu de réglage et le conflit résolu encore affiché sans les remettre en file', () => {
+  const file = settingsConflict(false), source = file.data.personalLocal.settings;
+  expect(source.operations.find(item => item.id === uuid(921))?.state).toBe('conflict');
+  expect(source.conflicts[0]).toMatchObject({ resolved: true, operation: { id: uuid(921) } });
+  expect(source.archives[0]).toEqual({ receiptVersion: 1, kind: 'superseded-unsent', id: uuid(924), domain: 'appearance', expectedRevision: 0 });
+  expect(parse(file)).toEqual(file);
+  const plan = planRestore(parse(file), emptyCurrent(), { scope, userId: A, at: stamp });
+  expect(plan.domains.settings.actions.some(action => [uuid(921), uuid(924)].includes(action.id))).toBe(false);
+  source.archives[0].operation = source.operations[0];
+  expect(() => parse(file)).toThrow();
 });
 
 for (const field of ['payload', 'rpcPayload']) it(`refuse un cliché de conflit dont le ${field} diffère de l'opération conservée`, () => {

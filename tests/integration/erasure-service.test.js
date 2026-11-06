@@ -63,11 +63,17 @@ it('efface A dans les quatre caches, conserve B, autre environnement/projet et t
   expect(f.storage.getItem('bprea-demo-drill-v1')).toBe('visiteur'); expect(f.storage.getItem('bprea-auth-sdk')).toBe('session'); f.service.stop();
 });
 it('sélection ITK seule préserve exactement apparence, intentions et archives de ce domaine ; reprise explicite', async () => {
-  const f = fixture(), repo = await fill(f, 'settings'), before = await repo.read();
+  const f = fixture(), repo = await fill(f, 'settings');
+  await repo.change(saved => {
+    queueSettings(saved, 'itk', { ...parameters, area: '12' });
+    queueSettings(saved, 'appearance', { version: 1, season: 'spring', brightness: 'dark' });
+  });
+  const before = await repo.read(); expect(before.archives.map(item => item.domain)).toEqual(['itk', 'appearance']);
   await f.service.prepare({ personal: ['itk'] }); await f.service.execute({ confirmed: true });
   const after = await readScopedRecord(CACHES.settings, scope(A), f);
   expect(after.values.itk).toBeNull(); expect(after.remote.itk).toBeNull(); expect(after.values.appearance).toEqual(before.values.appearance);
   expect(after.operations).toEqual(before.operations.filter(item => item.domain === 'appearance'));
+  expect(after.archives).toEqual(before.archives.filter(item => item.domain === 'appearance'));
   await expect(repo.read()).rejects.toMatchObject({ code: 'local_erased' });
   expect(await f.service.resume()).toBe(true);
   await expect(repo.read()).rejects.toMatchObject({ code: 'local_erased' });

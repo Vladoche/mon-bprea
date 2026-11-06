@@ -4,7 +4,7 @@ import { personalScope, validatePersonalDocument as validateDrill } from './dril
 import { remoteDocument } from './drill-sync-model.js';
 import { validateRemote as validateCourses, validatePersonalDocument as validateCourseCache, validUUID } from './course-quiz-model.js';
 import { validateRemote as validateBotanical, validatePersonalDocument as validateBotanicalCache, normalizeTimestamp, reconcileHistory as reconcileBotanical, emptyPersonalDocument as emptyBotanical } from './botanical-sync-model.js';
-import { validateRow, validateSettingsDocument } from './settings-model.js';
+import { validateRow, validateSettingsDocument, validSettingsReceipt } from './settings-model.js';
 
 export class RestoreError extends Error {
   constructor(code = 'invalid') { super(code); this.code = code; }
@@ -100,7 +100,10 @@ function localDocument(domain, source, scope) {
       check(Array.isArray(values) && new Set(values).size === values.length, 'duplicate');
     }
   }
-  for (const archive of source.archives || []) check(['confirmed', 'resolved-operation', 'resolved-conflict', 'resolved-dependent', 'superseded-unsent'].includes(archive.kind), 'archive');
+  for (const archive of source.archives || []) {
+    if (Object.hasOwn(archive, 'receiptVersion')) check(domain === 'settings' && validSettingsReceipt(archive), 'archive');
+    else check(['confirmed', 'resolved-operation', 'resolved-conflict', 'resolved-dependent', 'superseded-unsent'].includes(archive.kind), 'archive');
+  }
   for (const conflict of source.conflicts) {
     check(typeof conflict.id === 'string' && typeof conflict.resolved === 'boolean', 'archive');
     if (conflict.operation) {

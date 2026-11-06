@@ -32,7 +32,7 @@ export function initBotanicalSyncPanel(root, service, { signal } = {}) {
     refresh.hidden = visitor; refresh.disabled = refreshing;
     startImport.hidden = !usable; select('botanical-cache-info').hidden = !usable;
     const nextMarkup = (state.sync.conflicts || []).map(conflict => `<details class="botanical-conflict" data-conflict="${clean(conflict.id)}"><summary>${conflict.resolved ? 'Conflit conservé en archive' : 'Résultat botanique en conflit'}</summary><p>Deux versions de cette session ou de cette réponse sont incompatibles. La version du compte est conservée dans l’historique ; l’intention locale reste archivée sans créer une nouvelle tentative.</p>${conflict.resolved ? '' : `<button class="btn btn-outline" type="button" data-botanical-resolve="${clean(conflict.id)}">Garder la version du compte</button>`}</details>`).join('') + (state.sync.operations?.length ? '<p>Des enregistrements refusés restent conservés sur cet appareil. Examine les conflits ou contacte la personne qui gère le site.</p>' : '') + (state.sync.imports?.length ? '<p>Import volontaire conservé. Les envois restants figurent dans le suivi ci-dessus.</p>' : '');
-    const archiveMarkup = (state.sync.importArchives || []).map(item => `<details class="botanical-import-archive"><summary>Sauvegarde locale non transférée</summary><p>${clean(item.message)}</p><p>La copie d’origine et son instantané restent conservés sur cet appareil.</p></details>`).join('');
+    const archiveMarkup = (state.sync.importArchives || []).map(item => `<details class="botanical-import-archive"><summary>Sauvegarde locale non transférée</summary><p>${clean(item.message)}</p><p>Ce refus reste enregistré dans le cache local du compte.</p></details>`).join('');
     const fullMarkup = nextMarkup + archiveMarkup;
     if (markup !== fullMarkup) {
       const archives = select('botanical-sync-archives');
@@ -69,13 +69,13 @@ export function initBotanicalSyncPanel(root, service, { signal } = {}) {
   dialog.addEventListener('cancel', () => { preview = null; }, { signal });
   confirm.addEventListener('click', async () => {
     if (!preview) return;
-    const current = currentSource(); confirm.disabled = true;
+    const requested = preview; confirm.disabled = true;
     try {
-      const result = await service.confirmImport(preview);
-      if (current !== currentSource()) return;
+      const result = await service.confirmImport(requested);
+      if (requested !== preview) return;
       if (result.error) { select('botanical-import-message').textContent = result.error; confirm.disabled = false; return; }
       close(); announce(result.replayed ? 'Cet import est déjà conservé, sans nouvelle tentative.' : 'Import enregistré sur cet appareil. La sauvegarde visiteur reste intacte ; le suivi indique les envois restants.');
-    } catch { if (current === currentSource()) { select('botanical-import-message').textContent = 'L’import n’a pas pu être enregistré. La source reste intacte.'; confirm.disabled = false; } }
+    } catch { if (requested === preview) { select('botanical-import-message').textContent = 'L’import n’a pas pu être enregistré. La source reste intacte.'; confirm.disabled = false; } }
   }, { signal });
   root.addEventListener('click', async event => {
     const button = event.target.closest('[data-botanical-resolve]');

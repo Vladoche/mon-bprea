@@ -21,11 +21,13 @@ describe('contrat singletons ITK/apparence', () => {
     expect(validateAppearance({ ...appearance, dataTheme: 'dark' })).toBe(false);
     expect(validateAppearance({ ...appearance, season: 'night' })).toBe(false);
   });
-  it('compacte seulement les intentions jamais envoyées et garde un diagnostic borné', () => {
+  it('garde une preuve minimale de l’intention remplacée sans réutiliser son UUID', () => {
     const doc = emptySettingsDocument(scope);
-    for (let index = 0; index < 40; index++) queueSettings(doc, 'appearance', { ...appearance, season: index % 2 ? 'winter' : 'summer' }, uuid);
+    const first = queueSettings(doc, 'appearance', { ...appearance, season: 'winter' }, uuid);
+    queueSettings(doc, 'appearance', appearance, uuid);
     expect(doc.operations).toHaveLength(1); expect(doc.operations[0].expectedRevision).toBe(0);
-    expect(doc.archives).toHaveLength(20); expect(doc.archivedCount).toBe(19);
+    expect(doc.archives).toEqual([{ receiptVersion: 1, kind: 'superseded-unsent', id: first.operationId, domain: 'appearance', expectedRevision: 0 }]);
+    expect(() => queueSettings(doc, 'appearance', appearance, () => first.operationId)).toThrow(/distinct/);
     expect(validateSettingsDocument(doc, scope)).toBe(doc);
   });
   it('chaîne après livraison incertaine, retry strictement identique puis successeur', () => {
@@ -45,6 +47,8 @@ describe('contrat singletons ITK/apparence', () => {
     expect(doc.values.appearance.season).toBe('spring'); expect(doc.conflicts[0].local.season).toBe('auto'); expect(doc.operations[1].state).toBe('blocked');
     const result = resolveSettingsConflict(doc, first.id, 'local', uuid);
     expect(result.operationId).not.toBe(first.id); expect(doc.operations.at(-1).expectedRevision).toBe(2); expect(doc.operations.at(-1).payload.p_preferences.season).toBe('auto');
+    expect(doc.archives.find(item => item.kind === 'resolved-dependent')).toMatchObject({ receiptVersion: 1, resolution: 'local', predecessorId: first.id });
+    expect(doc.archives.some(item => item.kind === 'resolved-operation')).toBe(false);
   });
   it('un conflit ITK ne bloque pas une préférence et garder serveur ne renvoie rien', () => {
     const doc = emptySettingsDocument(scope); queueSettings(doc, 'itk', itk, uuid); const op = prepareSettingsOperation(doc, 0);
@@ -64,9 +68,26 @@ describe('contrat singletons ITK/apparence', () => {
       const saved = structuredClone(doc); corrupt(saved); expect(() => validateSettingsDocument(saved, scope)).toThrow();
     }
   });
-  it('borne les reçus confirmés après une longue série sans toucher la dernière valeur', () => {
+  it('range les anciens confirmés sans conserver leur payload ni toucher la dernière valeur', () => {
     const doc = emptySettingsDocument(scope);
     for (let index = 0; index < 40; index++) { queueSettings(doc, 'itk', { ...itk, area: String(index + 1) }, uuid); const op = prepareSettingsOperation(doc, 0); acknowledgeSettings(doc, op.id, { status: index ? 'updated' : 'inserted', row: row(op) }, user); }
-    expect(doc.operations.length).toBeLessThanOrEqual(8); expect(doc.archives.length).toBeLessThanOrEqual(20); expect(doc.values.itk.area).toBe('40'); validateSettingsDocument(doc, scope);
+    expect(doc.operations).toHaveLength(0); expect(doc.archives).toHaveLength(40);
+    expect(doc.archives.every(item => item.kind === 'confirmed' && item.receiptVersion === 1 && !Object.hasOwn(item, 'operation'))).toBe(true);
+    expect(doc.values.itk.area).toBe('40'); expect(prepareSettingsOperation(doc)).toBeNull(); validateSettingsDocument(doc, scope);
+  });
+  it('garde les versions des huit conflits affichés et ne range que la décision du conflit suivant', () => {
+    const doc = emptySettingsDocument(scope);
+    const conflicts = Array.from({ length: 9 }, () => {
+      const { operationId } = queueSettings(doc, 'itk', itk, uuid);
+      const op = prepareSettingsOperation(doc, 0);
+      acknowledgeSettings(doc, operationId, { status: 'conflict', row: { ...row(op), operation_id: uuid(), parameters: { ...itk, area: '50' } } }, user);
+      resolveSettingsConflict(doc, operationId, 'remote');
+      return operationId;
+    });
+    expect(doc.conflicts.map(item => item.id)).toEqual(conflicts.slice(1));
+    expect(doc.conflicts[0]).toMatchObject({ local: itk, remote: { parameters: { area: '50' } }, resolution: 'remote' });
+    expect(doc.operations.map(op => op.id)).toEqual(conflicts.slice(1));
+    expect(doc.archives).toEqual([{ receiptVersion: 1, kind: 'resolved-conflict', id: conflicts[0], domain: 'itk', expectedRevision: 0, remoteRevision: 1, resolution: 'remote' }]);
+    expect(prepareSettingsOperation(doc)).toBeNull(); validateSettingsDocument(doc, scope);
   });
 });

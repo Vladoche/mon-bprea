@@ -1,9 +1,9 @@
 import { getAuthService } from './auth-service.js';
 import { getSupabaseClient } from './supabase-client.js';
 import { createBotanicalRepository, personalScope, clone, LocalBotanicalError } from './botanical-personal-store.js';
-import { recordPersonalSession, recordPersonalAnswer, completePersonalSession, prepareNextOperation, acknowledgeOperation, reconcileHistory, projectHistory, resolveConflict, rejectOperation, validUUID, BotanicalSyncError } from './botanical-sync-model.js';
+import { recordPersonalSession, recordPersonalAnswer, completePersonalSession, prepareNextOperation, acknowledgeOperation, reconcileHistory, projectHistory, resolveConflict, rejectOperation, validUUID, BotanicalSyncError, importRefusalMessage } from './botanical-sync-model.js';
 import { createBotanicalStore } from './botanical-store.js';
-import { previewLegacyImport, applyLegacyImport } from './botanical-import.js';
+import { previewLegacyImport, applyLegacyImport, fingerprintLegacySource } from './botanical-import.js';
 import { createBotanicalTransport, classifyBotanicalError } from './botanical-sync-transport.js';
 import { delayFor } from './sync-runtime.js';
 import { subscribePrivacy } from './privacy-events.js';
@@ -41,7 +41,7 @@ export function createBotanicalService({ auth, configuration, repositoryFactory 
     const visible = !view.error && mode === 'personal';
     return { mode, scope, view: clone(view), sync: { state: localWrites && syncState !== 'session' ? 'saving' : syncState, error: syncError, pending: visible ? pending() : 0,
       conflicts: visible ? clone(document?.conflicts || []) : [], operations: visible ? clone(document?.operations.filter(op => ['error', 'blocked'].includes(op.state)) || []) : [],
-      importArchives: (visible ? document?.importArchives || [] : []).map(item => ({ id: item.id, reason: item.reason, message: item.message })),
+      importArchives: (visible ? document?.importArchives || [] : []).map(item => ({ id: item.id, reason: item.reason, message: importRefusalMessage(item) })),
       imports: (visible ? document?.imports || [] : []).map(manifest => ({ id: manifest.id, summary: clone(manifest.summary), warnings: clone(manifest.warnings || []) })) } };
   }
   function notify() { const state = snapshot(); subscribers.forEach(fn => fn(state)); }
@@ -240,7 +240,8 @@ export function createBotanicalService({ auth, configuration, repositoryFactory 
     }
     return mode === 'personal' && scope === commit.saved.scope
       ? { ...commit.result, error: commit.result?.error || null, savedLocally: !commit.result?.error }
-      : { error: null, savedLocally: true, accountChanged: true };
+      : { error: commit.result?.error ? 'Le compte a changé. Aucun import n’a été accepté.' : null,
+        savedLocally: !commit.result?.error, accountChanged: true };
   }
   async function change(action, value, completedAt) {
     const intendedGeneration = generation; const intendedScope = scope;
@@ -301,9 +302,10 @@ export function createBotanicalService({ auth, configuration, repositoryFactory 
       const current = generation; const repo = repository;
       let saving = false;
       if (mode !== 'personal' || view.error || !preview?.available || preview.error || preview.scope !== scope || preview.generation !== current) return { error: 'L’import doit être prévisualisé et confirmé pour ce compte.' };
+      const source = { raw: preview.raw, provenance: preview.provenance };
       try {
-        checkImportSource(preview);
-        const replay = document.imports.some(manifest => manifest.raw === preview.raw && manifest.provenance === preview.provenance);
+        checkImportSource(source);
+        const replay = document.imports.some(manifest => manifest.raw === source.raw && manifest.provenance === source.provenance);
         if (!replay) {
           if (auth.getState().status !== 'authenticated') return { error: 'Une connexion est nécessaire pour vérifier l’historique du compte avant un premier import. La sauvegarde locale reste intacte.' };
           const requested = ++pullVersion;
@@ -311,18 +313,23 @@ export function createBotanicalService({ auth, configuration, repositoryFactory 
           // A run already in progress may have captured an older request.
           if (active(current) && pulledVersion < requested && !['offline', 'session', 'storage-error', 'error'].includes(syncState)) await synchronize();
           if (!active(current)) return { error: 'Le compte a changé. Prévisualise à nouveau la sauvegarde pour ce compte.' };
-          if (pulledVersion < requested) return { error: 'L’historique distant n’a pas pu être vérifié. Aucun import nouveau n’est créé ; réessaie après le retour de la connexion.' };
+          if (pulledVersion < requested || syncState === 'session') return { error: 'L’historique distant n’a pas pu être vérifié. Aucun import nouveau n’est créé ; réessaie après le retour de la connexion.' };
         }
+        const sourceDigest = replay ? undefined : await fingerprintLegacySource(source.raw);
+        const canCommit = () => active(current) && syncState !== 'session' && (replay || auth.getState().status === 'authenticated');
+        if (!canCommit()) return { error: 'Le compte ou la session a changé. Prévisualise à nouveau la sauvegarde.' };
         writing(); saving = true;
         const commit = await repo.change(saved => {
           // Recheck inside the transaction, after the account and erasure guards.
-          checkImportSource(preview);
-          const provenance = preview.provenance ?? randomUUID();
-          const result = applyLegacyImport(saved, { raw: preview.raw, provenance }, randomUUID);
-          // The accepted manifest or the unresolved refusal needs its source.
-          if (preview.provenance === null) storage.setItem(IMPORT_PROVENANCE_KEY, provenance);
+          checkImportSource(source);
+          const provenance = source.provenance ?? randomUUID();
+          const result = applyLegacyImport(saved, { raw: source.raw, provenance, sourceDigest, replayOnly: replay }, randomUUID);
+          checkImportSource(source);
+          // An aborted IDB commit can leave this source marker alone. Only the
+          // committed manifest proves that an import was accepted.
+          if (source.provenance === null) storage.setItem(IMPORT_PROVENANCE_KEY, provenance);
           return { result, saved: clone(saved) };
-        }, () => active(current));
+        }, canCommit);
         return committed(commit, current);
       } catch (error) {
         if (active(current)) { syncError = error.message; syncState = error.code === 'local_storage' ? 'storage-error' : document?.conflicts.some(item => !item.resolved) ? 'conflict' : pending() ? 'pending' : 'local'; notify(); }

@@ -1,6 +1,6 @@
 # Notice de confidentialité de Mon BPREA
 
-Version 1.1 en préparation · 5 novembre 2026
+Version 1.1 en préparation · 6 novembre 2026
 
 Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour sept adultes au total, dont l’exploitant et six autres participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
 
@@ -12,7 +12,7 @@ Vladimir Fouillade détermine l’usage des données et les moyens utilisés pou
 
 La participation est volontaire. Si vous souhaitez un compte, vous recevez cette notice avant de communiquer votre adresse. Vous fournissez et confirmez vous-même l’adresse utilisée pour l’invitation et la récupération. L’exploitant vous remet le lien individuellement. Vous choisissez votre mot de passe dans l’interface. Vous pouvez réviser sans compte si vous préférez garder votre progression sur cet appareil.
 
-Les données proviennent de vos saisies et exercices, des calculs de résultats et des identifiants techniques générés par le service. Un compte utilise votre adresse, un identifiant de compte, des données de session et un profil minimal avec un pseudo facultatif. Il peut synchroniser les cours, réponses, tentatives, scores et préférences, ainsi que les derniers paramètres de génération d’itinéraire technique. Pour importer des données du mode visiteur dans votre compte, vous examinez d’abord la source locale puis confirmez l’import. Pour les cours et QCM et pour la botanique, un identifiant local de provenance peut être créé à la confirmation. Il aide à distinguer les sauvegardes et à éviter les doublons. Sur un appareil partagé, vérifiez que la sauvegarde vous appartient.
+Les données proviennent de vos saisies et exercices, des calculs de résultats et des identifiants techniques générés par le service. Un compte utilise votre adresse, un identifiant de compte, des données de session et un profil minimal avec un pseudo facultatif. Il peut synchroniser les cours, réponses, tentatives, scores et préférences, ainsi que les derniers paramètres de génération d’itinéraire technique. Pour importer des données du mode visiteur dans votre compte, vous examinez d’abord la source locale puis confirmez l’import. Pour les cours et QCM et pour la botanique, un identifiant local de provenance peut être créé à la confirmation. Il aide à éviter les doublons et peut rester dans le navigateur après un échec. Seul l’enregistrement de l’import dans le cache du compte confirme son acceptation locale. Sur un appareil partagé, vérifiez que la sauvegarde vous appartient.
 
 ## Finalités et base juridique
 
@@ -38,7 +38,11 @@ Les anciennes apparences et les anciens formulaires restent dans leur clé local
 
 Sur un navigateur connecté, les jetons de session et un repère de continuité aident à retrouver l’accès. Des copies locales par compte conservent la progression et les paramètres, ainsi que les opérations en attente, les conflits et les preuves liées aux imports. L’accès aux données nécessaires à la reprise de session, à la révision ou à la mémorisation locale demandée relève des exemptions fonctionnelles de l’article 82 de la loi Informatique et Libertés. Le site n’intègre ni publicité ni mesure d’audience.
 
+Les versions d’un réglage en conflit restent disponibles pour choisir laquelle garder. Après résolution, les conflits récents restent consultables. Pour les nouveaux réglages archivés, une trace peut se limiter aux identifiants techniques, aux numéros de version et à la décision. Un nouvel import botanique refusé pour ambiguïté laisse une empreinte numérique et le motif du refus dans le cache du compte. L’empreinte sert à reconnaître et bloquer une copie déjà refusée. L’attribution à une personne demande une vérification distincte. Les copies complètes déjà enregistrées et les sauvegardes visiteur restent sur l’appareil. Les imports acceptés peuvent garder un instantané de leur source pour vérifier les résultats transférés.
+
 Les copies locales persistent généralement jusqu’à leur retrait ou à un effacement par le navigateur. Se déconnecter met fin à la session sur ce navigateur et conserve la progression. L’effacement local par catégorie se fait depuis le profil sur l’appareil concerné. Il peut laisser un marqueur minimal qui empêche un ancien onglet de recréer les données. Utilisez de préférence votre propre profil de navigateur. Vous pouvez aussi gérer les données du site dans les réglages du navigateur, après avoir vérifié vos exports et ce qui reste à synchroniser.
+
+Le profil permet de retirer séparément un identifiant de provenance et la sauvegarde visiteur. Retirer l’identifiant peut changer la reconnaissance d’une prochaine tentative. Les données déjà importées et leurs preuves suivent le retrait du cache du compte. Les copies brutes et les empreintes des refus sont exclues de l’export ordinaire du compte. Adressez toute demande concernant une copie potentiellement tierce au responsable afin qu’il vérifie les données concernées.
 
 ## Prestataires et transferts
 

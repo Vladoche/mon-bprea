@@ -285,11 +285,43 @@ describe('service botanique — réseau simulé, aucune preuve Auth/RLS distante
     storage.setItem(VISITOR_PROGRESS_KEY, raw);
     const result = await f.service.confirmImport(await f.service.previewImport());
     expect(result.error).toMatch(/identifiant/); expect(result.savedLocally).toBe(false);
-    const saved = await f.repo(userA).read(); expect(saved.importArchives).toHaveLength(1); expect(saved.importArchives[0].raw).toBe(raw);
+    const saved = await f.repo(userA).read(); expect(saved.importArchives).toHaveLength(1);
+    expect(saved.importArchives[0]).toMatchObject({ fingerprintVersion: 1, sourceDigest: expect.stringMatching(/^[0-9a-f]{64}$/), cause: 'existing_identity' });
+    expect(saved.importArchives[0]).not.toHaveProperty('raw');
     const state = f.service.getState(); expect(state.sync.importArchives).toHaveLength(1);
     expect(Object.keys(state.sync.importArchives[0]).sort()).toEqual(['id', 'message', 'reason']);
     expect(JSON.stringify(state)).not.toContain('synthetic-private-source');
     f.auth.emit('authenticated', userB); await f.service.start(); await f.service.synchronize();
-    expect(f.service.getState().sync.importArchives).toEqual([]); expect((await f.repo(userA).read()).importArchives[0].raw).toBe(raw);
+    expect(f.service.getState().sync.importArchives).toEqual([]);
+    expect((await f.repo(userA).read()).importArchives).toEqual(saved.importArchives);
+    expect(storage.getItem(VISITOR_PROGRESS_KEY)).toBe(raw);
+  });
+  it('un refus commis juste avant la bascule de compte ne devient pas un succès ni un résultat exposé à B', async () => {
+    const auth = authFixture();
+    const f = await initialized({ auth, repositoryFactory: scope => {
+      const repo = createBotanicalRepository(scope, { indexedDB });
+      return { ...repo, async change(...args) {
+        const commit = await repo.change(...args);
+        if (commit?.result?.rejected) auth.emit('authenticated', userB);
+        return commit;
+      } };
+    } });
+    const session = botanicalSession('collision'); await play(f.service, session); await f.service.synchronize();
+    storage.setItem(VISITOR_PROGRESS_KEY, JSON.stringify({ schemaVersion: 1, sessions: [session], answers: [] }));
+    const result = await f.service.confirmImport(await f.service.previewImport());
+    expect(result).toEqual({ error: expect.stringMatching(/compte a changé/), savedLocally: false, accountChanged: true });
+    await f.service.start();
+    expect((await f.repo(userA).read()).importArchives).toHaveLength(1);
+    expect((await f.repo(userB).read()).importArchives).toEqual([]);
+  });
+  it('échoue sans déposer de preuve si WebCrypto ne peut pas vérifier la source', async () => {
+    const session = botanicalSession('fingerprint');
+    const raw = JSON.stringify({ schemaVersion: 1, sessions: [session], answers: [] });
+    storage.setItem(VISITOR_PROGRESS_KEY, raw); const f = await initialized();
+    vi.spyOn(crypto.subtle, 'digest').mockRejectedValueOnce(new Error('fixture'));
+    expect((await f.service.confirmImport(await f.service.previewImport())).error).toMatch(/vérification.*indisponible/);
+    expect(await f.repo(userA).read()).toMatchObject({ imports: [], importArchives: [], operations: [] });
+    expect(storage.getItem(VISITOR_PROGRESS_KEY)).toBe(raw);
+    expect(storage.getItem(IMPORT_PROVENANCE_KEY)).toBeNull();
   });
 });

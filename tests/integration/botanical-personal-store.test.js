@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { IDBFactory, IDBObjectStore } from 'fake-indexeddb';
+import { createHash } from 'node:crypto';
 import { createBotanicalRepository, personalScope, PERSONAL_BOTANICAL_DB } from '../../assets/botanical-personal-store.js';
-import { recordPersonalSession, recordPersonalAnswer, completePersonalSession, projectHistory, reconcileHistory, validatePersonalDocument } from '../../assets/botanical-sync-model.js';
-import { previewLegacyImport, applyLegacyImport } from '../../assets/botanical-import.js';
+import { recordPersonalSession, recordPersonalAnswer, completePersonalSession, projectHistory, reconcileHistory, validatePersonalDocument, rejectOperation, resolveConflict } from '../../assets/botanical-sync-model.js';
+import { previewLegacyImport, applyLegacyImport, fingerprintLegacySource } from '../../assets/botanical-import.js';
 import { botanicalSession, botanicalAnswer, PERSONAL_DATA_TIME as when } from '../fixtures/personal-data.js';
 import { MemoryStorage } from '../helpers/memory-storage.js';
 
@@ -18,6 +19,10 @@ const source = () => {
 let indexedDB;
 beforeEach(() => { indexedDB = new IDBFactory(); });
 async function verified(repo) { await repo.change(doc => reconcileHistory(doc, { sessions: [], answers: [] }, userId, when)); }
+async function confirm(repo, input, random) {
+  const sourceDigest = await fingerprintLegacySource(input.raw);
+  return repo.change(doc => applyLegacyImport(doc, { ...input, sourceDigest }, random));
+}
 
 describe('cache botanique personnel et import atomique', () => {
   it('isole UUID, projet, environnement et source visiteur sans import automatique', async () => {
@@ -58,7 +63,7 @@ describe('cache botanique personnel et import atomique', () => {
   });
   it('importe volontairement les données compatibles et conserve provenance, champs inconnus et orphelin brut', async () => {
     const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo); const raw = source();
-    await repo.change(doc => applyLegacyImport(doc, { raw, provenance: uuid(50) }, ids()));
+    await confirm(repo, { raw, provenance: uuid(50) }, ids());
     const saved = await repo.read(); const manifest = saved.imports[0];
     expect(manifest.raw).toBe(raw); expect(JSON.parse(manifest.raw).historicalField).toEqual({ preserve: true });
     expect(manifest.sessionIds).toEqual({ 0: 'source-a', 1: 'source-b' }); expect(Object.values(manifest.questionIds)).toEqual(['source-a-q1', 'source-b-q1']);
@@ -68,7 +73,7 @@ describe('cache botanique personnel et import atomique', () => {
   });
   it('reprend le même import interrompu avec le manifeste et toutes les opérations inchangés', async () => {
     const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo); const input = { raw: source(), provenance: uuid(50) };
-    await repo.change(doc => applyLegacyImport(doc, input, ids())); const before = await repo.read(); await repo.close();
+    await confirm(repo, input, ids()); const before = await repo.read(); await repo.close();
     const reopened = createBotanicalRepository(scope, { indexedDB });
     const result = await reopened.change(doc => applyLegacyImport(doc, input, () => { throw new Error('pas de nouvel UUID'); }));
     expect(result.replayed).toBe(true); expect(await reopened.read()).toEqual(before);
@@ -76,23 +81,59 @@ describe('cache botanique personnel et import atomique', () => {
   it('annule manifeste et opérations ensemble si stockage plein', async () => {
     const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo); const before = await repo.read();
     const put = vi.spyOn(IDBObjectStore.prototype, 'put').mockImplementationOnce(() => { throw new DOMException('plein', 'QuotaExceededError'); });
-    await expect(repo.change(doc => applyLegacyImport(doc, { raw: source(), provenance: uuid(50) }, ids()))).rejects.toMatchObject({ code: 'local_storage' });
+    await expect(confirm(repo, { raw: source(), provenance: uuid(50) }, ids())).rejects.toMatchObject({ code: 'local_storage' });
     put.mockRestore(); expect(await repo.read()).toEqual(before);
   });
   it('refuse import sans lecture distante, autre provenance, instantané modifié ou collision métier', async () => {
     const repo = createBotanicalRepository(scope, { indexedDB }); const input = { raw: source(), provenance: uuid(50) };
-    await expect(repo.change(doc => applyLegacyImport(doc, input, ids()))).rejects.toMatchObject({ code: 'import_unverified' });
-    await verified(repo); await repo.change(doc => applyLegacyImport(doc, input, ids())); const before = await repo.read();
+    await expect(confirm(repo, input, ids())).rejects.toMatchObject({ code: 'import_unverified' });
+    await verified(repo); await confirm(repo, input, ids()); const before = await repo.read();
     let n = 100; const archiveUUID = () => uuid(n++);
-    for (const altered of [{ ...input, raw: input.raw + ' ' }, { ...input, provenance: uuid(51) }]) expect(await repo.change(doc => applyLegacyImport(doc, altered, archiveUUID))).toMatchObject({ errorCode: 'import_ambiguous', rejected: true, archived: true });
+    for (const altered of [{ ...input, raw: input.raw + ' ' }, { ...input, provenance: uuid(51) }]) expect(await confirm(repo, altered, archiveUUID)).toMatchObject({ errorCode: 'import_ambiguous', rejected: true, archived: true });
     const archived = await repo.read(); expect(archived.operations).toEqual(before.operations); expect(archived.imports).toEqual(before.imports);
-    expect(archived.importArchives).toHaveLength(2); expect(archived.importArchives[0].raw).toBe(input.raw + ' ');
-    const retry = await repo.change(doc => applyLegacyImport(doc, { ...input, raw: input.raw + ' ' }, () => { throw new Error('aucun nouvel UUID'); }));
+    expect(archived.importArchives).toHaveLength(2);
+    expect(archived.importArchives[0]).toEqual({ id: uuid(100), provenance: input.provenance, fingerprintVersion: 1,
+      sourceDigest: await fingerprintLegacySource(input.raw + ' '), reason: 'import_ambiguous', cause: 'different_manifest' });
+    const retry = await confirm(repo, { ...input, raw: input.raw + ' ' }, () => { throw new Error('aucun nouvel UUID'); });
     expect(retry.archiveId).toBe(archived.importArchives[0].id); expect((await repo.read()).importArchives).toEqual(archived.importArchives);
     const other = createBotanicalRepository(scope, { indexedDB: new IDBFactory() }); await verified(other);
     await other.change(doc => recordPersonalSession(doc, botanicalSession('source-a'), ids()));
-    expect(await other.change(doc => applyLegacyImport(doc, input, archiveUUID))).toMatchObject({ errorCode: 'import_ambiguous', rejected: true });
+    expect(await confirm(other, input, archiveUUID)).toMatchObject({ errorCode: 'import_ambiguous', rejected: true });
     expect((await other.read()).importArchives).toHaveLength(1);
+  });
+  it('un refus historique reste entier et bloque encore après réouverture ou changement de provenance', async () => {
+    const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo);
+    const historical = { id: uuid(100), raw: source(), provenance: uuid(50), reason: 'import_ambiguous', message: 'Refus historique', unknown: { preserve: true } };
+    await repo.change(doc => { doc.importArchives.push(historical); });
+    const before = await repo.read(); await repo.close();
+    const reopened = createBotanicalRepository(scope, { indexedDB });
+    expect(await reopened.read()).toEqual(before);
+    expect(await confirm(reopened, historical, () => { throw new Error('aucun nouvel UUID'); })).toMatchObject({ archiveId: historical.id, rejected: true });
+    const changed = await confirm(reopened, { ...historical, provenance: uuid(51) }, () => uuid(101));
+    expect(changed).toMatchObject({ rejected: true, archiveId: uuid(101) });
+    const after = await reopened.read();
+    expect(after.importArchives[0]).toEqual(historical);
+    expect(after.importArchives[1]).toMatchObject({ cause: 'previous_refusal' });
+    expect(after).toMatchObject({ imports: [], operations: [] });
+    const unsupported = structuredClone(after); unsupported.importArchives[1].fingerprintVersion = 9;
+    expect(() => validatePersonalDocument(unsupported, scope)).toThrow(/version inconnue/);
+  });
+  it('calcule le SHA-256 versionné sur la chaîne exacte, même pour une unité UTF-16 isolée', async () => {
+    const raw = '{"unknown":"\ud800"}';
+    expect(await fingerprintLegacySource(raw)).toBe(createHash('sha256').update(JSON.stringify(raw), 'utf8').digest('hex'));
+    expect(await fingerprintLegacySource(raw)).not.toBe(await fingerprintLegacySource(raw.replace('\ud800', '\ufffd')));
+  });
+  it('un identifiant déjà présent dans une intention résolue reste ambigu après disparition de la projection', async () => {
+    const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo);
+    await repo.change(doc => {
+      const { operationId } = recordPersonalSession(doc, botanicalSession('source-a', { durationSeconds: 50 }), ids());
+      rejectOperation(doc, operationId, { code: 'fixture' });
+      resolveConflict(doc, doc.conflicts[0].id);
+    });
+    const before = await repo.read(); expect(before.sessions).toEqual({});
+    const result = await confirm(repo, { raw: source(), provenance: uuid(50) }, () => uuid(101));
+    expect(result).toMatchObject({ rejected: true, archiveId: uuid(101) });
+    expect(await repo.read()).toMatchObject({ imports: [], operations: before.operations, importArchives: [{ cause: 'existing_identity' }] });
   });
   it('format futur, JSON corrompu et documents invalides restent intacts et non importables', () => {
     for (const raw of ['{invalide', 'null', '[]', '{"schemaVersion":999,"sessions":[],"answers":[]}']) {
@@ -107,7 +148,7 @@ describe('cache botanique personnel et import atomique', () => {
     expect(wrong.summary).toEqual({ sessions: 1, answers: 0, refused: 1 });
   });
   it('un manifeste dont la position source a été altérée bloque le cache', async () => {
-    const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo); await repo.change(doc => applyLegacyImport(doc, { raw: source(), provenance: uuid(50) }, ids()));
+    const repo = createBotanicalRepository(scope, { indexedDB }); await verified(repo); await confirm(repo, { raw: source(), provenance: uuid(50) }, ids());
     const saved = await repo.read(); saved.imports[0].questionIds['99'] = 'source-a-q1';
     expect(() => validatePersonalDocument(saved, scope)).toThrow(/illisible/);
     const changed = await repo.read(); const raw = JSON.parse(changed.imports[0].raw); raw.sessions[0].durationSeconds = 50; changed.imports[0].raw = JSON.stringify(raw);

@@ -1,5 +1,6 @@
 import { crops } from './content.js';
 import { validUUID } from './course-quiz-model.js';
+import { TABLES } from './export-sources.js';
 export const clone = value => structuredClone(value);
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const safe = value => Number.isSafeInteger(value) && value >= 0;
@@ -7,6 +8,10 @@ export const domains = ['itk', 'appearance'];
 const canonical = value => JSON.stringify(value, (_, item) => record(item) ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
 export const equal = (a, b) => canonical(a) === canonical(b);
 const keys = (value, allowed, required = allowed) => record(value) && required.every(key => Object.hasOwn(value, key)) && Object.keys(value).every(key => allowed.includes(key));
+const operationFields = 'id,domain,type,payload,rpcPayload,expectedRevision,dependsOn,state,attempts,failures,retryAt,error,confirmedDependency,archiveVersion'.split(',');
+const requiredOperationFields = operationFields.filter(key => key !== 'confirmedDependency');
+const conflictFields = ['id', 'domain', 'operation', 'local', 'remote', 'resolved', 'resolution'];
+const archiveKinds = ['confirmed', 'superseded-unsent', 'resolved-operation', 'resolved-dependent', 'resolved-conflict'];
 const validText = value => typeof value === 'string' && !/\u0000|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(value);
 const timestamp = value => {
   if (typeof value !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?(?:Z|[+-]\d\d:\d\d)$/.test(value) || Number(value.slice(0, 4)) < 1 || !Number.isFinite(Date.parse(value))) return false;
@@ -107,13 +112,39 @@ export function validateSettingsDocument(document, scope) {
   }
   local(document.imports.length <= 2 && new Set(document.imports.map(item => item.domain)).size === document.imports.length);
   for (const proof of document.imports) local(domains.includes(proof.domain) && validUUID(proof.id) && typeof proof.raw === 'string' && typeof proof.source === 'string' && validateValue(proof.domain, proof.value) && validUUID(proof.operationId));
-  local(document.archives.length <= 20);
+  for (const entry of document.archives) if (entry?.receiptVersion === 1) local(validSettingsReceipt(entry));
   const projected = clone(document); rebuild(projected); local(equal(projected.values, document.values));
   return document;
 }
-function archive(document, value) {
-  document.archives.push(clone(value));
-  while (document.archives.length > 20) { document.archives.shift(); document.archivedCount++; }
+export function validSettingsReceipt(receipt) {
+  if (!record(receipt)) return false;
+  const { receiptVersion, kind, id, domain, expectedRevision, predecessorId, resolution, remoteRevision } = receipt;
+  return receiptVersion === 1 && archiveKinds.includes(kind) && validUUID(id) && domains.includes(domain) &&
+    safe(expectedRevision) && expectedRevision < Number.MAX_SAFE_INTEGER &&
+    (predecessorId === undefined || validUUID(predecessorId) && predecessorId !== id) &&
+    (['resolved-dependent', 'resolved-conflict'].includes(kind) ? ['local', 'remote'].includes(resolution) : resolution === undefined) &&
+    (kind === 'resolved-conflict' ? remoteRevision === null || safe(remoteRevision) && remoteRevision > 0 : remoteRevision === undefined);
+}
+function compactable(op) {
+  return op.archiveVersion === 1 && keys(op, operationFields, requiredOperationFields) &&
+    (!Object.hasOwn(op, 'confirmedDependency') || keys(op.confirmedDependency, ['id', 'revision']) &&
+      validUUID(op.confirmedDependency.id) && op.confirmedDependency.revision === op.expectedRevision) &&
+    keys(op.payload, [valueField(op.domain), 'p_operation_id', 'p_expected_revision']) &&
+    validateValue(op.domain, op.payload[valueField(op.domain)]) && equal(op.payload, op.rpcPayload) &&
+    (op.error === null || typeof op.error === 'string');
+}
+function receipt(kind, op, details = {}) {
+  const predecessorId = op.dependsOn ?? op.confirmedDependency?.id;
+  return { receiptVersion: 1, kind, id: op.id, domain: op.domain, expectedRevision: op.expectedRevision,
+    ...(predecessorId ? { predecessorId } : {}), ...details };
+}
+function archiveOperation(document, kind, operation, details = {}) {
+  document.archives.push(compactable(operation) ? receipt(kind, operation, details) : { kind, operation: clone(operation), ...details });
+}
+function compactableConflict(item) {
+  const columns = TABLES[item.domain === 'itk' ? 'itk_settings' : 'appearance_preferences'].fields;
+  return keys(item, conflictFields) && compactable(item.operation) && item.operation.id === item.id && item.operation.domain === item.domain &&
+    ['remote', 'local'].includes(item.resolution) && (item.remote === null || keys(item.remote, columns));
 }
 function rebuild(document) {
   for (const domain of domains) {
@@ -122,34 +153,47 @@ function rebuild(document) {
   }
 }
 function prune(document) {
-  // Resolved chains have no remaining delivery obligation. Keep bounded receipts,
-  // not an artificial history of every preference change.
-  for (const op of document.operations) if (op.dependsOn && op.state === 'confirmed') { op.confirmedDependency = { id: op.dependsOn, revision: op.expectedRevision }; op.dependsOn = null; }
-  const removable = document.operations.filter(op => op.state === 'confirmed' && !document.operations.some(child => child.dependsOn === op.id));
-  for (const op of removable.slice(0, Math.max(0, removable.length - 8))) {
-    archive(document, { kind: 'confirmed', operation: op }); document.operations.splice(document.operations.indexOf(op), 1);
+  for (const op of document.operations) if (op.dependsOn && op.state === 'confirmed' && !Object.hasOwn(op, 'confirmedDependency')) {
+    op.confirmedDependency = { id: op.dependsOn, revision: op.expectedRevision }; op.dependsOn = null;
   }
-  const resolvedDomains = domains.filter(domain => !document.conflicts.some(item => item.domain === domain && !item.resolved));
-  for (const op of [...document.operations]) if (op.state === 'conflict' && resolvedDomains.includes(op.domain) && !document.operations.some(child => child.dependsOn === op.id && ['pending', 'error', 'blocked'].includes(child.state))) {
-    archive(document, { kind: 'resolved-operation', operation: op }); document.operations.splice(document.operations.indexOf(op), 1);
+  const removable = document.operations.filter(op => op.state === 'confirmed' && !document.operations.some(child => child.dependsOn === op.id));
+  const recentLegacy = removable.filter(op => !compactable(op)).slice(-8);
+  for (const op of removable.filter(op => !recentLegacy.includes(op))) {
+    archiveOperation(document, 'confirmed', op); document.operations.splice(document.operations.indexOf(op), 1);
   }
   const closed = document.conflicts.filter(item => item.resolved);
-  for (const item of closed.slice(0, Math.max(0, closed.length - 8))) { archive(document, { kind: 'resolved-conflict', conflict: item }); document.conflicts.splice(document.conflicts.indexOf(item), 1); }
+  for (const item of closed.slice(0, Math.max(0, closed.length - 8))) {
+    document.archives.push(compactableConflict(item)
+      ? receipt('resolved-conflict', item.operation, { resolution: item.resolution, remoteRevision: item.remote?.revision ?? null })
+      : { kind: 'resolved-conflict', conflict: clone(item) });
+    document.conflicts.splice(document.conflicts.indexOf(item), 1);
+  }
+  const resolvedDomains = domains.filter(domain => !document.conflicts.some(item => item.domain === domain && !item.resolved));
+  for (const op of [...document.operations].reverse()) {
+    if (op.state !== 'conflict' || !resolvedDomains.includes(op.domain) || document.operations.some(child => child.dependsOn === op.id)) continue;
+    // The displayed conflict and v1 restore still use the full operation.
+    const referenced = document.conflicts.some(item => item.operation.id === op.id);
+    if (compactable(op) && referenced) continue;
+    const alreadyRecorded = compactable(op) && document.archives.some(item => item?.receiptVersion === 1 && item.id === op.id && item.domain === op.domain &&
+      ['resolved-conflict', 'resolved-dependent'].includes(item.kind));
+    if (!alreadyRecorded) archiveOperation(document, 'resolved-operation', op);
+    document.operations.splice(document.operations.indexOf(op), 1);
+  }
 }
 export function queueSettings(document, domain, value, randomUUID = () => globalThis.crypto.randomUUID()) {
   if (!validateValue(domain, value)) throw new SettingsSyncError('validation', domain === 'itk' ? 'Ces paramètres ITK ne sont pas valides pour le catalogue et le contrat actuels. La source est conservée.' : 'Ces préférences d’apparence ne sont pas reconnues. La source est conservée.');
   if (document.conflicts.some(item => !item.resolved && item.domain === domain)) throw new SettingsSyncError('conflict', 'Résous le conflit de ces paramètres avant un nouvel enregistrement.');
+  const id = randomUUID();
+  if (!validUUID(id) || document.operations.some(op => op.id === id) || document.archives.some(item => item?.receiptVersion === 1 && item.id === id)) throw new LocalSettingsError('Impossible de créer un identifiant durable distinct.');
   const previous = document.operations.findLast(op => op.domain === domain && ['pending', 'error'].includes(op.state));
   let expectedRevision; let dependsOn;
   if (previous && previous.attempts === 0 && previous.state === 'pending') {
     expectedRevision = previous.expectedRevision; dependsOn = previous.dependsOn;
-    archive(document, { kind: 'superseded-unsent', operation: previous }); document.operations.splice(document.operations.indexOf(previous), 1);
+    archiveOperation(document, 'superseded-unsent', previous); document.operations.splice(document.operations.indexOf(previous), 1);
   } else { expectedRevision = previous ? previous.expectedRevision + 1 : document.remote[domain]?.revision || 0; dependsOn = previous?.id || null; }
   if (!safe(expectedRevision) || expectedRevision >= Number.MAX_SAFE_INTEGER) throw new LocalSettingsError('La révision des paramètres est indisponible.');
-  const id = randomUUID();
-  if (!validUUID(id) || document.operations.some(op => op.id === id)) throw new LocalSettingsError('Impossible de créer un identifiant durable distinct.');
   const payload = { [valueField(domain)]: clone(value), p_operation_id: id, p_expected_revision: expectedRevision };
-  document.operations.push({ id, domain, type: domain, payload, rpcPayload: clone(payload), expectedRevision, dependsOn, state: 'pending', attempts: 0, failures: 0, retryAt: 0, error: null });
+  document.operations.push({ id, domain, type: domain, payload, rpcPayload: clone(payload), expectedRevision, dependsOn, state: 'pending', attempts: 0, failures: 0, retryAt: 0, error: null, archiveVersion: 1 });
   rebuild(document); prune(document); return { operationId: id, value: clone(value) };
 }
 function matches(op, row) {
@@ -214,7 +258,9 @@ export function resolveSettingsConflict(document, id, choice, randomUUID) {
   const blocked = document.operations.filter(op => op.domain === item.domain && op.state === 'blocked');
   const value = clone(item.local);
   for (const conflict of document.conflicts) if (conflict.domain === item.domain && !conflict.resolved) { conflict.resolved = true; conflict.resolution = choice; }
-  for (const op of blocked) { archive(document, { kind: 'resolved-dependent', operation: op, resolution: choice }); op.state = 'conflict'; }
+  for (const op of blocked) { archiveOperation(document, 'resolved-dependent', op, { resolution: choice }); op.state = 'conflict'; }
   rebuild(document);
-  return choice === 'local' ? queueSettings(document, item.domain, value, randomUUID) : { value: clone(document.values[item.domain]) };
+  if (choice === 'local') return queueSettings(document, item.domain, value, randomUUID);
+  prune(document);
+  return { value: clone(document.values[item.domain]) };
 }

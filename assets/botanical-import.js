@@ -1,5 +1,6 @@
 import { clone, validUUID, normalizeSession, normalizePersonalAnswer, answerFitsSession, BotanicalSyncError,
-  recordPersonalSession, recordPersonalAnswer, completePersonalSession } from './botanical-sync-model.js';
+  recordPersonalSession, recordPersonalAnswer, completePersonalSession, validImportSourceDigest,
+  importRefusalMessage } from './botanical-sync-model.js';
 
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const sessionFields = new Set(['id', 'categoryId', 'mode', 'durationSeconds', 'revision', 'startedAt', 'totalQuestions', 'completedAt']);
@@ -52,32 +53,54 @@ export function previewLegacyImport(raw) {
   return result;
 }
 
-/** Caller confirms after a fresh complete remote scan, then commits this
- * manifest and every generated operation in the SAME IndexedDB transaction. */
-export function applyLegacyImport(document, { raw, provenance }, randomUUID = () => globalThis.crypto.randomUUID()) {
+export async function fingerprintLegacySource(raw) {
+  try {
+    // Stringifying the raw string preserves its exact code units, including
+    // lone surrogates that TextEncoder would otherwise replace.
+    const bytes = new TextEncoder().encode(JSON.stringify(raw));
+    const digest = new Uint8Array(await globalThis.crypto.subtle.digest('SHA-256', bytes));
+    return Array.from(digest, byte => byte.toString(16).padStart(2, '0')).join('');
+  } catch {
+    throw new BotanicalSyncError('import_unverified', 'La vérification de cette sauvegarde est indisponible. Réessaie après avoir rechargé la page. La source reste intacte.');
+  }
+}
+
+/** Caller confirms after a fresh complete remote scan, then commits the
+ * result and every generated operation in the same IndexedDB transaction. */
+export function applyLegacyImport(document, { raw, provenance, sourceDigest, replayOnly = false }, randomUUID = () => globalThis.crypto.randomUUID()) {
   if (!validUUID(provenance)) throw new BotanicalSyncError('import_ambiguous', 'La provenance de cette sauvegarde est inconnue. Aucun import n’est créé.');
   const previous = document.imports.find(item => item.provenance === provenance && item.raw === raw);
   if (previous) return { manifestId: previous.id, replayed: true, summary: clone(previous.summary), warnings: clone(previous.warnings) };
-  const refuse = message => {
-    let archive = document.importArchives.find(item => item.raw === raw && item.provenance === provenance && item.reason === 'import_ambiguous');
+  if (replayOnly || !document.lastReconciledAt || !validImportSourceDigest(sourceDigest)) throw new BotanicalSyncError('import_unverified',
+    'Une nouvelle vérification de la sauvegarde et de l’historique du compte est nécessaire avant cet import.');
+  const refusals = document.importArchives.filter(item => item.reason === 'import_ambiguous' &&
+    (typeof item.raw === 'string' ? item.raw === raw : item.sourceDigest === sourceDigest));
+  const refuse = cause => {
+    let archive = refusals.find(item => item.provenance === provenance);
     if (!archive) {
       const id = randomUUID();
       if (!validUUID(id) || document.operations.some(item => item.id === id) || document.imports.some(item => item.id === id) || document.importArchives.some(item => item.id === id)) throw new BotanicalSyncError('import_invalid', 'Identifiant d’archive indisponible.');
-      archive = { id, provenance, raw, reason: 'import_ambiguous', message }; document.importArchives.push(archive);
+      archive = { id, provenance, fingerprintVersion: 1, sourceDigest, reason: 'import_ambiguous', cause };
+      document.importArchives.push(archive);
     }
-    return { error: message, errorCode: 'import_ambiguous', rejected: true, archived: true, archiveId: archive.id };
+    return { error: importRefusalMessage(archive), errorCode: 'import_ambiguous', rejected: true, archived: true, archiveId: archive.id };
   };
-  if (document.imports.length) return refuse('Cette copie ou sa provenance diffère de l’historique déjà importé. Une intervention est nécessaire ; aucune donnée n’est fusionnée ou supprimée.');
+  if (refusals.length) return refuse('previous_refusal');
+  if (document.imports.length) return refuse('different_manifest');
   const preview = previewLegacyImport(raw);
   if (!preview.available || preview.error) throw new BotanicalSyncError('import_invalid', preview.error || 'Sauvegarde indisponible.');
-  if (!document.lastReconciledAt) throw new BotanicalSyncError('import_unverified', 'Une récupération complète de l’historique du compte est nécessaire avant le premier import.');
   // Stable business IDs do not authorize treating an independently copied
   // backup as common provenance, even when its payload happens to be equal.
-  const collision = preview.entries.some(entry => Object.hasOwn(document.sessions, entry.session.id) ||
-    entry.answers.some(({ answer }) => Object.hasOwn(document.answers, answer.id)));
-  if (collision) return refuse('Un identifiant de cette sauvegarde existe déjà dans le compte sans manifeste établissant sa provenance commune. Aucune fusion automatique n’est effectuée ; la source reste intacte.');
+  const sessionIds = new Set(Object.keys(document.sessions));
+  const answerIds = new Set(Object.keys(document.answers));
+  for (const op of document.operations) {
+    sessionIds.add(op.sessionId);
+    if (op.type === 'answer') answerIds.add(op.questionId);
+  }
+  const collision = preview.entries.some(entry => sessionIds.has(entry.session.id) || entry.answers.some(({ answer }) => answerIds.has(answer.id)));
+  if (collision) return refuse('existing_identity');
   const id = randomUUID();
-  if (!validUUID(id) || document.operations.some(item => item.id === id)) throw new BotanicalSyncError('import_invalid', 'Identifiant du manifeste indisponible.');
+  if (!validUUID(id) || document.operations.some(item => item.id === id) || document.importArchives.some(item => item.id === id)) throw new BotanicalSyncError('import_invalid', 'Identifiant du manifeste indisponible.');
   const manifest = { id, provenance, raw, summary: clone(preview.summary), warnings: clone(preview.warnings), sessionIds: {}, questionIds: {}, operationIds: [], state: 'queued' };
   document.imports.push(manifest);
   for (const entry of preview.entries) {
