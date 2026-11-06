@@ -1,110 +1,159 @@
 # Installation Supabase PROD de Mon BPREA
 
-Ce runbook prépare le lot 6.6.0.D. Son exécution attend une décision humaine distincte qui identifie le commit, la cible, l’opérateur et la fenêtre. Le [rapport 6.6.0.C](../validations/VALIDATION-LOT6-6-0-C.md) distingue les preuves locales des vérifications encore nécessaires.
+**Installation suspendue.** La [synthèse des lots D et E](../validations/VALIDATION-LOT6-6-0-DE.md) consigne les résultats, le candidat M5 et les points d’arrêt. Les accords pour Auth, l’extraction, la restauration, l’installation de P et M1–M5 et l’ouverture sur invitation sont distincts. L’accord d’installation fixe le commit, la cible, l’opérateur et la fenêtre.
 
-## 1. Décision et cible
+## 1. Préflight final en lecture seule
 
-1. Confirmer dans le tableau de bord privé l’organisation et le projet **Mon BPREA PROD**, référence `oqoqrxwfbkhtpksqimgd`, région `eu-central-1`. Comparer le statut, la version PostgreSQL 17.11 et les réglages à l’audit 6.6.0.B. Vérifier la liaison exacte entre l’URL Data API, l’hôte SQL direct et la référence. Toute différence suspend l’intervention.
-2. Fixer le SHA complet du commit approuvé et partir d’un checkout propre. Le SHA de référence pour les fichiers historiques est `ffa90fae28e780d6e01e19769b14bd4a910d7ab4`. Le futur commit approuvé doit contenir les quatre migrations et le script préparatoire ci-dessous. Comparer la liste **complète** des migrations, le diff et les SHA-256. Vérifier également les références temporaires de la CLI et l’absence d’un mécanisme de déploiement concurrent.
-3. Utiliser Supabase CLI **2.121.0** et `psql`, `pg_dump`, `pg_restore` **17.11**. Consulter `supabase migration up --help`, `supabase migration repair --help`, `psql --version` et l’aide des outils de sauvegarde. Refaire la répétition si la CLI, le pilote, la voie de connexion ou les migrations changent. La CLI v3 change les cibles par défaut. [Version CLI épinglée](https://github.com/supabase/cli/releases/tag/v2.121.0) · [Changements de la CLI v3](https://supabase.com/changelog/supabase-cli-v3)
-4. Dans un terminal opérateur privé, charger uniquement les identifiants temporaires nécessaires depuis le coffre. Exclure les variables de test et les variables de connexion héritées (`PGHOST`, `PGHOSTADDR`, `PGSERVICE`, `PGOPTIONS`, `DATABASE_URL`, `SUPABASE_*` et équivalents). Créer un dossier CLI isolé avec la configuration et les templates versionnés, sans lien Supabase, fichier d’environnement ni cache de projet. Désactiver la télémétrie pour la session. Le chemin de connexion est direct, chiffré et vérifié avec le certificat de confiance. La CLI épinglée a accepté la bonne CA et le bon nom et refusé les deux contre-exemples en laboratoire local. En D, confirmer l’hôte, la CA de confiance et la connexion réelle en lecture seule avant toute écriture. Si la connexion directe ou la vérification TLS échoue, suspendre. [Connexion PostgreSQL Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres) · [Vérification TLS libpq](https://www.postgresql.org/docs/17/libpq-ssl.html)
+### Cible, fichiers et droits
 
-Empreintes des fichiers UTF-8 après normalisation CRLF vers LF. Copier les migrations octet pour octet depuis le checkout approuvé. Une divergence d’empreinte interrompt la procédure.
+- Confirmer dans le Dashboard privé la référence du projet Mon BPREA PROD, sa région et ses versions. Comparer l’hôte SQL direct, le nom du certificat et la référence du projet sélectionné. Une modification d’adresse ou de version impose de vérifier à nouveau la cible et la compatibilité.
+- Partir d’un checkout propre du **commit approuvé**. Le lot D a contrôlé la branche `feature/lot6-6-0-c-supabase-permissions` à `9a21b6e3696c4f5778ae7b72689ee3c9ee74c72e`, dont la base immédiate est `79c27ca2305ad8274d4179ec8ad252e8706e0494`. Les trois fichiers historiques sont identiques aux blobs de `ffa90fae28e780d6e01e19769b14bd4a910d7ab4`. Comparer la liste exhaustive des migrations et les empreintes ci-dessous. Copier les fichiers octet pour octet du checkout vers le préfixe temporaire et comparer également les SHA-256 bruts des copies.
+- Employer Supabase CLI **2.121.0** et `psql`, `pg_dump`, `pg_restore` **17.11**. Vérifier les versions et les aides de `migration up`, `migration repair` et des outils de sauvegarde. Préparer un répertoire CLI isolé avec `supabase/config.toml`, ses templates et uniquement les migrations du préfixe approuvé, sans lien ni cache de projet, et avec la télémétrie désactivée. La qualification est liée au pilote, à la version de CLI, au rôle et à la voie de connexion. [CLI 2.121.0](https://github.com/supabase/cli/releases/tag/v2.121.0) · [Changements CLI v3](https://supabase.com/changelog/supabase-cli-v3)
+- Confirmer `session_user = current_user = postgres`. Relever `CREATE` sur la base et `public`, `USAGE` sur `auth`, `SELECT` et `TRIGGER` sur `auth.users`, `REFERENCES` sur son UUID `id`, et `auth.uid()` exécutable par `authenticated`. Contrôler la clé primaire, `gen_random_uuid()` et `plpgsql`. Distinguer le créateur de migration, le propriétaire d’Auth et le rôle administratif API. Relire les memberships `INHERIT`/`SET` et les droits de `PUBLIC`. Les rôles API doivent avoir `USAGE` et aucun `CREATE` dans `public`.
+- Exécuter le [préflight SQL](../../scripts/verification-prod/preflight.sql) et consulter l’historique via le fournisseur. Avant P, attendre zéro objet Mon BPREA, zéro version et aucun conflit de nom dans `public`, `auth.users` et `bprea_private`. Le lot D a trouvé la table et le schéma de suivi absents. Si la table de suivi existe, lire uniquement `version, name` dans une transaction read-only. Qualifier un registre vide créé par une tentative antérieure avant tout lancement.
+- Comparer les ACL de `public` et `auth`, les défauts globaux et par schéma pour `postgres` et `supabase_admin`, et les event triggers. En D, aucun défaut global de table ne conférait de droit à `service_role` et aucun héritage de rôle n’a été trouvé pour lui. Le retrait concret de P portait sur les futurs objets de type table de `postgres` dans `public`. Tout nouveau grant global, héritage ou dépendance métier demande un nouvel arbitrage avant P. Examiner la définition de tout nouvel event trigger pertinent. Archiver les ACL initiales avec créateur, schéma, type, bénéficiaire, grantor et grant option. [Privilèges de création PostgreSQL](https://www.postgresql.org/docs/17/sql-alterdefaultprivileges.html)
 
-| Ordre | Fichier | SHA-256 LF |
+| Ordre | Fichier | SHA-256 UTF-8 après normalisation CRLF vers LF |
 | --- | --- | --- |
 | P | `prepare-permissions.sql` | `baeda047347505989cdab7b00a00709771d59d76468c5c0498ba55611cc70cdc` |
 | M1 | `20261022000100_profiles.sql` | `e9a9de3f5c3e4111a66da44b9858dc8b126cbf6c2b433f9abc72d91bb8e303d5` |
 | M2 | `20261024083417_create_drill_sync_schema.sql` | `31c9b77580e91dc865af5bec2b4a2bee14d9bfea40dd8aa28f17468e9f88399c` |
 | M3 | `20261025143831_create_personal_data_backend.sql` | `e9d453c747ba097b0efce3ee09ad3a2503e5adba6a7af3916c2a963ca39ec8e3` |
 | M4 | `20261106093143_restrict_application_service_role.sql` | `904d2372a7f8d6ac848adfa5f0f259440d8e7b269859e9feaf9f4342e529b1a2` |
+| M5 | `20261106174551_return_conflict_for_personal_revision.sql` | `2cb070120daf6262419127a2f296af3d840e0ed8dd44257ad351744816afdc20` |
 
-## 2. Précontrôles et sauvegarde
+### TLS et connexion d’exploitation
 
-- **Permissions et dépendances.** Vérifier `session_user = current_user = postgres`, la capacité `CREATE` sur la base et `public`, et `USAGE` sur `auth`. Contrôler les droits nécessaires à M1 sur `auth.users` (`SELECT`, `REFERENCES`, `TRIGGER`) et le droit `EXECUTE` sur `auth.uid()` pour les rôles nécessaires. Vérifier l’UUID et la clé unique d’`auth.users.id`, les extensions utiles, `pg_catalog.gen_random_uuid()`, `plpgsql` et les propriétaires. Distinguer `postgres`, `supabase_admin` et le rôle d’Auth. Relever `rolbypassrls`, les memberships et options `INHERIT` et `SET`, notamment tout chemin de `service_role` vers un propriétaire ou un rôle global de lecture/écriture. Un droit de création dans `public` pour un rôle API, un héritage inattendu ou une capacité absente impose l’arrêt.
-- **ACL et inventaire.** Lire les ACL de schéma, de table et de colonnes ainsi que les ACL globales et `public` de `pg_default_acl` pour les deux créateurs. Relire les event triggers DDL. Avant M1, confirmer l’absence des objets et conflits applicatifs et l’absence de migration enregistrée. Une table de suivi vide et une table de suivi absente sont deux états à consigner séparément. Le [catalogue](../../scripts/verification-dev/catalogue.sql) suppose la table de suivi existante. Pour le premier relevé, tester d’abord `to_regclass('supabase_migrations.schema_migrations')`. La [requête de privilèges](../../scripts/verification-dev/privileges.sql) lit aussi les ACL par défaut. Ces fichiers reçoivent uniquement la connexion explicitement vérifiée et s’exécutent en lecture seule.
-- **Périmètre de P.** Vérifier que `postgres` est le créateur prévu pour les migrations applicatives. La révocation globale touche ses **futures tables dans la base**, dans tous les schémas. Si un autre workflow légitime dépend d’un droit direct automatique de `service_role` sur de futures tables de ce créateur, arrêter pour arbitrage. Capturer les grants initiaux avec grantee, grantor, schéma, type et grant option. Relever aussi les ACL de `supabase_admin`, les défauts des séquences et le défaut global `EXECUTE` des fonctions. [Règles PostgreSQL sur les privilèges par défaut](https://www.postgresql.org/docs/17/sql-alterdefaultprivileges.html)
-- **Auth et Data API.** Relever les schémas exposés et le mode d’exposition automatique des nouvelles tables, y compris `graphql_public` si présent. `public` doit être exposé pour le client et `bprea_private` exclu. Vérifier que l’inscription libre et les connexions anonymes sont désactivées. Relever les réglages nécessaires au retour arrière sans exporter leurs secrets. Prendre uniquement le nombre de lignes d’`auth.users` et, si utile, des agrégats approuvés. Éviter la liste d’UUID, d’e-mails et de métadonnées dans les preuves. [Configuration des grants et de l’exposition](https://supabase.com/docs/guides/api/securing-your-api)
-- **Sauvegarde.** Confirmer le mécanisme de snapshot et de restauration réellement disponible sur l’offre, les droits et les objectifs RPO/RTO approuvés. Capturer le point de restauration juste avant P, les ACL initiales et l’état du registre. Si un export logique est retenu et que le rôle peut couvrir le périmètre approuvé, utiliser `pg_dump --format=custom --file <archive-privée>` sur la connexion directe. Vérifier la sortie et le TOC avec `pg_restore --list <archive-privée>`, sceller l’empreinte et la date. Conserver l’archive chiffrée hors dépôt, sous accès restreint. La couverture doit inclure les dépendances Auth, l’historique s’il existe et les droits pertinents. Un dump d’une base ne porte pas les rôles globaux ni les réglages du fournisseur. Documenter séparément leur restauration et les dépendances exclues, ou choisir un snapshot fournisseur dont la couverture est attestée. [Options de sauvegarde Supabase](https://supabase.com/docs/guides/platform/backups)
-- **Répétition de restauration.** Restaurer le périmètre choisi dans une cible isolée compatible avant d’autoriser l’installation. Pour l’option logique, utiliser la procédure ci-dessous sur une cible Supabase vierge. Vérifier les comptes et profils par agrégats, les ACL et rôles, les définitions, la liste de migrations et les services Auth/PostgREST. Une restauration de données réelles, si indispensable, exige une cible, une rétention et un mandat distincts. Définir à l’avance le traitement des changements et effacements effectués depuis le snapshot.
-- **Fenêtre.** Réserver une fenêtre avec un seul opérateur de schéma. Suspendre les invitations et autres opérations d’administration Auth, les migrations et la mise en ligne de l’artefact connecté. Vérifier `pg_stat_activity` et `pg_locks` sur `auth.users`, `public` et le registre s’il existe. Consigner les PID et types de verrous, sans corps de requêtes. Réserver le temps de vérifier le backfill M1 et de reprendre en cas d’échec. Définir la borne d’attente DDL et de durée par requête, proposée à 5 s et 120 s. Confirmer dans la répétition que le pilote applique les paramètres de session. Une attente excessive, une transaction bloquante, un écart d’inventaire, une sauvegarde douteuse ou un autre opérateur actif impose l’arrêt.
+1. Depuis le Dashboard, relever l’hôte direct et obtenir la CA via **Database → Settings → SSL configuration**. Vérifier provenance, empreinte et validité. Depuis le poste qui réalisera l’intervention, répéter la résolution IPv6 et la poignée de main PostgreSQL avec vérification du nom. L’alternative affichée est le pooler de **session**. Un changement de voie exige une nouvelle qualification des identités TLS/SQL, du rôle, du pilote, des transactions, des options de session et de la sauvegarde.
+2. Dans un terminal privé, écarter les configurations héritées de test ou de routage, notamment `PGHOSTADDR`, `PGSERVICE`, `PGOPTIONS`, `DATABASE_URL` et les variables Supabase de liaison. Charger le secret temporaire par le mécanisme opérateur validé pour chacun des deux clients. Utiliser une URI sans mot de passe et un mécanisme d’authentification hors ligne de commande. Écarter le mode debug et toute transcription des valeurs sensibles.
+3. Construire `$ProdUri` comme ci-dessous. `$ProdReadUri` reprend les mêmes paramètres avec `default_transaction_read_only=on` et des délais courts dans `options`. Faire confirmer par une requête **SELECT** le rôle, l’hôte, le chiffrement et l’application des délais sur **chacun** des clients avec l’authentification opérateur. Pour la CLI, contrôler d’abord les options de `db query --help` et passer une requête inline strictement en lecture seule à la cible explicite. La poignée de main du lot D a réussi et libpq a atteint le défi d’authentification sans identifiant secret. La connexion opérateur authentifiée reste à qualifier. [TLS Supabase](https://supabase.com/docs/guides/platform/ssl-enforcement) · [TLS libpq](https://www.postgresql.org/docs/17/libpq-ssl.html)
 
-Exemples **préparés pour le lot D**. `$ProdUri` désigne la connexion prévalidée à l’hôte SQL direct de la cible, avec TLS `verify-full`, CA approuvée et paramètres de session dans la valeur encodée d’`options` (`-c lock_timeout=5s -c statement_timeout=120s`). Ces délais ont été observés via la CLI sur PostgreSQL natif. La CLI et libpq doivent être testés avec la méthode TLS et l’authentification privée retenues. Garder le mot de passe dans le processus privé et l’URI hors du journal.
+Commandes de diagnostic **préparées**. `$ProdCa` est le chemin absolu de la CA vérifiée, `$Psql` l’exécutable approuvé et `$ApprovedProjectRef` la référence confirmée de PROD.
 
 ```powershell
-git status --porcelain
-git rev-parse HEAD
-& $Cli --version
-$target = [uri]$ProdUri
-if ($target.Scheme -ne 'postgresql' -or $target.Host -ne 'db.oqoqrxwfbkhtpksqimgd.supabase.co' -or
-    $target.UserInfo -ne 'postgres' -or $target.Port -ne 5432 -or $target.AbsolutePath -ne '/postgres' -or
-    $target.Query -notmatch '(^\?|&)sslmode=verify-full(&|$)') { throw 'Cible SQL inattendue' }
-& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdUri -c "begin read only; select current_database(), session_user, current_user, inet_server_addr(), inet_server_port(), current_setting('server_version'); select ssl, version from pg_stat_ssl where pid = pg_backend_pid(); select to_regclass('supabase_migrations.schema_migrations'), to_regclass('auth.users'), to_regprocedure('auth.uid()'), to_regprocedure('pg_catalog.gen_random_uuid()'); select count(*) from auth.users; commit;"
+$caArg = [uri]::EscapeDataString($ProdCa)
+$writeOpts = [uri]::EscapeDataString('-c lock_timeout=5s -c statement_timeout=120s')
+$readOpts = [uri]::EscapeDataString('-c default_transaction_read_only=on -c lock_timeout=2s -c statement_timeout=15s')
+if ($ApprovedProjectRef -cnotmatch '^[a-z]{20}$') { throw 'Confirmer la référence approuvée dans le Dashboard privé' }
+$direct = "postgresql://postgres@db.$ApprovedProjectRef.supabase.co:5432/postgres"
+$ProdUri = "${direct}?sslmode=verify-full&sslrootcert=$caArg&options=$writeOpts"
+$ProdReadUri = "${direct}?sslmode=verify-full&sslrootcert=$caArg&options=$readOpts"
+$identity = "select current_database(), session_user, current_user, inet_server_addr(), inet_server_port(), current_setting('transaction_read_only'), current_setting('lock_timeout'), current_setting('statement_timeout'), (select ssl from pg_stat_ssl where pid = pg_backend_pid())"
+& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdReadUri -c $identity
+& $Cli db query --workdir $Stage --db-url $ProdReadUri --agent no $identity
+& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdReadUri -f scripts/verification-prod/preflight.sql -c 'rollback'
 ```
 
-Exécuter chaque commande séparément et contrôler son code de sortie. `pg_stat_ssl` confirme le chiffrement de la session, tandis que la vérification du certificat et du nom relève du client.
+### Auth, Data API et arrêt
 
-### Restauration logique sur une cible Supabase isolée
+- **Accès sur invitation uniquement.** Après accord Auth distinct, s’assurer que **Allow new users to sign up** est désactivé, que **Site URL** correspond à la racine HTTPS publiée et que **Redirect URLs** contient le seul callback `authentification.html` de cette racine. Le fournisseur e-mail et la confirmation e-mail restent actifs, les connexions anonymes restent désactivées. Relire les réglages après enregistrement et confirmer la politique de mot de passe. Le parcours d’invitation et de récupération manuelles utilise le callback commun. [Architecture Auth](AUTHENTIFICATION.md#url-de-retour-et-modèles-de-mails)
+- Confirmer Data API activée, `public` exposé et `bprea_private` exclu. Vérifier les grants de `authenticated` sur les tables, colonnes et RPC. **Qualifier P et M1–M5 sur PostgREST 14.18 avant l’accord d’installation.** Vérifier le retour HTTP 409 des conflits de révision, l’absence de mutation, les permissions et les parcours réels. [Résultats et limites du lot E](../validations/VALIDATION-LOT6-6-0-DE.md#compatibilité-postgrest) · [Exposition Data API](https://supabase.com/docs/guides/api/securing-your-api)
+- Confirmer le créneau, le rôle unique de migration et la suspension coordonnée des opérations d’écriture, invitations et DDL concurrents. Observer `pg_locks` et `pg_stat_activity` sur `auth.users`, `public` et le registre, avec types, durées et PID, sans texte de requête. M1 ajoute un trigger et une FK vers `auth.users`, prend notamment un verrou `SHARE ROW EXCLUSIVE` sur cette table et peut faire attendre ses écritures jusqu’au commit. Mesurer le backfill en répétition si le nombre de comptes change. [Verrous PostgreSQL 17](https://www.postgresql.org/docs/17/explicit-locking.html)
+- **Arrêt obligatoire** si cible, empreintes, ACL, DDL, inventaire, Auth, API ou TLS divergent sans qualification. L’absence de point de restauration qualifié, un verrou prolongé ou une transaction concurrente suspendent également l’intervention.
 
-Inventorier les ACL de création **avant** de restaurer. Sur une cible Supabase préconfigurée, le premier essai a rendu des droits supplémentaires à des rôles API. Les ACL d’objet d’une archive logique supposent les défauts PostgreSQL à la création. Les grants Supabase supplémentaires de la cible peuvent donc subsister malgré le succès de `pg_restore`. Si le profil de la cible diffère, arrêter et établir la matrice de restauration pour ses créateurs, ses schémas et ses défauts globaux.
+### Sauvegarde préalable et restauration isolée
 
-Dans le cas répété localement, la source et la cible avaient la même image et les mêmes migrations Auth. Le TOC sélectionne les objets, données et ACL des schémas applicatifs et du registre, les lignes `auth.users` puis `auth.identities` et le seul trigger applicatif sur `auth.users`. Les objets Auth gérés existent déjà sur la cible. Les nouvelles sessions sont émises par Auth après restauration. Un autre périmètre de données ou de services exige un TOC et une preuve propres.
+Confirmer la disponibilité et le périmètre des sauvegardes fournisseur. Pour un export logique, vérifier les droits avec le client opérateur et relever les agrégats Auth et Storage juste avant la capture. Un écart de périmètre requiert une nouvelle décision avant extraction. Faire accepter le RPO/RTO de l’intervention et le traitement des écritures et effacements postérieurs. Viser un point juste avant P dans une fenêtre sans écriture métier ni administration Auth. [Sauvegardes Supabase](https://supabase.com/docs/guides/platform/backups) · [Politique de préouverture](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo)
 
-Rendre le TOC en SQL dans un fichier privé. Pour les défauts observés en local, préparer le prélude ci-dessous et un fichier de contrôle qui lève une exception si les ACL de table, de colonne ou de fonction donnent un droit inattendu. L’archive conserve les entrées `DEFAULT ACL` à rejouer après les objets. Lancer le prélude, le SQL et le contrôle **dans une seule transaction**. Confirmer l’absence de `COMMIT` interne et de changement de connexion dans le SQL généré. Comparer les ACL par défaut et les ACL effectives, le schéma et les données après succès.
+**Point d’arrêt humain avant extraction.** Confirmer le rôle et la capacité d’export, le stockage chiffré, l’accès restreint, la rétention et le périmètre exact. Employer une archive custom cohérente pour `public` et `auth`, avec `bprea_private` et `supabase_migrations` s’ils existent. Inclure uniquement les autres schémas et données expressément qualifiés. Une archive Auth peut contenir des empreintes de mots de passe, jetons ou données personnelles. Conserver séparément les propriétaires, ACL par défaut, rôles et memberships requis, versions/extensions, registre absent ou présent et réglages fournisseur non secrets. Prévoir dans le coffre les paramètres hors base, clés de signature, intégrations Auth, secrets et configuration de service à reconstituer. Traiter le contenu Storage et le Vault séparément si leur usage est constaté.
 
-```sql
-alter default privileges for role postgres in schema public
-  revoke all on tables from anon, authenticated, service_role;
-alter default privileges for role postgres in schema public
-  revoke execute on functions from anon, authenticated, service_role;
-```
+**PRÉPARÉES — NON EXÉCUTÉES** sur PROD. Les options ci-dessous illustrent l’état initial observé. `$Archive` et `$Toc` sont des destinations privées neuves hors dépôt.
 
 ```powershell
-& $PgRestore --use-list $RestoreToc --file $RestoreSql $RestoreArchive
+if ((Test-Path -LiteralPath $Archive) -or (Test-Path -LiteralPath $Toc)) { throw 'Choisir des destinations neuves' }
+& $PgDump --dbname=$ProdReadUri --format=custom --lock-wait-timeout=5s --schema=public --schema=auth --file=$Archive
+if ($LASTEXITCODE -ne 0) { throw 'Échec de pg_dump' }
+$contents = & $PgRestore --list $Archive
+if ($LASTEXITCODE -ne 0) { throw 'Archive illisible' }
+$contents | Set-Content -LiteralPath $Toc -Encoding utf8 -ErrorAction Stop
+Get-FileHash -LiteralPath $Archive, $Toc -Algorithm SHA256
+```
+
+Contrôler séparément le code de sortie de chaque outil. Consigner l’heure de début du snapshot, le TOC, les tailles et les empreintes et confirmer le périmètre. Un TOC lisible atteste la présence des objets listés. La reprise requiert une restauration et des contrôles effectifs. Les rôles globaux et la configuration de plateforme sont hors de l’archive PostgreSQL. L’option Supabase CLI filtre des schémas gérés par défaut, dont Auth et Storage. [pg_dump 17](https://www.postgresql.org/docs/17/app-pgdump.html) · [Périmètre Supabase CLI](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore)
+
+**PRÉPARÉES — NON EXÉCUTÉES au lot D**, sur une cible **isolée** identifiée et compatible. Utiliser une image avec les objets Auth gérés et les rôles attendus déjà en place. Établir un TOC approuvé des objets propres au projet, des lignes Auth autorisées et de leurs dépendances dans le bon ordre, avec le registre et les ACL lorsqu’ils existent. Conserver les propriétaires et comparer les défauts de création de la cible. Le premier essai C a montré que des grants par défaut de la cible pouvaient survivre au rejeu des ACL d’objet. Le second essai a neutralisé ces défauts dans un prélude transactionnel, puis rejoué les `DEFAULT ACL` de la source et exécuté une garde d’ACL avant commit.
+
+```powershell
+& $PgRestore --use-list $RestoreToc --file $RestoreSql $Archive
 & $Psql -X -w -v ON_ERROR_STOP=1 --single-transaction -d $RestoreUri -f $RestorePrelude -f $RestoreSql -f $RestoreAclGuard
 ```
 
-## 3. Installation par étapes
+Avant le second appel, vérifier la cible isolée, la matrice d’ACL, l’absence de changement de connexion ou de commit de niveau supérieur dans le SQL. Comparer les objets fournisseur préexistants, notamment `public.rls_auto_enable()`, avant de les omettre du TOC. Après import, comparer schéma, propriétaires, ACL explicites et effectives, registre, contraintes, données et agrégats Auth. Dans l’essai synthétique, tester connexion avec nouvelles sessions et isolation JWT A/B. Qualifier la portée sessions/MFA/identités selon le service utilisé. Chronométrer, valider le RPO/RTO et faire accepter le point de reprise avant P. Un essai utilisant des données PROD requiert une autorisation et un périmètre de conservation distincts. [Recette synthétique du lot C](../validations/VALIDATION-LOT6-6-0-C.md#f-recette-avec-docker-desktop)
 
-1. **P.** Dans la fenêtre, exécuter le [script de préparation](../../scripts/verification-prod/prepare-permissions.sql) sous `postgres`. Il modifie uniquement les ACL par défaut de table pour ce rôle et ce bénéficiaire. Sa transaction retire les grants globaux puis ceux de `public`, et crée puis retire une table témoin qui détecte les droits effectifs via d’autres rôles ou `PUBLIC`. À l’échec, vérifier que les ACL initiales sont intactes et que le témoin est absent. Après succès, comparer les ACL aux relevés et vérifier l’absence du témoin et de toute version ajoutée au registre.
-2. **M1.** Dans `$Stage`, préparer `supabase/config.toml`, les templates référencés et `supabase/migrations` vide. Copier uniquement M1. Appliquer une seule migration via la commande ci-dessous. Vérifier l’unique entrée M1, les définitions de `profiles`, du trigger sur `auth.users` et des deux fonctions privées. Comparer le compte d’Auth initial, le nombre de profils et les deux résultats de jointure anti-jointe. Examiner les logs Auth au voisinage du commit. Vérifier les grants de colonne et l’absence de droit direct de `service_role` avant M2.
-3. **M2.** Ajouter M2 au préfixe déjà validé de `$Stage`, puis répéter la même commande et les audits. Vérifier les trois tables Drill, les six politiques ajoutées, les clés composées et les RPC invoker. Confirmer que les profils et leur nombre sont préservés. Relever les droits effectifs de `service_role` sur les quatre tables.
-4. **M3.** Ajouter M3 au préfixe. Vérifier les six tables, leurs contraintes, politiques, triggers et RPC, ainsi que l’intégralité des profils. Confirmer que les ACL des dix tables, neuf RPC et six fonctions privées sont conformes.
-5. **M4.** Ajouter M4 au préfixe. Vérifier le quatrième enregistrement, l’identité du catalogue métier avant/après et l’absence de droits de `service_role`. Comparer les ACL par défaut au relevé pris après P. Conserver les quatre versions et leurs empreintes dans le dossier d’intervention. P est journalisée dans ce dossier comme opération préparatoire.
+## 2. Séquence d’installation sous accord distinct
 
-Commandes **préparées, jamais exécutées sur PROD dans le lot C**. Le préfixe contient les versions déjà validées plus exactement le prochain fichier. Contrôler les empreintes de la copie et le registre **avant chaque invocation**. Après chaque code de sortie 0, exécuter les deux audits et comparer les valeurs au tableau.
+| Étape | Cible et preuve de passage |
+| --- | --- |
+| 1. Préflight final | PROD en lecture seule. Contrôler l’ensemble de la section 1 et l’accord opérateur. |
+| 2. Sauvegarde autorisée | PROD en lecture et stockage privé. Produire le snapshot avant P. |
+| 3. Point de reprise | Validation humaine du TOC, des empreintes, de la couverture et de la répétition isolée. |
+| 4. P | PROD sous `postgres`. La transaction révoque les défauts, crée un témoin puis le retire. |
+| 5. ACL après P | PROD en lecture seule. Vérifier les seuls deltas attendus, la disparition du témoin et le registre inchangé. |
+| 6. M1 | PROD. Préfixe limité à M1 et registre initial confirmé. |
+| 7. Vérifications M1 | Une version et un profil par compte, zéro profil orphelin ni compte sans profil. Vérifier deux fonctions privées, le trigger Auth, les privilèges de colonne et le refus effectif de `service_role`. |
+| 8. M2 | PROD. Préfixe M1–M2. |
+| 9. Vérifications M2 | Trois tables Drill ajoutées, six politiques, clés composées et trois RPC invoker. Vérifier le maintien des profils et le refus direct sur les quatre tables. |
+| 10. M3 | PROD. Préfixe M1–M3. |
+| 11. Vérifications M3 | Six tables ajoutées, six RPC, gardes et politiques. Vérifier les droits sur les dix tables et quinze routines. |
+| 12. M4 | PROD. Préfixe M1–M4. |
+| 13. Vérifications M4 | Quatrième entrée, structure métier identique, défauts identiques à l’état post-P et aucun accès direct de `service_role`. |
+| 14. M5 | PROD. Préfixe M1–M5. |
+| 15. Vérifications M5 | Cinquième entrée et seuls deux codes de conflit modifiés dans la garde privée. Comparer propriétaire, ACL, triggers et catalogue au palier M4. |
+| 16. Schéma complet | Comparer types, défauts, colonnes générées, contraintes validées, index, politiques, fonctions, triggers et propriétaires au catalogue de référence. |
+| 17. Permissions | Comparer droits de table, colonne, routine et schéma. RLS active sur les dix tables, `authenticated` limité aux privilèges prévus. `anon` et `service_role` sans accès direct applicatif. Contrôler l’unique fonction métier definer et les chemins de recherche vides. |
+| 18. Auth | Relever les paramètres, le backfill par agrégats et les erreurs au voisinage des commits sans collecter de données de compte. |
+| 19. Historique | Confirmer les cinq versions/noms et, si nécessaire, les instructions enregistrées. Journaliser P séparément avec son empreinte. |
+| 20. Fonctionnel | Avec clé publique privée du journal, GET anonyme sur `profiles` refusé et GET avec JWT invalide rejeté. Relever codes HTTP/SQLSTATE. Si des sessions de recette préexistantes sont spécifiquement autorisées, vérifier des lectures propres et croisées avec résultats agrégés. Les RPC d’écriture et flux Auth de recette restent locaux. |
+| 21. Clôture | Faire valider les résultats avant de lever les suspensions opératoires. Ranger les preuves privées, retirer les secrets temporaires du terminal. L’activation Pages et les invitations suivent leur procédure distincte. |
+
+Commandes d’écriture **PRÉPARÉES — NON EXÉCUTÉES**, exclusivement pour l’hôte direct PROD et sous autorisation distincte. Vérifier le code de sortie de chaque commande, ainsi que l’état et le hash du préfixe avant tout passage. Les scripts de catalogue et privilèges ont été écrits pour DEV et ne sélectionnent aucune connexion. Les exécuter uniquement comme SQL de lecture avec `$ProdReadUri`, après création confirmée du registre pour le catalogue. Comparer les définitions, et traiter séparément les objets préexistants du fournisseur.
 
 ```powershell
+# P, une seule fois après le point de reprise.
 & $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdUri -f scripts/verification-prod/prepare-permissions.sql
 
-# Pour chacun des quatre pas, attribuer $Next au prochain fichier vérifié, puis s'arrêter pour les contrôles.
+# Un seul fichier supplémentaire par invocation. Contrôler son empreinte avant la CLI.
 Copy-Item -LiteralPath (Join-Path 'supabase/migrations' $Next) -Destination (Join-Path $Stage 'supabase/migrations')
 & $Cli migration up --workdir $Stage --db-url $ProdUri --agent no --yes
-& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdUri -f scripts/verification-dev/catalogue.sql
-& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdUri -f scripts/verification-dev/privileges.sql
+
+# Lectures après chaque frontière et nouveau point de décision avant de poursuivre.
+& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdReadUri -f scripts/verification-dev/catalogue.sql
+& $Psql -X -w -v ON_ERROR_STOP=1 -d $ProdReadUri -f scripts/verification-dev/privileges.sql
 ```
 
-| Après | Tables | Colonnes | Contraintes | Index | RLS | Fonctions | Triggers | Versions |
+| Frontière | Tables | Colonnes | Contraintes | Index | Politiques | Fonctions | Triggers | Versions |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| P | 0 | 0 | 0 | 0 | 0 | 0 | 0 | Aucune |
 | M1 | 1 | 4 | 3 | 1 | 2 | 2 | 2 | M1 |
-| M2 | 4 | 29 | 28 | 9 | 8 | 7 | 5 | M1 à M2 |
-| M3 | 10 | 98 | 95 | 24 | 24 | 15 | 11 | M1 à M3 |
-| M4 | 10 | 98 | 95 | 24 | 24 | 15 | 11 | M1 à M4 |
+| M2 | 4 | 29 | 28 | 9 | 8 | 7 | 5 | M1–M2 |
+| M3 | 10 | 98 | 95 | 24 | 24 | 15 | 11 | M1–M3 |
+| M4 | 10 | 98 | 95 | 24 | 24 | 15 | 11 | M1–M4 |
+| M5 | 10 | 98 | 95 | 24 | 24 | 15 | 11 | M1–M5 |
 
-M1 à M3 ont chacune leur propre `BEGIN` et `COMMIT`. La CLI 2.121.0 enregistre la version après les instructions du fichier. La répétition a provoqué un échec de l’écriture du registre **après le COMMIT de M2** et retrouvé les objets M2. La CLI a annulé les modifications du correctif M4 lorsqu’une instruction injectée avant sa fin a échoué. La garantie de moindre privilège pour M1 à M3 repose sur P exécutée avant les créations, l’identité du propriétaire et le gel des DDL concurrents. Une migration corrective appliquée après les trois fichiers n’offre pas cette garantie sur une installation directe. [Source CLI épinglée et suivi de migration](https://github.com/supabase/cli/blob/v2.121.0/apps/cli-go/pkg/migration/file.go)
+Les compteurs concernent Mon BPREA. P et M1–M3 ont des transactions explicites. M1–M3 peuvent être validées en base avant l’écriture au registre par la CLI. M4 est sans `COMMIT` explicite et son annulation sur erreur a été observée dans le batch de la CLI épinglée. Confirmer les deux états à chaque palier, surtout si le client a perdu le résultat. P applique `lock_timeout=5s` et `statement_timeout=30s` localement. Le pilote de migration doit appliquer 5 s et 120 s, respectivement. Ces valeurs bornent l’attente de verrou et la durée **par instruction**, tandis que l’opérateur borne la durée totale et les délais réseau. [Recette des incidents](../validations/VALIDATION-LOT6-6-0-C.md#e-pannes-reprise-et-sauvegarde) · [Traitement du registre par la CLI](https://github.com/supabase/cli/blob/v2.121.0/apps/cli-go/pkg/migration/file.go)
 
-## 4. Contrôles de fin
+## 3. Incidents, arrêts et reprise
 
-1. Comparer les définitions réelles à la référence de répétition et au SQL approuvé. Trier les catalogues par identité logique et normaliser les fins de ligne. Vérifier types, défauts, colonne générée, CHECK, clés étrangères et cascades, unicités et index valides. Relever les 24 politiques avec leurs rôles, commandes, `USING` et `WITH CHECK`. Les dix tables doivent activer RLS. Le seul `SECURITY DEFINER` applicatif est le trigger de profil, propriétaire `postgres`, avec `search_path` vide. Les neuf RPC et les cinq autres fonctions privées sont invoker, avec le même `search_path` vide.
-2. Vérifier la matrice des privilèges effectifs. `authenticated` lit ses données et écrit les seules colonnes prévues. `anon` et `service_role` ont zéro droit de table ou de colonne applicative et zéro `EXECUTE` sur les routines applicatives. Les rôles API n’ont ni `USAGE` ni `CREATE` dans `bprea_private`. Vérifier le registre, les noms et, si nécessaire, comparer les instructions enregistrées au fichier approuvé après normalisation de la CLI.
-3. Confirmer par agrégats que chaque compte Auth a exactement son profil, qu’aucun profil n’est orphelin et que les données existantes sont préservées. Relire les erreurs Auth (profil, invitations), PostgreSQL (ACL, verrous, FK) et PostgREST (cache et permissions). Comparer la liste des schémas exposés et les réglages Auth/Data API aux relevés initiaux. Le lot backend n’active pas l’artefact Pages connecté.
-4. Effectuer les tests non destructifs approuvés. Vérifier via la clé publique un GET anonyme refusé sur `profiles` et un GET avec JWT invalide rejeté. Consigner codes HTTP et SQLSTATE sans publier de clé, de jeton ni de ligne. Si des comptes de recette existent déjà et sont autorisés, utiliser leurs sessions pour comparer des lectures propres et croisées en lecture seule. À défaut, reporter cette preuve à la stack locale. Lancer les RPC d’écriture, les tests d’expiration avec sessions générées et les suppressions de compte uniquement dans la répétition isolée.
-5. Lever les suspensions opérationnelles après validation des contrôles. Révoquer les accès de session temporaires et retirer les variables de connexion du terminal. Confirmer que les réglages et contrôles opératoires reviennent à leur état prévu. Joindre preuves, horodatages, anomalies et décision au dossier D.
+Arrêter l’enchaînement, maintenir le gel et capturer, dans une **nouvelle session vérifiée**, registre, catalogue, droits et agrégats. Vérifier d’abord si l’ancienne session ou des verrous sont encore actifs. La décision appartient à l’opérateur désigné après comparaison au dernier palier sain.
 
-## 5. Arrêt et reprise
+| Incident | Contrôle immédiat | Décision et reprise |
+| --- | --- | --- |
+| P échoue ou résultat perdu | Comparer défauts initiaux/post-P, absence du témoin et registre intact. | ACL initiales confirmées et cause levée, rejouer P sous le mandat de la fenêtre. ACL post-P exactes, journaliser le succès constaté. État mixte ou privilège hérité, suspendre pour une décision séparée. |
+| M1 échoue | Attendre état post-P, aucun objet M1 ni version M1, Auth inchangé. Le registre technique peut exister vide. | Confirmer l’intégrité Auth et diagnostiquer l’échec ou le verrou. Reprendre M1 seule si le palier précédent est intact. Si les objets M1 sont visibles, traiter l’historique avant de poursuivre. |
+| M2 échoue | Attendre profil, trigger Auth et seule version M1, ou constater les quatre tables avec M2 déjà validée. | Si l’état M1 est exact, reprendre M2 seule après résolution. Sinon rapprocher structure, données et registre. |
+| M3 échoue | Attendre quatre tables et M1–M2, ou constater les dix tables avec M3 déjà validée. | Préserver les profils et données Drill. Reprendre M3 seule uniquement depuis un palier M2 vérifié. |
+| M4 échoue | Vérifier registre M1–M3 et ACL post-M3, y compris droits hérités et de colonne. | Reprendre M4 seule après correction approuvée si les ACL post-M3 sont exactes. À tout accès direct inattendu, maintenir l’arrêt et identifier le chemin du grant. |
+| M5 échoue | Vérifier la définition effective de la garde, son propriétaire et ses ACL, ainsi que le registre. | Reprendre M5 seule après correction approuvée si le palier M4 est intact. En cas de divergence entre le registre et la définition, suspendre. |
+| Objets conformes, version manquante | Comparer catalogue entier, ACL, lignes, dépendances, empreinte et ordre. | Réparation de la seule version prouvée, sous accord distinct, puis relecture intégrale. Rejouer le fichier présente un risque de collision ou de modification. |
+| Version présente, objets absents ou partiels | Relever instructions, propriétaires, définitions et dernier point sain. | Arbitrer un delta revu et répété ou une restauration. Toute réparation du registre attend un mandat distinct. |
+| Verrou prolongé ou connexion interrompue | Examiner sessions/verrous et état du commit depuis une autre connexion. | Attendre ou reporter le créneau. Toute interruption d’une autre session exige une décision séparée. Reprendre seulement après classification certaine de l’état. |
+| Trigger Auth ou flux de connexion en erreur | Suspendre les invitations, comparer agrégats et contraintes, vérifier droits/owner et réglages. | Vérifier l’issue de la transaction Auth avant toute nouvelle invitation. Décider d’un correctif ciblé ou d’une reprise isolée sous mandat. |
+| Restauration requise | Sécuriser état actuel, preuves et sauvegarde, évaluer écritures/effacements depuis le snapshot. | Restaurer d’abord en cible isolée, vérifier et réconcilier, puis faire approuver le plan réel de retour. Une remise d’ACL pré-P doit considérer les objets déjà installés et l’exposition qui en découlerait. |
 
-1. À tout écart, stopper le préfixe en cours, garder le site connecté fermé et conserver le gel des opérations Auth. Relever dans une nouvelle session les objets, ACL effectives, comptes/profils agrégés, verrous et registre. Vérifier l’état réel même après une interruption qui a empêché de recevoir le résultat du `COMMIT`.
-2. **Objets absents, version absente.** Une fois la cause corrigée et l’état précédent confirmé, rejouer uniquement le prochain fichier depuis le préfixe vérifié. Si l’échec concerne P, vérifier l’égalité des ACL, puis relancer P après résolution de la cause.
-3. **Objets conformes, version absente.** Comparer le catalogue entier, les droits, la conservation des données et les empreintes avant toute intervention sur le registre. Après autorisation explicite pour ce cas, la commande préparée est `supabase migration repair --workdir <préfixe> --db-url <cible-vérifiée> --status applied <version-exacte>`. Elle ne réexécute pas le fichier. Relire l’état complet avant de poursuivre. Un écart partiel ou une version enregistrée sans objets correspondants impose un examen manuel et une décision distincte.
-4. **Trigger Auth en erreur.** Suspendre les créations. Relire les contraintes, le rôle propriétaire, le corps et les ACL du trigger, puis les comptes/profils. Si un compte manque après une invitation déjà tentée, vérifier la transaction et l’état réel avant toute nouvelle invitation. Réparer par un delta revu ou restaurer selon le périmètre. Toute compensation doit préserver les données arrivées depuis le point de sauvegarde.
-5. **Restauration.** La privilégier si l’état ne peut être réconcilié par une correction ciblée prouvée. Restaurer d’abord en cible isolée, comparer données et schéma, réconcilier le registre d’effacements et les changements depuis le snapshot. Un retour sur PROD exige une décision séparée après évaluation de l’impact Auth et des données écrites depuis le snapshot. Toute remise d’ACL pré-P se fait à partir du relevé exact, après vérification des objets présents et du risque d’accès que cette remise réintroduirait.
+Commande de registre **PRÉPARÉE — NON EXÉCUTÉE**, cible PROD après autorisation explicite et vérification du préfixe. Le cas M2 ci-dessous a été répété uniquement sur une base fictive.
+
+```powershell
+& $Cli migration repair --workdir $Stage --db-url $ProdUri --status applied 20261024083417 --agent no --yes
+```
+
+Limiter les compensations aux deltas examinés et approuvés. Les opérations de remise à zéro, de suppression en cascade et les réparations automatiques du registre sont exclues du plan de reprise.
