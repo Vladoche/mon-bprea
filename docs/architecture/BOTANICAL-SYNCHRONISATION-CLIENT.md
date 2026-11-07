@@ -1,6 +1,6 @@
 # Botanique — synchronisation personnelle (lot 6.3.3)
 
-Le client utilise exclusivement les tables `botanical_sessions`, `botanical_answers` et les RPC `personal_save_botanical_session`, `personal_record_botanical_answer` du [contrat 6.3.1](PERSONAL-DATA-BACKEND.md). Aucun changement SQL, RPC, RLS ou privilège de profil. Les [preuves de validation](../validations/VALIDATION-LOT6-3-3.md) distinguent Chromium autonome et Supabase local réel.
+Le client utilise exclusivement les tables `botanical_sessions`, `botanical_answers` et les RPC `personal_save_botanical_session`, `personal_record_botanical_answer` du [contrat 6.3.1](PERSONAL-DATA-BACKEND.md). Aucun changement SQL, RPC, RLS ou privilège de profil. Les [preuves de validation](../archives/validations/VALIDATION-LOT6-3-3.md) distinguent Chromium autonome et Supabase local réel.
 
 ## Audit et réutilisation
 

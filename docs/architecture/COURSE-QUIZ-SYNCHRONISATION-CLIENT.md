@@ -1,6 +1,6 @@
 # Cours et QCM — synchronisation personnelle (lot 6.3.2)
 
-Le client consomme exclusivement `course_states`, `quiz_attempts`, `personal_save_course` et `personal_record_quiz` du [contrat backend 6.3.1](PERSONAL-DATA-BACKEND.md). Il reste statique et conserve les calculs de `getUnitExamStats()`. Les [preuves exécutées](../validations/VALIDATION-LOT6-3-2.md) distinguent tests applicatifs et PostgreSQL/Auth réels.
+Le client consomme exclusivement `course_states`, `quiz_attempts`, `personal_save_course` et `personal_record_quiz` du [contrat backend 6.3.1](PERSONAL-DATA-BACKEND.md). Il reste statique et conserve les calculs de `getUnitExamStats()`. Les [preuves exécutées](../archives/validations/VALIDATION-LOT6-3-2.md) distinguent tests applicatifs et PostgreSQL/Auth réels.
 
 ## Modules et sources
 

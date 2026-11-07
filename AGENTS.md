@@ -10,8 +10,8 @@ Commencer par la [fiche de reprise Codex](docs/developpement/REPRISE-CODEX.md), 
 
 - Site statique GitHub Pages, utilisable sans Node.js ; éviter les dépendances inutiles.
 - Pages `*.html` et `assets/` : interface, logique partagée et données structurées JSON. Préserver fonctionnalités, URL, identifiants et clés locales.
-- `scripts/` : outils locaux ; `tests/` : tests applicatifs ; `supabase/` : migrations, fonctions et tests de sécurité.
-- Guides dans `docs/architecture/`, validations dans `docs/validations/` ; maintenir les liens lors d’un déplacement autorisé.
+- `scripts/` : outils locaux ; `tests/` : suites et configurations de test ; `supabase/` : migrations, fonctions et tests de sécurité.
+- Guides dans `docs/architecture/`, procédures dans `docs/deploiement/` et `docs/developpement/`, validations en cours dans `docs/validations/`. Les preuves des campagnes antérieures restent dans `docs/archives/validations/` ; les consulter seulement si le chantier le nécessite et maintenir les liens lors d’un déplacement autorisé.
 - Pédagogie : 10 nouveaux exercices par UC et semaine, séries précédentes non bloquantes, réussite calculée sur les exercices réalisés, historique statistique conservé, aucune gamification ni badge de récompense.
 - Interface responsive et accessible ; préserver le mode sombre et les thèmes saisonniers et horaires.
 

@@ -1,6 +1,6 @@
 # Reprise de la recette DEV — lot 6.5.4.C
 
-**4 novembre 2026 — C2 exécutée et fermée : correctif JSON validé contre DEV au frontend local 5c910b748fae0b7747c8192424e7ecd49c86a520.** T03/T08/T10/T12 réussis ; expiration JWT T11 **NON EXÉCUTÉE**, report choisi explicitement par l'exploitant. [Bilan actuel, SHA et preuves](../validations/VALIDATION-LOT6-5-4C.md). Compteurs cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives** ; **36 lignes** conservées (26 A/10 B). Aucun nouveau compte/lien, nettoyage, déploiement ou changement Auth/RLS.
+**4 novembre 2026 — C2 exécutée et fermée : correctif JSON validé contre DEV au frontend local 5c910b748fae0b7747c8192424e7ecd49c86a520.** T03/T08/T10/T12 réussis ; expiration JWT T11 **NON EXÉCUTÉE**, report choisi explicitement par l'exploitant. [Bilan actuel, SHA et preuves](../archives/validations/VALIDATION-LOT6-5-4C.md). Compteurs cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives** ; **36 lignes** conservées (26 A/10 B). Aucun nouveau compte/lien, nettoyage, déploiement ou changement Auth/RLS.
 
 ## État actuel à conserver
 
@@ -16,7 +16,7 @@ Pour le dernier contrôle T11, ne pas réutiliser le préflight périmé ou red�
 
 Les états et demandes suivants sont conservés à leur date ; ils n'autorisent aucune relance et ne décrivent pas les compteurs actuels.
 
-**31 octobre 2026 — R/C/C1 exécutés, recette partielle conservée au choix de l'exploitant ; C2 non autorisée, D absent.** Le correctif JSON est vérifié localement et en CI ; aucun frontend corrigé exécuté sur DEV. La [validation](../validations/VALIDATION-LOT6-5-4C.md) distingue les résultats acquis des parcours restants. La matrice **T01–T12 et ses sous-cas** reste celle du [runbook B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Les procédures ci-dessous ne donnent aucun accord de relance.
+**31 octobre 2026 — R/C/C1 exécutés, recette partielle conservée au choix de l'exploitant ; C2 non autorisée, D absent.** Le correctif JSON est vérifié localement et en CI ; aucun frontend corrigé exécuté sur DEV. La [validation](../archives/validations/VALIDATION-LOT6-5-4C.md) distingue les résultats acquis des parcours restants. La matrice **T01–T12 et ses sous-cas** reste celle du [runbook B](RUNBOOK-RECETTE-DEV-6-5-4B.md). Les procédures ci-dessous ne donnent aucun accord de relance.
 
 ## Phase corrective après C1
 

@@ -18,15 +18,15 @@
     "preopening": "node scripts/preopening/operator.mjs",
     "preopening:notice": "node scripts/preopening/notice-preview.mjs",
     "preopening:exercise": "node scripts/preopening/exercise-local.mjs",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:unit": "vitest run tests/unit",
-    "test:integration": "vitest run tests/integration",
-    "test:e2e": "playwright test",
+    "test": "vitest run --config tests/vitest.config.js",
+    "test:watch": "vitest --config tests/vitest.config.js",
+    "test:unit": "vitest run --config tests/vitest.config.js tests/unit",
+    "test:integration": "vitest run --config tests/vitest.config.js tests/integration",
+    "test:e2e": "playwright test --config tests/playwright.config.js",
     "test:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-supabase.mjs",
     "test:drill:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-drill-supabase.mjs",
     "test:personal:supabase": "node --env-file-if-exists=.env.supabase-test.local scripts/test-personal-data-supabase.mjs",
-    "test:e2e:supabase": "playwright test --config=playwright.supabase.config.js"
+    "test:e2e:supabase": "playwright test --config tests/playwright.supabase.config.js"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

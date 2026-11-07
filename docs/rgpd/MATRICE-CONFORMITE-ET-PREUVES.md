@@ -1,18 +1,18 @@
 # Matrice des exigences, preuves et décisions — lot 6.4.4
 
-**État courant 6.5.5.D, 05/11/2026.** Les preuves et les sept portes résolues sont suivies dans la [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) et la [validation D](../validations/VALIDATION-LOT6-5-5D.md). Les lignes datées ci-dessous conservent leur périmètre historique.
+**État courant 6.5.5.D, 05/11/2026.** Les preuves et les sept portes résolues sont suivies dans la [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) et la [validation D](../archives/validations/VALIDATION-LOT6-5-5D.md). Les lignes datées ci-dessous conservent leur périmètre historique.
 
 **RECETTE TECHNIQUE ET PRÉPARATION — AUCUNE CONFORMITÉ ACQUISE.** État au 28 octobre 2026. Les sources juridiques indiquent les textes à examiner, pas une applicabilité ou une base retenue. Les statuts ont le sens du [dossier de préouverture](DOSSIER-PREOUVERTURE.md). Fonctions validatrices **à désigner** ; aucune approbation implicite par le développeur.
 
 ## Actualisation documentaire 6.5.1
 
-La [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) est fusionnée dans `main` au commit `39a5196816060e4d2a3963b44af6bfe5019b7d30`. Les résultats historiques ci-dessous gardent leur SHA ; les nouveaux checks seront relevés sur la tête de la PR 6.5.1 dans sa description et la [validation](../validations/VALIDATION-LOT6-5-1.md). Le [cadrage A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md) renseigne B : six adultes maximum, usage facultatif indépendant, résultats privés sans accès formateur/évaluation officielle prévus, horizon juin 2027. Ces faits remplacent les inconnues de public des lignes C01/C05/C14 ; C10/C11 sont préparées pour l'exploitant cumulant les tâches, aucun canal réel validé. Les P0 restent bloquants et D01–D14 à valider. Ni état distant ni conformité ne sont inférés des tests.
+La [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) est fusionnée dans `main` au commit `39a5196816060e4d2a3963b44af6bfe5019b7d30`. Les résultats historiques ci-dessous gardent leur SHA ; les nouveaux checks seront relevés sur la tête de la PR 6.5.1 dans sa description et la [validation](../archives/validations/VALIDATION-LOT6-5-1.md). Le [cadrage A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md) renseigne B : six adultes maximum, usage facultatif indépendant, résultats privés sans accès formateur/évaluation officielle prévus, horizon juin 2027. Ces faits remplacent les inconnues de public des lignes C01/C05/C14 ; C10/C11 sont préparées pour l'exploitant cumulant les tâches, aucun canal réel validé. Les P0 restent bloquants et D01–D14 à valider. Ni état distant ni conformité ne sont inférés des tests.
 
 ## Registre des exécutions
 
 | Référence | Exécution et identification | Résultat / limite |
 | --- | --- | --- |
-| L-U | 28/10/2026, Node 24.22.0, après `npm ci`, `npm test` sur la branche dédiée ; détail dans [VALIDATION-LOT6-4-4](../validations/VALIDATION-LOT6-4-4.md) | **380 tests / 42 fichiers réussis**. Mocks et fake-indexeddb, aucune preuve RLS. |
+| L-U | 28/10/2026, Node 24.22.0, après `npm ci`, `npm test` sur la branche dédiée ; détail dans [VALIDATION-LOT6-4-4](../archives/validations/VALIDATION-LOT6-4-4.md) | **380 tests / 42 fichiers réussis**. Mocks et fake-indexeddb, aucune preuve RLS. |
 | L-B | Même recette, `npm run test:e2e` après L-U ; rejouée après correction de l'assertion C | **73 parcours Chromium réussis en 57,3 s** au dernier passage local, dont A/B/D/E et inventaire de l'artefact. HTTP personnel synthétique ; pas PostgreSQL. |
 | L-P | Préparation locale par `scripts/prepare-pages.py` et `privacy-artifact.spec.js` sous `/mon-bprea/` | 17 pages vierges, réseau/stockages/URL ; configuration Auth désactivée. Ni CDN ni réglages hébergés reproduits. |
 | L-V | Inspection des captures synthétiques d'export/effacement, 1280/390 px, clair/sombre ; clavier testé par L-B | Preuve locale limitée aux écrans inspectés, pas audit complet d'accessibilité. |
@@ -65,4 +65,4 @@ Chaque ligne examine les dix points demandés : **I** isolation A/B, **V** visit
 
 Réseau coupé ou dernière page en erreur : pas de fichier serveur ; cache inaccessible : copie partielle explicite. Session perdue/refusée : pas d'export personnel ni d'effacement autorisé. Stockage refusé/transaction avortée : absence de confirmation et rollback de la barrière avec le retrait. Révision concurrente : nouvel aperçu requis. Ancien onglet bloquant : aucun effacement tardif après abandon. Réponse ignorant l'annulation : nouveau test d'intégration B attend explicitement sa libération puis refuse le fichier. Doubles confirmations et perte d'acquittement de clôture : tests du handler et C réelle ; absence de preuve/échec de vérification : serveur non confirmé. Les réponses après timeout sont couvertes par les tests du lecteur local/transports et la borne du client ; les expirations Auth réelles relèvent de CI-R.
 
-Les preuves opérationnelles, juridiques et contractuelles restent ouvertes même si toutes les lignes techniques passent. Le [bilan 6.4](../validations/BILAN-LOT6-4.md) et le dossier P0 font foi sur cette séparation.
+Les preuves opérationnelles, juridiques et contractuelles restent ouvertes même si toutes les lignes techniques passent. Le [bilan 6.4](../archives/validations/BILAN-LOT6-4.md) et le dossier P0 font foi sur cette séparation.

@@ -1,8 +1,8 @@
 # Authentification et profils — lot 6.1
 
-**Suivi 6.5.4.C, 4 novembre 2026 :** [bilan C2](../validations/VALIDATION-LOT6-5-4C.md), [reprise ciblée restante](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). C2 exécutée avec les deux comptes fictifs existants ; correctif JSON et T03/T08/T10/T12 réussis dans leur périmètre documenté. **T11 expiration JWT NON EXÉCUTÉE**, report choisi par l'exploitant ; les 3600 s configurées ne prouvent pas son expiration réelle. Budgets cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives**, A/B et **36 lignes** conservés. D non autorisée et non exécutée ; sessions distantes possibles après fermeture du banc. Aucun réglage Auth/RLS, accès PROD, déploiement Pages ou invitation réelle. Les constats du 31 octobre ci-dessous restent historiques ; les négatifs Auth non exécutés ne deviennent pas acquis.
+**Suivi 6.5.4.C, 4 novembre 2026 :** [bilan C2](../archives/validations/VALIDATION-LOT6-5-4C.md), [reprise ciblée restante](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). C2 exécutée avec les deux comptes fictifs existants ; correctif JSON et T03/T08/T10/T12 réussis dans leur périmètre documenté. **T11 expiration JWT NON EXÉCUTÉE**, report choisi par l'exploitant ; les 3600 s configurées ne prouvent pas son expiration réelle. Budgets cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives**, A/B et **36 lignes** conservés. D non autorisée et non exécutée ; sessions distantes possibles après fermeture du banc. Aucun réglage Auth/RLS, accès PROD, déploiement Pages ou invitation réelle. Les constats du 31 octobre ci-dessous restent historiques ; les négatifs Auth non exécutés ne deviennent pas acquis.
 
-**Suivi 6.5.4.C, 31 octobre 2026 :** [preuves DEV](../validations/VALIDATION-LOT6-5-4C.md), [reprise](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). Sous R, invitation B puis récupération du même A ont chacune produit un PUT Auth 200 et une reconnexion réussie après déconnexion : garde PKCE revérifié sur DEV. Trois générations consommées, aucun lien rejoué ; ancien mot de passe A inconnu, négatifs de liens non exécutés sur DEV. Aucune session historique importée, configuration modifiée ou ouverture publique. C/C1 approuvées, **C2 non autorisée, recette partielle conservée au choix de l'exploitant** ; D absent, sessions résiduelles possibles.
+**Suivi 6.5.4.C, 31 octobre 2026 :** [preuves DEV](../archives/validations/VALIDATION-LOT6-5-4C.md), [reprise](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). Sous R, invitation B puis récupération du même A ont chacune produit un PUT Auth 200 et une reconnexion réussie après déconnexion : garde PKCE revérifié sur DEV. Trois générations consommées, aucun lien rejoué ; ancien mot de passe A inconnu, négatifs de liens non exécutés sur DEV. Aucune session historique importée, configuration modifiée ou ouverture publique. C/C1 approuvées, **C2 non autorisée, recette partielle conservée au choix de l'exploitant** ; D absent, sessions résiduelles possibles.
 
 **Actualisation 6.5.3.A, 28 octobre 2026 : invitations et récupération manuelles, sans SMTP externe.** Le choix SMTP a été abandonné après le lot 6.5.2. Le [guide opérateur](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md) décrit le générateur Node exclusivement verrouillé sur la stack éphémère ; DEV/PROD sont refusés. La récupération publique est assistée, sans collecte d’adresse ni e-mail automatique. Aucune ouverture ou autorisation hébergée ne découle de ce lot.
 
@@ -12,7 +12,7 @@ Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill
 
 Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
 
-La configuration versionnée est **désactivée**. Aucun projet, identifiant ou secret n’est fourni par le dépôt. La présence du code et des tests ne vaut pas validation de Supabase. Les opérations réellement exécutées et les blocages sont consignés dans [VALIDATION-LOT6-1.md](../validations/VALIDATION-LOT6-1.md). L’ouverture aux étudiants attend le lot 6.5 et une validation explicite ; la préparation juridique et les procédures de droits attendent notamment le lot 6.4.
+La configuration versionnée est **désactivée**. Aucun projet, identifiant ou secret n’est fourni par le dépôt. La présence du code et des tests ne vaut pas validation de Supabase. Les opérations réellement exécutées et les blocages sont consignés dans [VALIDATION-LOT6-1.md](../archives/validations/VALIDATION-LOT6-1.md). L’ouverture aux étudiants attend le lot 6.5 et une validation explicite ; la préparation juridique et les procédures de droits attendent notamment le lot 6.4.
 
 ## Modules et pages
 
@@ -43,7 +43,7 @@ Utiliser Node.js 24 LTS pour ces outils. Le site publié reste utilisable sans N
 
 ## Séparer développement et production
 
-Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire ; l’adaptation hébergée du générateur et sa recette attendent une autorisation distincte. Aucun SMTP externe à préparer pour le parcours choisi.
+Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../archives/validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire ; l’adaptation hébergée du générateur et sa recette attendent une autorisation distincte. Aucun SMTP externe à préparer pour le parcours choisi.
 
 | Environnement | Usage | Données |
 | --- | --- | --- |
@@ -57,10 +57,10 @@ Le projet PROD existe séparément, avec ses propres clés, règles, sauvegardes
 
 ## Configuration publique du frontend
 
-`assets/auth-config.json` reste le défaut versionné avec `enabled: false`. Copier le modèle racine dans un fichier ignoré :
+`assets/auth-config.json` reste le défaut versionné avec `enabled: false`. Copier le modèle de développement dans un fichier ignoré :
 
 ```powershell
-Copy-Item -LiteralPath auth-config.example.json -Destination auth-config.local.json
+Copy-Item -LiteralPath docs/developpement/auth-config.example.json -Destination auth-config.local.json
 ```
 
 Remplir uniquement les cinq champs du modèle avec les valeurs réellement fournies par DEV :
@@ -205,7 +205,7 @@ Le runner refuse les endpoints hébergés et les ports non prévus. La clé admi
 
 Les tests SQL `supabase/tests/database/profiles_privileges.test.sql` inspectent réellement PostgreSQL, RLS, grants et fonctions avec pgTAP, dans une transaction annulée. Les tests HTTP complètent ces contrôles structurels ; l’un ne remplace pas l’autre.
 
-La suite distincte `tests/e2e-supabase/`, configurée par `playwright.supabase.config.js`, complète ces essais par l’activation et la récupération dans le navigateur avec Auth et e-mails capturés réels. Elle requiert la même stack et les mêmes variables locales ; elle ne doit jamais viser un projet distant. Ne pas publier de traces ou captures susceptibles de contenir un lien d’authentification.
+La suite distincte `tests/e2e-supabase/`, configurée par `tests/playwright.supabase.config.js`, complète ces essais par l’activation et la récupération dans le navigateur avec Auth et e-mails capturés réels. Elle requiert la même stack et les mêmes variables locales ; elle ne doit jamais viser un projet distant. Ne pas publier de traces ou captures susceptibles de contenir un lien d’authentification.
 
 Les procédures hébergées relèvent désormais du [plan DEV](../deploiement/PLAN-MISE-A-NIVEAU-DEV.md), avec ciblage et autorisations distincts. Le 6.5.3.A ne lance ni login/link/push/dry-run distant ni migration. Les trois migrations, RLS/GRANT, trigger et prototype close-account local restent inchangés. Le futur 6.5.3.B préparera la seule migration personnelle manquante, séparément autorisée.
 

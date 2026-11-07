@@ -1,6 +1,6 @@
 # Suppression des données personnelles — lot 6.4.3
 
-**Préparation technique ; activation hébergée bloquée.** Base `7b0bc77fbc3c8c3b341386a5cd681763ecdbc29e`, fusion #22 vérifiée. [Validation exécutée](../validations/VALIDATION-LOT6-4-3.md). Les décisions [D01–D14](../rgpd/DECISIONS-A-VALIDER.md) restent ouvertes. Cette architecture ne décide ni du bien-fondé d'une demande RGPD, ni des exceptions de conservation. Le prototype local ne doit pas être déployé tel quel : il refuse matériellement une URL Supabase hébergée.
+**Préparation technique ; activation hébergée bloquée.** Base `7b0bc77fbc3c8c3b341386a5cd681763ecdbc29e`, fusion #22 vérifiée. [Validation exécutée](../archives/validations/VALIDATION-LOT6-4-3.md). Les décisions [D01–D14](../rgpd/DECISIONS-A-VALIDER.md) restent ouvertes. Cette architecture ne décide ni du bien-fondé d'une demande RGPD, ni des exceptions de conservation. Le prototype local ne doit pas être déployé tel quel : il refuse matériellement une URL Supabase hébergée.
 
 ## Périmètres indépendants
 
