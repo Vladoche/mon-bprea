@@ -1,6 +1,6 @@
 # Lots 6.6.0.D et E · Préparation de l’installation PROD
 
-Les constats ci-dessous datent du 6 novembre 2026. Les lots D et E concluaient à **`NO_GO`**. Le [guide d’installation](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) fixe les points d’arrêt et les validations à refaire sur la cible autorisée. Les relevés opérateur, journaux bruts et archives sont conservés localement sous accès restreint.
+Les constats historiques datent du 6 novembre 2026 ; la qualification locale de M5 a été complétée le 7 novembre. Les lots D et E concluaient à **`NO_GO`**. Le [guide d’installation](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) fixe les points d’arrêt et les validations à refaire sur la cible autorisée. Les relevés opérateur, journaux bruts et archives sont conservés localement sous accès restreint.
 
 ## Acquis
 
@@ -12,7 +12,7 @@ Les constats ci-dessous datent du 6 novembre 2026. Les lots D et E concluaient �
 
 Sous PostgREST 14.18, un PATCH ITK direct avec un conflit de révision dépassait le délai client de huit secondes. Sous 16.4, le même cas renvoyait le code `40001` et les données restaient intactes. Le prototype du lot E changeait les deux refus métier de la garde en `PT409`. Les deux PATCH ont renvoyé HTTP 409 sous 14.18 et les 26 groupes de tests personnels ont réussi avec ce prototype. Le propriétaire et les ACL de la garde ont été vérifiés après le changement. [Explication Supabase](https://supabase.com/kb/troubleshooting/high-cpu-and-infinite-transaction-retries-when-using-custom-error-codes-in-rpc-functions-77326b)
 
-M5 reprend ce delta. Les RPC gardent leur contrat de conflit structuré et les autres chemins de sérialisation gardent leur code. La recette du prototype constitue la preuve historique. La qualification finale doit rejouer le préfixe versionné P et M1–M5 avec PostgREST 14.18 et vérifier le code HTTP, la conservation des données et les permissions.
+**Qualification locale du 7 novembre 2026.** Le préfixe versionné P et M1–M5 a réussi en installation neuve et en mise à niveau de M1–M4 avec données A/B sur PostgreSQL 17.11, Auth 2.197.0 et PostgREST 14.18 : 414 assertions pgTAP dans cinq fichiers et 12 groupes Auth réussis, dont l’expiration réelle. Les 26 groupes personnels et 22 groupes Drill passent sous 14.18 et 16.4 ; treize conflits par version rendent HTTP 409 / `PT409`, en neuf et quatre millisecondes au maximum respectivement, sous la borne de huit secondes. Les 32 parcours E2E Supabase sous 14.18 passent : les trois parcours Auth manuels, initialement bloqués par l’ancien nom du conteneur SQL, ont été rejoués avec seuls l’identité du conteneur et son label attendus adaptés temporairement au banc, gardes endpoint/port/label conservées et helper restauré avant commit. Données A/B, propriétaire, attributs et ACL explicites/effectives de la garde sont conservés ; les compteurs restent 10 tables, 98 colonnes, 95 contraintes, 24 index, 24 politiques, 15 fonctions et 11 triggers, avec cinq versions enregistrées. Les RPC gardent leur conflit structuré et les véritables reprises transactionnelles restent en `40001`. Aucun essai ni changement n’a concerné PROD.
 
 ## Conditions d’ouverture
 

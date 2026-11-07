@@ -24,5 +24,7 @@ describe('transport singletons — simulations HTTP, sans preuve RLS', () => {
   });
   it('classe sessions, backend absent et erreurs permanentes sans masquer réseau', () => {
     expect(classifySettingsError({ code: '42501' }).kind).toBe('session'); expect(classifySettingsError({ code: 'PGRST205' }).kind).toBe('permanent'); expect(classifySettingsError({ code: 'protocol' }).kind).toBe('permanent'); expect(classifySettingsError(new TypeError('network')).kind).toBe('transient');
+    expect(classifySettingsError({ code: 'PT409' })).toMatchObject({ kind: 'permanent', code: 'PT409' });
+    expect(classifySettingsError({ code: '40001' })).toMatchObject({ kind: 'transient', code: '40001' });
   });
 });

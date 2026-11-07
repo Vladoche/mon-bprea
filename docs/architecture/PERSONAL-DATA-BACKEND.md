@@ -241,10 +241,13 @@ L'API est un contrat v1 : le serveur protège `schema_version=1` ; les objets d'
 | `23503` | Relation inexistante/interdite ; envoyer d'abord la session personnelle valide, ne jamais inventer une session étrangère/orpheline |
 | `23505` | Identité/UUID déjà utilisé de façon incompatible avec une autre clé ; conserver l'opération et examiner la collision, ne pas changer arbitrairement l'identité |
 | `42501` ou HTTP 401/403 | Privilège/identité/session refusés ; suspendre les envois de l'espace courant et revalider Auth, jamais essayer avec le compte suivant |
+| `PT409` / HTTP 409 (`personal_revision_conflict`) | Révision périmée ou opération déjà utilisée refusée par la garde CAS ; conserver l'intention, relire la ligne gagnante et résoudre le conflit sans retry automatique |
 | `40001` | Transaction concurrente à reprendre ; renvoyer strictement la même opération persistée, avec attente bornée |
 | Réseau/timeout/5xx | Acquittement incertain : ne pas recréer d'UUID ni augmenter la base ; renvoyer l'opération exacte, puis traiter replay/conflit |
 
 Une relation étrangère peut être refusée avant la FK par le guard, avec `42501` et un message d'indisponibilité qui ne révèle pas l'existence d'une session voisine. Les erreurs de validation et de type peuvent précéder la recherche d'un conflit ; ne pas dépendre d'un ordre de vérification pour les payloads invalides.
+
+M5 remplace uniquement les deux refus métier de `guard_personal_mutation()` par `PT409`, reconnu par PostgREST 14.18 et 16.4 comme HTTP 409. Les RPC conservent leur résultat structuré `status: 'conflict'` ; les chemins `personal_retry_transaction` restent en `40001`. Cette distinction évite les reprises automatiques de PostgREST 14.18 sur un refus CAS déterministe. [Codes HTTP personnalisés PostgREST](https://docs.postgrest.org/en/v14/references/errors.html#raise-errors-with-http-status-codes)
 
 ### Lecture, pagination et deuxième appareil
 

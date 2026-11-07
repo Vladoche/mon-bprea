@@ -1,6 +1,6 @@
 # Installation Supabase PROD de Mon BPREA
 
-**Installation suspendue.** La [synthèse des lots D et E](../validations/VALIDATION-LOT6-6-0-DE.md) consigne les résultats, le candidat M5 et les points d’arrêt. Les accords pour Auth, l’extraction, la restauration, l’installation de P et M1–M5 et l’ouverture sur invitation sont distincts. L’accord d’installation fixe le commit, la cible, l’opérateur et la fenêtre.
+**Installation suspendue.** La [synthèse des lots D et E](../validations/VALIDATION-LOT6-6-0-DE.md) consigne les résultats historiques et les points d’arrêt. M5 est versionnée dans le préfixe ci-dessous. Les accords pour Auth, l’extraction, la restauration, l’installation de P et M1–M5 et l’ouverture sur invitation sont distincts. L’accord d’installation fixe le commit, la cible, l’opérateur et la fenêtre.
 
 ## 1. Préflight final en lecture seule
 
@@ -47,9 +47,11 @@ $identity = "select current_database(), session_user, current_user, inet_server_
 ### Auth, Data API et arrêt
 
 - **Accès sur invitation uniquement.** Après accord Auth distinct, s’assurer que **Allow new users to sign up** est désactivé, que **Site URL** correspond à la racine HTTPS publiée et que **Redirect URLs** contient le seul callback `authentification.html` de cette racine. Le fournisseur e-mail et la confirmation e-mail restent actifs, les connexions anonymes restent désactivées. Relire les réglages après enregistrement et confirmer la politique de mot de passe. Le parcours d’invitation et de récupération manuelles utilise le callback commun. [Architecture Auth](AUTHENTIFICATION.md#url-de-retour-et-modèles-de-mails)
-- Confirmer Data API activée, `public` exposé et `bprea_private` exclu. Vérifier les grants de `authenticated` sur les tables, colonnes et RPC. **Qualifier P et M1–M5 sur PostgREST 14.18 avant l’accord d’installation.** Vérifier le retour HTTP 409 des conflits de révision, l’absence de mutation, les permissions et les parcours réels. [Résultats et limites du lot E](../validations/VALIDATION-LOT6-6-0-DE.md#compatibilité-postgrest) · [Exposition Data API](https://supabase.com/docs/guides/api/securing-your-api)
+- Confirmer Data API activée, `public` exposé et `bprea_private` exclu. Vérifier les grants de `authenticated` sur les tables, colonnes et RPC. Avant l’accord d’installation, comparer la combinaison cible à la qualification locale de P et M1–M5 : retour HTTP 409 des conflits de révision, absence de mutation, permissions et parcours réels. Rejouer les seuls contrôles affectés par une différence matérielle. [Résultats et limites](../validations/VALIDATION-LOT6-6-0-DE.md#compatibilité-postgrest) · [Exposition Data API](https://supabase.com/docs/guides/api/securing-your-api)
 - Confirmer le créneau, le rôle unique de migration et la suspension coordonnée des opérations d’écriture, invitations et DDL concurrents. Observer `pg_locks` et `pg_stat_activity` sur `auth.users`, `public` et le registre, avec types, durées et PID, sans texte de requête. M1 ajoute un trigger et une FK vers `auth.users`, prend notamment un verrou `SHARE ROW EXCLUSIVE` sur cette table et peut faire attendre ses écritures jusqu’au commit. Mesurer le backfill en répétition si le nombre de comptes change. [Verrous PostgreSQL 17](https://www.postgresql.org/docs/17/explicit-locking.html)
 - **Arrêt obligatoire** si cible, empreintes, ACL, DDL, inventaire, Auth, API ou TLS divergent sans qualification. L’absence de point de restauration qualifié, un verrou prolongé ou une transaction concurrente suspendent également l’intervention.
+
+**Qualification locale du 7 novembre 2026 :** P puis M1–M5 ont réussi en installation neuve et en mise à niveau avec données A/B, sous PostgreSQL 17.11, Auth 2.197.0 et PostgREST 14.18. Les 26 groupes personnels et 22 groupes Drill passent sous 14.18 et 16.4 ; treize conflits par version répondent HTTP 409 / `PT409` en neuf et quatre millisecondes au maximum respectivement, sans mutation invalide. Propriétaire, attributs et ACL explicites/effectives de la garde restent identiques ; le catalogue compte cinq migrations et les objets attendus au tableau ci-dessous. Les 32 parcours E2E Supabase sous 14.18 passent avec l’adaptation de banc précisée dans les [résultats et limites](../validations/VALIDATION-LOT6-6-0-DE.md#compatibilité-postgrest). Cette recette locale ne vaut pas accord d’installation PROD.
 
 ### Sauvegarde préalable et restauration isolée
 
@@ -98,7 +100,7 @@ Avant le second appel, vérifier la cible isolée, la matrice d’ACL, l’absen
 | 12. M4 | PROD. Préfixe M1–M4. |
 | 13. Vérifications M4 | Quatrième entrée, structure métier identique, défauts identiques à l’état post-P et aucun accès direct de `service_role`. |
 | 14. M5 | PROD. Préfixe M1–M5. |
-| 15. Vérifications M5 | Cinquième entrée et seuls deux codes de conflit modifiés dans la garde privée. Comparer propriétaire, ACL, triggers et catalogue au palier M4. |
+| 15. Vérifications M5 | Cinquième entrée et seuls deux refus `personal_revision_conflict` passés à `PT409` dans la garde privée. Comparer propriétaire, ACL explicites et permissions `EXECUTE` effectives, `SECURITY INVOKER`, `search_path` vide, triggers et catalogue au palier M4. Aucun droit réintroduit pour `service_role`. |
 | 16. Schéma complet | Comparer types, défauts, colonnes générées, contraintes validées, index, politiques, fonctions, triggers et propriétaires au catalogue de référence. |
 | 17. Permissions | Comparer droits de table, colonne, routine et schéma. RLS active sur les dix tables, `authenticated` limité aux privilèges prévus. `anon` et `service_role` sans accès direct applicatif. Contrôler l’unique fonction métier definer et les chemins de recherche vides. |
 | 18. Auth | Relever les paramètres, le backfill par agrégats et les erreurs au voisinage des commits sans collecter de données de compte. |
@@ -131,6 +133,8 @@ Copy-Item -LiteralPath (Join-Path 'supabase/migrations' $Next) -Destination (Joi
 | M5 | 10 | 98 | 95 | 24 | 24 | 15 | 11 | M1–M5 |
 
 Les compteurs concernent Mon BPREA. P et M1–M3 ont des transactions explicites. M1–M3 peuvent être validées en base avant l’écriture au registre par la CLI. M4 est sans `COMMIT` explicite et son annulation sur erreur a été observée dans le batch de la CLI épinglée. Confirmer les deux états à chaque palier, surtout si le client a perdu le résultat. P applique `lock_timeout=5s` et `statement_timeout=30s` localement. Le pilote de migration doit appliquer 5 s et 120 s, respectivement. Ces valeurs bornent l’attente de verrou et la durée **par instruction**, tandis que l’opérateur borne la durée totale et les délais réseau. [Recette des incidents](../validations/VALIDATION-LOT6-6-0-C.md#e-pannes-reprise-et-sauvegarde) · [Traitement du registre par la CLI](https://github.com/supabase/cli/blob/v2.121.0/apps/cli-go/pkg/migration/file.go)
+
+M5 utilise `CREATE OR REPLACE FUNCTION` avec la signature existante : PostgreSQL conserve le propriétaire et les permissions de la fonction remplacée. Comparer ces valeurs avant/après ; les privilèges par défaut d’une nouvelle fonction ne doivent pas être réappliqués. Le delta conserve les contrôles CAS et propriétaire ainsi que les véritables reprises transactionnelles `40001`. [Remplacement de fonction PostgreSQL 17](https://www.postgresql.org/docs/17/sql-createfunction.html)
 
 ## 3. Incidents, arrêts et reprise
 
