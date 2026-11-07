@@ -1,6 +1,6 @@
 # Reconnaissance des plantes — jeu et stockage
 
-Le lot 6.3.3 ajoute la [synchronisation personnelle](BOTANICAL-SYNCHRONISATION-CLIENT.md) des métadonnées de sessions et réponses dans les environnements Auth configurés. Le moteur, le catalogue, les photos et les calculs du lot 5.2 restent inchangés. Le compte et le visiteur utilisent des historiques séparés ; l’import visiteur exige une confirmation. Une panne API conserve les opérations personnelles dans IndexedDB. Le défaut public reste désactivé. Les [preuves du lot 6.3.3](../validations/VALIDATION-LOT6-3-3.md) distinguent tests applicatifs et Supabase réel.
+Le lot 6.3.3 ajoute la [synchronisation personnelle](BOTANICAL-SYNCHRONISATION-CLIENT.md) des métadonnées de sessions et réponses dans les environnements Auth configurés. Le moteur, le catalogue, les photos et les calculs du lot 5.2 restent inchangés. Le compte et le visiteur utilisent des historiques séparés ; l’import visiteur exige une confirmation. Une panne API conserve les opérations personnelles dans IndexedDB. Le défaut public reste désactivé. Les [preuves du lot 6.3.3](../archives/validations/VALIDATION-LOT6-3-3.md) distinguent tests applicatifs et Supabase réel.
 
 Le module statique `reconnaissance-plantes.html` appartient à **Accueil → Outils**. Le menu commun et la carte d’Outils conservent les autres destinations. Il utilise les tokens des thèmes existants et n’ajoute aucune dépendance de production.
 
@@ -59,4 +59,4 @@ Une sauvegarde illisible ou provenant d’un schéma futur reste intacte et en l
 
 Le catalogue initial est petit, avec une seule photographie par espèce. Les sessions se limitent donc à quatre questions par catégorie jouable. Il reste à réunir des photos à différents stades, des légumineuses et des confusions documentées avant d’élargir les niveaux. L’entraînement ne constitue pas une clé de détermination exhaustive sur le terrain.
 
-Les vérifications réellement exécutées sont consignées dans [VALIDATION-LOT5-2.md](../validations/VALIDATION-LOT5-2.md). Les mises à jour d’actions sont décrites dans [ACTIONS-NODE24.md](ACTIONS-NODE24.md).
+Les vérifications réellement exécutées sont consignées dans [VALIDATION-LOT5-2.md](../archives/validations/VALIDATION-LOT5-2.md). Les mises à jour d’actions sont décrites dans [ACTIONS-NODE24.md](ACTIONS-NODE24.md).

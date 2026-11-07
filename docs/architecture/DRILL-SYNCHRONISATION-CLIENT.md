@@ -1,6 +1,6 @@
 # Mode Drill — synchronisation du client (lot 6.2.2)
 
-Le Drill connecté utilise un cache personnel et les RPC du [contrat PostgreSQL](DRILL-SYNCHRONISATION-BACKEND.md). Le mode visiteur garde intégralement `bprea-demo-drill-v1`. Aucun historique visiteur n'est importé automatiquement. Le site reste statique et la configuration publiée reste désactivée. Les preuves exécutées figurent dans [VALIDATION-LOT6-2-2.md](../validations/VALIDATION-LOT6-2-2.md).
+Le Drill connecté utilise un cache personnel et les RPC du [contrat PostgreSQL](DRILL-SYNCHRONISATION-BACKEND.md). Le mode visiteur garde intégralement `bprea-demo-drill-v1`. Aucun historique visiteur n'est importé automatiquement. Le site reste statique et la configuration publiée reste désactivée. Les preuves exécutées figurent dans [VALIDATION-LOT6-2-2.md](../archives/validations/VALIDATION-LOT6-2-2.md).
 
 ## Frontières des modules
 
@@ -65,7 +65,7 @@ L'ordre est série → première réponse → entraînements. Un entraînement e
 
 Le bouton « Réessayer la synchronisation », l'ouverture de la page, le retour réseau et le retour sur un onglet permettent la reprise. Le retry manuel ne régénère aucun UUID et ne relance pas aveuglément les opérations en erreur permanente. Une intervention reste nécessaire pour corriger une donnée refusée ; aucune modification du backend n'est effectuée pour contourner son refus.
 
-Le retour de l'identité Auth `offline` à `authenticated` pour le même espace personnel déclenche aussi une relecture distante et la reprise, sans événement navigateur `online`. Cette transition dépend du précédent statut Auth, même si la file est passée à `pending`. Les publications `authenticated` ordinaires ne relancent pas un nouveau cycle. La [revue corrective post-fusion](../validations/VALIDATION-LOT6-2-2-REPRISE-AUTH.md) consigne la reproduction et les régressions associées.
+Le retour de l'identité Auth `offline` à `authenticated` pour le même espace personnel déclenche aussi une relecture distante et la reprise, sans événement navigateur `online`. Cette transition dépend du précédent statut Auth, même si la file est passée à `pending`. Les publications `authenticated` ordinaires ne relancent pas un nouveau cycle. La [revue corrective post-fusion](../archives/validations/VALIDATION-LOT6-2-2-REPRISE-AUTH.md) consigne la reproduction et les régressions associées.
 
 Chaque requête PostgREST combine l'annulation de génération avec un timeout de 15 secondes. Une transaction locale sans changement ne réécrit pas le document et n'émet aucune notification, ce qui évite les boucles entre onglets au repos.
 

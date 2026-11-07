@@ -1,6 +1,6 @@
 # Runbook de migration DEV — lot 6.5.3.B
 
-**29 octobre 2026 : migration unique appliquée après A/B, copie et restauration applicative partielle vérifiées.** [Preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md), [préparation historique](../validations/VALIDATION-LOT6-5-3B.md) et [récupération](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md). Aucun changement de version du moteur PostgreSQL.
+**29 octobre 2026 : migration unique appliquée après A/B, copie et restauration applicative partielle vérifiées.** [Preuve d’exécution](../archives/validations/EXECUTION-LOT6-5-3B-2026-10-29.md), [préparation historique](../archives/validations/VALIDATION-LOT6-5-3B.md) et [récupération](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md). Aucun changement de version du moteur PostgreSQL.
 
 ## Cible, source et résultat
 

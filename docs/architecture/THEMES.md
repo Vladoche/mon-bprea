@@ -49,6 +49,6 @@ Le script classique applique un rendu provisoire de l’appareil avant CSS, sans
 
 Les préférences `auto` restent `auto` en cache et sur Supabase. Les attributs HTML restent dérivés localement, sans identifiant personnel. Le dialogue préserve une sélection active pendant la réconciliation et propose d’utiliser explicitement la version du compte. Les messages distinguent choix temporaire, transaction locale, attente, confirmation distante et erreur de stockage. Les conflits restent conservés et leur résolution exige une action volontaire. L’import v1 ou legacy reconnu possède son aperçu et sa confirmation séparés.
 
-Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise CAS, retry exact, import et limites des caches non chiffrés. Les [preuves 6.3.4](../validations/VALIDATION-LOT6-3-4.md) distinguent captures synthétiques et PostgreSQL réel.
+Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise CAS, retry exact, import et limites des caches non chiffrés. Les [preuves 6.3.4](../archives/validations/VALIDATION-LOT6-3-4.md) distinguent captures synthétiques et PostgreSQL réel.
 
-Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications historiques dans [VALIDATION-LOT5.md](../validations/VALIDATION-LOT5.md).
+Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications historiques dans [VALIDATION-LOT5.md](../archives/validations/VALIDATION-LOT5.md).

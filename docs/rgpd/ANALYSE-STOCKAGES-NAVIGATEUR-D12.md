@@ -1,6 +1,6 @@
 # D12 — Accès aux données du navigateur
 
-**D12 — APPROUVÉE PAR L’EXPLOITANT LE 06/11/2026.** La décision consignée au lot 6.5.5.G couvre les qualifications par usage et la règle de nécessité des résidus, dans le périmètre vérifié par les lots D, E et F. [Reçu du 6 novembre](RECU-ARBITRAGE-D12-2026-11-06.md), [constats initiaux D](../validations/VALIDATION-LOT6-5-5D.md), [recette E](../validations/VALIDATION-LOT6-5-5E.md), [validation F](../validations/VALIDATION-LOT6-5-5F.md).
+**D12 — APPROUVÉE PAR L’EXPLOITANT LE 06/11/2026.** La décision consignée au lot 6.5.5.G couvre les qualifications par usage et la règle de nécessité des résidus, dans le périmètre vérifié par les lots D, E et F. [Reçu du 6 novembre](RECU-ARBITRAGE-D12-2026-11-06.md), [constats initiaux D](../archives/validations/VALIDATION-LOT6-5-5D.md), [recette E](../archives/validations/VALIDATION-LOT6-5-5E.md), [validation F](../archives/validations/VALIDATION-LOT6-5-5F.md).
 
 ## Règle appliquée
 
@@ -35,7 +35,7 @@ Les durées ci-dessous décrivent le terminal. En l’absence d’échéance cal
 | Mémoire, événements et verrous d’onglets, preuve de lien d’accès | Aperçus, calculs, exports temporaires, coordination, session éventuellement propagée par le SDK et preuve de lien avant confirmation | Usage fonctionnel en mémoire. La première requête du lien parvient à l’hébergeur avec sa preuve avant le nettoyage de l’URL. La politique de référent réduit sa propagation | Durée de page, d’action ou de canal. La requête initiale, l’historique et les journaux de l’hébergeur relèvent d’un examen distinct | [Coordination](../../assets/privacy-events.js), [preuve de lien et sous-requêtes](../../tests/e2e/privacy-artifact.spec.js) |
 | Cookies applicatifs, `sessionStorage`, Cache API, service worker, pixels, scripts tiers distants | Aucun usage applicatif relevé. Le SDK et les autres ressources de l’artefact sont locaux | Aucun suivi publicitaire ou d’audience intégré observé. Le cache HTTP ordinaire relève des réglages du navigateur et de l’hébergeur | Réglages du navigateur pour ses caches. Les sites suivis par un lien externe appliquent leurs règles | [Inventaire réseau et stockage des pages](../../tests/e2e/privacy-artifact.spec.js) |
 
-Les parcours avec Auth utilisent des comptes et des réponses HTTP de test. Ils documentent le comportement du client. Les en-têtes et journaux de l’infrastructure en service, les extensions et les profils réels ne sont pas observés ici. La RLS est vérifiée séparément sur stack Supabase éphémère. [Validation E](../validations/VALIDATION-LOT6-5-5E.md).
+Les parcours avec Auth utilisent des comptes et des réponses HTTP de test. Ils documentent le comportement du client. Les en-têtes et journaux de l’infrastructure en service, les extensions et les profils réels ne sont pas observés ici. La RLS est vérifiée séparément sur stack Supabase éphémère. [Validation E](../archives/validations/VALIDATION-LOT6-5-5E.md).
 
 ## Provenance et ordre de confirmation
 

@@ -1,6 +1,6 @@
 # ITK et apparence — synchronisation personnelle (lot 6.3.4)
 
-Ce client clôture le périmètre fonctionnel 6.3 en consommant les deux singletons du [backend 6.3.1](PERSONAL-DATA-BACKEND.md). Il ne crée aucun document ITK et ne modifie ni SQL, RPC, RLS, privilèges de profil, catalogue ou moteur pédagogique. Les [preuves exécutées](../validations/VALIDATION-LOT6-3-4.md) distinguent les tests applicatifs des recettes PostgreSQL/Auth réelles. Le [bilan 6.3](../validations/BILAN-LOT6-3.md) couvre aussi les domaines antérieurs.
+Ce client clôture le périmètre fonctionnel 6.3 en consommant les deux singletons du [backend 6.3.1](PERSONAL-DATA-BACKEND.md). Il ne crée aucun document ITK et ne modifie ni SQL, RPC, RLS, privilèges de profil, catalogue ou moteur pédagogique. Les [preuves exécutées](../archives/validations/VALIDATION-LOT6-3-4.md) distinguent les tests applicatifs des recettes PostgreSQL/Auth réelles. Le [bilan 6.3](../archives/validations/BILAN-LOT6-3.md) couvre aussi les domaines antérieurs.
 
 ## Architecture et sources
 
@@ -33,7 +33,7 @@ Les modifications successives d’un même domaine suivent une chaîne de révis
 
 Une concurrence conserve la version du compte et l’intention locale. Elle suspend les dépendants du domaine concerné. Les deux choix proposés sont « Garder la version du compte » et « Utiliser mon choix enregistré sur cet appareil ». Le second crée une nouvelle intention avec nouvel UUID sur une base distante fraîche, uniquement après l’action explicite. Les huit paramètres ITK sont un tout ; aucune fusion champ par champ n’est réalisée. `updatedAt` n’arbitre jamais un conflit.
 
-Les singletons SQL gardent leur dernier reçu. Une opération acceptée puis remplacée peut revenir en conflit après perte HTTP. Le retry reprend l’UUID et la charge d’origine. Le cache conserve les opérations actives, les dépendances et les huit conflits résolus encore présentés avec leurs versions complètes. Les nouvelles archives éligibles gardent les identifiants, révisions et décisions utiles. Le compteur historique et les archives anciennes restent en place au-delà de l’ancienne borne de vingt. Les deux dernières preuves d’import restent séparées par domaine. [Contrat et validation F](../validations/VALIDATION-LOT6-5-5F.md).
+Les singletons SQL gardent leur dernier reçu. Une opération acceptée puis remplacée peut revenir en conflit après perte HTTP. Le retry reprend l’UUID et la charge d’origine. Le cache conserve les opérations actives, les dépendances et les huit conflits résolus encore présentés avec leurs versions complètes. Les nouvelles archives éligibles gardent les identifiants, révisions et décisions utiles. Le compteur historique et les archives anciennes restent en place au-delà de l’ancienne borne de vingt. Les deux dernières preuves d’import restent séparées par domaine. [Contrat et validation F](../archives/validations/VALIDATION-LOT6-5-5F.md).
 
 ## Initialisation du thème et choix automatiques
 

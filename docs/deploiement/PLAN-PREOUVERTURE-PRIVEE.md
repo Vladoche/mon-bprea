@@ -1,6 +1,6 @@
 # Plan de préouverture privée — lot 6.5.5.G
 
-**6 novembre 2026. Sept portes résolues sur quinze. Ouverture privée suspendue.** Cette matrice est le suivi courant unique. [Validation G](../validations/VALIDATION-LOT6-5-5G.md), [reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md), [actions restantes](ARBITRAGES-FINAUX-PREOUVERTURE.md).
+**6 novembre 2026. Sept portes résolues sur quinze. Ouverture privée suspendue.** Cette matrice est le suivi courant unique. [Validation G](../archives/validations/VALIDATION-LOT6-5-5G.md), [reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md), [actions restantes](ARBITRAGES-FINAUX-PREOUVERTURE.md).
 
 ## Cadre acté
 
@@ -34,11 +34,11 @@ Vladimir Fouillade applique le RGPD comme responsable du traitement. Son nom et 
 
 ## État historique préservé
 
-Base du lot D vérifiée après fetch à **26d18dbe036e782f7c3623aaa32df7894fa04e5a**, fusion #36. Worktree initial propre. [Validation C](../validations/VALIDATION-LOT6-5-5C.md) pour le contact et la capacité.
+Base du lot D vérifiée après fetch à **26d18dbe036e782f7c3623aaa32df7894fa04e5a**, fusion #36. Worktree initial propre. [Validation C](../archives/validations/VALIDATION-LOT6-5-5C.md) pour le contact et la capacité.
 
 Base du lot C vérifiée après fetch : **5887f5f1e9b727c041c6eb5832c55ecf562aa3da**, fusion #35 confirmée. Worktree propre, branche C issue de `origin/main`. La base B ci-dessous reste historique.
 
-Base vérifiée après `git fetch origin` : **d0bda92daf5cb40aa44a7fae694da9623188c2ba**, fusion #34. Worktree initial propre ; branche B créée depuis cette référence. [C2 du 4 novembre](../validations/VALIDATION-LOT6-5-4C.md) : 2/2 comptes fictifs, 3/3 liens consommés, 29/60 Auth mutantes, 104/140 tentatives, 36 lignes ; aucune relecture ni modification hébergée. T03/T08/T10/T12 acquis dans leurs limites ; T11 non exécuté, D non autorisé. Autres sous-cas non acquis conservés dans le rapport, jamais renommés réussis.
+Base vérifiée après `git fetch origin` : **d0bda92daf5cb40aa44a7fae694da9623188c2ba**, fusion #34. Worktree initial propre ; branche B créée depuis cette référence. [C2 du 4 novembre](../archives/validations/VALIDATION-LOT6-5-4C.md) : 2/2 comptes fictifs, 3/3 liens consommés, 29/60 Auth mutantes, 104/140 tentatives, 36 lignes ; aucune relecture ni modification hébergée. T03/T08/T10/T12 acquis dans leurs limites ; T11 non exécuté, D non autorisé. Autres sous-cas non acquis conservés dans le rapport, jamais renommés réussis.
 
 La copie partielle du **29 octobre**, conservée par décision explicite du 5 novembre, reste en place, antérieure aux six tables personnelles et à C2. Aucune consultation des données privées, nouvelle copie, modification, purge ou nouvelle rétention ici. Revue du 12 novembre indicative. La [maintenance `.tmp`](../developpement/MAINTENANCE-DOSSIER-TMP.md) et ses preuves sont préservées ; aucun nouveau nettoyage général.
 

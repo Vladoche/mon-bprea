@@ -35,6 +35,6 @@ Les chemins photographiques stockés dans un JSON ne sont pas réécrits par le 
 
 ## Portée de la vérification
 
-La consultation des releases et des manifestes officiels confirme l’existence des versions et leur moteur déclaré. Elle ne constitue pas une exécution des workflows GitHub. Les résultats des tests locaux et de la préparation de l’artefact sont consignés séparément dans [la validation du lot 5.2](../validations/VALIDATION-LOT5-2.md).
+La consultation des releases et des manifestes officiels confirme l’existence des versions et leur moteur déclaré. Elle ne constitue pas une exécution des workflows GitHub. Les résultats des tests locaux et de la préparation de l’artefact sont consignés séparément dans [la validation du lot 5.2](../archives/validations/VALIDATION-LOT5-2.md).
 
 Cette maintenance ne modifie aucune protection de `main` et ne déclenche aucun déploiement. Le premier passage réel de **Qualité** sur la PR vérifiera les actions dans l’environnement GitHub. Le workflow de publication exige toujours l’accord de l’utilisateur avant fusion ou lancement manuel.

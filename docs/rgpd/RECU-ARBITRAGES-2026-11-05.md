@@ -22,6 +22,6 @@ Les heures des essais et les identifiants de messages ne sont pas fournis. Aucun
 
 | Nature | Constat |
 | --- | --- |
-| Test technique | Le contact, le préfixe Pages, les stockages, le retrait local et l’aperçu ont été contrôlés en navigateur isolé. L’artefact local confirme la présence du contact et l’exclusion de la notice. La disponibilité hébergée du contact relève de l’attestation ci-dessus. [Validation D](../validations/VALIDATION-LOT6-5-5D.md) |
+| Test technique | Le contact, le préfixe Pages, les stockages, le retrait local et l’aperçu ont été contrôlés en navigateur isolé. L’artefact local confirme la présence du contact et l’exclusion de la notice. La disponibilité hébergée du contact relève de l’attestation ci-dessus. [Validation D](../archives/validations/VALIDATION-LOT6-5-5D.md) |
 | Vérification fournisseur | Conditions publiques, rôles par flux, région primaire, accès et garanties identifiés dans les limites documentées. Rattachement à la cible et garanties du canal réel de remise à vérifier. [P0-07/08](FLUX-ET-PRESTATAIRES.md) |
 | Proposition restant à approuver | Qualification et adaptations D12, circuit final de remise et d’information avant collecte, révision substantielle éventuelle de la notice et mandat de publication séparé. [D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md), [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) |

@@ -1,6 +1,6 @@
 # Information publique et intégration future de la notice
 
-**6 novembre 2026 · lot 6.5.5.G.** Le fond de la V1.0 a été approuvé le 5 novembre. La V1.1 en préparation décrit les accès au navigateur qualifiés dans D12, approuvée le 6 novembre. Restent les preuves fournisseurs déterminantes, l’approbation du texte résultant et le mandat de publication. La page [Contact et assistance](../../contact.html) sert déjà de canal public sans compte. [Écarts et conditions d’approbation de la V1.1](../validations/VALIDATION-LOT6-5-5G.md#e-notice-v11).
+**6 novembre 2026 · lot 6.5.5.G.** Le fond de la V1.0 a été approuvé le 5 novembre. La V1.1 en préparation décrit les accès au navigateur qualifiés dans D12, approuvée le 6 novembre. Restent les preuves fournisseurs déterminantes, l’approbation du texte résultant et le mandat de publication. La page [Contact et assistance](../../contact.html) sert déjà de canal public sans compte. [Écarts et conditions d’approbation de la V1.1](../archives/validations/VALIDATION-LOT6-5-5G.md#e-notice-v11).
 
 ## Aperçu de la version préparée
 
@@ -28,4 +28,4 @@ Ces cibles sont des exemples prêts à intégrer dans le lot de publication. Les
 2. Sous autorisation distincte, générer la page finale, activer les liens et vérifier l’artefact exact avant fusion. Le constructeur `prepare-pages.py` prend les HTML racine, les types autorisés sous `assets/` et les PDF sous `documents/`. Source, outil et aperçus sont hors de ces racines. Les liens proposés ci-dessus attendent le mandat de publication.
 3. Contrôler publiquement le rendu, les liens et le contact depuis l’URL finale après publication autorisée, puis consigner version, date et preuve. Pour une collecte ultérieure, la notice doit déjà être disponible et remise avant de recevoir une adresse. L’activation et les invitations ont des autorisations distinctes.
 
-L’aperçu, la recette locale et l’approbation du fond ont chacun une portée distincte. La fusion vers `main` déclenche automatiquement la construction et le déploiement Pages. [Workflow](../../.github/workflows/deploy.yml), [validation D](../validations/VALIDATION-LOT6-5-5D.md).
+L’aperçu, la recette locale et l’approbation du fond ont chacun une portée distincte. La fusion vers `main` déclenche automatiquement la construction et le déploiement Pages. [Workflow](../../.github/workflows/deploy.yml), [validation D](../archives/validations/VALIDATION-LOT6-5-5D.md).

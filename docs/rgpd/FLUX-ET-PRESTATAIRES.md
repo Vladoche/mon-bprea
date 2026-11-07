@@ -126,7 +126,7 @@ F05 est désormais aussi utilisé par l'export préparé ; F06 ne décrit que le
 
 Il n'existe pas de connexion directe PostgreSQL depuis le navigateur. L'e-mail n'est pas répliqué dans les tables pédagogiques. Realtime, Storage et analytics ne sont pas utilisés. Une Edge Function de clôture **locale seulement** existe désormais ; elle refuse les origines Supabase hébergées. Sa présence ne prouve aucune activité DEV/PROD.
 
-**Recette 6.4.4 :** les 17 documents de l'artefact local versionné sont examinés dans des contextes vierges, avec Auth désactivée ; aucun domaine externe sollicité, cookie/Set-Cookie, stockage personnel, Cache API ou service worker observé. Les liens tiers sont inventoriés sans navigation. Les parcours synthétiques de compte restent une preuve distincte de caches et session, pas celle de l'artefact public. La query de callback atteint bien la première requête HTTP avant nettoyage ; `q` peut rester dans l'URL. Périmètre et résultats : [validation](../validations/VALIDATION-LOT6-4-4.md). Aucune réponse réelle Pages/Supabase/SMTP hébergée n'est auditée ; aucune exemption juridique générale déduite.
+**Recette 6.4.4 :** les 17 documents de l'artefact local versionné sont examinés dans des contextes vierges, avec Auth désactivée ; aucun domaine externe sollicité, cookie/Set-Cookie, stockage personnel, Cache API ou service worker observé. Les liens tiers sont inventoriés sans navigation. Les parcours synthétiques de compte restent une preuve distincte de caches et session, pas celle de l'artefact public. La query de callback atteint bien la première requête HTTP avant nettoyage ; `q` peut rester dans l'URL. Périmètre et résultats : [validation](../archives/validations/VALIDATION-LOT6-4-4.md). Aucune réponse réelle Pages/Supabase/SMTP hébergée n'est auditée ; aucune exemption juridique générale déduite.
 
 ## Prestataires et intervenants
 
@@ -152,7 +152,7 @@ Il n'existe pas de connexion directe PostgreSQL depuis le navigateur. L'e-mail n
 | Sites tiers sur clic | Traceurs du site cible inconnus ; aucune iframe/mesure d'audience intégrée détectée | Auditer avant ajout d'embarquement. Si une finalité non exemptée apparaît : consentement préalable adapté à cette finalité, à concevoir à ce moment. |
 | Cookies infrastructure et cache HTTP | Dépôt seul insuffisant ; recette locale ne reproduit pas les réponses Pages/CDN/SMTP | Vérification ciblée de l'artefact et des réponses hébergées à prévoir dans la recette autorisée 6.4.4, sans donnée réelle. |
 
-**C : aucun bandeau ajouté dans 6.4.1**, faute de finalité non exemptée détectée justifiant son implémentation. Ceci n'est ni une conclusion juridique d'exemption générale, ni une affirmation d'absence universelle de cookies/traceurs. Résultats navigateur limités dans le [rapport](../validations/VALIDATION-LOT6-4-1.md).
+**C : aucun bandeau ajouté dans 6.4.1**, faute de finalité non exemptée détectée justifiant son implémentation. Ceci n'est ni une conclusion juridique d'exemption générale, ni une affirmation d'absence universelle de cookies/traceurs. Résultats navigateur limités dans le [rapport](../archives/validations/VALIDATION-LOT6-4-1.md).
 
 ## Sources officielles (B), consultées le 27 octobre 2026
 

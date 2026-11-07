@@ -283,7 +283,7 @@ Aucun mot de passe, e-mail dupliqué, token, clé administrative, secret SMTP, e
 
 ## 9. Validation et application ultérieure
 
-Les preuves exécutées, les limites du poste sans Docker et les liens CI figurent dans [VALIDATION-LOT6-3-1.md](../validations/VALIDATION-LOT6-3-1.md). Les tests pgTAP ne remplacent pas les sessions Auth et les requêtes PostgREST A/B réelles. Les deux sont exécutés sur la stack éphémère du job `supabase-security`, avec les suites antérieures conservées.
+Les preuves exécutées, les limites du poste sans Docker et les liens CI figurent dans [VALIDATION-LOT6-3-1.md](../archives/validations/VALIDATION-LOT6-3-1.md). Les tests pgTAP ne remplacent pas les sessions Auth et les requêtes PostgREST A/B réelles. Les deux sont exécutés sur la stack éphémère du job `supabase-security`, avec les suites antérieures conservées.
 
 Aucune commande de ce lot ne doit appliquer cette migration à un projet hébergé. Après revue et tests verts sur le dernier commit, une intervention distincte pourra être autorisée pour **DEV `wcckbyhrtroittbfophv` uniquement** : vérifier référence/cible/historique et sauvegarde, contrôler le delta attendu, simuler les commandes adaptées à la CLI avec son aide puis appliquer seulement après autorisation explicite. Ne pas lancer les runners destructifs sur DEV. **PROD `oqoqrxwfbkhtpksqimgd` reste exclu**, sans modification Auth/SMTP, nouvelle invitation externe, ouverture étudiante ni activation de `assets/auth-config.json`.
 

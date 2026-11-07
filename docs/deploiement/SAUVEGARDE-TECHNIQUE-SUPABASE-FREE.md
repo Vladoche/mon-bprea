@@ -7,7 +7,7 @@
 
 **Réexamen local du 5 novembre 2026 :** copie présente hors dépôt, ACL protégées, neuf fichiers du manifeste et neuf empreintes conformes. Échéance et politique inchangées, aucune prolongation/suppression ; [décision préparée](PLAN-PREOUVERTURE-PRIVEE.md), [politique minimale proposée](EXPLOITATION-PRIVEE-SIX-ADULTES.md). Aucun accès DEV/PROD. Les résultats datés du 29 octobre ci-dessous restent distincts de cette seule vérification d'intégrité.
 
-**29 octobre 2026 : copie applicative réalisée et restauration PostgreSQL partielle vérifiée avant migration.** Cible exclusive : `wcckbyhrtroittbfophv`, Mon BPREA DEV, Free, eu-west-1, PostgreSQL 17.11.0.003. La [preuve d’exécution](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md) distingue la préparation du 28 octobre, les autorisations A/B et les résultats réels. PROD est exclu.
+**29 octobre 2026 : copie applicative réalisée et restauration PostgreSQL partielle vérifiée avant migration.** Cible exclusive : `wcckbyhrtroittbfophv`, Mon BPREA DEV, Free, eu-west-1, PostgreSQL 17.11.0.003. La [preuve d’exécution](../archives/validations/EXECUTION-LOT6-5-3B-2026-10-29.md) distingue la préparation du 28 octobre, les autorisations A/B et les résultats réels. PROD est exclu.
 
 L’exploitant a autorisé la copie applicative et le dossier protégé, choisi `pg_dump` natif puis autorisé B. Il réserve DEV au fictif, dispense cette copie de chiffrement du volume et déclare le dossier exclu de toute synchronisation cloud. Ces décisions concernent cette intervention ; elles ne valident ni une politique générale de conservation ni l’ouverture aux étudiants.
 

@@ -2,7 +2,7 @@
 
 ## Actualisation 6.5.3.B — 29 octobre 2026
 
-[Exécution actuelle et limites](../validations/EXECUTION-LOT6-5-3B-2026-10-29.md) : DEV Free/eu-west-1/17.11 identifié ; trois migrations, dix tables, 98 colonnes, 95 contraintes, 24 index, onze triggers, 24 policies et quinze fonctions dont neuf RPC. Définitions et privilèges comparés à Git et au relevé antérieur sans dérive. Data API public/graphql_public exposés et privé exclu, réglages conservés. Aucun test JWT hébergé ni consultation PROD.
+[Exécution actuelle et limites](../archives/validations/EXECUTION-LOT6-5-3B-2026-10-29.md) : DEV Free/eu-west-1/17.11 identifié ; trois migrations, dix tables, 98 colonnes, 95 contraintes, 24 index, onze triggers, 24 policies et quinze fonctions dont neuf RPC. Définitions et privilèges comparés à Git et au relevé antérieur sans dérive. Data API public/graphql_public exposés et privé exclu, réglages conservés. Aucun test JWT hébergé ni consultation PROD.
 
 | Écart actuel | État 6.5.3.B et suite |
 | --- | --- |
@@ -11,11 +11,11 @@
 | Migration personnelle | **INSTALLÉE ET SCHÉMA VÉRIFIÉ** après B ; seul fichier 20261025143831, anciennes versions/objets conservés. [Runbook](RUNBOOK-MIGRATION-DEV-6-5-3B.md), aucune réapplication ni recette connectée. |
 | Import de copie individuelle | **NON IMPLÉMENTÉ** ; [note future](PREPARATION-RESTAURATION-COMPTE-JSON.md), sans début des lots 6.5.4.A/B. |
 
-La grande matrice ci-dessous conserve les **constats datés du 6.5.2**. Ses anciennes absences du backend personnel sont résolues dans l’état actuel ci-dessus ; l’ancienne action SMTP/modèles est remplacée dans la feuille de route par les liens manuels du 6.5.3.A, sans prétendre avoir changé la configuration hébergée. Aucun de ces ajouts ne lève un P0 ou D07/D08/D13. L'[audit historique](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md) reste intact.
+La grande matrice ci-dessous conserve les **constats datés du 6.5.2**. Ses anciennes absences du backend personnel sont résolues dans l’état actuel ci-dessus ; l’ancienne action SMTP/modèles est remplacée dans la feuille de route par les liens manuels du 6.5.3.A, sans prétendre avoir changé la configuration hébergée. Aucun de ces ajouts ne lève un P0 ou D07/D08/D13. L'[audit historique](../archives/validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md) reste intact.
 
 ## Matrice historique du 6.5.2
 
-**28 octobre 2026. Lecture seule ; aucune correction effectuée.** DEV uniquement `wcckbyhrtroittbfophv`. Sources, horaires R01–R16 et détails : [audit](../validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md). Référence Git `5affd57ee6e3a92d53eb8bddafc029268554c522`. Les statuts qualifient des objets précis ; une suite CI éphémère ne vaut pas constat DEV. P1 = préparation de l'intervention DEV ; P2 = suivi proportionné. Les portes P0 avant invitation réelle restent toutes bloquantes.
+**28 octobre 2026. Lecture seule ; aucune correction effectuée.** DEV uniquement `wcckbyhrtroittbfophv`. Sources, horaires R01–R16 et détails : [audit](../archives/validations/AUDIT-SUPABASE-DEV-LOT6-5-2.md). Référence Git `5affd57ee6e3a92d53eb8bddafc029268554c522`. Les statuts qualifient des objets précis ; une suite CI éphémère ne vaut pas constat DEV. P1 = préparation de l'intervention DEV ; P2 = suivi proportionné. Les portes P0 avant invitation réelle restent toutes bloquantes.
 
 | Domaine | Attendu dans Git | Réel DEV | Écart | Risque | Action ultérieure | Priorité |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -57,4 +57,4 @@ La grande matrice ci-dessous conserve les **constats datés du 6.5.2**. Ses anci
 | Intégration GitHub DEV | Pas de migration/déploiement automatique | Deploy to production off, Automatic branching off, R13 | CONFORME OBSERVÉ pour DEV | Paramètres susceptibles de changer | Recontrôler avant prochaine intervention ; aucune consultation PROD | P1 |
 | Préparation recette | Stack CI isolée ; aucun runner destructif hébergé | Aucun essai hébergé du lot ; [plan dédié](PLAN-RECETTE-DEV.md) | À VALIDER PAR L'EXPLOITANT | Création/nettoyage accidentels sur comptes existants | Autorisations nominativement bornées en privé, comptes fictifs propres au run, arrêt sûr | P1, P0-14 maintenu |
 
-Les actions restent des propositions. Ordre, dépendances, preuves et arrêts : [mise à niveau](PLAN-MISE-A-NIVEAU-DEV.md). Validation documentaire et CI : [lot 6.5.2](../validations/VALIDATION-LOT6-5-2.md). Aucune absence n'est déduite d'un refus de lecture ; les inconnues restent explicites.
+Les actions restent des propositions. Ordre, dépendances, preuves et arrêts : [mise à niveau](PLAN-MISE-A-NIVEAU-DEV.md). Validation documentaire et CI : [lot 6.5.2](../archives/validations/VALIDATION-LOT6-5-2.md). Aucune absence n'est déduite d'un refus de lecture ; les inconnues restent explicites.

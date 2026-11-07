@@ -12,7 +12,7 @@ export async function runSupabaseSuites(run = runNode) {
       await run('Backend Drill réel', ['scripts/test-drill-supabase.mjs']);
       await run('Backend personnel réel', ['scripts/test-personal-data-supabase.mjs']);
       await run('Préparation Chromium Supabase', ['scripts/install-chromium.mjs']);
-      await run('Chromium Supabase réel', [playwrightCLI, 'test', '--config=playwright.supabase.config.js']);
+      await run('Chromium Supabase réel', [playwrightCLI, 'test', '--config=tests/playwright.supabase.config.js']);
     })(),
   ]);
   // Always join BOTH branches, including their targeted cleanup, before failure

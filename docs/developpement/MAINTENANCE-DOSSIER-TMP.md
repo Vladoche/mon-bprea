@@ -47,7 +47,7 @@ Validation Windows sous Node 24.22.0 : `npm ci`, puis `npm test -- tests/integra
 
 ## Historique du premier nettoyage
 
-**Lot 6.5.5.A — 5 novembre 2026.** `.tmp/` est ignoré par Git, exclu de Pages et réservé au poste local. Il contient à la fois des fichiers jetables et des preuves privées. Ce n'est jamais une corbeille globale. [Mesures du nettoyage](../validations/VALIDATION-LOT6-5-5A-TMP.md), [validation du lot](../validations/VALIDATION-LOT6-5-5A.md).
+**Lot 6.5.5.A — 5 novembre 2026.** `.tmp/` est ignoré par Git, exclu de Pages et réservé au poste local. Il contient à la fois des fichiers jetables et des preuves privées. Ce n'est jamais une corbeille globale. [Mesures du nettoyage](../archives/validations/VALIDATION-LOT6-5-5A-TMP.md), [validation du lot](../archives/validations/VALIDATION-LOT6-5-5A.md).
 
 ## Inventaire initial et origine du volume
 

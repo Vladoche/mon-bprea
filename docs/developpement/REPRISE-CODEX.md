@@ -14,10 +14,11 @@
 
 | Chantier | Référence |
 | --- | --- |
+| Organisation du code | [Architecture actuelle](../architecture/ARCHITECTURE.md) |
 | Code et vérifications | [Conventions de test](../TESTS.md) |
 | Auth et parcours utilisateur | [Architecture Auth](../architecture/AUTHENTIFICATION.md) |
 | Entretien du poste | [Maintenance de `.tmp`](MAINTENANCE-DOSSIER-TMP.md) |
 
-Appliquer les [consignes du dépôt](../../AGENTS.md). Ouvrir les rapports historiques à partir des liens utiles au chantier. Réutiliser les preuves existantes dans leur périmètre, puis vérifier le changement et les parcours qu’il affecte. Lorsqu’un défaut reproductible entre dans le périmètre, livrer le correctif et sa vérification dans la même PR.
+Appliquer les [consignes du dépôt](../../AGENTS.md). Les preuves de la campagne 6.6 restent dans `docs/validations/` ; les rapports antérieurs sont conservés dans `docs/archives/validations/`. Ouvrir les rapports historiques à partir des liens utiles au chantier. Réutiliser les preuves existantes dans leur périmètre, puis vérifier le changement et les parcours qu’il affecte. Lorsqu’un défaut reproductible entre dans le périmètre, livrer le correctif et sa vérification dans la même PR.
 
 Mettre à jour cette fiche quand un jalon ou la prochaine action change. Consigner les résultats dans la PR ou la référence du chantier. Le guide PROD porte la procédure et la matrice de préouverture porte le détail des décisions et des preuves.
