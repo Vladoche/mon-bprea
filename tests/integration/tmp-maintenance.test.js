@@ -4,8 +4,8 @@ import { join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
 import { referenceCatalog, MARKER } from '../../scripts/maintenance/tmp-policy.mjs';
-import { inventoryTmp, publicReport, checkedPath, scanTree, buildFingerprint } from '../../scripts/maintenance/tmp-inventory.mjs';
-import { applyPrune } from '../../scripts/maintenance/tmp-prune.mjs';
+import { inventoryTmp, publicReport, checkedPath, scanTree, buildFingerprint, processSnapshot, activeTask } from '../../scripts/maintenance/tmp-inventory.mjs';
+import { applyPrune, main } from '../../scripts/maintenance/tmp-prune.mjs';
 import { ownTestBuild } from '../../scripts/maintenance/tmp-build.mjs';
 
 // Only synthetic public bytes and private tokens. No real recipe journal is read.
@@ -44,6 +44,75 @@ afterEach(() => {
 });
 
 describe('maintenance locale de .tmp', () => {
+  test('plafond décimal de 500 Mo : limite exacte, dépassement et mesure après nettoyage', () => {
+    const repo = fixture(), plan = inspect(repo);
+    for (const [bytes, exceeded, overBytes] of [[499_999_999, false, 0], [500_000_000, false, 0], [500_000_001, true, 1]]) {
+      expect(publicReport({ ...plan, bytes }).capacity).toMatchObject({
+        limitBytes: 500_000_000, measuredBytes: bytes, exceeded, overBytes,
+      });
+    }
+    expect(publicReport({ ...plan, bytes: 600_000_000 }, { afterBytes: 42 }).capacity)
+      .toMatchObject({ measuredBytes: 42, exceeded: false, overBytes: 0 });
+  });
+
+  test('la livraison réutilise le nettoyage sûr après simulation et reste idempotente', () => {
+    const repo = fixture(), dir = build(repo), output = [];
+    const options = { repository: repo, catalog, processes: () => idle, write: line => output.push(line) };
+    expect(main([], options).mode).toBe('simulation');
+    expect(fs.existsSync(dir)).toBe(true);
+    const delivered = main(['--delivery'], options);
+    expect(delivered).toMatchObject({ mode: 'apply', removedFiles: 3, afterBytes: 0, afterFiles: 0, afterDirectories: 0 });
+    expect(fs.existsSync(dir)).toBe(false);
+    expect(main(['--delivery'], options).removedFiles).toBe(0);
+    expect(output.join('\n')).toContain('Mo /');
+    expect(output.join('\n')).toContain('Go');
+    expect(output.join('\n')).toContain('Plafond 500 Mo : respecté');
+    expect(() => main(['--delivery', '--apply'], options)).toThrow('invalid-arguments');
+  });
+
+  test('un dépassement signale les groupes conservés sans exposer leur nom privé', () => {
+    const repo = fixture();
+    const privateName = 'synthetic-person@example.invalid';
+    fs.writeFileSync(join(repo, '.tmp', privateName), 'synthetic-diagnostic');
+    const plan = inspect(repo);
+    const group = { ...plan.groups[0], bytes: 600_000_000 };
+    const report = publicReport({ ...plan, bytes: group.bytes, groups: [group] });
+    expect(report.capacity).toMatchObject({ exceeded: true, overBytes: 100_000_000,
+      largestRetained: [{ category: 'C', reason: 'unknown-preserved', bytes: 600_000_000 }] });
+    expect(JSON.stringify(report)).not.toContain(privateName);
+    expect(fs.readFileSync(join(repo, '.tmp', privateName), 'utf8')).toBe('synthetic-diagnostic');
+  });
+
+  test('préserve M5, les campagnes de release et leurs preuves malgré des médias publics', () => {
+    const repo = fixture();
+    for (const name of ['lot660e-source-71e3b2fa2c1d', 'lot660d', 'lotd-pages-synthetic', 'preopening-operator']) {
+      const dir = join(repo, '.tmp', name);
+      fs.mkdirSync(dir);
+      fs.writeFileSync(join(dir, 'cas-pt409.local.sql'), '-- synthetic unique prototype');
+      fs.writeFileSync(join(dir, 'index.html'), index);
+    }
+    const before = scanTree(repo, join(repo, '.tmp'));
+    const plan = inspect(repo);
+    expect(plan.groups.every(group => group.reason === 'release-evidence')).toBe(true);
+    expect(apply(repo, plan).removedFiles).toBe(0);
+    expect(scanTree(repo, join(repo, '.tmp'))).toEqual(before);
+  });
+
+  test('la détection système reconnaît les tests réellement actifs', context => {
+    const snapshot = processSnapshot();
+    if (!snapshot.available) { context.skip(); return; }
+    expect(snapshot.busy).toBe(true); // This test is running inside a real Vitest process.
+  });
+
+  test('protège aussi le lanceur Playwright Test et les serveurs manuels, sous Windows et Linux', () => {
+    for (const command of [String.raw`node C:\repo\node_modules\@playwright\test\cli.js test`,
+      'node /repo/node_modules/@playwright/test/cli.js test',
+      'node /repo/node_modules/playwright/lib/cli/program.js test',
+      'python -m http.server 4173', 'node scripts/dev-recipe/serve.mjs',
+      'node scripts/verification-prod/rehearsal-local.mjs']) expect(activeTask(command)).toBe(true);
+    expect(activeTask('node scripts/maintenance/tmp-prune.mjs --delivery')).toBe(false);
+  });
+
   test('simulation entièrement en lecture seule et volume exact', () => {
     const repo = fixture(), dir = build(repo);
     const before = scanTree(repo, join(repo, '.tmp'));

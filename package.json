@@ -13,6 +13,8 @@
     "dev-recipe:continue": "node scripts/dev-recipe/prepare-continuation.mjs",
     "dev-recipe:session": "node scripts/dev-recipe/session.mjs",
     "maintenance:tmp": "node scripts/maintenance/tmp-prune.mjs",
+    "maintenance:tmp:clean": "node scripts/maintenance/tmp-prune.mjs --apply",
+    "delivery:complete": "node scripts/maintenance/tmp-prune.mjs --delivery",
     "preopening": "node scripts/preopening/operator.mjs",
     "preopening:notice": "node scripts/preopening/notice-preview.mjs",
     "preopening:exercise": "node scripts/preopening/exercise-local.mjs",

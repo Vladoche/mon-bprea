@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 
 export const BUILD_NAME = /^e2e-[A-Za-z0-9]{6}$/;
 export const MARKER = '.tmp-build.json';
+export const TMP_LIMIT_BYTES = 500_000_000; // 500 Mo, decimal units.
 export const KNOWN_GROUPS = new Set(['dev-recipe', 'lot653b-native', 'lot653b',
   'supabase-dev-config', 'maintenance-local']);
 
