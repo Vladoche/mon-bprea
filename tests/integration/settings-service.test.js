@@ -80,6 +80,19 @@ describe('persistance et service des paramètres — réseau simulé, sans preuv
     await f.service.save('itk', itk); await f.service.save('appearance', appearance); await f.service.synchronize();
     expect(f.service.getState().sync.domains.itk.state).toBe('error'); expect(f.service.getState().sync.domains.appearance.state).toBe('synced'); expect(f.remote.histories.get(A).appearance.season).toBe('auto');
   });
+  it('conserve un refus CAS PT409 sans renvoyer automatiquement l’opération', async () => {
+    const f = await initialized(); const connection = f.remote.connections.get(A);
+    connection.send.mockRejectedValue({ code: 'PT409', message: 'personal_revision_conflict' });
+    await f.service.save('itk', itk); await f.service.synchronize();
+    expect(f.service.getState().sync.domains.itk.state).toBe('error');
+    const saved = await f.repo(A).read();
+    expect(saved.values.itk).toEqual(itk);
+    expect(saved.operations).toHaveLength(1);
+    expect(saved.operations[0]).toMatchObject({ state: 'error', error: 'PT409' });
+    await f.service.synchronize(); await f.service.retry();
+    expect(connection.send).toHaveBeenCalledTimes(1);
+    expect((await f.repo(A).read()).operations[0]).toMatchObject({ id: saved.operations[0].id, state: 'error', error: 'PT409' });
+  });
   it('sépare A/B, outbox et réponse tardive puis retrouve A', async () => {
     const f = await initialized(); let release; f.remote.connections.get(A).send.mockImplementation(() => new Promise(resolve => { release = resolve; }));
     await f.service.save('itk', itk); const running = f.service.synchronize(); await vi.waitFor(() => expect(release).toBeTypeOf('function'));

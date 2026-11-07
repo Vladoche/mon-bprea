@@ -15,7 +15,9 @@ let environment;
 let passed = 0;
 
 function accepted(result, label) {
-  assert.equal(result.error, null, `${label} : la requête réelle devait être acceptée.`);
+  const code = typeof result.error?.code === 'string' && /^[A-Za-z0-9_]{1,64}$/.test(result.error.code) ? result.error.code : 'inconnu';
+  const status = Number.isInteger(result.status) ? result.status : 'inconnu';
+  assert.equal(result.error, null, `${label} : la requête réelle devait être acceptée (code ${code}, HTTP ${status}).`);
   return result.data;
 }
 
@@ -65,17 +67,18 @@ async function rows(student, table, filters = {}) {
   return accepted(await query, `Lecture ${table}`);
 }
 
-async function raw(student, path, method = 'GET', body = undefined, token = student?.token) {
+async function raw(student, path, method = 'GET', body = undefined, token = student?.token, timeoutMs = 15_000) {
   const headers = { apikey: environment.publishableKey, Prefer: 'return=representation' };
   if (token) headers.Authorization = `Bearer ${token}`;
   if (body !== undefined) headers['Content-Type'] = 'application/json';
+  const started = performance.now();
   const response = await fetch(`${environment.url}/rest/v1/${path}`, {
     method, headers, body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(15_000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   let data;
   try { data = await response.json(); } catch { data = null; }
-  return { status: response.status, ok: response.ok, data };
+  return { status: response.status, ok: response.ok, data, elapsedMs: performance.now() - started };
 }
 
 function deniedRaw(result, label, code = null) {
@@ -472,24 +475,56 @@ try {
 
   await check('Écritures directes : le trigger impose CAS, aucune protection réservée aux RPC', async () => {
     const before = await one(a, 'itk_settings');
-    const withoutCas = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', {
-      parameters: { ...itkParameters, area: '444' },
-    });
-    assert.equal(withoutCas.status, 409, 'PATCH sans révision/opération');
-    deniedRaw(withoutCas, 'PATCH sans révision/opération', 'PT409');
-    const staleCas = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', {
-      parameters: { ...itkParameters, area: '444' }, base_revision: before.revision - 1, operation_id: randomUUID(),
-    });
-    assert.equal(staleCas.status, 409, 'PATCH révision obsolète');
-    deniedRaw(staleCas, 'PATCH révision obsolète', 'PT409');
-    assert.deepEqual(await one(a, 'itk_settings'), before);
-    const valid = await raw(a, `itk_settings?user_id=eq.${a.id}`, 'PATCH', { parameters: { ...itkParameters, area: '444' }, base_revision: before.revision, operation_id: randomUUID() });
+    const coursesBefore = await rows(a, 'course_states');
+    const neighborBefore = await one(b, 'itk_settings');
+    // Regression PostgREST 14.18 : la réponse complète doit précéder les huit
+    // secondes de l'ancien timeout, sans retries métier côté client.
+    const timeoutMs = 8_000;
+    const request = (path, method, body) => raw(a, path, method, body, a.token, timeoutMs);
+    const patch = body => request(`itk_settings?user_id=eq.${a.id}`, 'PATCH', body);
+    const conflictTimes = [];
+    function conflict(result, label) {
+      assert.equal(result.status, 409, label);
+      deniedRaw(result, label, 'PT409');
+      assert.equal(result.data.message, 'personal_revision_conflict', label);
+      assert.ok(result.elapsedMs < timeoutMs, `${label} : réponse complète attendue avant huit secondes.`);
+      conflictTimes.push(result.elapsedMs);
+    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      conflict(await patch({ parameters: { ...itkParameters, area: '444' } }), 'PATCH sans révision/opération');
+      conflict(await patch({ parameters: { ...itkParameters, area: '444' }, base_revision: before.revision - 1, operation_id: randomUUID() }), 'PATCH révision obsolète');
+      conflict(await patch({ parameters: { ...itkParameters, area: '444' }, base_revision: before.revision, operation_id: before.operation_id }), 'PATCH opération réutilisée');
+      conflict(await request('course_states', 'POST', {
+        lesson_id: 'invalid-initial-revision', done: false, operation_id: randomUUID(), base_revision: 1,
+      }), 'INSERT révision initiale invalide');
+      assert.deepEqual(await one(a, 'itk_settings'), before);
+      assert.deepEqual(await rows(a, 'course_states'), coursesBefore);
+    }
+    const valid = await patch({ parameters: { ...itkParameters, area: '444' }, base_revision: before.revision, operation_id: randomUUID() });
     assert.equal(valid.status, 200);
     assert.equal(valid.data.length, 1);
     assert.equal(valid.data[0].revision, before.revision + 1);
     assert.equal(valid.data[0].user_id, a.id);
     assert.equal(valid.data[0].parameters.area, '444');
-    own.itk_settings = valid.data[0];
+    assert.deepEqual((await rpc(a, 'personal_save_itk', itkInput({
+      p_parameters: valid.data[0].parameters, p_expected_revision: before.revision, p_operation_id: valid.data[0].operation_id,
+    }), 'replayed')).row, valid.data[0]);
+    const competing = await Promise.all(['445', '446'].map(area => patch({
+      parameters: { ...itkParameters, area }, base_revision: valid.data[0].revision, operation_id: randomUUID(),
+    })));
+    assert.deepEqual(competing.map(result => result.status).sort(), [200, 409], 'Deux PATCH concurrents : un seul gagnant CAS.');
+    conflict(competing.find(result => result.status === 409), 'PATCH concurrent perdant');
+    const winner = competing.find(result => result.status === 200).data[0];
+    assert.equal(winner.revision, before.revision + 2);
+    assert.deepEqual(await one(a, 'itk_settings'), winner);
+    assert.deepEqual((await rpc(a, 'personal_save_itk', itkInput({
+      p_parameters: winner.parameters, p_expected_revision: winner.base_revision, p_operation_id: winner.operation_id,
+    }), 'replayed')).row, winner);
+    assert.deepEqual((await rpc(a, 'personal_save_itk', itkInput({ p_expected_revision: winner.base_revision }), 'conflict')).row, winner);
+    assert.deepEqual(await one(a, 'itk_settings'), winner, 'Conflit RPC sans mutation.');
+    assert.deepEqual(await one(b, 'itk_settings'), neighborBefore, 'Le compte B reste inchangé.');
+    own.itk_settings = winner;
+    console.log(`OK Conflits directs : ${conflictTimes.length} réponses HTTP 409/PT409, maximum ${Math.ceil(Math.max(...conflictTimes))} ms < ${timeoutMs} ms.`);
   });
 
   await check('Visiteur et faux JWT refusés sur chaque table et chaque RPC', async () => {

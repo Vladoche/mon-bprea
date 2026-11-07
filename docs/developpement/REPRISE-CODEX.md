@@ -1,12 +1,12 @@
 # Reprendre Mon BPREA avec Codex
 
-**Point de situation du 6 novembre 2026.** La [PR #42](https://github.com/Vladoche/mon-bprea/pull/42) est fusionnée dans `main` (`c0f2976`). Elle versionne M5 et le diagnostic de préparation. Les contrôles GitHub Qualité et Sécurité Auth/RLS de cette PR ont réussi. L’installation PROD et l’ouverture restent à valider.
+**Point de situation du 7 novembre 2026.** La [PR #42](https://github.com/Vladoche/mon-bprea/pull/42) est fusionnée dans `main` (`c0f2976`). Elle versionne M5 et le diagnostic de préparation. Les contrôles GitHub Qualité et Sécurité Auth/RLS de cette PR ont réussi. L’installation PROD et l’ouverture restent à valider.
 
 **Cible du vendredi 13 novembre 2026.** Accès sur invitation uniquement, dans le cadre de la préouverture privée. Un invité doit pouvoir activer son compte, se connecter, suivre un cours, enregistrer sa progression et la retrouver après reconnexion. Vérifier l’isolation entre deux comptes de recette autorisés.
 
 ## Reprendre la livraison
 
-1. **Premier chantier.** Rejouer localement la préparation P et les migrations M1 à M5 sur PostgREST 14.18. Vérifier HTTP 409 sur les conflits de révision, l’absence de mutation et les droits avec des sessions réelles de test. Le prototype E a passé les 26 groupes de tests personnels sur 14.18. La répétition du préfixe versionné sur cette version reste à faire. [Synthèse D et E](../validations/VALIDATION-LOT6-6-0-DE.md)
+1. **Qualification locale de M5 effectuée.** Le 7 novembre, P et M1–M5 ont réussi sur PostgREST 14.18, PostgreSQL 17.11 et Auth 2.197.0, en installation neuve et en mise à niveau avec données A/B. Les 26 groupes personnels et 22 groupes Drill ont réussi sous 14.18 et 16.4 avec de vrais JWT ; conflits HTTP 409, conservation des données et permissions sont vérifiés. Les 32 parcours E2E Supabase sous 14.18 ont réussi avec l’adaptation de banc décrite dans les [résultats et limites](../validations/VALIDATION-LOT6-6-0-DE.md#compatibilité-postgrest).
 2. **Préparer l’intervention hébergée.** Qualifier la connexion opérateur, vérifier le point de reprise et obtenir les accords applicables. Préparer les réglages Auth pour les invitations et le refus de l’inscription directe et de l’anonymat. Suivre l’ordre, les conditions et les points d’arrêt du [guide d’installation PROD](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md).
 3. **Décider l’ouverture.** Traiter les portes encore ouvertes dans la matrice de préouverture. Après autorisation, vérifier l’artefact publié et le parcours invité jusqu’à la récupération de la progression. [Matrice de préouverture et conditions d’ouverture](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) · [Invitation et récupération manuelles](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md)
 
