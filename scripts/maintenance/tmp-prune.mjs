@@ -7,7 +7,7 @@ import { MARKER, BUILD_NAME, digest } from './tmp-policy.mjs';
 export const REPOSITORY = fileURLToPath(new URL('../../', import.meta.url));
 
 export function applyPrune(inventory, { repository, processes = processSnapshot, unlink = fs.unlinkSync } = {}) {
-  if (inventory.absent) return { removedFiles: 0, removedBytes: 0, removedDirectories: 0, failures: [], afterBytes: 0, afterFiles: 0 };
+  if (inventory.absent) return { removedFiles: 0, removedBytes: 0, removedDirectories: 0, failures: [], afterBytes: 0, afterFiles: 0, afterDirectories: 0, remainingGroups: [] };
   const tmp = checkedPath(repository, join(repository, '.tmp'));
   if (tmp !== inventory.tmp) fail('external-path');
   const lock = join(tmp, '.maintenance.lock');
@@ -58,27 +58,39 @@ export function applyPrune(inventory, { repository, processes = processSnapshot,
       }
     }
   } finally { fs.closeSync(fd); fs.unlinkSync(checkedPath(repository, lock)); }
-  const after = scanTree(repository, tmp);
-  return { removedFiles, removedBytes, removedDirectories, failures, afterBytes: after.bytes, afterFiles: after.files.length };
+  const after = inventoryTmp({ repository, catalog: inventory.catalog, processes: processes() });
+  return { removedFiles, removedBytes, removedDirectories, failures,
+    afterBytes: after.bytes, afterFiles: after.files, afterDirectories: after.directories, remainingGroups: after.groups };
 }
 
-export function main(args = process.argv.slice(2)) {
-  if (args.some(arg => !['--apply', '--json'].includes(arg)) || new Set(args).size !== args.length) fail('invalid-arguments');
-  const inventory = inventoryTmp({ repository: REPOSITORY });
-  const result = args.includes('--apply') ? applyPrune(inventory, { repository: REPOSITORY }) : null;
+export const volume = bytes => `${(bytes / 1e6).toFixed(2)} Mo / ${(bytes / 1e9).toFixed(3)} Go`;
+
+export function main(args = process.argv.slice(2), {
+  repository = REPOSITORY, catalog, processes = processSnapshot, write = line => console.log(line),
+} = {}) {
+  if (args.some(arg => !['--apply', '--delivery', '--json'].includes(arg)) || new Set(args).size !== args.length
+      || args.includes('--apply') && args.includes('--delivery')) fail('invalid-arguments');
+  const apply = args.includes('--apply') || args.includes('--delivery');
+  const inventory = inventoryTmp({ repository, catalog, processes: processes() });
+  const result = apply ? applyPrune(inventory, { repository, processes }) : null;
   const report = publicReport(inventory, result);
-  if (args.includes('--json')) console.log(JSON.stringify(report, null, 2));
+  if (args.includes('--json')) write(JSON.stringify(report, null, 2));
   else {
-    console.log(`.tmp — ${report.mode} : ${report.beforeBytes} octets, ${report.beforeFiles} fichiers.`);
-    console.log(`Candidats : ${report.candidateDirectories} dossiers, ${report.expectedBytes} octets. Processus : ${report.processCheck}.`);
-    for (const candidate of report.candidateDetails) console.log(`${candidate.directory} | ${candidate.mode} | ${candidate.files.length} fichiers | ${candidate.bytes} octets`);
+    write(`.tmp — ${report.mode} : ${volume(report.beforeBytes)}, ${report.beforeFiles} fichiers, ${report.directories} dossiers.`);
+    write(`Candidats : ${report.candidateDirectories} dossiers, ${volume(report.expectedBytes)}. Processus : ${report.processCheck}.`);
+    for (const candidate of report.candidateDetails) write(`${candidate.directory} | ${candidate.mode} | ${candidate.files.length} fichiers | ${volume(candidate.bytes)}`);
     const protectedGroups = report.groups.filter(group => !report.candidateDetails.some(candidate => candidate.directory === group.label));
     const reasons = Object.entries(Object.groupBy(protectedGroups, group => group.reason)).map(([reason, items]) => `${reason}=${items.length}`);
-    console.log(`Conservés : ${protectedGroups.length} éléments (${reasons.join(', ')}). Détail minimisé : --json.`);
-    if (result) console.log(`Nettoyés : ${result.removedFiles} fichiers, ${result.removedBytes} octets. Restants : ${result.afterBytes} octets. Échecs : ${result.failures.length}.`);
+    write(`Conservés : ${protectedGroups.length} éléments (${reasons.join(', ')}). Détail minimisé : --json.`);
+    if (result) write(`Nettoyés : ${result.removedFiles} fichiers, ${volume(result.removedBytes)}. Restants : ${volume(result.afterBytes)}. Échecs : ${result.failures.length}.`);
+    write(`Plafond 500 Mo : ${report.capacity.exceeded ? `DÉPASSÉ de ${volume(report.capacity.overBytes)}` : 'respecté'}.`);
+    if (report.capacity.exceeded) {
+      write('Plus gros éléments conservés (aucune suppression supplémentaire pour atteindre le plafond) :');
+      for (const group of report.capacity.largestRetained) write(`${group.label} | ${group.category} | ${group.reason} | ${volume(group.bytes)}`);
+    }
   }
   if (result?.failures.length) process.exitCode = 1;
-  if (args.includes('--apply') && !inventory.absent && (!inventory.processes.available || inventory.processes.busy)) process.exitCode = 1;
+  if (apply && !inventory.absent && (!inventory.processes.available || inventory.processes.busy)) process.exitCode = 1;
   return report;
 }
 

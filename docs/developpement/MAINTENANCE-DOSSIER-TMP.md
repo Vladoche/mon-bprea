@@ -1,5 +1,52 @@
 # Maintenance du dossier local `.tmp`
 
+## Procédure après livraison locale
+
+Après une intervention terminée et vérifiée, arrêter ses tests et serveurs, puis exécuter **`npm run delivery:complete`** avant le compte rendu final, avec ou sans commit/PR. Cette commande réutilise le nettoyeur existant ; elle n’exécute ni test, ni commit, ni déploiement.
+
+| Point d’entrée | Effet |
+| --- | --- |
+| `npm run maintenance:tmp` | Simulation en lecture seule, sans créer de fichier ni verrou. |
+| `npm run maintenance:tmp -- --json` | Même simulation, rapport structuré minimisé. |
+| `npm run maintenance:tmp:clean` | Nettoyage sécurisé explicite, équivalent à `npm run maintenance:tmp -- --apply`. |
+| `npm run delivery:complete` | Même nettoyage, suivi de la mesure finale et du contrôle de capacité. Accepte `-- --json`. |
+
+Le plafond est **500 Mo décimaux (500 000 000 octets)** ; les résumés affichent Mo et Go. Tout dépassement indique le volume excédentaire et les dix plus gros groupes conservés, avec leur catégorie et motif. Un dépassement protégé est un avertissement, pas une autorisation de purge ni un échec des tests. Un refus de sécurité ou une suppression incomplète renvoie un code non nul ; le signaler avant de conclure.
+
+| Catégorie actuelle | Conservation et autorisation |
+| --- | --- |
+| **A — Supprimable** | Uniquement les builds E2E inactifs rapprochés du contenu public Git ; pour une ancienne copie non scellée avec du code inconnu, seulement ses médias publics strictement identiques. Simulation et recontrôle avant suppression. |
+| **B — Temporaire** | Campagnes actives, dernier échec pertinent, diagnostic ouvert : conserver jusqu’à clôture. |
+| **C — Protégée** | Sauvegardes/dumps, preuves, modifications non intégrées, données sensibles ou inconnues : conserver. |
+| **D — Archivage possible** | Historique utile : conserver sur place tant qu’un archivage et sa restauration ne sont pas explicitement qualifiés. Aucun transfert automatique vers GitHub. |
+
+Le nettoyage standard est autorisé pour A après chaque livraison. Les clusters, caches d’outils, copies de source et autres catégories ne deviennent pas supprimables par leur nom, leur âge ou un simple manifeste. Leur éventuel allègement exige une revue ciblée et l’autorisation du périmètre ; le nettoyeur automatique ne les efface pas. Les groupes peuvent combiner A/C ou B/C.
+
+Préserver explicitement `.tmp/lot660e-source-71e3b2fa2c1d/cas-pt409.local.sql`, les préfixes D/E, les preuves de préparation du premier déploiement et `dev-recipe`. M5 est désormais versionnée dans `supabase/migrations/20261106174551_return_conflict_for_personal_revision.sql` ; cette intégration ne vaut pas autorisation de détruire les preuves associées.
+
+Les contrôles de chemins, liens/jonctions, empreintes, PID et verrou exclusif restent obligatoires. La détection Windows utilise CIM et reconnaît tests, serveur, préparation Pages et répétitions natives ; si l’accès système est refusé, exécuter depuis un terminal autorisé, sans désactiver la garde. Ne pas arrêter les outils d’autrui.
+
+Le serveur E2E nettoie déjà son propre build à la fermeture normale. La commande de fin de livraison traite les reliquats admissibles après arrêt des outils ; elle ne s’exécute pas dans un hook `posttest`, qui interviendrait avant la fin de la campagne. Les consignes versionnées dans `AGENTS.md` rendent cette étape obligatoire pour Codex. **Aucun déclencheur universel ne détecte les livraisons humaines sans commit/PR** : l’opérateur appelle ce point d’entrée. Aucun hook Git local ni changement CI n’est requis.
+
+Dans le compte rendu : volume avant/après, espace réellement libéré, plafond respecté ou causes de dépassement, éventuel refus de nettoyage. Garder un diagnostic utile en cas d’échec et éviter les copies complètes supplémentaires.
+
+## Nettoyage autorisé du 7 novembre 2026
+
+| Mesure logique du contenu de `.tmp` | Avant | Après |
+| --- | ---: | ---: |
+| Octets | 3 505 247 493 | 1 540 051 254 |
+| Mo / Go décimaux | 3 505,25 / 3,505 | 1 540,05 / 1,540 |
+| Fichiers | 52 302 | 33 836 |
+| Dossiers sous `.tmp` | 1 850 | 1 443 |
+
+**Baisse nette : 1 965 196 239 octets (1 965,20 Mo, 56,1 %).** La revue ponctuelle autorisée a retiré une copie Chromium strictement identique au cache installé, les seuls répertoires de données de neuf clusters fictifs arrêtés et des médias publics dupliqués dans douze copies historiques. Le nettoyeur standard a ensuite retiré 17 builds E2E inactifs rapprochés de Git, sans échec. Dumps, journaux, sources et preuves ont été conservés ; les empreintes des fichiers hors de la sélection ponctuelle sont inchangées, ainsi que celle du prototype M5. Une carte de restauration Git des médias et une preuve compacte restent privées, hors Git/Pages.
+
+**Le plafond de 500 Mo reste dépassé de 1 040,05 Mo.** Conserver les sept autres clusters dont la provenance n’a pas été confirmée par les contrôles retenus, un ancien cluster non proprement clôturé, les outils PostgreSQL, les copies et preuves de release, `dev-recipe` et les contenus inconnus/scellés. Leur suppression n’est pas autorisée par le plafond. Hors `.tmp`, le cache Playwright (752,85 Mo), `node_modules` (84,86 Mo) et Docker (au moins 7,28 Go de fichiers accessibles ; moteur arrêté et deux accès refusés) ont seulement été mesurés.
+
+Validation Windows sous Node 24.22.0 : `npm ci`, puis `npm test -- tests/integration/tmp-maintenance.test.js` : **23 réussis, 1 ignoré** (création d’un lien symbolique natif non autorisée). Les jonctions, chemins extérieurs, processus réellement actifs, verrou Windows, inconnus, idempotence, volumes, plafond et point d’entrée de livraison sont couverts. Le premier essai restreint a échoué sur deux créations de jonctions ; l’exécution autorisée a réussi sans retirer les gardes. Contrôles syntaxiques Node, liens documentaires et `git diff --check` réussis. Pas de suite applicative complète locale pour ce changement d’outillage ; les checks obligatoires de la PR restent à examiner séparément.
+
+## Historique du premier nettoyage
+
 **Lot 6.5.5.A — 5 novembre 2026.** `.tmp/` est ignoré par Git, exclu de Pages et réservé au poste local. Il contient à la fois des fichiers jetables et des preuves privées. Ce n'est jamais une corbeille globale. [Mesures du nettoyage](../validations/VALIDATION-LOT6-5-5A-TMP.md), [validation du lot](../validations/VALIDATION-LOT6-5-5A.md).
 
 ## Inventaire initial et origine du volume
@@ -56,7 +103,7 @@ npm run maintenance:tmp -- --json
 npm run maintenance:tmp -- --apply
 ```
 
-Sans `--apply`, lecture seule : aucune suppression, aucun dossier ou verrou créé. La sortie donne volumes, nombres, candidats, règle et exclusions ; `--json` détaille les noms publics des seuls fichiers candidats et masque les autres noms. Aucun contenu de fichier ou erreur fournisseur n'est journalisé. Aucun argument de racine, cible, manifeste, glob, âge ou forçage n'est accepté. La racine vient de l'emplacement du module dans ce dépôt, jamais du répertoire courant de l'opérateur.
+Sans `--apply` ni `--delivery`, lecture seule : aucune suppression, aucun dossier ou verrou créé. La sortie donne volumes, nombres, candidats, règle et exclusions ; `--json` détaille les noms publics des seuls fichiers candidats et masque les autres noms. Aucun contenu de fichier ou erreur fournisseur n'est journalisé. Aucun argument de racine, cible, manifeste, glob, âge ou forçage n'est accepté. La racine vient de l'emplacement du module dans ce dépôt, jamais du répertoire courant de l'opérateur.
 
 Le mode application ne cible que les dossiers **immédiats** `.tmp/e2e-` suivis de six caractères alphanumériques, créés par le serveur de tests. Le nom seul n'autorise rien : chaque fichier doit appartenir au jeu public historique Git. Contenu et chemin publics sont vérifiés dans les objets Git locaux ; seuls les fins de ligne de texte et paramètres de version de cache sont normalisés. Une configuration Auth activée est refusée. Un fichier ou sous-dossier inconnu, une preuve/réservation ou un lien exclut le groupe.
 
@@ -80,7 +127,7 @@ Le contrôle des processus Windows utilise CIM. S'il est indisponible, ou si tes
 
 Un partage Windows interdisant la lecture écarte le groupe ; une interdiction de suppression produit une erreur minimisée, sans retry forcé. Le compteur ne comprend que les suppressions réellement accomplies. Un groupe peut rester partiel après erreur : son marqueur est retiré en dernier et les autres données sont conservées. Examiner le rapport avant une reprise. Aucun effacement cryptographique, aucune récupération de clusters NTFS précise ou révocation de données cloud n'est promis.
 
-## Rétention et entretien
+## Rétention et entretien historiques (catégories du 5 novembre)
 
 | Catégorie | Règle |
 | --- | --- |
