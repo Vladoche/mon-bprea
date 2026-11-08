@@ -119,6 +119,19 @@ describe('contact et clôture préparés sans identité ou opération inventée'
       const value = closure(); mutate(value); expect(() => closurePreflight(value, now)).toThrow();
     }
   });
+  it.each([
+    ['projet erroné', v => { v.target.projectRef = 'wrong'; }, 'project'],
+    ['UUID absent', v => { v.userId = v.confirmUserId = account(9).id; }, 'account_missing'],
+    ['demande non confirmée', v => { v.requestConfirmed = false; }, 'identity_or_request'],
+    ['export non proposé', v => { v.exportOffered = false; }, 'identity_or_request'],
+    ['inventaire périmé', v => { v.inventory.observedAt = '2026-11-05T11:54:59.000Z'; }, 'stale_evidence'],
+    ['dépendance supplémentaire', v => { v.inventory.cascadeCount = 12; }, 'dependencies_or_storage'],
+    ['résultat déjà confirmé', v => { v.previousResult = 'confirmed-deleted'; }, 'uncertain_read_before_retry'],
+    ['réponse perdue', v => { v.previousResult = 'uncertain'; }, 'uncertain_read_before_retry'],
+  ])('clôture opérateur refusée : %s', (_, mutate, code) => {
+    const value = closure(); mutate(value);
+    expect(() => closurePreflight(value, now)).toThrow(code);
+  });
   it('masque toute entrée invalide de la CLI et ne propose aucune mutation', () => {
     const result = spawnSync(process.execPath, ['scripts/preopening/operator.mjs', 'delete-all', 'SECRET-do-not-print@example.invalid'], { encoding: 'utf8' });
     expect(result.status).toBe(2); expect(result.stderr).not.toContain('SECRET'); expect(result.stdout).toBe('');
