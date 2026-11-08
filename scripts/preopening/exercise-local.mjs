@@ -113,6 +113,16 @@ export async function exercise(pgBin) {
     tool('pg_restore', [...localPgTarget({ host: '127.0.0.1', port, database: restore }), '--exit-on-error', '--use-list', join(directory, 'restore-toc.txt'), join(directory, 'application.dump')]);
     assert.deepEqual(readRows(restore), before);
     assert.deepEqual(JSON.parse(sql(restore, structuralSql)), structure);
+    // La copie restaurée contient encore A : une preuve ignorant le journal
+    // postérieur au snapshot ne doit pas permettre de déclarer la reprise prête.
+    const unreconciled = { version: 1, manifestHash: digest(manifest), archiveHash: manifest.files['application.dump'].sha256,
+      projectRef: manifest.projectRef, schemaHash, testedAt: new Date().toISOString(), isolated: true,
+      restoreSucceeded: true, dataCompared: true, schemaAndPrivilegesCompared: true, dependenciesCompatible: true,
+      deletionLedgerHash: digest([]), deletionsReconciled: true };
+    const refusal = verifyBackup(directory, manifest, unreconciled,
+      { now: new Date().toISOString(), projectRef: manifest.projectRef, schemaHash, ledgerHash, protectionChecked: true });
+    assert.ok(refusal.reasons.includes('deletions_not_reconciled'));
+    createPrivate(directory, 'unreconciled-refusal.json', refusal);
     const bBefore = readRows(restore, B);
     // Seulement l'Auth factice de CET exercice ; aucune API/deleteUser réel.
     const deletions = JSON.parse(readFileSync(join(directory, 'deletions.json'), 'utf8'));

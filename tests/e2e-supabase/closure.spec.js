@@ -2,6 +2,8 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { readFile } from 'node:fs/promises';
+import { mkdtempSync } from 'node:fs';
+import { resolve, basename } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/drill-local.js';
 import { seedPersonalTables, readPersonalTables } from '../helpers/personal-data-local.js';
@@ -12,6 +14,8 @@ import { TABLES } from '../../assets/export-sources.js';
 import { questions, stamp, parameters } from '../fixtures/export.js';
 import { botanicalSession, botanicalAnswer } from '../fixtures/personal-data.js';
 import { closurePreflight, POLICY } from '../../scripts/preopening/preflight.mjs';
+import { run } from '../../scripts/preopening/operator.mjs';
+import { protectDirectory, createPrivate } from '../../scripts/dev-recipe/private-files.mjs';
 
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 async function invoke(student, token, body, method = 'POST') {
@@ -29,7 +33,8 @@ async function cachedCourse(page, action) {
   }, action);
 }
 test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT résiduel/outbox hors ligne et reprise', async ({ page, browser }) => {
-  test.setTimeout(150000); const students = []; let secondContext, stage = 'comptes fictifs', failure;
+  test.setTimeout(150000); const students = []; let secondContext, stage = 'comptes fictifs', failure, closureHttp;
+  page.on('response', response => { if (response.url().endsWith('/functions/v1/close-account')) closureHttp = response.status(); });
   try {
     const a = await createDrillStudent(); students.push(a); const b = await createDrillStudent(); students.push(b);
     stage = 'dix tables sous JWT étudiants'; await seedPersonalTables(a, 3); await seedPersonalTables(b, 2);
@@ -77,9 +82,11 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     expect(copyText.includes(b.userId) || copyText.includes('access_token') || copyText.includes('refresh_token')).toBe(false);
     await expect(page.locator('.data-erasure')).toContainText('Un fichier déjà téléchargé ne peut pas être rappelé');
     await expect(page.locator('.data-erasure')).toContainText('Les appareils éteints ou hors ligne peuvent garder des caches');
+    stage = 'formulaire local de clôture visible';
     await page.getByLabel('Mot de passe actuel', { exact: true }).fill(a.password);
     await page.getByLabel('Écris SUPPRIMER pour confirmer', { exact: true }).fill('SUPPRIMER');
     await page.getByRole('button', { name: 'Vérifier mon identité pour clôturer', exact: true }).click();
+    stage = 'réponse de réauthentification native locale';
     await expect(page.locator('[data-closure-execute]')).toBeVisible();
     stage = 'commit réel puis perte du premier acquittement';
     let lost = false;
@@ -143,7 +150,7 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     }
     expect(JSON.stringify(await readPersonalTables(b))).toBe(JSON.stringify(beforeB));
     expect(await readFile(copyPath, 'utf8') === copyText).toBe(true);
-  } catch { failure = new Error(`Clôture Supabase éphémère non validée : ${stage}. Aucune session, clé ou donnée journalisée.`); }
+  } catch { failure = new Error(`Clôture Supabase éphémère non validée : ${stage} (HTTP ${closureHttp || 'non reçu'}). Aucune session, clé ou donnée journalisée.`); }
   finally {
     await secondContext?.close(); await page.close();
     for (const student of students.toReversed()) try { await student.cleanup(); } catch { failure = new Error('Nettoyage ciblé des seuls comptes fictifs de clôture incomplet.'); }
@@ -155,6 +162,12 @@ test('Clôture assistée native — préflight unitaire, dix cascades, refresh r
   test.setTimeout(120000);
   const students = []; let a, attempted = false, confirmedAbsent = false, stage = 'fixtures isolées', failure;
   try {
+    const dossier = mkdtempSync(resolve('.tmp/preopening-closure-'));
+    protectDirectory(dossier);
+    const receivedAt = new Date().toISOString();
+    createPrivate(dossier, 'request.json', { syntheticOnly: true, reference: 'P0-13-SYNTHETIC-A', receivedAt,
+      right: 'erasure-and-closure', identity: 'simulated-known-channel', decision: 'approved-local-only',
+      acknowledgement: 'fictitious-no-message-sent', exportRequested: true });
     a = await createDrillStudent(); students.push(a);
     const b = await createDrillStudent(); students.push(b);
     // Le helper vérifie mon-bprea-lot6-1-local et 127.0.0.1:54321 AVANT la création.
@@ -189,10 +202,18 @@ test('Clôture assistée native — préflight unitaire, dix cascades, refresh r
     };
     stage = 'préflight de la seule cible';
     expect(closurePreflight(plan, now).tablesChecked).toBe(10);
+    createPrivate(dossier, 'closure.json', plan);
+    expect(run(['closure', basename(dossier)], now).tablesChecked).toBe(10);
+    // Export fictif préparé en mémoire ; aucun contenu pédagogique conservé comme preuve.
+    const exportCopy = structuredClone(beforeA);
+    expect(isDeepStrictEqual(exportCopy, beforeA)).toBe(true);
     expect(Boolean((await a.client.auth.getUser()).data.user?.id === a.userId)).toBe(true);
     stage = 'suppression administrative native unique'; attempted = true;
     const deletion = await admin.deleteUser(a.userId, false);
     expect(deletion.error === null).toBe(true);
+    // Injection opérateur : considérer la réponse perdue. Aucune seconde mutation.
+    expect(() => closurePreflight({ ...plan, previousResult: 'uncertain' }, new Date().toISOString()))
+      .toThrow('uncertain_read_before_retry');
     stage = 'postcontrôle Auth avant toute confirmation';
     const lookup = await admin.getUserById(a.userId);
     confirmedAbsent = lookup.error?.status === 404 && lookup.error?.code === 'user_not_found';
@@ -207,6 +228,15 @@ test('Clôture assistée native — préflight unitaire, dix cascades, refresh r
       expect(result.error === null && result.data.length === 0).toBe(true);
     }
     expect(isDeepStrictEqual(await readPersonalTables(b), beforeB)).toBe(true);
+    createPrivate(dossier, 'deletions.json', [{ syntheticOnly: true, reference: 'P0-13-SYNTHETIC-A',
+      projectRef: plan.target.projectRef, userId: a.userId, decidedAt: receivedAt, verifiedAt: new Date().toISOString(),
+      scope: 'auth-and-ten-tables', auth: 'absent', tables: Object.fromEntries(POLICY.tables.map(t => [t, 0])),
+      residuals: ['absent-device-cache', 'download-held-by-holder'], affectedCopies: [],
+      nextAction: 'assisted-device-review', reviewDueAt: new Date(Date.now() + 86400000).toISOString() }]);
+    createPrivate(dossier, 'response.json', { syntheticOnly: true, reference: 'P0-13-SYNTHETIC-A',
+      serverVerified: true, witnessPreserved: true, sent: false,
+      text: 'Clôture serveur vérifiée. Appareils absents et copies téléchargées à suivre séparément.',
+      dossierStatus: 'server-closed-residual-followup-open' });
     stage = 'ancien refresh et reconnexion refusés';
     const detached = createClient(a.environment.url, a.environment.publishableKey, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     expect(Boolean((await detached.auth.refreshSession({ refresh_token: session.refresh_token })).error)).toBe(true);
