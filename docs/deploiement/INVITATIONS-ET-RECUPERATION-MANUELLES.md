@@ -1,5 +1,7 @@
 # Invitations et récupération manuelles, sans SMTP externe
 
+**8 novembre 2026 — exécuteur PROD séparé préparé.** Les scripts locaux `admin-generate-auth-link.mjs` et `auth-link-local.mjs` gardent leur verrouillage sur la stack éphémère. Le nouvel exécuteur Node PROD est distinct ; sa préparation et ses tests n'autorisent aucune invitation réelle. Les opérations et validations datées ci-dessous gardent leur périmètre historique. Les réglages Auth réellement enregistrés et les contrôles hébergés figurent dans l'[architecture Auth](../architecture/AUTHENTIFICATION.md) ; la [matrice de préouverture](PLAN-PREOUVERTURE-PRIVEE.md) reste déterminante avant tout compte réel.
+
 **Cadre courant 6.5.5.C, 5 novembre 2026 :** sept comptes confirmés : exploitant et six autres adultes, limite administrative. Le [préflight opérateur hors ligne distinct](EXPLOITATION-PRIVEE-SIX-ADULTES.md#invitation-et-récupération-individuelles) vérifie capacité, cible, état et prérequis sans génération. Ce guide et ses outils restent des références de stack locale/campagne ; leurs protections ne sont pas supprimées pour l'hébergement. Contact officiel vladimir.fouillade@hotmail.fr, publication publique autorisée ; [contact sans compte](../../contact.html), essais opérationnels à compléter. Aucun compte réel invité ni opération Supabase hébergée autorisée dans C.
 
 
@@ -18,6 +20,50 @@ L'opérateur travaille depuis un ordinateur et un compte administrateur protég�
 Vérifier le projet exact, le destinataire autorisé, son accord de participation et l'adresse confirmée, l'information de confidentialité approuvée remise avant collecte/invitation, le canal privé de transmission et le callback exact. **Une invitation peut créer immédiatement l'utilisateur Auth et son profil**, avant son activation. Ne jamais générer pour un participant avant ces préconditions et la décision d’ouverture. Politique courante : sept comptes confirmés, exploitant compris, service personnel indépendant/facultatif jusqu’au 30 juin 2027 ; aucun nouveau contrôle serveur.
 
 Le contact officiel est accessible sans compte et son fonctionnement est attesté en D04. Le calendrier et les durées résiduelles sont approuvés. [Reçu D](../rgpd/RECU-ARBITRAGES-2026-11-05.md). Les pages de récupération renvoient au contact officiel et au canal connu, sans annoncer une mise en service acquise ni générer de lien.
+
+## Exécuteur PROD séparé
+
+[`scripts/admin-generate-prod-auth-link.mjs`](../../scripts/admin-generate-prod-auth-link.mjs) utilise les modules distincts [`environment.mjs`](../../scripts/prod-auth/environment.mjs), [`generator.mjs`](../../scripts/prod-auth/generator.mjs) et [`private-store.mjs`](../../scripts/prod-auth/private-store.mjs). Ils restent hors de l'artefact Pages. Les deux outils locaux précédents ne sont pas à rediriger vers PROD.
+
+**Préparation uniquement dans cette intervention : aucun lien PROD ni compte réel n'est autorisé par la présence de cet exécuteur.** Avant une future opération, obtenir l'accord spécifique au destinataire, satisfaire les portes de préouverture et effectuer le [préflight opérateur](EXPLOITATION-PRIVEE-SIX-ADULTES.md#invitation-et-récupération-individuelles). Vérifier identité, adresse, demande et canal déjà connu ; remettre la notice approuvée avant collecte. La confirmation dans le terminal atteste ces contrôles, elle ne les remplace pas.
+
+Depuis un poste de confiance, Node.js 24 et `npm ci`, préparer les variables suivantes exclusivement dans l'environnement privé opérateur ou le fichier ignoré `.env.supabase-prod.local`, chargé par la commande npm. Ne pas écraser un fichier privé existant ; conserver ce fichier sous les protections du poste et ne jamais en afficher le contenu. Ne passer ni clé, adresse, identité, mot de passe ou lien comme argument de commande. Une clé administrative moderne est nécessaire ; une clé publishable, `anon` ou legacy `service_role` est refusée.
+
+| Variable | Valeur ou contrôle |
+| --- | --- |
+| `SUPABASE_PROD_PROJECT_REF` | Exactement `oqoqrxwfbkhtpksqimgd` — Mon BPREA PROD, région `eu-central-1` |
+| `SUPABASE_PROD_URL` | Exactement `https://oqoqrxwfbkhtpksqimgd.supabase.co`, sans slash final |
+| `SUPABASE_PROD_SITE_URL` | Exactement `https://vladoche.github.io/mon-bprea/` |
+| `SUPABASE_PROD_ADMIN_KEY` | Clé `sb_secret_…` du seul projet PROD, conservée côté opérateur ; sa validité est contrôlée par une lecture administrative authentifiée |
+| `SUPABASE_PROD_OPERATOR_EMAIL` | Adresse vérifiée prévue pour le compte Auth de l'exploitant ; une place lui reste réservée tant que son compte est absent |
+| `SUPABASE_PROD_PRIVATE_DIR` | Chemin absolu d'un dossier privé existant, hors dépôt et hors dossier parent du dépôt, sans lien ni jonction ; propriétaire courant et accès limités à lui et SYSTEM sous Windows, ou propriétaire courant et mode privé sous POSIX |
+
+Le callback n'est pas paramétrable : seul `https://vladoche.github.io/mon-bprea/authentification.html` est accepté. Aucune clé n'est copiée dans `assets/`, `auth-config.local.json` ou les paramètres publics de Pages. Le dossier de remise contient des secrets temporaires et reste exclu de Git, sauvegardes partagées, synchronisations, captures et outils de journalisation.
+
+```text
+npm run admin:auth-link:prod -- check
+```
+
+`check` valide l'environnement, le chemin privé et l'accès administratif à l'inventaire Auth. Il vérifie aussi dans `/auth/v1/settings` la fermeture des inscriptions, l'anonyme désactivé, l'e-mail actif avec confirmation et l'absence d'autre fournisseur actif ; tout état absent ou divergent bloque la génération. Il ne génère aucun jeton et ne crée ni compte ni profil. Il affiche seulement le projet, le callback, le contrôle des réglages publics et le nombre de comptes, invitations en attente comprises. **Ce contrôle ne prouve pas les Site/Redirect URLs, le minimum de mot de passe ou la durée des liens du Dashboard ; il ne qualifie pas le parcours hébergé et ne lève aucune porte de préouverture.** Il exige le même terminal privé interactif que la génération.
+
+Après autorisation individuelle ultérieure uniquement :
+
+```text
+npm run admin:auth-link:prod -- invite
+npm run admin:auth-link:prod -- recovery
+```
+
+Une seule adresse est saisie par opération. CI, navigateur, pipes, redirections, instrumentation, proxy configuré, arguments supplémentaires, batch et confirmations automatiques sont refusés. Le transport accepte uniquement les réglages publics Auth, l'inventaire Auth borné et un seul `generateLink`, sur le projet exact, sans redirection HTTP ni nouvelle tentative. Aucun SMTP, envoi, ouverture de lien, presse-papiers, suppression, mot de passe administratif ou changement de rôle n'est proposé.
+
+L'inventaire inclut tous les comptes, actifs ou en attente. `invite` refuse tout compte déjà présent et toute capacité insuffisante : sept comptes au total, place de l'exploitant réservée. `recovery` exige le compte existant confirmé et conserve son UUID. Une invitation expirée sur un compte en attente demande un diagnostic et une reprise spécifiquement autorisée ; ne pas supprimer ou recréer le compte.
+
+Après relecture de la cible et de l'avertissement de création immédiate Auth/profil, saisir exactement `CONFIRMER PROD invite adresse` ou `CONFIRMER PROD recovery adresse`, avec l'adresse réellement saisie. Les réglages publics et l'inventaire sont relus après cette confirmation ; une dérive bloque l'opération. Un verrou exclusif protège les opérations de ce dossier et une réservation durable précède l'unique appel générateur. Ce verrou est local : l'unique opérateur doit suspendre toute autre création depuis un Dashboard, autre poste ou autre dossier pendant l'opération. La capacité reste administrative, sans quota serveur.
+
+Le résultat doit désigner l'adresse, l'UUID attendu pour une récupération, le type et le callback exacts. L'outil analyse `action_link` sans l'ouvrir, puis construit le seul callback à partir de `hashed_token`. Il écrit ce lien dans un fichier privé individuel `auth-link-UUID.txt` et **n'affiche jamais le lien ni le jeton**. Le terminal indique le chemin ; saisir `RECU` seulement après avoir confirmé la présence du fichier privé. Cet acquittement confirme la remise locale du fichier, pas son envoi au titulaire. Transmettre manuellement au seul destinataire par le canal contrôlé, sans suivi de clic. Retirer la copie de remise après usage ou expiration suivant la procédure de conservation ; l'outil ne la supprime pas automatiquement.
+
+Le journal privé conserve uniquement projet, empreinte de cible, identifiant d'opération, type, dates et état, sans adresse en clair, clé, jeton, lien ou réponse fournisseur. Une panne, réponse non conforme, remise non acquittée ou erreur après l'appel laisse une réservation non résolue qui bloque la répétition pour cette cible. **Arrêter les nouvelles opérations et diagnostiquer en lecture seule ; ne pas effacer le journal, retirer un verrou interrompu ou relancer pour essayer.** Aucun bouton de réinitialisation, retry ou suppression/recréation n'est fourni. Une récupération ultérieure reste possible après remise acquittée, compte confirmé et nouvelle vérification individuelle ; elle peut remplacer le lien précédent et exige un nouvel accord.
+
+La validité PROD retenue doit être relue dans l'[architecture Auth](../architecture/AUTHENTIFICATION.md) avant remise ; les 60 secondes de la stack de tests ne constituent pas sa durée. Le titulaire active ou récupère depuis un navigateur neuf, confirme l'action puis choisit seul son mot de passe. L'exécuteur ne teste pas ce parcours sur PROD et aucun lien réel ne doit être généré pour le qualifier sans mandat de recette distinct.
 
 ## Préparer exclusivement la stack de tests
 

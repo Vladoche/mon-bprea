@@ -1,5 +1,21 @@
 # Authentification et profils — lot 6.1
 
+**PROD configurée le 8 novembre 2026, après accord explicite de l’exploitant.** Projet `oqoqrxwfbkhtpksqimgd`, Mon BPREA PROD, région `eu-central-1`, organisation Free avec un seul membre Owner. Auth 2.197.0 disponible. Les réglages suivants ont été enregistrés puis relus dans le Dashboard ; l’API publique `/auth/v1/settings` confirme également la fermeture des inscriptions, l’absence d’anonyme/autre fournisseur et la confirmation e-mail.
+
+| Paramètre PROD | Valeur vérifiée |
+| --- | --- |
+| Création autonome de comptes | Désactivée (`disable_signup=true`) |
+| Connexions anonymes | Désactivées |
+| Fournisseur e-mail / mot de passe | Actif ; confirmation e-mail active |
+| Minimum serveur de mot de passe | 12 caractères, au lieu de 6 |
+| Validité des invitations et récupérations | 3 600 secondes, conservée ; OTP de 8 chiffres |
+| Site URL | `https://vladoche.github.io/mon-bprea/` |
+| Unique Redirect URL | `https://vladoche.github.io/mon-bprea/authentification.html`, sans wildcard |
+
+Les deux pages HTTPS ont répondu 200 sans redirection. Les deux tests négatifs expressément autorisés, exécutés une seule fois à 08:06 UTC avec le SDK verrouillé et des données synthétiques, ont répondu HTTP 422 : `signup_disabled` et `anonymous_provider_disabled`. Avant et après, SQL confirme zéro compte, identité, session et profil, et les dix tables métier vides. Aucun lien administratif réel, invitation ou envoi SMTP ; aucune migration ni publication Pages. Le changement sécurisé d’e-mail reste actif ; `secure_password_change` et l’exigence du mot de passe courant restent désactivés, sans modification dans ce mandat. Le minimum de 12 caractères est relu dans la configuration ; aucun compte PROD n’a été créé pour tester un changement de mot de passe.
+
+L’[exécuteur PROD distinct](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md#exécuteur-prod-séparé) est préparé pour une utilisation ultérieure individuellement autorisée ; les outils locaux gardent leurs verrous. La configuration publique PROD est préparée et validée uniquement dans `.tmp/prod-auth-20261108/auth-config.production.json`, ignorée et conservée pour la prochaine étape. Le défaut `assets/auth-config.json` reste désactivé. La recette invitée hébergée, les prérequis de confidentialité et l’ouverture restent à autoriser et qualifier selon la [matrice](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md).
+
 **Suivi 6.5.4.C, 4 novembre 2026 :** [bilan C2](../archives/validations/VALIDATION-LOT6-5-4C.md), [reprise ciblée restante](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). C2 exécutée avec les deux comptes fictifs existants ; correctif JSON et T03/T08/T10/T12 réussis dans leur périmètre documenté. **T11 expiration JWT NON EXÉCUTÉE**, report choisi par l'exploitant ; les 3600 s configurées ne prouvent pas son expiration réelle. Budgets cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives**, A/B et **36 lignes** conservés. D non autorisée et non exécutée ; sessions distantes possibles après fermeture du banc. Aucun réglage Auth/RLS, accès PROD, déploiement Pages ou invitation réelle. Les constats du 31 octobre ci-dessous restent historiques ; les négatifs Auth non exécutés ne deviennent pas acquis.
 
 **Suivi 6.5.4.C, 31 octobre 2026 :** [preuves DEV](../archives/validations/VALIDATION-LOT6-5-4C.md), [reprise](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). Sous R, invitation B puis récupération du même A ont chacune produit un PUT Auth 200 et une reconnexion réussie après déconnexion : garde PKCE revérifié sur DEV. Trois générations consommées, aucun lien rejoué ; ancien mot de passe A inconnu, négatifs de liens non exécutés sur DEV. Aucune session historique importée, configuration modifiée ou ouverture publique. C/C1 approuvées, **C2 non autorisée, recette partielle conservée au choix de l'exploitant** ; D absent, sessions résiduelles possibles.
@@ -12,7 +28,7 @@ Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill
 
 Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
 
-La configuration versionnée est **désactivée**. Aucun projet, identifiant ou secret n’est fourni par le dépôt. La présence du code et des tests ne vaut pas validation de Supabase. Les opérations réellement exécutées et les blocages sont consignés dans [VALIDATION-LOT6-1.md](../archives/validations/VALIDATION-LOT6-1.md). L’ouverture aux étudiants attend le lot 6.5 et une validation explicite ; la préparation juridique et les procédures de droits attendent notamment le lot 6.4.
+La configuration publique versionnée est **désactivée**. Aucun secret administratif ni client actif n’est fourni par le dépôt ; la référence publique PROD sert aux contrôles de cible de l’exécuteur. La présence du code et des tests ne vaut pas validation hébergée. Les opérations initiales et blocages historiques sont consignés dans [VALIDATION-LOT6-1.md](../archives/validations/VALIDATION-LOT6-1.md) ; le suivi courant figure en tête de ce document et dans la matrice de préouverture. L’ouverture aux participants exige toujours une validation explicite et les prérequis applicables.
 
 ## Modules et pages
 
@@ -28,6 +44,7 @@ La configuration versionnée est **désactivée**. Aucun projet, identifiant ou 
 | `authentification.html` | Retour unique d’invitation et de récupération, puis définition du mot de passe. |
 | `profil.html` | E-mail Auth, date du compte et pseudo facultatif. |
 | `scripts/admin-generate-auth-link.mjs`, `scripts/auth-link-local.mjs` | Administration Node locale : confirmation, contrôle de compte, generateLink et remise unique ; exclus de Pages. |
+| `scripts/admin-generate-prod-auth-link.mjs`, `scripts/prod-auth/` | Exécuteur Node PROD séparé : cible fixe, contrôles et confirmation individuelle, capacité, réservation durable et remise par fichier privé ; exclus de Pages, aucune utilisation réelle dans cette intervention. |
 | `supabase/migrations/` | Définition versionnée du modèle, des contraintes et des droits. |
 
 `@supabase/supabase-js` **2.118.0** est verrouillé dans les dépendances de développement ; `esbuild` **0.28.2** prépare `assets/vendor/supabase.js`. Le navigateur charge ce fichier local, sans CDN, import npm ni serveur Node.js. Après une mise à jour volontaire du SDK, conserver manifeste et verrou ensemble, reconstruire puis tester :
@@ -43,7 +60,7 @@ Utiliser Node.js 24 LTS pour ces outils. Le site publié reste utilisable sans N
 
 ## Séparer développement et production
 
-Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../archives/validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire ; l’adaptation hébergée du générateur et sa recette attendent une autorisation distincte. Aucun SMTP externe à préparer pour le parcours choisi.
+Deux projets hébergés existent déjà. La [validation Supabase DEV du 23 octobre 2026](../archives/validations/VALIDATION-SUPABASE-DEV.md) consigne leur identification, la migration appliquée et les parcours réellement vérifiés avec deux comptes fictifs sans envoi d'e-mail. Ne pas créer de projet supplémentaire. L’exécuteur PROD séparé est maintenant préparé ; son utilisation réelle et la recette invitée hébergée attendent leurs autorisations distinctes. Aucun SMTP externe à préparer pour le parcours choisi.
 
 | Environnement | Usage | Données |
 | --- | --- | --- |
@@ -102,7 +119,7 @@ Vérifier réellement, avec un client public non connecté, que l’appel direct
 
 Le remote Git pointe vers `https://github.com/Vladoche/mon-bprea.git` et `.github/workflows/deploy.yml` utilise GitHub Pages. L’adresse `https://vladoche.github.io/mon-bprea/` a également répondu HTTP 200 à une requête HEAD le 22 octobre 2026, sans changement d’URL finale. Ce contrôle confirme l’adresse publique ; il ne teste aucune authentification en production. Vérifier à nouveau l’adresse avant de configurer PROD si le domaine ou le dépôt change.
 
-| Configuration | DEV local | PROD future, à confirmer |
+| Configuration | DEV local | PROD configurée le 08/11/2026 |
 | --- | --- | --- |
 | Site URL | `http://127.0.0.1:4173/mon-bprea/` | `https://vladoche.github.io/mon-bprea/` |
 | Redirect URL autorisée | `http://127.0.0.1:4173/mon-bprea/authentification.html` | `https://vladoche.github.io/mon-bprea/authentification.html` |

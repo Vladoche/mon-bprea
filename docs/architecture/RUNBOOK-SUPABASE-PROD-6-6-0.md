@@ -21,7 +21,7 @@ Le catalogue final compte **10 tables, 98 colonnes, 95 contraintes, 24 index, 24
 
 Les preuves utiles de l’installation sont conservées dans un dossier distinct du stockage privé EFS, avec manifeste SHA-256 et ACL restreintes vérifiés. L’archive pré-installation et sa clé séparée sont inchangées ; les secrets temporaires ont été libérés. Le backend est prêt pour la configuration Auth.
 
-**Réserve Auth avant ouverture.** Aucun réglage Auth n’a été modifié, aucun compte ni invitation créé, aucune version Pages publiée. L’inscription publique reste **activée**, les connexions anonymes sont désactivées. La prochaine action est la configuration Auth sur invitation sous accord distinct ; l’installation du backend ne valide pas la préouverture ni le parcours invité hébergé.
+**Suite Auth du 8 novembre 2026.** L’inscription publique encore active à la fin de l’installation du 07/11 a été désactivée après accord distinct ; l’anonyme reste désactivé, l’e-mail et sa confirmation actifs. Minimum serveur porté à 12 caractères et URL Pages HTTPS exactes configurées, validité des liens conservée à une heure. Réglages relus et refus directs synthétiques vérifiés, zéro compte créé et tables métier toujours vides. [Détail et limites Auth](AUTHENTIFICATION.md). Aucun lien réel, migration supplémentaire ou publication Pages ; préouverture et parcours invité hébergé restent à qualifier séparément.
 
 ## 1. Préflight final en lecture seule
 
