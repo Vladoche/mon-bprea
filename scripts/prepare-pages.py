@@ -2,6 +2,7 @@
 """Prepare the public Pages artifact; leave the static sources untouched."""
 
 import argparse
+import base64
 import html
 import json
 import os
@@ -10,6 +11,8 @@ import re
 import shutil
 import sys
 from urllib.parse import unquote, urlsplit, urlunsplit
+
+from pages_release import validate_production_config
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -71,7 +74,7 @@ def public_files():
     return sorted(files)
 
 
-def public_auth_config(path):
+def public_auth_config(path, production=False):
     """Accept only public configuration; never copy arbitrary environment files."""
     config = json.loads(path.read_text(encoding="utf-8-sig"))
     allowed = {"enabled", "environment", "url", "publishableKey", "siteUrl"}
@@ -97,10 +100,27 @@ def public_auth_config(path):
                 or (config["environment"] == "development" and (site.hostname not in local_hosts or site.scheme not in {"http", "https"}))
                 or (config["environment"] == "production" and (site.scheme != "https" or site.hostname in local_hosts or endpoint.hostname in local_hosts))):
             raise ValueError("URL du site incompatible avec l’environnement Auth.")
+    if production:
+        validate_production_config(config)
     return json.dumps(config, ensure_ascii=False, indent=2) + "\n"
 
 
-def prepare(output, version, auth_config=None):
+def check_public_content(content):
+    if (re.search(r"\bsb_secret_[A-Za-z0-9_-]+", content)
+            or re.search(r"postgres(?:ql)?://[^:/\s]+:[^@\s]+@", content)):
+        raise ValueError("Secret administratif interdit dans les fichiers publics.")
+    if re.search(r"[?&#](?:token_hash|access_token|refresh_token)=[A-Za-z0-9_.-]{20,}", content):
+        raise ValueError("Preuve d’accès temporaire interdite dans les fichiers publics.")
+    for payload in re.findall(r"\beyJ[A-Za-z0-9_-]+\.([A-Za-z0-9_-]+)\.[A-Za-z0-9_-]+", content):
+        try:
+            claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if isinstance(claims, dict) and claims.get("role") == "service_role":
+            raise ValueError("Clé service_role interdite dans les fichiers publics.")
+
+
+def prepare(output, version, auth_config=None, production=False):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,79}", version):
         raise ValueError("Version invalide : utiliser le SHA Git ou un identifiant simple (80 caractères maximum).")
     output = output.resolve()
@@ -118,7 +138,9 @@ def prepare(output, version, auth_config=None):
 
     files = public_files()
     # Always validate even the disabled tracked default before publication.
-    auth_content = public_auth_config(auth_config or ROOT / "assets" / "auth-config.json")
+    if production and auth_config is None:
+        raise ValueError("Une publication PROD exige --auth-config ; aucun repli vers Auth désactivée.")
+    auth_content = public_auth_config(auth_config or ROOT / "assets" / "auth-config.json", production)
     published = {path.resolve() for path in files}
     updated = 0
 
@@ -156,6 +178,8 @@ def prepare(output, version, auth_config=None):
     # Validate and rewrite in memory before creating an artifact, avoiding partial output on bad references.
     contents = {}
     for source in files:
+        if source.suffix.lower() in {".html", ".js", ".css", ".json", ".svg"}:
+            check_public_content(source.read_text(encoding="utf-8"))
         if source.suffix.lower() not in {".html", ".js", ".css"}:
             continue
         content = source.read_text(encoding="utf-8")
@@ -189,11 +213,12 @@ def main():
     parser.add_argument("--output", type=Path, default=ROOT / "site-public", help="Dossier neuf ou vide de l'artefact")
     parser.add_argument("--version", default=os.environ.get("GITHUB_SHA"), help="SHA Git du déploiement (ou identifiant local)")
     parser.add_argument("--auth-config", type=Path, help="Configuration publique locale à copier uniquement dans l’artefact")
+    parser.add_argument("--production", action="store_true", help="Exiger Auth active et les cibles PROD exactes, sans repli")
     args = parser.parse_args()
     if not args.version:
         parser.error("--version est obligatoire hors GitHub Actions (exemple : --version verification-locale).")
     try:
-        prepare(args.output, args.version, args.auth_config)
+        prepare(args.output, args.version, args.auth_config, args.production)
     except (OSError, ValueError) as error:
         print(f"Préparation interrompue : {error}", file=sys.stderr)
         return 1

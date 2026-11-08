@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build:auth-sdk": "node scripts/build-auth-sdk.mjs",
+    "build:privacy-notice": "node scripts/build-privacy-notice.mjs",
     "admin:auth-link": "node --env-file-if-exists=.env.supabase-test.local scripts/admin-generate-auth-link.mjs",
     "admin:auth-link:prod": "node --env-file-if-exists=.env.supabase-prod.local scripts/admin-generate-prod-auth-link.mjs",
     "dev-recipe:prepare": "node scripts/dev-recipe/prepare.mjs",

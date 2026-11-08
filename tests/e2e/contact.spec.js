@@ -72,7 +72,7 @@ for (const javaScriptEnabled of [true, false]) {
       }
       const config = await context.request.get(`http://127.0.0.1:4173${prefix}assets/auth-config.json`);
       expect((await config.json()).enabled).toBe(false);
-      expect((await context.request.get(`http://127.0.0.1:4173${prefix}confidentialite.html`)).status()).toBe(404);
+      expect((await context.request.get(`http://127.0.0.1:4173${prefix}confidentialite.html`)).status()).toBe(200);
     } finally { await context.close(); }
   });
 }

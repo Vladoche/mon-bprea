@@ -7,9 +7,9 @@ const temporary = resolve('.tmp');
 mkdirSync(temporary, { recursive: true });
 const directory = mkdtempSync(join(temporary, 'auth-artifact-'));
 let attempt = 0;
-function prepare(config) {
+function prepare(config, extra = []) {
   const output = join(directory, `public-${++attempt}`);
-  const args = ['scripts/prepare-pages.py', '--version', 'auth-test', '--output', output];
+  const args = ['scripts/prepare-pages.py', '--version', 'auth-test', '--output', output, ...extra];
   if (config) {
     const file = join(directory, `config-${attempt}.json`);
     writeFileSync(file, JSON.stringify(config));
@@ -29,7 +29,7 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
     expect(result.status).toBe(0);
     expect(JSON.parse(readFileSync(join(result.output, 'assets/auth-config.json'), 'utf8')))
       .toMatchObject({ enabled: false, url: '', publishableKey: '' });
-    for (const page of ['connexion', 'authentification', 'mot-de-passe-oublie', 'profil', 'contact'])
+    for (const page of ['connexion', 'authentification', 'mot-de-passe-oublie', 'profil', 'contact', 'confidentialite'])
       expect(existsSync(join(result.output, `${page}.html`))).toBe(true);
     expect(readFileSync(join(result.output, 'assets/supabase-client.js'), 'utf8')).toContain('./vendor/supabase.js?v=auth-test');
     for (const privateFile of ['supabase/config.toml', 'scripts/test-supabase.mjs', 'scripts/admin-generate-auth-link.mjs', 'scripts/auth-link-local.mjs', '.env.supabase-test.local',
@@ -39,11 +39,12 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
       '.tmp/maintenance-local/inventory-before.json', '.tmp/.maintenance.lock',
       'scripts/preopening/operator.mjs', 'scripts/preopening/backup.mjs', 'scripts/preopening/policy.json',
       'scripts/preopening/exercise-local.mjs', 'scripts/preopening/notice-preview.mjs', '.tmp/preopening-operator-655b/operator.json',
-      '.tmp/preopening-operator/operator.json', 'docs', '.tmp', '.github', 'confidentialite.html',
+      '.tmp/preopening-operator/operator.json', 'docs', '.tmp', '.github',
+      'scripts/pages_release.py', 'scripts/prod-auth/environment.mjs', 'scripts/prod-auth/private-store.mjs',
       'node_modules/@supabase/supabase-js/package.json', 'auth-config.local.json', 'tests/helpers/auth-http.js'])
       expect(existsSync(join(result.output, privateFile)), privateFile).toBe(false);
     for (const page of readdirSync(result.output).filter(name => name.endsWith('.html'))) {
-      expect(readFileSync(join(result.output, page), 'utf8'), page).not.toMatch(/href=["'][^"']*confidentialite\.html/i);
+      expect(readFileSync(join(result.output, page), 'utf8'), page).toMatch(/href=["'][^"']*confidentialite\.html/i);
     }
     const contact = readFileSync(join(result.output, 'contact.html'), 'utf8');
     const policy = JSON.parse(readFileSync('scripts/preopening/policy.json', 'utf8'));
@@ -74,5 +75,21 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
       expect(result.stderr).not.toContain('private-fixture-only');
       expect(result.stderr).not.toContain('sb_secret_fixture_only');
     }
+  });
+
+  it('exige une configuration PROD explicite et complète ; aucun repli désactivé ni cible DEV', () => {
+    const prod = { enabled: true, environment: 'production', url: 'https://oqoqrxwfbkhtpksqimgd.supabase.co',
+      publishableKey: 'sb_publishable_fixture_production_only', siteUrl: 'https://vladoche.github.io/mon-bprea/' };
+    for (const config of [undefined, { ...prod, enabled: false }, { ...prod, environment: 'development' },
+      { ...prod, url: 'https://wcckbyhrtroittbfophv.supabase.co' }, { ...prod, siteUrl: 'http://localhost:4173/mon-bprea/' },
+      { ...prod, publishableKey: '' }, { ...prod, url: prod.url + ':443' }, { ...prod, extra: 'private-not-for-logs' }]) {
+      const result = prepare(config, ['--production']);
+      expect(result.status).not.toBe(0);
+      expect(existsSync(result.output)).toBe(false);
+      expect(result.stderr).not.toContain('private-not-for-logs');
+    }
+    const result = prepare(prod, ['--production']);
+    expect(result.status).toBe(0);
+    expect(JSON.parse(readFileSync(join(result.output, 'assets/auth-config.json'), 'utf8'))).toEqual(prod);
   });
 });

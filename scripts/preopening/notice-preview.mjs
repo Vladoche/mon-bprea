@@ -36,6 +36,10 @@ export function noticeHtml(markdown, { preview = true } = {}) {
   <meta name="referrer" content="no-referrer">
   ${preview ? '<meta name="robots" content="noindex,nofollow">' : ''}
   <title>Notice de confidentialité · Mon BPREA${preview ? ' · Aperçu local' : ''}</title>
+  ${preview ? '' : `<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script src="assets/theme-init.js"></script>
+  <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/contact.css">`}
   <style>
     :root {
       color-scheme:light dark;
@@ -47,7 +51,7 @@ export function noticeHtml(markdown, { preview = true } = {}) {
       font: 1rem/1.65 system-ui, sans-serif;
     }
     @media (prefers-color-scheme: dark) {
-      :root {
+      :root:not([data-theme]) {
         --background: #121b15;
         --surface: #1b2920;
         --text: #e0eade;
@@ -68,24 +72,30 @@ export function noticeHtml(markdown, { preview = true } = {}) {
     :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
     ul { padding-inline-start: 1.45rem; }
     li + li { margin-block-start: .5rem; }
-    nav, aside { border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); padding: 1rem; }
-    nav ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: .5rem 1rem; margin-block-end: 0; }
-    nav li { margin-block-start: 0; }
+    main nav, aside { border: 1px solid var(--border); border-radius: .65rem; background: var(--surface); padding: 1rem; }
+    main nav ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: .5rem 1rem; margin-block-end: 0; }
+    main nav li { margin-block-start: 0; }
     aside { border-inline-start: .25rem solid var(--green); }
     .skip { position: absolute; inset: .5rem auto auto .5rem; padding: .5rem 1rem; background: var(--surface); transform: translateY(-200%); }
     .skip:focus { transform: none; }
+    ${preview ? '' : `:root { --background: var(--bg); --surface: var(--white); --border: var(--line); --text: var(--color-text); --green: var(--color-accent); }
+    .notice-links { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; margin-block-start: .5rem; }
+    .notice-links a { display: inline-block; padding-block: .3rem; }
+    footer { border-top: 1px solid var(--border); padding-block: 1rem; }
+    @media print { header, footer, .skip { display: none; } }`}
   </style>
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
-  <header><p class="wrap">Mon BPREA · Espace de révision</p></header>
+  <header><div class="wrap"><p>Mon BPREA · Espace de révision</p>${preview ? '' : '<nav class="notice-links" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="mes-cours.html">Mes cours</a><a href="connexion.html">Connexion</a><a href="contact.html">Contact et assistance</a></nav>'}</div></header>
   <main class="wrap" id="contenu" tabindex="-1">
     ${preview ? '<aside role="note"><strong>Aperçu local de la version 1.1.</strong> Le fond de la version 1.0 a été approuvé le 5 novembre 2026. Les modifications et la publication restent à approuver.</aside>' : ''}
     ${blocks.join('\n    ')}
   </main>
+  ${preview ? '' : '<footer><div class="wrap notice-links"><a href="contact.html">Contact et assistance</a><a href="confidentialite.html">Confidentialité</a></div></footer>'}
 </body>
 </html>
-`;
+`.replace(/^[ \t]+$/gm, '');
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
