@@ -1,12 +1,37 @@
 import { describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
 
 function python(code) {
   return spawnSync(process.env.PYTHON || 'python', ['-c', `import sys; sys.path.insert(0, 'scripts')\n${code}`], { encoding: 'utf8' });
 }
 
 describe('release Pages : préflight en lecture seule et absence de publication implicite', () => {
+  it('vérifie et génère la notice sur un runner sans dépendances npm ni outils administratifs', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'bprea-notice-release-'));
+    try {
+      for (const path of ['scripts/build-privacy-notice.mjs', 'scripts/preopening/notice-preview.mjs',
+        'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md', 'confidentialite.html']) {
+        const destination = join(directory, path);
+        mkdirSync(dirname(destination), { recursive: true });
+        copyFileSync(path, destination);
+      }
+      const options = { cwd: directory, encoding: 'utf8', env: { ...process.env, NODE_PATH: '' } };
+      const checked = spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs', '--check'], options);
+      expect(checked.stderr).toBe('');
+      expect(checked.status).toBe(0);
+      expect(checked.stdout).toMatch(/Notice V1\.1 · SHA-256 LF : [a-f0-9]{64}/);
+      const built = spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs'], options);
+      expect(built.stderr).toBe('');
+      expect(built.status).toBe(0);
+      expect(built.stdout).toBe(checked.stdout);
+      expect(readFileSync(join(directory, 'confidentialite.html'), 'utf8'))
+        .toBe(readFileSync('confidentialite.html', 'utf8').replaceAll('\r\n', '\n'));
+    } finally { rmSync(directory, { recursive: true, force: true }); }
+  });
+
   it('vérifie la clé sur la seule cible fixe et refuse les réglages incomplets, ouverts ou indisponibles', () => {
     const result = python(`
 import json
