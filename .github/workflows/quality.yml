@@ -34,6 +34,8 @@ jobs:
         run: |
           npm run build:auth-sdk
           git diff --exit-code -- assets/vendor/supabase.js
+      - name: Vérifier le rendu de la notice publique
+        run: node scripts/build-privacy-notice.mjs --check
 
   e2e:
     name: e2e

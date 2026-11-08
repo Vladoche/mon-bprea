@@ -22,7 +22,7 @@ test('Artefact Pages : toutes les pages en contextes vierges, réseau et stockag
   const files = (await readdir(new URL('../../', import.meta.url))).filter(file => file.endsWith('.html')).sort();
   expect(files).toContain('index.html');
   expect(files).toContain('contact.html');
-  expect(files).not.toContain('confidentialite.html');
+  expect(files).toContain('confidentialite.html');
   const queries = { 'uc.html': '?id=uc3', 'cours.html': '?id=matiere-organique', 'exercices.html': '?id=matiere-organique', 'drill.html': '?unit=uc3&week=2026-W43' };
   const results = [];
   for (const file of files) {
@@ -47,7 +47,7 @@ test('Artefact Pages : toutes les pages en contextes vierges, réseau et stockag
       expect(inventory.indexedDB, file).toEqual([]); expect(inventory.cacheAPI, file).toEqual([]); expect(inventory.serviceWorkers, file).toEqual([]);
       expect(inventory.localStorage, file).toEqual([]);
       expect(inventory.sessionStorage, file).toEqual([]);
-      await expect(page.locator('a[href*="confidentialite.html"]'), file).toHaveCount(0);
+      await expect(page.locator('footer a[href="confidentialite.html"]'), file).toHaveCount(1);
       results.push({ file, external, cookies, cookiesFromResponses, ...inventory });
     } finally { await context.close(); }
   }
