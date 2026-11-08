@@ -2,9 +2,6 @@
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, join, basename } from 'node:path';
-import { protectDirectory } from '../dev-recipe/private-files.mjs';
-import { checkDirectory } from './backup.mjs';
-import { requireThat } from './preflight.mjs';
 
 export function noticeHtml(markdown, { preview = true } = {}) {
   const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
@@ -99,6 +96,11 @@ export function noticeHtml(markdown, { preview = true } = {}) {
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   try {
+    // Les protections de l'aperçu privé ne sont utiles qu'à cette commande.
+    // Le rendu public doit fonctionner sans SDK ni outils administratifs installés.
+    const [{ protectDirectory }, { checkDirectory }, { requireThat }] = await Promise.all([
+      import('../dev-recipe/private-files.mjs'), import('./backup.mjs'), import('./preflight.mjs'),
+    ]);
     requireThat(process.argv.length === 2, 'arguments');
     const root = fileURLToPath(new URL('../../', import.meta.url)), temporary = join(root, '.tmp');
     checkDirectory(temporary);
