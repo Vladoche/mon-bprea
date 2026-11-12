@@ -23,6 +23,7 @@
 | Code et vérifications | [Conventions de test](../TESTS.md) |
 | Auth et parcours utilisateur | [Architecture Auth](../architecture/AUTHENTIFICATION.md) |
 | Entretien du poste | [Maintenance de `.tmp`](MAINTENANCE-DOSSIER-TMP.md) |
+| Application Windows opérateur | [Mon BPREA Admin : utilisation, compilation et limites](../../tools/mon-bprea-admin/README.md) |
 
 Appliquer les [consignes du dépôt](../../AGENTS.md). Les preuves de la campagne 6.6 restent dans `docs/validations/` ; les rapports antérieurs sont conservés dans `docs/archives/validations/`. Ouvrir les rapports historiques à partir des liens utiles au chantier. Réutiliser les preuves existantes dans leur périmètre, puis vérifier le changement et les parcours qu’il affecte. Lorsqu’un défaut reproductible entre dans le périmètre, livrer le correctif et sa vérification dans la même PR.
 
