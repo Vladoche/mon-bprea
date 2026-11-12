@@ -250,8 +250,20 @@ public sealed class WindowsPrivateStore : IPrivateStore
         VerifyProtectedFile(path);
     }
 
-    private static FileStream NewFile(string path) => new(path, FileMode.CreateNew, FileAccess.ReadWrite,
-        FileShare.None, 4096, FileOptions.WriteThrough);
+    private static FileStream NewFile(string path)
+    {
+        // Elevated Windows tokens can otherwise assign Administrators as the
+        // default owner even in a private parent. Supply owner and DACL atomically
+        // to CreateFile, before any content, without relaxing later ACL checks.
+        var sid = WindowsIdentity.GetCurrent().User ?? throw new AdminException("private");
+        var security = new FileSecurity();
+        security.SetOwner(sid);
+        security.SetAccessRuleProtection(true, false);
+        foreach (var identity in new[] { sid, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
+            security.AddAccessRule(new FileSystemAccessRule(identity, FileSystemRights.FullControl, AccessControlType.Allow));
+        return FileSystemAclExtensions.Create(new FileInfo(path), FileMode.CreateNew,
+            FileSystemRights.Read | FileSystemRights.Write, FileShare.None, 4096, FileOptions.WriteThrough, security);
+    }
 
     private static void WriteExclusive(string path, string text, bool encrypted)
     {

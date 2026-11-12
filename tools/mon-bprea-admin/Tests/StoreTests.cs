@@ -13,6 +13,7 @@ namespace MonBprea.Admin.Tests;
 
 public static class StoreTests
 {
+    public static string DiagnosticStage { get; private set; } = "not-started";
     private const string Email = "synthetic-participant@example.invalid";
     private const string Token = "SYNTHETIC_TEST_TOKEN_NO_PRODUCTION_0123456789";
     private static readonly HumanAttestations Human = new(true, true, true);
@@ -22,8 +23,10 @@ public static class StoreTests
         if (!OperatingSystem.IsWindows()) { check("Windows private store requires Windows", false); return; }
         var now = new DateTimeOffset(2026, 11, 12, 10, 0, 0, TimeSpan.Zero);
         var temporaryRoot = Path.Combine(Path.GetTempPath(), "mon-bprea-admin-store-tests-" + Guid.NewGuid().ToString("N"));
+        DiagnosticStage = "create-private-test-directory";
         CreateProtectedDirectory(temporaryRoot);
         var configPath = Path.Combine(temporaryRoot, "operator.json");
+        DiagnosticStage = "write-synthetic-operator-configuration";
         WriteConfig(configPath, now);
         WindowsPrivateStore Store(string name)
         {
@@ -39,16 +42,24 @@ public static class StoreTests
         }
         try
         {
+            DiagnosticStage = "unsafe-path-rejections";
             foreach (var path in new[] { "relative", @"\\server\share\private", @"C:\private:stream", @"C:\private\..\target", @"C:\" })
                 await Refuses("unsafe storage path refused", () => new WindowsPrivateStore(path, configPath).ValidateAsync(), "private");
 
+            DiagnosticStage = "synthetic-operator-file-security";
+            WindowsPrivateStore.VerifyProtectedFile(configPath);
+            DiagnosticStage = "synthetic-operator-preflight";
+            OperatorPreflight.Validate(configPath, now);
+            DiagnosticStage = "create-compliant-store-directory";
             var good = Store("good");
+            DiagnosticStage = "compliant-store-and-efs-validation";
             await good.ValidateAsync();
             check("private EFS write probe and existing operator preflight", true);
             check("empty store has no uncertain operation", !await good.HasUncertainOperationAsync());
             await Refuses("reservation requires exclusive lock", () => good.ReserveAsync(Email, Human), "busy");
 
             Guid operation;
+            DiagnosticStage = "exclusive-lock-and-durable-reservation";
             using (await good.AcquireLockAsync())
             {
                 await Refuses("double-click lock on same instance", () => good.AcquireLockAsync(), "busy");
@@ -60,6 +71,9 @@ public static class StoreTests
                 await Refuses("second reservation same target blocked", () => good.ReserveAsync(Email, Human), "pending");
                 await Refuses("uncertain operation blocks another target", () => good.ReserveAsync("other@example.invalid", Human), "pending");
                 var reservation = Directory.GetFiles(good.DirectoryPath, "reservation-*.json").Single();
+                check("new private file owner is current user before content is used",
+                    new FileInfo(reservation).GetAccessControl(AccessControlSections.Owner).GetOwner(typeof(SecurityIdentifier))?.Value
+                    == WindowsIdentity.GetCurrent().User?.Value);
                 var recordText = File.ReadAllText(reservation);
                 var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(AdminContract.Project + "\0" + Email)));
                 check("Node-compatible reservation hash and minimal no-address journal", Path.GetFileName(reservation) == $"reservation-{hash}.json"
@@ -69,6 +83,7 @@ public static class StoreTests
                 await Refuses("link with final newline refused", () => good.DeliverAsync(Email, operation,
                     AdminContract.Callback + "?token_hash=" + Token + "&type=invite\n"), "private");
                 check("invalid link leaves durable reservation uncertain", await good.HasUncertainOperationAsync());
+                DiagnosticStage = "encrypted-private-link-delivery";
                 await good.DeliverAsync(Email, operation, AdminContract.Callback + "?token_hash=" + Token + "&type=invite");
                 var linkPath = Path.Combine(good.DirectoryPath, $"auth-link-{operation:D}.txt");
                 check("link encrypted under current Windows user", File.GetAttributes(linkPath).HasFlag(FileAttributes.Encrypted)
@@ -79,6 +94,7 @@ public static class StoreTests
                     AdminContract.Callback + "?token_hash=" + Token + "&type=invite"), "private");
             }
             check("normal completion removes only its own lock", !File.Exists(Path.Combine(good.DirectoryPath, "operation.lock")));
+            DiagnosticStage = "participant-handoff-annotation";
             await good.MarkHandedOverAsync(operation);
             check("manual participant handoff persisted separately", File.ReadAllText(Directory.GetFiles(good.DirectoryPath, "reservation-*.json").Single())
                 .Contains("handedOverAt", StringComparison.Ordinal));
@@ -86,28 +102,31 @@ public static class StoreTests
             using (await good.AcquireLockAsync())
                 await Refuses("persistent target reservation blocks fresh operation after restart", () => good.ReserveAsync(Email, Human), "pending");
 
+            DiagnosticStage = "crash-and-restart-reservations";
             var crashed = Store("crashed");
             using (await crashed.AcquireLockAsync()) await crashed.ReserveAsync("crash@example.invalid", Human);
             var restarted = new WindowsPrivateStore(crashed.DirectoryPath, configPath, clock: () => now);
             check("crash after reservation survives restart", await restarted.HasUncertainOperationAsync());
             var staleLock = Path.Combine(crashed.DirectoryPath, "operation.lock");
-            File.WriteAllText(staleLock, "synthetic-interrupted-lock\n");
+            WritePrivateFixture(staleLock, "synthetic-interrupted-lock\n");
             check("interrupted lock blocks preparation after restart", await restarted.HasUncertainOperationAsync());
             await Refuses("interrupted lock is never cleared on startup", () => restarted.AcquireLockAsync(), "busy");
             check("interrupted lock remains present", File.Exists(staleLock));
 
+            DiagnosticStage = "historical-node-reservation";
             var legacy = Store("node-reservation");
             var legacyHash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(AdminContract.Project + "\0" + Email)));
-            File.WriteAllText(Path.Combine(legacy.DirectoryPath, $"reservation-{legacyHash}.json"), JsonSerializer.Serialize(new
+            WritePrivateFixture(Path.Combine(legacy.DirectoryPath, $"reservation-{legacyHash}.json"), JsonSerializer.Serialize(new
             {
                 version = 1, project = AdminContract.Project, operationId = Guid.NewGuid().ToString("D"), targetHash = legacyHash,
                 type = "invite", status = "reserved", reservedAt = "2026-11-12T10:00:00.000Z"
             }));
             check("historical Node reservation recognized without added GUI fields", await legacy.HasUncertainOperationAsync());
             var malformed = Store("malformed");
-            File.WriteAllText(Path.Combine(malformed.DirectoryPath, "reservation-broken.json"), "{}");
+            WritePrivateFixture(Path.Combine(malformed.DirectoryPath, "reservation-broken.json"), "{}");
             await Refuses("malformed reservation blocks new invitations", () => malformed.HasUncertainOperationAsync(), "private");
 
+            DiagnosticStage = "unsafe-storage-rejections";
             var insecure = Store("insecure");
             var insecureDirectory = new DirectoryInfo(insecure.DirectoryPath);
             var acl = insecureDirectory.GetAccessControl();
@@ -122,11 +141,13 @@ public static class StoreTests
             var cloudStore = new WindowsPrivateStore(cloud, configPath, clock: () => now);
             await Refuses("known shared cloud destination refused", () => cloudStore.ValidateAsync(), "private");
 
+            DiagnosticStage = "synthetic-hardlink-setup-and-rejection";
             var hardlink = Path.Combine(temporaryRoot, "hardlink-operator.json");
             if (!CreateHardLink(hardlink, configPath, IntPtr.Zero)) throw new InvalidOperationException("Synthetic hardlink setup failed");
             await Refuses("hardlinked private file refused", () => { WindowsPrivateStore.VerifyProtectedFile(configPath); return Task.CompletedTask; }, "private");
             File.Delete(hardlink);
 
+            DiagnosticStage = "synthetic-junction-setup-and-rejection";
             var junction = Path.Combine(temporaryRoot, "junction");
             var process = new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe"))
             { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
@@ -136,6 +157,7 @@ public static class StoreTests
             await Refuses("junction ancestry refused", () => new WindowsPrivateStore(junction, configPath, clock: () => now).ValidateAsync(), "private");
             Directory.Delete(junction); // Remove this known junction itself, never its target.
 
+            DiagnosticStage = "operator-preflight-date-and-approval-rejections";
             WriteConfig(configPath, now, finalNewline: true);
             await Refuses("operator date with final newline refused", () => good.ValidateAsync(), "attestations");
             WriteConfig(configPath, now.AddDays(-31));
@@ -145,6 +167,7 @@ public static class StoreTests
             WriteConfig(configPath, now, missingApproval: true);
             await Refuses("missing existing preflight approval refused", () => good.ValidateAsync(), "attestations");
             WriteConfig(configPath, now);
+            DiagnosticStage = "completed";
         }
         finally
         {
@@ -176,7 +199,7 @@ public static class StoreTests
         var approvals = new JsonObject();
         foreach (var name in new[] { "legalFramework", "legalBases", "impactAssessment", "terminal", "notice", "residualRetention", "recoveryLimits" })
             approvals[name] = !missingApproval || name != "notice";
-        File.WriteAllText(path, new JsonObject
+        WritePrivateFixture(path, new JsonObject
         {
             ["version"] = 1, ["operatorIdentity"] = "Synthetic operator", ["capacityConfirmed"] = true,
             ["approvals"] = approvals,
@@ -188,6 +211,27 @@ public static class StoreTests
                 ["repliedAt"] = date.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
             }
         }.ToJsonString());
+    }
+
+    private static void WritePrivateFixture(string path, string text)
+    {
+        if (File.Exists(path))
+        {
+            // Rewriting this test's existing fixture preserves its checked owner.
+            File.WriteAllText(path, text);
+            return;
+        }
+        var security = new FileSecurity();
+        var sid = WindowsIdentity.GetCurrent().User!;
+        security.SetOwner(sid);
+        security.SetAccessRuleProtection(true, false);
+        foreach (var identity in new[] { sid, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
+            security.AddAccessRule(new FileSystemAccessRule(identity, FileSystemRights.FullControl, AccessControlType.Allow));
+        using var stream = FileSystemAclExtensions.Create(new FileInfo(path), FileMode.CreateNew,
+            FileSystemRights.Read | FileSystemRights.Write, FileShare.None, 4096, FileOptions.WriteThrough, security);
+        var bytes = Encoding.UTF8.GetBytes(text);
+        stream.Write(bytes);
+        stream.Flush(flushToDisk: true);
     }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "CreateHardLinkW")]

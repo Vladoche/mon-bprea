@@ -7,6 +7,7 @@ using MonBprea.Admin.Tests;
 internal static class Program
 {
     private static int _passed;
+    private static string _stage = "initialization";
     private const string Operator = "operator@example.test";
     private const string Recipient = "participant@example.test";
     private const string FakeSecret = "sb_secret_SYNTHETIC_ONLY_WITH_NO_AUTH_CAPABILITY";
@@ -20,9 +21,13 @@ internal static class Program
         try
         {
             if (args.Length != 1) throw new InvalidOperationException("Provide the synthetic Node contract vector file.");
+            _stage = "node-contract-parity";
             Parity(args[0]);
+            _stage = "account-consultation";
             await Consultation();
+            _stage = "invitation-client";
             await Invitations();
+            _stage = "windows-private-store";
             await StoreTests.RunAsync(Check);
             Console.WriteLine($"PASS: {_passed} assertions, synthetic transports only; no hosted request.");
             return 0;
@@ -30,7 +35,14 @@ internal static class Program
         catch (Exception error)
         {
             // Assert names are controlled and contain no provider payload or secret.
-            Console.Error.WriteLine(error is TestFailure failure ? "FAIL: " + failure.Message : "FAIL: test infrastructure stopped (details suppressed).");
+            if (error is TestFailure failure) Console.Error.WriteLine("FAIL: " + failure.Message);
+            else
+            {
+                var code = error is AdminException admin && System.Text.RegularExpressions.Regex.IsMatch(admin.Code, @"\A[a-z_]{1,32}\z") ? admin.Code : "none";
+                // Only fixed phase labels, runtime type, numeric HRESULT and an
+                // allowlisted code shape. Never exception message/path/stack.
+                Console.Error.WriteLine($"FAIL: infrastructure stage={_stage}; store-stage={StoreTests.DiagnosticStage}; type={error.GetType().Name}; hresult=0x{error.HResult:X8}; code={code}; passed={_passed}.");
+            }
             return 1;
         }
     }
