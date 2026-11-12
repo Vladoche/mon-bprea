@@ -1,0 +1,54 @@
+name: Mon BPREA Admin Windows
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/mon-bprea-admin/**'
+      - 'scripts/admin-generate-prod-auth-link.mjs'
+      - 'scripts/prod-auth/**'
+      - 'scripts/preopening/preflight.mjs'
+      - 'scripts/preopening/policy.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/admin-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-windows-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  admin-windows:
+    name: admin-windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer les sources sans identifiants persistants
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Installer le SDK .NET épinglé
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: tools/mon-bprea-admin/global.json
+      - name: Installer Node pour vérifier le contrat historique
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Installer les outils de test verrouillés
+        run: npm ci
+      - name: Tester et publier l’exécutable autonome sans secret PROD
+        shell: pwsh
+        run: ./tools/mon-bprea-admin/publish.ps1 -OutputDirectory "$env:RUNNER_TEMP/mon-bprea-admin-release"
+      - name: Déposer uniquement la distribution Windows
+        uses: actions/upload-artifact@v7
+        with:
+          name: MonBPREAAdmin-win-x64-${{ github.sha }}
+          path: ${{ runner.temp }}/mon-bprea-admin-release/publish/
+          if-no-files-found: error
+          retention-days: 14

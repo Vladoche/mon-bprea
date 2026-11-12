@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>MonBPREAAdmin</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PublishTrimmed>false</PublishTrimmed>
+    <DebugType>none</DebugType>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="System.Net.Http.EnableActivityPropagation" Value="false" />
+    <RuntimeHostConfigurationOption Include="System.Diagnostics.Tracing.EventSource.IsSupported" Value="false" />
+    <RuntimeHostConfigurationOption Include="System.Diagnostics.Metrics.Meter.IsSupported" Value="false" />
+    <ProjectReference Include="../Core/MonBprea.Admin.Core.csproj" />
+    <ProjectReference Include="../WindowsSecurity/MonBprea.Admin.WindowsSecurity.csproj" />
+    <InternalsVisibleTo Include="MonBPREAAdmin.WindowTests" />
+  </ItemGroup>
+</Project>
