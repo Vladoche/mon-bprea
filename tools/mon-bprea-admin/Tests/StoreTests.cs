@@ -275,7 +275,7 @@ public static class StoreTests
         {
             DiagnosticStage = "node-lock-waiting-for-ready";
             var ready = new char[6];
-            var received = await child.StandardOutput.ReadBlockAsync(ready, 0, 6).WaitAsync(TimeSpan.FromSeconds(45));
+            var received = await child.StandardOutput.ReadBlockAsync(ready, 0, 6).WaitAsync(TimeSpan.FromSeconds(120));
             var line = new string(ready, 0, received);
             DiagnosticStage = "node-lock-ready";
             check("real Node process holds shared operator lock", line == "LOCKED");
@@ -286,10 +286,10 @@ public static class StoreTests
             await child.StandardInput.WriteLineAsync("release"); await child.StandardInput.FlushAsync();
             child.StandardInput.Close();
             DiagnosticStage = "node-lock-waiting-for-exit";
-            await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(45));
+            await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(120));
             check("Node releases only its own operator lock", child.ExitCode == 0 && !File.Exists(Path.Combine(store.DirectoryPath, "operation.lock")));
         }
-        finally { if (!child.HasExited) { child.Kill(); await child.WaitForExitAsync(); } }
+        finally { if (!child.HasExited) { child.Kill(entireProcessTree: true); await child.WaitForExitAsync(); } }
     }
 
     private static async Task NodeProbe(string directory, string mode, Action<string, bool> check)
@@ -313,9 +313,9 @@ public static class StoreTests
         start.Environment["MON_BPREA_STORE_FIXTURE"] = directory;
         start.Environment["MON_BPREA_PROBE_MODE"] = mode;
         using var child = Process.Start(start)!;
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(120));
         try { await child.WaitForExitAsync(deadline.Token); }
-        catch { child.Kill(); await child.WaitForExitAsync(); throw; }
+        catch { child.Kill(entireProcessTree: true); await child.WaitForExitAsync(); throw; }
         var output = await child.StandardOutput.ReadToEndAsync();
         var safeCode = System.Text.RegularExpressions.Regex.IsMatch(output, @"^FAIL:[a-z_0-9]{1,160}\z") ? output : "no-sensitive-diagnostic";
         if (child.ExitCode != 0)

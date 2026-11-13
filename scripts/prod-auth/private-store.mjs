@@ -31,7 +31,7 @@ function verifyWindowsAcl(path, newEmptyFile = false) {
   if (!systemRoot) privateFailure('system_root');
   let answer;
   try { answer = execFileSync(join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
-    ['-NoProfile', '-NonInteractive', '-Command', "try { " + script + " } catch { Write-Output ('PRIVATE_FAILURE_' + $_.Exception.GetType().Name); exit 1 }"], { encoding: 'utf8', windowsHide: true, timeout: 10_000,
+    ['-NoProfile', '-NonInteractive', '-Command', "try { " + script + " } catch { Write-Output ('PRIVATE_FAILURE_' + $_.Exception.GetType().Name); exit 1 }"], { encoding: 'utf8', windowsHide: true, timeout: 45_000,
       stdio: ['ignore', 'pipe', 'pipe'], env: { SystemRoot: systemRoot, MON_BPREA_PRIVATE_CHECK: path } }); }
   catch (error) {
     const classification = String(error?.stdout || '').match(/PRIVATE_FAILURE_([A-Za-z]{1,64})/);
