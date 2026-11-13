@@ -297,12 +297,12 @@ public static class StoreTests
         var start = new ProcessStartInfo("node") { WorkingDirectory = root.FullName, UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("--input-type=module"); start.ArgumentList.Add("-e");
-        start.ArgumentList.Add("import { createPrivateStore } from './scripts/prod-auth/private-store.mjs'; " +
-            "const mode=process.env.MON_BPREA_PROBE_MODE; " +
-            "try { const s=createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE); if(mode==='lock-busy'){await s.withLock(async()=>{});process.exitCode=2;} " +
+        start.ArgumentList.Add("import { createPrivateStore, verifyPrivateDirectory } from './scripts/prod-auth/private-store.mjs'; " +
+            "const mode=process.env.MON_BPREA_PROBE_MODE; let phase='directory'; " +
+            "try { verifyPrivateDirectory(process.env.MON_BPREA_STORE_FIXTURE); phase='create_store'; const s=createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE); phase='locking'; if(mode==='lock-busy'){await s.withLock(async()=>{});process.exitCode=2;} " +
             "else if(mode==='clear'){if(await s.read('synthetic-participant@example.invalid'))process.exitCode=3;} " +
             "else {await s.withLock(()=>s.reserve(mode==='pending'?'other@example.invalid':'synthetic-participant@example.invalid','recovery'));process.exitCode=4;} } " +
-            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected){process.exitCode=5;process.stdout.write('FAIL:'+(/^[a-z_]{1,32}$/.test(e.code||'')?e.code:'unclassified'));}} " +
+            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected){process.exitCode=5;process.stdout.write('FAIL:'+phase+'_'+(/^[a-z_]{1,32}$/.test(e.code||'')?e.code:'unclassified'));}} " +
             "if(!process.exitCode)process.stdout.write('PASS');");
         start.Environment.Clear();
         start.Environment["SystemRoot"] = Environment.GetEnvironmentVariable("SystemRoot");
@@ -314,7 +314,24 @@ public static class StoreTests
         try { await child.WaitForExitAsync(deadline.Token); }
         catch { child.Kill(); await child.WaitForExitAsync(); throw; }
         var output = await child.StandardOutput.ReadToEndAsync();
-        var safeCode = System.Text.RegularExpressions.Regex.IsMatch(output, @"^FAIL:[a-z_]{1,32}\z") ? output : "no-sensitive-diagnostic";
+        var safeCode = System.Text.RegularExpressions.Regex.IsMatch(output, @"^FAIL:[a-z_]{1,64}\z") ? output : "no-sensitive-diagnostic";
+        if (child.ExitCode != 0)
+        {
+            // Synthetic fixture metadata only; no paths, SIDs or file contents.
+            var sid = WindowsIdentity.GetCurrent().User!.Value;
+            string OwnerKind(string path) {
+                var security = Directory.Exists(path) ? (FileSystemSecurity)new DirectoryInfo(path).GetAccessControl(AccessControlSections.Owner | AccessControlSections.Access)
+                    : new FileInfo(path).GetAccessControl(AccessControlSections.Owner | AccessControlSections.Access);
+                var owner = security.GetOwner(typeof(SecurityIdentifier))!.Value;
+                var kind = owner == sid ? "current" : owner == "S-1-5-32-544" ? "administrators" : "other";
+                var broad = security.GetAccessRules(true, true, typeof(SecurityIdentifier)).Cast<FileSystemAccessRule>()
+                    .Any(r => r.AccessControlType == AccessControlType.Allow && r.IdentityReference.Value != sid && r.IdentityReference.Value != "S-1-5-18");
+                return kind + (broad ? "_broad_acl" : "_private_acl");
+            }
+            safeCode += " directory=" + OwnerKind(directory);
+            foreach (var probe in Directory.GetFiles(directory, "private-probe-*.tmp"))
+                safeCode += " probe=" + OwnerKind(probe) + "_bytes_" + new FileInfo(probe).Length;
+        }
         check("real Node shared lock/journal compatibility " + mode + " " + safeCode, child.ExitCode == 0 && output == "PASS");
     }
 
