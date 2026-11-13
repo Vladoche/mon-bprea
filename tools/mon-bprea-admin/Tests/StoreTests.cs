@@ -305,7 +305,7 @@ public static class StoreTests
             "try { verifyPrivateDirectory(process.env.MON_BPREA_STORE_FIXTURE); phase='create_store'; const s=createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE); phase='locking'; if(mode==='lock-busy'){await s.withLock(async()=>{});process.exitCode=2;} " +
             "else if(mode==='clear'){if(await s.read('synthetic-participant@example.invalid'))process.exitCode=3;} " +
             "else {await s.withLock(()=>s.reserve(mode==='pending'?'other@example.invalid':'synthetic-participant@example.invalid','recovery'));process.exitCode=4;} } " +
-            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected){process.exitCode=5;process.stdout.write('FAIL:'+phase+'_'+(/^[a-z_]{1,32}$/.test(e.code||'')?e.code:'unclassified'));}} " +
+            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected){process.exitCode=5;process.stdout.write('FAIL:'+phase+'_'+(/^[a-z_]{1,32}$/.test(e.code||'')?e.code:'unclassified')+'_'+(/^[a-z_0-9]{1,80}$/.test(e.privateReason||'')?e.privateReason:'no_reason'));}} " +
             "if(!process.exitCode)process.stdout.write('PASS');");
         start.Environment.Clear();
         start.Environment["SystemRoot"] = Environment.GetEnvironmentVariable("SystemRoot");
@@ -317,7 +317,7 @@ public static class StoreTests
         try { await child.WaitForExitAsync(deadline.Token); }
         catch { child.Kill(); await child.WaitForExitAsync(); throw; }
         var output = await child.StandardOutput.ReadToEndAsync();
-        var safeCode = System.Text.RegularExpressions.Regex.IsMatch(output, @"^FAIL:[a-z_]{1,64}\z") ? output : "no-sensitive-diagnostic";
+        var safeCode = System.Text.RegularExpressions.Regex.IsMatch(output, @"^FAIL:[a-z_0-9]{1,160}\z") ? output : "no-sensitive-diagnostic";
         if (child.ExitCode != 0)
         {
             // Synthetic fixture metadata only; no paths, SIDs or file contents.
