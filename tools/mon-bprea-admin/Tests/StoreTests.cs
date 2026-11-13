@@ -22,7 +22,10 @@ public static class StoreTests
     {
         if (!OperatingSystem.IsWindows()) { check("Windows private store requires Windows", false); return; }
         var now = new DateTimeOffset(2026, 11, 12, 10, 0, 0, TimeSpan.Zero);
-        var temporaryRoot = Path.Combine(Path.GetTempPath(), "mon-bprea-admin-store-tests-" + Guid.NewGuid().ToString("N"));
+        // CI may expose TEMP through an 8.3 alias. Node intentionally requires the
+        // real canonical spelling; expand the test parent, without relaxing it.
+        var temporaryParent = ExpandExistingPath(Path.GetTempPath());
+        var temporaryRoot = Path.Combine(temporaryParent, "mon-bprea-admin-store-tests-" + Guid.NewGuid().ToString("N"));
         DiagnosticStage = "create-private-test-directory";
         CreateProtectedDirectory(temporaryRoot);
         var configPath = Path.Combine(temporaryRoot, "operator.json");
@@ -247,7 +250,7 @@ public static class StoreTests
             // All contents are this test's synthetic records. Verify the exact owned
             // temp target and refuse recursive cleanup if any reparse point remains.
             var full = Path.GetFullPath(temporaryRoot);
-            var expectedParent = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            var expectedParent = Path.GetFullPath(temporaryParent).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
             if (full.StartsWith(expectedParent, StringComparison.OrdinalIgnoreCase)
                 && Path.GetFileName(full).StartsWith("mon-bprea-admin-store-tests-", StringComparison.Ordinal)
                 && !Directory.EnumerateFileSystemEntries(full, "*", SearchOption.AllDirectories)
@@ -335,6 +338,14 @@ public static class StoreTests
         check("real Node shared lock/journal compatibility " + mode + " " + safeCode, child.ExitCode == 0 && output == "PASS");
     }
 
+    private static string ExpandExistingPath(string path)
+    {
+        var buffer = new StringBuilder(32768);
+        var length = GetLongPathName(path, buffer, (uint)buffer.Capacity);
+        if (length == 0 || length >= buffer.Capacity) throw new InvalidOperationException("Synthetic temp parent cannot be expanded");
+        return buffer.ToString();
+    }
+
     private static void CreateProtectedDirectory(string path)
     {
         var security = new DirectorySecurity();
@@ -387,6 +398,8 @@ public static class StoreTests
         stream.Flush(flushToDisk: true);
     }
 
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "GetLongPathNameW")]
+    private static extern uint GetLongPathName(string path, StringBuilder buffer, uint capacity);
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "CreateHardLinkW")]
     [return: MarshalAs(UnmanagedType.Bool)] private static extern bool CreateHardLink(string newName, string existingName, IntPtr security);
 }
