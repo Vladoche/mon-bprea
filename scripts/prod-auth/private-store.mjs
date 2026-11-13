@@ -13,9 +13,13 @@ const inside = (parent, child) => { const path = relative(parent, child); return
 const keyFor = email => createHash('sha256').update(`${PROD_PROJECT}\0${email}`).digest('hex');
 const identifier = /^[a-f0-9-]{36}$/;
 
-function verifyWindowsAcl(path) {
+function verifyWindowsAcl(path, newEmptyFile = false) {
   // Chemin par environnement, jamais interpolé dans une commande. Aucun secret hérité.
-  const script = "$ErrorActionPreference='Stop'; $p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $acl=Get-Acl -LiteralPath $p; $owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid){exit 2}; foreach($rule in $acl.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin @($sid,'S-1-5-18')){exit 3}}; Write-Output 'PRIVATE_OK'";
+  // An elevated Windows token may assign Administrators as the default owner.
+  // Correct only this invocation's newly created, still-empty file, before any
+  // content; existing files and their DACLs are never changed by this check.
+  const setOwner = "$p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; $file=Get-Item -LiteralPath $p -Force; if($file.Length -ne 0 -or ($file.Attributes -band [System.IO.FileAttributes]::ReparsePoint)){exit 4}; $owner=(Get-Acl -LiteralPath $p).GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid.Value){if($owner -ne 'S-1-5-32-544'){exit 5}; $security=New-Object System.Security.AccessControl.FileSecurity; $security.SetOwner($sid); [System.IO.File]::SetAccessControl($p,$security)}; ";
+  const script = (newEmptyFile ? "$ErrorActionPreference='Stop'; " + setOwner : "") + "$ErrorActionPreference='Stop'; $p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $acl=Get-Acl -LiteralPath $p; $owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid){exit 2}; foreach($rule in $acl.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin @($sid,'S-1-5-18')){exit 3}}; Write-Output 'PRIVATE_OK'";
   const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT;
   if (!systemRoot) fail('private');
   const answer = execFileSync(join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
@@ -46,11 +50,12 @@ export function verifyPrivateDirectory(value) {
   } catch { fail('private'); }
 }
 
-function privateFile(path) {
+function privateFile(path, newEmptyFile = false) {
   const stat = lstatSync(path);
   if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1
       || (process.platform !== 'win32' && (stat.uid !== process.getuid() || (stat.mode & 0o077) !== 0))) fail('private');
-  if (process.platform === 'win32') verifyWindowsAcl(path);
+  if (newEmptyFile && stat.size !== 0) fail('private');
+  if (process.platform === 'win32') verifyWindowsAcl(path, newEmptyFile);
 }
 
 function syncDirectory(directory) {
@@ -66,7 +71,7 @@ function writeExclusive(path, text) {
   try {
     descriptor = openSync(path, 'wx', 0o600);
     // Contrôler le fichier encore vide, avant d’y écrire un secret.
-    privateFile(path);
+    privateFile(path, true);
     writeFileSync(descriptor, text, 'utf8'); fsyncSync(descriptor);
   } finally { if (descriptor !== undefined) closeSync(descriptor); }
   privateFile(path);

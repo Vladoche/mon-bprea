@@ -298,11 +298,11 @@ public static class StoreTests
             RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("--input-type=module"); start.ArgumentList.Add("-e");
         start.ArgumentList.Add("import { createPrivateStore } from './scripts/prod-auth/private-store.mjs'; " +
-            "const s=createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE); const mode=process.env.MON_BPREA_PROBE_MODE; " +
-            "try { if(mode==='lock-busy'){await s.withLock(async()=>{});process.exitCode=2;} " +
+            "const mode=process.env.MON_BPREA_PROBE_MODE; " +
+            "try { const s=createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE); if(mode==='lock-busy'){await s.withLock(async()=>{});process.exitCode=2;} " +
             "else if(mode==='clear'){if(await s.read('synthetic-participant@example.invalid'))process.exitCode=3;} " +
             "else {await s.withLock(()=>s.reserve(mode==='pending'?'other@example.invalid':'synthetic-participant@example.invalid','recovery'));process.exitCode=4;} } " +
-            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected)process.exitCode=5;} " +
+            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected){process.exitCode=5;process.stdout.write('FAIL:'+(/^[a-z_]{1,32}$/.test(e.code||'')?e.code:'unclassified'));}} " +
             "if(!process.exitCode)process.stdout.write('PASS');");
         start.Environment.Clear();
         start.Environment["SystemRoot"] = Environment.GetEnvironmentVariable("SystemRoot");
@@ -314,7 +314,8 @@ public static class StoreTests
         try { await child.WaitForExitAsync(deadline.Token); }
         catch { child.Kill(); await child.WaitForExitAsync(); throw; }
         var output = await child.StandardOutput.ReadToEndAsync();
-        check("real Node shared lock/journal compatibility " + mode, child.ExitCode == 0 && output == "PASS");
+        var safeCode = System.Text.RegularExpressions.Regex.IsMatch(output, @"^FAIL:[a-z_]{1,32}\z") ? output : "no-sensitive-diagnostic";
+        check("real Node shared lock/journal compatibility " + mode + " " + safeCode, child.ExitCode == 0 && output == "PASS");
     }
 
     private static void CreateProtectedDirectory(string path)
