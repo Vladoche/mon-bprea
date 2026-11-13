@@ -72,6 +72,18 @@ describe('stockage privé PROD : secrets hors dépôt et réservations durables'
     expect(await createPrivateStore(path).read(email)).toBe(false);
   });
 
+  it('conserve les octets de l’ancienne réservation Node lors d’une nouvelle demande achevée', async () => {
+    const path = directory(), store = createPrivateStore(path);
+    const first = await store.withLock(() => store.reserve(email, 'invite'));
+    await store.withLock(() => store.markDelivered(email, first));
+    const journal = join(path, readdirSync(path).find(name => name.startsWith('reservation-')));
+    const previous = readFileSync(journal, 'utf8');
+    const second = await store.withLock(() => store.reserve(email, 'recovery'));
+    expect(second).not.toBe(first);
+    expect(readFileSync(join(path, `history-reservation-${first}.json`), 'utf8')).toBe(previous);
+    expect(JSON.parse(readFileSync(journal, 'utf8')).status).toBe('reserved');
+  });
+
   it('un verrou concurrent ou interrompu bloque une autre opération', async () => {
     const path = directory(), store = createPrivateStore(path);
     await store.withLock(async () => {

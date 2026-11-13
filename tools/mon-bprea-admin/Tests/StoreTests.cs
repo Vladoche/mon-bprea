@@ -102,6 +102,67 @@ public static class StoreTests
             using (await good.AcquireLockAsync())
                 await Refuses("persistent target reservation blocks fresh operation after restart", () => good.ReserveAsync(Email, Human), "pending");
 
+            DiagnosticStage = "append-only-recovery-and-node-compatibility";
+            const string accountId = "22222222-2222-4222-8222-222222222222";
+            var recoveryHuman = new RecoveryAttestations(true, true, true, true, true);
+            var originalReservation = Directory.GetFiles(good.DirectoryPath, "reservation-*.json").Single();
+            var originalBytes = File.ReadAllBytes(originalReservation);
+            var originalDate = File.GetLastWriteTimeUtc(originalReservation);
+            check("fully acknowledged V1 invitation allows recovery", !await good.HasRecoveryReservationAsync(Email));
+            await Refuses("recovery reservation requires lock", () => good.ReserveRecoveryAsync(Email, accountId, recoveryHuman), "busy");
+            Guid recovery;
+            using (await good.AcquireLockAsync())
+            {
+                await NodeProbe(good.DirectoryPath, "lock-busy", check);
+                await Refuses("recovery attestation cannot be inherited", () => good.ReserveRecoveryAsync(Email, accountId,
+                    recoveryHuman with { IdentityCheckedViaKnownChannel = false }), "attestations");
+                recovery = await good.ReserveRecoveryAsync(Email, accountId, recoveryHuman);
+                check("new reservation remains uncertain after restart", await new WindowsPrivateStore(good.DirectoryPath, configPath, clock: () => now).HasUncertainOperationAsync());
+            }
+            await NodeProbe(good.DirectoryPath, "pending", check);
+            using (await good.AcquireLockAsync())
+            {
+                await Refuses("new invite blocked by recovery uncertainty", () => good.ReserveAsync("other@example.invalid", Human), "pending");
+                await Refuses("malformed recovery callback retains reservation", () => good.DeliverRecoveryAsync(Email, recovery,
+                    AdminContract.Callback + "?token_hash=" + Token + "&type=invite"), "private");
+                await good.DeliverRecoveryAsync(Email, recovery, AdminContract.Callback + "?token_hash=" + Token + "&type=recovery");
+                await Refuses("recovery link cannot be overwritten", () => good.DeliverRecoveryAsync(Email, recovery,
+                    AdminContract.Callback + "?token_hash=" + Token + "&type=recovery"), "private");
+            }
+            check("generation acknowledged but handover separately pending", !await good.HasUncertainOperationAsync() && await good.HasRecoveryReservationAsync(Email));
+            var recoveryFile = Path.Combine(good.DirectoryPath, $"auth-link-{recovery:D}.txt");
+            check("recovery file EFS encrypted", File.GetAttributes(recoveryFile).HasFlag(FileAttributes.Encrypted));
+            await NodeProbe(good.DirectoryPath, "target-pending", check);
+            var reservedEvent = Path.Combine(good.DirectoryPath, $"recovery-{recovery:D}-reserved.json");
+            var reservedBytes = File.ReadAllBytes(reservedEvent);
+            await good.MarkHandedOverAsync(recovery);
+            await Refuses("handover timestamp cannot be replaced", () => good.MarkHandedOverAsync(recovery), "private");
+            check("new request possible after separately recorded handover", !await good.HasRecoveryReservationAsync(Email));
+            await NodeProbe(good.DirectoryPath, "clear", check);
+            await NodeHoldsLock(good, check);
+            File.Delete(recoveryFile); // This known synthetic link only, after handed-over.
+            using (await good.AcquireLockAsync()) await good.ReserveRecoveryAsync(Email, accountId, recoveryHuman);
+            check("all V1 evidence and original dates preserved", File.ReadAllBytes(originalReservation).SequenceEqual(originalBytes)
+                && File.GetLastWriteTimeUtc(originalReservation) == originalDate && File.ReadAllBytes(reservedEvent).SequenceEqual(reservedBytes));
+            foreach (var file in Directory.GetFiles(good.DirectoryPath, "recovery-*.json"))
+            {
+                var journal = File.ReadAllText(file);
+                check("append-only journal contains no link email or key", !journal.Contains(Token) && !journal.Contains(Email) && !journal.Contains("sb_secret_"));
+                WindowsPrivateStore.VerifyProtectedFile(file);
+            }
+            var lost = Store("lost-recovery-link"); Guid lostId;
+            using (await lost.AcquireLockAsync())
+            {
+                lostId = await lost.ReserveRecoveryAsync(Email, accountId, recoveryHuman);
+                await lost.DeliverRecoveryAsync(Email, lostId, AdminContract.Callback + "?token_hash=" + Token + "&type=recovery");
+            }
+            File.Delete(Path.Combine(lost.DirectoryPath, $"auth-link-{lostId:D}.txt"));
+            await Refuses("lost private file blocks immediate regeneration", () => lost.HasRecoveryReservationAsync(Email), "private");
+            await NodeProbe(lost.DirectoryPath, "private", check);
+            var orphan = Store("orphan-recovery-receipt");
+            WritePrivateFixture(Path.Combine(orphan.DirectoryPath, $"recovery-{Guid.NewGuid():D}-delivered-private.json"), "{}");
+            await Refuses("orphan or corrupted recovery journal refused", () => orphan.HasUncertainOperationAsync(), "private");
+
             DiagnosticStage = "crash-and-restart-reservations";
             var crashed = Store("crashed");
             using (await crashed.AcquireLockAsync()) await crashed.ReserveAsync("crash@example.invalid", Human);
@@ -122,6 +183,18 @@ public static class StoreTests
                 type = "invite", status = "reserved", reservedAt = "2026-11-12T10:00:00.000Z"
             }));
             check("historical Node reservation recognized without added GUI fields", await legacy.HasUncertainOperationAsync());
+            var completedLegacy = Store("completed-node-v1");
+            var completedPath = Path.Combine(completedLegacy.DirectoryPath, $"reservation-{legacyHash}.json");
+            WritePrivateFixture(completedPath, JsonSerializer.Serialize(new
+            {
+                version = 1, project = AdminContract.Project, operationId = Guid.NewGuid().ToString("D"), targetHash = legacyHash,
+                type = "invite", status = "delivered-private", reservedAt = "2026-11-12T09:00:00.000Z", deliveredAt = "2026-11-12T09:01:00.000Z"
+            }));
+            var completedBytes = File.ReadAllBytes(completedPath); var completedDate = File.GetLastWriteTimeUtc(completedPath);
+            check("completed V1 Node invitation does not require its withdrawn old link", !await completedLegacy.HasRecoveryReservationAsync(Email));
+            using (await completedLegacy.AcquireLockAsync()) await completedLegacy.ReserveRecoveryAsync(Email, accountId, recoveryHuman);
+            check("recovery preserves completed V1 Node fixture bytes and date", completedBytes.SequenceEqual(File.ReadAllBytes(completedPath))
+                && File.GetLastWriteTimeUtc(completedPath) == completedDate);
             var malformed = Store("malformed");
             WritePrivateFixture(Path.Combine(malformed.DirectoryPath, "reservation-broken.json"), "{}");
             await Refuses("malformed reservation blocks new invitations", () => malformed.HasUncertainOperationAsync(), "private");
@@ -180,6 +253,68 @@ public static class StoreTests
                 && !Directory.EnumerateFileSystemEntries(full, "*", SearchOption.AllDirectories)
                     .Any(path => File.GetAttributes(path).HasFlag(FileAttributes.ReparsePoint))) Directory.Delete(full, recursive: true);
         }
+    }
+
+    private static async Task NodeHoldsLock(WindowsPrivateStore store, Action<string, bool> check)
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "scripts", "prod-auth", "private-store.mjs"))) root = root.Parent;
+        if (root is null) throw new InvalidOperationException("Node fixture root absent");
+        var start = new ProcessStartInfo("node") { WorkingDirectory = root.FullName, UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = true };
+        start.ArgumentList.Add("--input-type=module"); start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("import {createPrivateStore} from './scripts/prod-auth/private-store.mjs';" +
+            "await createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE).withLock(async()=>{process.stdout.write('LOCKED\\n');await new Promise(r=>process.stdin.once('data',r));});");
+        start.Environment.Clear(); start.Environment["SystemRoot"] = Environment.GetEnvironmentVariable("SystemRoot");
+        start.Environment["PATH"] = Environment.GetEnvironmentVariable("PATH"); start.Environment["MON_BPREA_STORE_FIXTURE"] = store.DirectoryPath;
+        using var child = Process.Start(start)!;
+        try
+        {
+            DiagnosticStage = "node-lock-waiting-for-ready";
+            var ready = new char[6];
+            var received = await child.StandardOutput.ReadBlockAsync(ready, 0, 6).WaitAsync(TimeSpan.FromSeconds(45));
+            var line = new string(ready, 0, received);
+            DiagnosticStage = "node-lock-ready";
+            check("real Node process holds shared operator lock", line == "LOCKED");
+            var refused = false;
+            try { using var unexpected = await store.AcquireLockAsync(); } catch (AdminException error) { refused = error.Code == "busy"; }
+            check("C# cannot acquire lock held by real Node", refused);
+            DiagnosticStage = "node-lock-releasing";
+            await child.StandardInput.WriteLineAsync("release"); await child.StandardInput.FlushAsync();
+            child.StandardInput.Close();
+            DiagnosticStage = "node-lock-waiting-for-exit";
+            await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(45));
+            check("Node releases only its own operator lock", child.ExitCode == 0 && !File.Exists(Path.Combine(store.DirectoryPath, "operation.lock")));
+        }
+        finally { if (!child.HasExited) { child.Kill(); await child.WaitForExitAsync(); } }
+    }
+
+    private static async Task NodeProbe(string directory, string mode, Action<string, bool> check)
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "scripts", "prod-auth", "private-store.mjs"))) root = root.Parent;
+        if (root is null) throw new InvalidOperationException("Synthetic Node probe source missing");
+        var start = new ProcessStartInfo("node") { WorkingDirectory = root.FullName, UseShellExecute = false, CreateNoWindow = true,
+            RedirectStandardOutput = true, RedirectStandardError = true };
+        start.ArgumentList.Add("--input-type=module"); start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("import { createPrivateStore } from './scripts/prod-auth/private-store.mjs'; " +
+            "const s=createPrivateStore(process.env.MON_BPREA_STORE_FIXTURE); const mode=process.env.MON_BPREA_PROBE_MODE; " +
+            "try { if(mode==='lock-busy'){await s.withLock(async()=>{});process.exitCode=2;} " +
+            "else if(mode==='clear'){if(await s.read('synthetic-participant@example.invalid'))process.exitCode=3;} " +
+            "else {await s.withLock(()=>s.reserve(mode==='pending'?'other@example.invalid':'synthetic-participant@example.invalid','recovery'));process.exitCode=4;} } " +
+            "catch(e){const expected=mode==='lock-busy'?'busy':mode==='private'?'private':'pending';if(e.code!==expected)process.exitCode=5;} " +
+            "if(!process.exitCode)process.stdout.write('PASS');");
+        start.Environment.Clear();
+        start.Environment["SystemRoot"] = Environment.GetEnvironmentVariable("SystemRoot");
+        start.Environment["PATH"] = Environment.GetEnvironmentVariable("PATH");
+        start.Environment["MON_BPREA_STORE_FIXTURE"] = directory;
+        start.Environment["MON_BPREA_PROBE_MODE"] = mode;
+        using var child = Process.Start(start)!;
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try { await child.WaitForExitAsync(deadline.Token); }
+        catch { child.Kill(); await child.WaitForExitAsync(); throw; }
+        var output = await child.StandardOutput.ReadToEndAsync();
+        check("real Node shared lock/journal compatibility " + mode, child.ExitCode == 0 && output == "PASS");
     }
 
     private static void CreateProtectedDirectory(string path)

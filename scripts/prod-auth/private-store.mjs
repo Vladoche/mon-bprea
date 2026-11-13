@@ -1,10 +1,12 @@
 // Stockage opérateur uniquement, hors dépôt. Aucun jeton dans le journal.
-import { lstatSync, realpathSync, openSync, writeFileSync, readFileSync, closeSync, fsyncSync, unlinkSync, renameSync } from 'node:fs';
+import { lstatSync, readdirSync, realpathSync, openSync, writeFileSync, readFileSync, closeSync, fsyncSync, unlinkSync, renameSync } from 'node:fs';
 import { resolve, relative, isAbsolute, dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID, createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fail, PROD_PROJECT, validateProdCallback } from './environment.mjs';
+
+import { inspectRecoveryJournal, parseRecoveryJson } from './recovery-journal.mjs';
 
 const repository = fileURLToPath(new URL('../../', import.meta.url));
 const inside = (parent, child) => { const path = relative(parent, child); return path === '' || (!path.startsWith('..') && !isAbsolute(path)); };
@@ -88,6 +90,20 @@ export function createPrivateStore(value) {
       return record;
     } catch (error) { if (error?.code === 'ENOENT') return null; fail('private'); }
   };
+  const recoveryBlocked = email => {
+    try {
+      const entries = readdirSync(directory).filter(name => name.startsWith('recovery-') && name.endsWith('.json')).map(name => {
+        const path = join(directory, name); privateFile(path);
+        if (lstatSync(path).size > 65536) fail('private');
+        return { name, record: parseRecoveryJson(readFileSync(path, 'utf8')) };
+      });
+      return inspectRecoveryJournal(entries, operationId => {
+        const path = join(directory, `auth-link-${operationId}.txt`); privateFile(path);
+        if (lstatSync(path).size > 4096) fail('private');
+        return readFileSync(path, 'utf8');
+      }).some(r => r.status === 'reserved' || r.targetHash === keyFor(email) && r.status !== 'handed-over');
+    } catch { fail('private'); }
+  };
   return {
     directory,
     async withLock(operation) {
@@ -97,8 +113,9 @@ export function createPrivateStore(value) {
       try { return await operation(); }
       finally { unlinkSync(path); }
     },
-    async read(email) { return readReservation(email)?.status === 'reserved'; },
+    async read(email) { return recoveryBlocked(email) || readReservation(email)?.status === 'reserved'; },
     async reserve(email, type) {
+      if (recoveryBlocked(email)) fail('pending');
       const previous = readReservation(email);
       if (previous?.status === 'reserved') fail('pending');
       const operationId = randomUUID();
@@ -107,6 +124,10 @@ export function createPrivateStore(value) {
       const path = journalPath(email);
       // Remplacement atomique seulement d’une réservation acquittée, sous verrou.
       if (previous) {
+        const history = join(directory, `history-reservation-${previous.operationId}.json`);
+        const text = readFileSync(path, 'utf8');
+        try { privateFile(history); if (readFileSync(history, 'utf8') !== text) fail('private'); }
+        catch (error) { if (error?.code !== 'ENOENT') throw error; writeExclusive(history, text); }
         const temporary = join(directory, `reservation-${operationId}.new`);
         writeExclusive(temporary, JSON.stringify(record)); renameSync(temporary, path); syncDirectory(directory);
       } else writeExclusive(path, JSON.stringify(record));

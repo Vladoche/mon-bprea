@@ -14,7 +14,7 @@ namespace MonBprea.Admin.WindowsSecurity;
 
 // Same lock and reservation names/schema as scripts/prod-auth/private-store.mjs.
 // No stale-lock removal, reservation reset, secret export or retry is provided.
-public sealed class WindowsPrivateStore : IPrivateStore
+public sealed partial class WindowsPrivateStore : IPrivateStore
 {
     private const string Project = "oqoqrxwfbkhtpksqimgd";
     private const string Callback = "https://vladoche.github.io/mon-bprea/authentification.html";
@@ -52,7 +52,7 @@ public sealed class WindowsPrivateStore : IPrivateStore
         if (Volatile.Read(ref lockHeld) == 0 && (File.Exists(lockPath) || Directory.Exists(lockPath))) return true;
         foreach (var file in Directory.EnumerateFiles(DirectoryPath, "reservation-*.json", SearchOption.TopDirectoryOnly))
             if (ReadRecord(file)["status"]!.GetValue<string>() == "reserved") return true;
-        return false;
+        return ReadRecoveries().Any(x => x.Status == "reserved");
     });
 
     public Task<bool> HasTargetReservationAsync(string email) => Safe(() =>
@@ -92,6 +92,7 @@ public sealed class WindowsPrivateStore : IPrivateStore
         if (!attestations.Complete) throw new AdminException("attestations");
         foreach (var file in Directory.EnumerateFiles(DirectoryPath, "reservation-*.json", SearchOption.TopDirectoryOnly))
             if (ReadRecord(file)["status"]!.GetValue<string>() == "reserved") throw new AdminException("pending");
+        if (ReadRecoveries().Any(x => x.Status == "reserved" || x.Hash == TargetHash(email) && x.Status != "handed-over")) throw new AdminException("pending");
         var path = ReservationPath(email);
         if (File.Exists(path)) throw new AdminException("pending");
         var id = Guid.NewGuid();
@@ -134,6 +135,14 @@ public sealed class WindowsPrivateStore : IPrivateStore
         await Safe(() =>
         {
             VerifyPrivateDirectory();
+            var recovery = ReadRecoveries().SingleOrDefault(x => x.Id == operationId);
+            if (recovery is not null)
+            {
+                if (recovery.Status != "delivered-private") throw new AdminException("private");
+                WriteRecoveryEvent(operationId, recovery.Hash, "handed-over");
+                ReadRecoveries();
+                return;
+            }
             JsonObject? found = null;
             string? path = null;
             foreach (var candidate in Directory.EnumerateFiles(DirectoryPath, "reservation-*.json", SearchOption.TopDirectoryOnly))

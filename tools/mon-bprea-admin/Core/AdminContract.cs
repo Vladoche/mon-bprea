@@ -90,7 +90,13 @@ public static partial class AdminContract
                 if (user.TryGetProperty("role", out var role) && role.GetString() != "authenticated") throw new FormatException();
                 var confirmed = OptionalDate(user, "email_confirmed_at");
                 var invited = OptionalDate(user, "invited_at");
-                accounts.Add(new(id, email, OptionalDate(user, "created_at"), confirmed, invited));
+                var restricted = OptionalDate(user, "banned_until") > observedAt || OptionalDate(user, "deleted_at").HasValue;
+                if (user.TryGetProperty("is_anonymous", out var anonymous))
+                {
+                    if (anonymous.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) throw new FormatException();
+                    restricted |= anonymous.GetBoolean();
+                }
+                accounts.Add(new(id, email, OptionalDate(user, "created_at"), confirmed, invited, restricted));
                 snapshotRows.Add((id, email, confirmed.HasValue ? RequiredString(user, "email_confirmed_at") : null));
             }
             // Same [id,email,email_confirmed_at|null] projection as the Node executor.
@@ -105,21 +111,23 @@ public static partial class AdminContract
 
     // Accepts the SDK-shaped object for parity tests. The REST adapter maps the
     // flattened GoTrue response to this shape without exposing its contents.
-    public static string BuildManualLink(JsonElement data, string email)
+    public static string BuildManualLink(JsonElement data, string email, string type = "invite", string? expectedId = null)
     {
-        try { return BuildLink(data.GetProperty("user"), data.GetProperty("properties"), email); }
+        try { return BuildLink(data.GetProperty("user"), data.GetProperty("properties"), email, type, expectedId); }
         catch { throw new AdminException("uncertain"); }
     }
 
-    internal static string BuildRestManualLink(JsonElement data, string email) => BuildLink(data, data, email);
+    internal static string BuildRestManualLink(JsonElement data, string email, string type = "invite", string? expectedId = null) => BuildLink(data, data, email, type, expectedId);
 
-    private static string BuildLink(JsonElement user, JsonElement properties, string email)
+    private static string BuildLink(JsonElement user, JsonElement properties, string email, string type, string? expectedId)
     {
         try
         {
             var target = NormalizeEmail(email);
-            if (!UuidPattern().IsMatch(RequiredString(user, "id")) || RequiredString(user, "email").ToLowerInvariant() != target
-                || RequiredString(properties, "verification_type") != "invite"
+            if (type is not ("invite" or "recovery") || type == "recovery" && (expectedId is null || !UuidPattern().IsMatch(expectedId))
+                || !UuidPattern().IsMatch(RequiredString(user, "id")) || expectedId is not null && RequiredString(user, "id") != expectedId
+                || RequiredString(user, "email").ToLowerInvariant() != target
+                || RequiredString(properties, "verification_type") != type
                 || RequiredString(properties, "redirect_to") != Callback) throw new FormatException();
             var token = RequiredString(properties, "hashed_token");
             var raw = RequiredString(properties, "action_link");
@@ -127,8 +135,8 @@ public static partial class AdminContract
                 || action.GetLeftPart(UriPartial.Path) != Api + "/auth/v1/verify" || !string.IsNullOrEmpty(action.UserInfo)
                 || action.AbsoluteUri != raw || action.Fragment != "") throw new FormatException();
             var query = ParseQuery(action.Query);
-            if (query.Count != 3 || query["type"] != "invite" || query["token"] != token || query["redirect_to"] != Callback) throw new FormatException();
-            return Callback + "?token_hash=" + token + "&type=invite";
+            if (query.Count != 3 || query["type"] != type || query["token"] != token || query["redirect_to"] != Callback) throw new FormatException();
+            return Callback + "?token_hash=" + token + "&type=" + type;
         }
         catch { throw new AdminException("uncertain"); }
     }
