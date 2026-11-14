@@ -40,6 +40,18 @@ afterEach(() => {
 });
 
 describe('stockage privé PROD : secrets hors dépôt et réservations durables', { timeout: 30_000 }, () => {
+  it('refuse toute reprise après intention de clôture V1.2, même sans résultat et après redémarrage', async () => {
+    const path = directory();
+    writeFileSync(join(path, 'closure-22222222-2222-4222-8222-222222222222-intent.json'), '{}', { mode: 0o600 });
+    const store = createPrivateStore(path);
+    expect(await store.read(email)).toBe(true);
+    await expect(store.withLock(() => store.reserve(email, 'recovery'))).rejects.toMatchObject({ code: 'pending' });
+    await expect(createPrivateStore(path).withLock(() => createPrivateStore(path).reserve('other@example.test', 'invite'))).rejects.toMatchObject({ code: 'pending' });
+    expect(readFileSync(join(path, 'closure-22222222-2222-4222-8222-222222222222-intent.json'), 'utf8')).toBe('{}');
+    unlinkSync(join(path, 'closure-22222222-2222-4222-8222-222222222222-intent.json'));
+    writeFileSync(join(path, 'deletions.json'), JSON.stringify([{version:3,type:'closure'}]), {mode:0o600});
+    expect(await createPrivateStore(path).read(email)).toBe(true);
+  });
   it('refuse le dépôt, les chemins relatifs et les droits publics avant tout jeton', () => {
     for (const path of ['relative', process.cwd(), join(process.cwd(), '.tmp'), '\\\\server\\share'])
       expect(() => verifyPrivateDirectory(path)).toThrow();

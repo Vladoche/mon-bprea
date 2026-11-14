@@ -13,6 +13,8 @@ internal interface IAdminWorkflow : IDisposable
     Task<PreparedRecovery> PrepareRecoveryAsync(AuthAccount selected, RecoveryAttestations human, WorkstationAttestations workstation);
     Task<RecoveryReceipt> GenerateRecoveryAsync(PreparedRecovery prepared, string confirmation);
     Task MarkHandedOverAsync(Guid operationId);
+    Task<ClosurePreparation> PrepareClosureAsync(AuthAccount selected, ClosureRequest request);
+    Task<ClosureReceipt> ExecuteClosureAsync(PreparedClosure plan, string confirmation);
     void OpenPrivateFolder();
 }
 
@@ -33,6 +35,8 @@ internal sealed class AdminWorkflow : IAdminWorkflow
         => session.PrepareRecoveryAsync(selected, human, workstation);
     public Task<RecoveryReceipt> GenerateRecoveryAsync(PreparedRecovery prepared, string confirmation) => session.GenerateRecoveryAsync(prepared, confirmation);
     public Task MarkHandedOverAsync(Guid operationId) => session.MarkHandedOverAsync(operationId);
+    public Task<ClosurePreparation> PrepareClosureAsync(AuthAccount selected, ClosureRequest request) => session.PrepareClosureAsync(selected, request);
+    public Task<ClosureReceipt> ExecuteClosureAsync(PreparedClosure plan, string confirmation) => session.ExecuteClosureAsync(plan, confirmation);
     public void OpenPrivateFolder() => store.OpenPrivateFolder();
     public void Dispose() => session.Dispose();
 }

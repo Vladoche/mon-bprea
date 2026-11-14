@@ -20,6 +20,7 @@ internal static partial class Program
     {
         try
         {
+            if (args.Length == 2 && args[0] == "--local-closure") return await LocalClosure(args[1]);
             if (args.Length != 1) throw new InvalidOperationException("Provide the synthetic Node contract vector file.");
             _stage = "node-contract-parity";
             NodeVectorsPath = args[0];
@@ -30,6 +31,8 @@ internal static partial class Program
             await Invitations();
             _stage = "recovery-client";
             await Recoveries();
+            _stage = "closure-client";
+            await Closures();
             _stage = "windows-private-store";
             await StoreTests.RunAsync(Check);
             Console.WriteLine($"PASS: {_passed} assertions, synthetic transports only; no hosted request.");
@@ -366,7 +369,7 @@ internal static partial class Program
         { await Task.Delay(Timeout.InfiniteTimeSpan, cancellationToken); return 0; }
     }
 
-    private sealed class FakeStore : IPrivateStore
+    private sealed class FakeStore : IClosureStore
     {
         public bool Valid = true, Uncertain, Reserved, Locked, ReserveFailure, DeliveryFailure, CrashAfterReservation;
         public int Validations, Reservations, Deliveries, Handovers;
@@ -398,6 +401,12 @@ internal static partial class Program
         public Task DeliverAsync(string email, Guid operationId, string link)
         { if (DeliveryFailure) throw new AdminException("private"); Deliveries++; Link = link; Uncertain = false; return Task.CompletedTask; }
         public Task MarkHandedOverAsync(Guid operationId) { if (operationId != Operation) throw new AdminException("private"); Handovers++; return Task.CompletedTask; }
+        public string LedgerHash = ClosureContract.Hash("[]");
+        public Task<string> ReadDeletionLedgerHashAsync() => Task.FromResult(LedgerHash);
+        public Task RecordClosurePreparationAsync(AuthAccount account, ClosureRequest request) => Task.CompletedTask;
+        public Task<Guid> ReserveClosureAsync(PreparedClosure plan) => ReserveAsync(plan.Account.Email, Human);
+        public ClosureReceipt? ClosureResult;
+        public Task RecordClosureResultAsync(ClosureReceipt receipt) { ClosureResult = receipt; return Task.CompletedTask; }
         private sealed class Lease(Action release) : IDisposable { public void Dispose() => release(); }
     }
 }

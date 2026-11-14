@@ -19,6 +19,8 @@
 
 ## Lire selon le chantier
 
+**Application Windows V1.2 préparée le 14 novembre.** La V1.1 fusionnée (#57) est conservée. Ajouts : parcours de préparation de clôture, confirmation distincte et exécuteur natif unitaire testé uniquement sur Supabase local fictif, journal durable compatible avec `deletions.json` et verrou Node/C# commun ; mémorisation Auth facultative dans le Gestionnaire d’identifiants Windows. **La distribution bloque techniquement toute suppression PROD**, faute de canal PostgreSQL de confiance et de liaison complète aux sauvegardes/journal. Aucun secret PostgreSQL stocké, aucune modification PROD ou Pages. [Guide, limites et étude séparée du login de lecture seule](../../tools/mon-bprea-admin/README.md#préparer-une-clôture-et-suivre-son-résultat). La livraison effective dépend des résultats CI/artefact de la PR dédiée ; ce jalon ne qualifie pas un circuit de suppression hébergé.
+
 | Chantier | Référence |
 | --- | --- |
 | Organisation du code | [Architecture actuelle](../architecture/ARCHITECTURE.md) |

@@ -1,7 +1,8 @@
 using MonBprea.Admin.App;
 using MonBprea.Admin.Core;
+using MonBprea.Admin.WindowsSecurity;
 
-internal static class Program
+internal static partial class Program
 {
     private static int passed;
     [STAThread]
@@ -11,12 +12,13 @@ internal static class Program
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         var fake = new FakeWorkflow();
-        using var form = new MainForm(_ => fake, () => true);
+        var vault = new FakeVault();
+        using var form = new MainForm(_ => fake, () => true, vault);
         form.Text = "Mon BPREA Admin — TEST SYNTHÉTIQUE SANS RÉSEAU";
         if (args.Length == 1 && args[0] == "--interactive") { Application.Run(form); return 0; }
         Exception? failure = null;
         form.Shown += async (_, _) => {
-            try { await Exercise(form, fake); }
+            try { await ExerciseCredentials(form, vault); await Exercise(form, fake); }
             catch (Exception error) { failure = error; }
             finally { form.Close(); }
         };
@@ -109,6 +111,7 @@ internal static class Program
         Find<TabControl>(form, "Sections").SelectedIndex = 2;
         Find<Button>(form, "RecoveryHandover").PerformClick(); await Pump();
         Check(fake.Handovers == 2 && !Find<Button>(form, "RecoveryHandover").Enabled, "recovery handover recorded separately");
+        await ExerciseClosure(form, fake);
         Find<TabControl>(form, "Sections").SelectedIndex = 0; grid.Rows[0].Selected = true; await Pump();
         Find<Button>(form, "RecoverAccess").PerformClick(); await Pump();
         foreach (var name in RecoveryChecks) Check(!Find<CheckBox>(form, name).Checked, "new request never inherits identity " + name);
@@ -138,6 +141,9 @@ internal static class Program
     private sealed class FakeWorkflow : IAdminWorkflow
     {
         public int Posts, Handovers;
+        public int ClosureDeletes;
+        public bool AllowClosure;
+        public ClosureStatus ClosureOutcome = ClosureStatus.AuthAbsentChecksIncomplete;
         public bool Disposed, FailRefresh, FailRecovery;
         public TaskCompletionSource? HoldGeneration;
         private readonly AccountInventory inventory = new([
@@ -165,6 +171,22 @@ internal static class Program
             return new(Guid.NewGuid(), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DateTimeOffset.UtcNow);
         }
         public Task MarkHandedOverAsync(Guid operationId) { Handovers++; return Task.CompletedTask; }
+        public Task<ClosurePreparation> PrepareClosureAsync(AuthAccount selected, ClosureRequest request)
+        {
+            if (!request.Attestations.Complete) throw new AdminException("closure_request");
+            if (selected.Id == inventory.Accounts[0].Id) throw new AdminException("closure_target");
+            var e = new ClosureEvidence(AdminContract.Project, selected.Id, inventory.Accounts[0].Id, inventory.Snapshot, DateTimeOffset.UtcNow,
+                ClosureContract.Tables.ToDictionary(t => t, _ => 1L), ClosureContract.ForeignKeys, true, true, 0, 0, 1, 1,
+                ClosureContract.Hash("witness"), true, DateTimeOffset.UtcNow.AddDays(-1), ClosureContract.Hash("manifest"), ClosureContract.Hash("[]"));
+            return Task.FromResult(new ClosurePreparation(selected, inventory, request, AllowClosure ? Array.Empty<string>() : new[] { "Canal PostgreSQL de confiance absent" },
+                AllowClosure ? e.Rows : new Dictionary<string,long>(), AllowClosure ? "Synthétique, moins de 168 h" : "NON VÉRIFIÉE", AllowClosure ? new PreparedClosure(Guid.NewGuid(), selected, inventory, request, e, e.BackupLedgerHash) : null));
+        }
+        public async Task<ClosureReceipt> ExecuteClosureAsync(PreparedClosure plan, string confirmation)
+        {
+            if (!AllowClosure || confirmation != plan.ConfirmationText) throw new AdminException("confirmation");
+            ClosureDeletes++; if (HoldGeneration is not null) await HoldGeneration.Task;
+            return new(Guid.NewGuid(), ClosureOutcome, "uncertain", ClosureOutcome != ClosureStatus.Uncertain, false, DateTimeOffset.UtcNow);
+        }
         public void OpenPrivateFolder() { }
         public void Dispose() => Disposed = true;
     }
