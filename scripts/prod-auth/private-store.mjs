@@ -21,19 +21,25 @@ function privateFailure(reason) {
 }
 
 function verifyWindowsAcl(path, newEmptyFile = false) {
-  // Chemin par environnement, jamais interpolé dans une commande. Aucun secret hérité.
-  // An elevated Windows token may assign Administrators as the default owner.
-  // Correct only this invocation's newly created, still-empty file, before any
-  // content; existing files and their DACLs are never changed by this check.
-  const setOwner = "$p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; $file=Get-Item -LiteralPath $p -Force; if($file.Length -ne 0 -or ($file.Attributes -band [System.IO.FileAttributes]::ReparsePoint)){exit 4}; $owner=(Get-Acl -LiteralPath $p).GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid.Value){if($owner -ne 'S-1-5-32-544'){exit 5}; $security=New-Object System.Security.AccessControl.FileSecurity; $security.SetOwner($sid); [System.IO.File]::SetAccessControl($p,$security)}; ";
-  const script = (newEmptyFile ? "$ErrorActionPreference='Stop'; " + setOwner : "") + "$ErrorActionPreference='Stop'; $p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $acl=Get-Acl -LiteralPath $p; $owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid){exit 2}; foreach($rule in $acl.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin @($sid,'S-1-5-18')){exit 3}}; Write-Output 'PRIVATE_OK'";
+  // Environment carries only the checked path, never a key or link. Use the
+  // same .NET ACL APIs as C#: no cmdlet/module discovery on a cold runner.
+  const readAcl = "$sections=[System.Security.AccessControl.AccessControlSections]::Owner -bor [System.Security.AccessControl.AccessControlSections]::Access; if([System.IO.Directory]::Exists($p)){$acl=[System.IO.Directory]::GetAccessControl($p,$sections)}else{$acl=[System.IO.File]::GetAccessControl($p,$sections)}; ";
+  let script = "$ErrorActionPreference='Stop'; $p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; " + readAcl;
+  if (newEmptyFile) {
+    // An elevated token can assign Administrators as the default owner. Change
+    // only our new empty file, before content, preserving the existing DACL.
+    script += "$file=[System.IO.FileInfo]::new($p); if($file.Length -ne 0 -or ($file.Attributes -band [System.IO.FileAttributes]::ReparsePoint)){exit 4}; $owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid.Value){if($owner -ne 'S-1-5-32-544'){exit 5}; $security=[System.Security.AccessControl.FileSecurity]::new(); $security.SetOwner($sid); [System.IO.File]::SetAccessControl($p,$security)}; " + readAcl;
+  }
+  script += "$owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid.Value){exit 2}; foreach($rule in $acl.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin @($sid.Value,'S-1-5-18')){exit 3}}; [Console]::WriteLine('PRIVATE_OK')";
   const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT;
   if (!systemRoot) privateFailure('system_root');
   let answer;
-  try { answer = execFileSync(join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
-    ['-NoProfile', '-NonInteractive', '-Command', "try { " + script + " } catch { Write-Output ('PRIVATE_FAILURE_' + $_.Exception.GetType().Name); exit 1 }"], { encoding: 'utf8', windowsHide: true, timeout: 45_000,
-      stdio: ['ignore', 'pipe', 'pipe'], env: { SystemRoot: systemRoot, MON_BPREA_PRIVATE_CHECK: path } }); }
-  catch (error) {
+  try {
+    answer = execFileSync(join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
+      ['-NoProfile', '-NonInteractive', '-Command', "try { " + script + " } catch { [Console]::WriteLine('PRIVATE_FAILURE_' + $_.Exception.GetType().Name); exit 1 }"],
+      { encoding: 'utf8', windowsHide: true, timeout: 45_000, stdio: ['ignore', 'pipe', 'pipe'],
+        env: { SystemRoot: systemRoot, MON_BPREA_PRIVATE_CHECK: path } });
+  } catch (error) {
     const classification = String(error?.stdout || '').match(/PRIVATE_FAILURE_([A-Za-z]{1,64})/);
     privateFailure(classification ? 'acl_' + classification[1].toLowerCase()
       : Number.isInteger(error?.status) ? 'acl_exit_' + error.status : error?.code === 'ETIMEDOUT' ? 'acl_timeout' : 'acl_start');
