@@ -48,7 +48,7 @@ jobs:
       - name: Déposer uniquement la distribution Windows
         uses: actions/upload-artifact@v7
         with:
-          name: MonBPREAAdmin-1.1-win-x64-${{ github.sha }}
+          name: MonBPREAAdmin-1.2-win-x64-${{ github.sha }}
           path: ${{ runner.temp }}/mon-bprea-admin-release/publish/
           if-no-files-found: error
           retention-days: 14

@@ -6,6 +6,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="MonBprea.Admin.WindowsSecurity" />
     <InternalsVisibleTo Include="MonBprea.Admin.Tests" />
     <InternalsVisibleTo Include="MonBPREAAdmin.WindowTests" />
   </ItemGroup>

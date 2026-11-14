@@ -31,8 +31,8 @@ try {
     $hash = (Get-FileHash -LiteralPath (Join-Path $publish 'MonBPREAAdmin.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
     [System.IO.File]::WriteAllText((Join-Path $publish 'SHA256.txt'), "$hash  MonBPREAAdmin.exe`n", [System.Text.UTF8Encoding]::new($false))
     $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo((Join-Path $publish 'MonBPREAAdmin.exe')).FileVersion
-    if ($version -ne '1.1.0.0') { throw 'Version de publication inattendue.' }
-    $zipPath = Join-Path $output 'MonBPREAAdmin-1.1-win-x64.zip'
+    if ($version -ne '1.2.0.0') { throw 'Version de publication inattendue.' }
+    $zipPath = Join-Path $output 'MonBPREAAdmin-1.2-win-x64.zip'
     Compress-Archive -LiteralPath @((Join-Path $publish 'MonBPREAAdmin.exe'), (Join-Path $publish 'LIRE-MOI.md'), (Join-Path $publish 'SHA256.txt')) -DestinationPath $zipPath
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
@@ -47,7 +47,7 @@ try {
         } finally { $stream.Dispose() }
         if ($archiveHash -cne $hash) { throw 'Empreinte ZIP divergente.' }
     } finally { $archive.Dispose() }
-    Write-Output "ZIP V1.1 contrôlé : trois fichiers attendus, empreinte exécutable identique."
+    Write-Output "ZIP V1.2 contrôlé : trois fichiers attendus, empreinte exécutable identique."
     Write-Output "Livraison Windows préparée dans $publish"
 } finally {
     Pop-Location

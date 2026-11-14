@@ -52,12 +52,13 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         if (Volatile.Read(ref lockHeld) == 0 && (File.Exists(lockPath) || Directory.Exists(lockPath))) return true;
         foreach (var file in Directory.EnumerateFiles(DirectoryPath, "reservation-*.json", SearchOption.TopDirectoryOnly))
             if (ReadRecord(file)["status"]!.GetValue<string>() == "reserved") return true;
-        return ReadRecoveries().Any(x => x.Status == "reserved");
+        return ReadClosures().Count != 0 || ReadRecoveries().Any(x => x.Status == "reserved");
     });
 
     public Task<bool> HasTargetReservationAsync(string email) => Safe(() =>
     {
         VerifyPrivateDirectory();
+        if (ReadClosures().Count != 0) return true;
         var path = ReservationPath(email);
         if (!File.Exists(path)) return false;
         ReadRecord(path, TargetHash(email));
@@ -90,6 +91,7 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         RequireLock();
         VerifyPrivateDirectory();
         if (!attestations.Complete) throw new AdminException("attestations");
+        if (ReadClosures().Count != 0) throw new AdminException("pending");
         foreach (var file in Directory.EnumerateFiles(DirectoryPath, "reservation-*.json", SearchOption.TopDirectoryOnly))
             if (ReadRecord(file)["status"]!.GetValue<string>() == "reserved") throw new AdminException("pending");
         if (ReadRecoveries().Any(x => x.Status == "reserved" || x.Hash == TargetHash(email) && x.Status != "handed-over")) throw new AdminException("pending");

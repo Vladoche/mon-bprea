@@ -96,7 +96,11 @@ public static partial class AdminContract
                     if (anonymous.ValueKind is not (JsonValueKind.True or JsonValueKind.False)) throw new FormatException();
                     restricted |= anonymous.GetBoolean();
                 }
-                accounts.Add(new(id, email, OptionalDate(user, "created_at"), confirmed, invited, restricted));
+                var closureRestricted = !user.TryGetProperty("role", out var closureRole) || closureRole.GetString() != "authenticated";
+                if (!user.TryGetProperty("app_metadata", out var metadata) || metadata.ValueKind != JsonValueKind.Object)
+                    closureRestricted = true;
+                else closureRestricted |= metadata.EnumerateObject().Any(p => p.Name is not ("provider" or "providers"));
+                accounts.Add(new(id, email, OptionalDate(user, "created_at"), confirmed, invited, restricted, closureRestricted));
                 snapshotRows.Add((id, email, confirmed.HasValue ? RequiredString(user, "email_confirmed_at") : null));
             }
             // Same [id,email,email_confirmed_at|null] projection as the Node executor.

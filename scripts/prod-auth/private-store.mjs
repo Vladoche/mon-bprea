@@ -116,6 +116,17 @@ export function createPrivateStore(value) {
   };
   const recoveryBlocked = email => {
     try {
+      // V1.2 keeps all closure intentions blocking until separate residual and
+      // backup reconciliation review. Missing/ambiguous results never retry.
+      if (readdirSync(directory).some(name => name.startsWith('closure-') && name.endsWith('.json') && !name.startsWith('closure-request-'))) return true;
+      const ledger = join(directory, 'deletions.json');
+      if (readdirSync(directory).includes('deletions.json')) {
+        privateFile(ledger);
+        if (lstatSync(ledger).size > 1_000_000) fail('private');
+        const entries = parseRecoveryJson(readFileSync(ledger, 'utf8'));
+        if (!Array.isArray(entries) || entries.some(r => !r || typeof r !== 'object' || Array.isArray(r))) fail('private');
+        if (entries.some(r => r.version === 3 && r.type === 'closure')) return true;
+      }
       const entries = readdirSync(directory).filter(name => name.startsWith('recovery-') && name.endsWith('.json')).map(name => {
         const path = join(directory, name); privateFile(path);
         if (lstatSync(path).size > 65536) fail('private');
