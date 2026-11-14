@@ -7,6 +7,14 @@ public sealed class MainForm : Form
     private readonly Func<UnlockInput, IAdminWorkflow> createWorkflow;
     private IAdminWorkflow? workflow;
     private PreparedInvitation? prepared;
+    private PreparedRecovery? preparedRecovery;
+    private RecoveryReceipt? recoveryReceipt;
+    private bool recoveryReceiptHandedOver;
+    private string? recoveryReceiptEmail;
+    private bool HasUnhandedReceipt => receipt is not null && !receiptHandedOver || recoveryReceipt is not null && !recoveryReceiptHandedOver;
+    private AuthAccount? recoveryTarget;
+    private bool inventoryReady;
+    private readonly Func<bool> confirmHandover;
     private InvitationReceipt? receipt;
     private bool receiptHandedOver;
     private bool busy;
@@ -26,6 +34,33 @@ public sealed class MainForm : Form
     private readonly Button cancel = Button("Annuler la préparation", "CancelPreparation");
     private readonly Button openFolder = Button("Ouvrir le dossier privé", "OpenPrivateFolder");
     private readonly Button handover = Button("Noter la remise au participant", "Handover");
+    private readonly Button recoverAccess = Button("Récupérer l’accès", "RecoverAccess");
+    private readonly Button prepareRecovery = Button("Préparer la récupération", "PrepareRecovery");
+    private readonly Button generateRecovery = Button("Générer ce lien de récupération", "GenerateRecovery");
+    private readonly Button cancelRecovery = Button("Annuler la préparation", "CancelRecovery");
+    private readonly Button recoveryOpenFolder = Button("Ouvrir le dossier privé", "RecoveryOpenFolder");
+    private readonly Button recoveryHandover = Button("Noter la remise au titulaire", "RecoveryHandover");
+    private readonly TextBox recoveryEmail = Input("RecoveryEmail");
+    private readonly TextBox recoveryConfirmation = Input("RecoveryConfirmation");
+    private readonly Label recoveryResult = TextLabel("");
+    private readonly Label recoverySummary = TextLabel("");
+    private readonly Label selectionHint = TextLabel("Sélectionnez un compte confirmé pour récupérer son accès.");
+    private readonly GroupBox recoveryReview = new() { Text = "Confirmation individuelle", AutoSize = true, Dock = DockStyle.Top, Visible = false };
+    private readonly CheckBox[] recoveryChecks = [
+        Check("Le titulaire a réellement demandé la récupération de son compte.", "RecoveryRequested"),
+        Check("Son identité a été raisonnablement vérifiée par un canal de confiance déjà connu.", "RecoveryIdentity"),
+        Check("L’adresse concernée est bien celle du compte sélectionné.", "RecoveryAddress"),
+        Check("Le canal privé de remise du lien est confirmé.", "RecoveryChannel"),
+        Check("Le titulaire sait qu’il devra choisir lui-même son nouveau mot de passe.", "RecoveryPassword")
+    ];
+    private readonly CheckBox[] recoveryWorkstation = [
+        Check("Poste et compte Windows protégés ; aucune capture, transcription ni partage d’écran.", "RecoveryWorkstation"),
+        Check("Autres administrations suspendues ; même dossier privé que Node et même version des outils.", "RecoveryExclusive"),
+        Check("Dossier privé exclu des synchronisations et sauvegardes partagées non autorisées.", "RecoveryStorage"),
+        Check("Cette demande individuelle de récupération est autorisée.", "RecoveryAuthorized"),
+        Check("Préflight opérateur, habilitations et état des opérations précédentes réellement vérifiés.", "RecoveryPreflight"),
+        Check("Dashboard PROD vérifié : projet, URL, callback exacts et durée du lien de 3 600 secondes.", "RecoveryExpiry")
+    ];
     private readonly TextBox email = Input("RecipientEmail");
     private readonly TextBox confirmation = Input("ExactConfirmation");
     private readonly CheckBox notice = Check("La notice V1.1 a été remise avant la collecte ou la confirmation de l’adresse.", "Notice");
@@ -46,10 +81,13 @@ public sealed class MainForm : Form
 
     public MainForm() : this(input => new AdminWorkflow(input)) { }
 
-    internal MainForm(Func<UnlockInput, IAdminWorkflow> factory)
+    internal MainForm(Func<UnlockInput, IAdminWorkflow> factory, Func<bool>? confirmHandover = null)
     {
         createWorkflow = factory;
-        Text = "Mon BPREA Admin";
+        this.confirmHandover = confirmHandover ?? (() => MessageBox.Show(this,
+            "Le lien a-t-il été effectivement remis au seul titulaire vérifié par le canal privé convenu ?",
+            "Attestation de remise", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes);
+        Text = "Mon BPREA Admin 1.1";
         Name = "MainForm";
         AutoScaleMode = AutoScaleMode.Dpi;
         Font = new Font("Segoe UI", 10);
@@ -68,16 +106,16 @@ public sealed class MainForm : Form
         var header = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(20, 14, 20, 12), ColumnCount = 2 };
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        var title = TextLabel("Mon BPREA Admin"); title.Font = new Font(Font.FontFamily, 19, FontStyle.Bold);
+        var title = TextLabel("Mon BPREA Admin 1.1"); title.Font = new Font(Font.FontFamily, 19, FontStyle.Bold);
         header.Controls.Add(title, 0, 0); header.Controls.Add(lockSession, 1, 0);
         header.Controls.Add(TextLabel("Gestion privée des utilisateurs"), 0, 1);
         header.Controls.Add(connection, 0, 2); header.SetColumnSpan(connection, 2);
         header.Controls.Add(inventoryStatus, 0, 3); header.SetColumnSpan(inventoryStatus, 2);
-        var footer = new Panel { Dock = DockStyle.Bottom, Height = 94, Padding = new Padding(20, 8, 20, 10) };
+        var footer = new Panel { Dock = DockStyle.Bottom, Height = 142, Padding = new Padding(20, 8, 20, 10) };
         message.Dock = DockStyle.Fill; message.AutoSize = false; message.Name = "OperationStatus";
         footer.Controls.Add(message);
         Controls.Add(tabs); Controls.Add(unlockPanel); Controls.Add(footer); Controls.Add(activity); Controls.Add(header);
-        BuildUnlock(); BuildAccounts(); BuildInvitation();
+        BuildUnlock(); BuildAccounts(); BuildInvitation(); BuildRecovery();
         unlock.Click += async (_, _) => await RunAsync(UnlockAsync);
         lockSession.Click += (_, _) => Lock();
         refresh.Click += async (_, _) => await RunAsync(RefreshAsync);
@@ -85,14 +123,26 @@ public sealed class MainForm : Form
         generate.Click += async (_, _) => await RunAsync(GenerateAsync);
         cancel.Click += (_, _) => { ResetOperation(); SetMessage("Préparation annulée. Aucun lien généré."); };
         openFolder.Click += (_, _) => OpenPrivateFolder();
-        handover.Click += async (_, _) => await RunAsync(async () => {
-            if (receipt is null || workflow is null) return;
-            if (MessageBox.Show(this, "Le lien a-t-il été effectivement remis au seul destinataire par le canal privé convenu ?",
-                "Attestation de remise", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) != DialogResult.Yes) return;
-            await workflow.MarkHandedOverAsync(receipt.OperationId);
-            receiptHandedOver = true; SetMessage("Remise déclarée séparément dans le journal privé. L’activation reste à vérifier.");
-        });
-        email.TextChanged += (_, _) => { if (!busy) ResetOperation(); };
+        handover.Click += async (_, _) => await RunAsync(() => HandoverAsync(false));
+        recoveryHandover.Click += async (_, _) => await RunAsync(() => HandoverAsync(true));
+        recoveryOpenFolder.Click += (_, _) => OpenPrivateFolder();
+        recoverAccess.Click += (_, _) => StartRecovery();
+        prepareRecovery.Click += async (_, _) => await RunAsync(PrepareRecoveryAsync);
+        generateRecovery.Click += async (_, _) => await RunAsync(GenerateRecoveryAsync);
+        cancelRecovery.Click += (_, _) => { ResetRecovery(); SetMessage("Préparation annulée. Aucun lien généré."); };
+        accounts.SelectionChanged += (_, _) => {
+            if (busy) return;
+            ResetRecovery(false);
+            var target = SelectedAccount();
+            selectionHint.Text = target is null ? "Sélectionnez un compte confirmé." : target.ConfirmedAt.HasValue && !target.RecoveryRestricted
+                ? "Compte confirmé sélectionné. La récupération exige une nouvelle vérification d’identité."
+                : "Invitation en attente ou état Auth à diagnostiquer : récupération désactivée.";
+            UpdateControls();
+        };
+        foreach (var check in recoveryChecks.Concat(recoveryWorkstation)) check.CheckedChanged += (_, _) => {
+            if (!busy && preparedRecovery is not null) { preparedRecovery = null; recoveryConfirmation.Clear(); recoveryReview.Visible = false; UpdateControls(); }
+        };
+        email.TextChanged += (_, _) => { if (!busy && !HasUnhandedReceipt) ResetOperation(); };
         foreach (var check in HumanChecks().Concat(WorkstationChecks())) check.CheckedChanged += (_, _) => {
             if (!busy && prepared is not null) ResetOperation(false);
         };
@@ -121,7 +171,7 @@ public sealed class MainForm : Form
             if (dialog.ShowDialog(this) == DialogResult.OK) operatorFile.Text = dialog.FileName;
         };
         layout.Controls.Add(browseFile);
-        layout.Controls.Add(TextLabel("Le dossier et le préflight ne sont exigés que pour inviter. L’inventaire reste consultable sans eux. Les liens sont conservés sous EFS, hors dépôt. Le guide accompagne l’exécutable."));
+        layout.Controls.Add(TextLabel("Le dossier et le préflight sont exigés pour inviter ou récupérer un accès. L’inventaire reste consultable sans eux. Les liens sont conservés sous EFS, hors dépôt. Le guide accompagne l’exécutable."));
         layout.Controls.Add(unlock);
         unlockPanel.Controls.Add(layout);
     }
@@ -130,11 +180,12 @@ public sealed class MainForm : Form
     {
         var page = new TabPage("Comptes") { Padding = new Padding(14) };
         var bar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
-        bar.Controls.Add(refresh);
+        bar.Controls.Add(refresh); bar.Controls.Add(recoverAccess); bar.Controls.Add(selectionHint);
         accounts.Name = "Accounts"; accounts.Dock = DockStyle.Fill;
         accounts.ReadOnly = true; accounts.AllowUserToAddRows = false; accounts.AllowUserToDeleteRows = false;
         accounts.AutoGenerateColumns = false; accounts.RowHeadersVisible = false;
         accounts.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        accounts.MultiSelect = false;
         accounts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         foreach (var (name, caption, weight) in new[] { ("Email", "Adresse email", 36f), ("State", "État", 24f), ("Created", "Création", 20f), ("Confirmed", "Confirmation", 20f) })
             accounts.Columns.Add(new DataGridViewTextBoxColumn { Name = name, HeaderText = caption, FillWeight = weight });
@@ -164,6 +215,81 @@ public sealed class MainForm : Form
         page.Controls.Add(layout); tabs.TabPages.Add(page);
     }
 
+    private void BuildRecovery()
+    {
+        var page = new TabPage("Récupération d’accès") { Padding = new Padding(14), AutoScroll = true };
+        var layout = Vertical();
+        recoveryEmail.ReadOnly = true;
+        AddField(layout, "Compte sélectionné dans l’inventaire vérifié", recoveryEmail);
+        layout.Controls.Add(TextLabel("Demande inhabituelle ou nouveau canal : recontactez le titulaire par un canal déjà établi. Aucune pièce d’identité systématique. Ne demandez ni mot de passe, JWT, code MFA ou lien de session."));
+        layout.Controls.Add(TextLabel("Ces attestations sont vos contrôles humains ; elles ne constituent pas une vérification d’identité automatique. Renouvelez-les pour chaque demande :"));
+        foreach (var check in recoveryChecks.Concat(recoveryWorkstation)) layout.Controls.Add(check);
+        layout.Controls.Add(prepareRecovery);
+        var reviewLayout = Vertical(); reviewLayout.Controls.Add(recoverySummary);
+        reviewLayout.Controls.Add(TextLabel("Saisissez la phrase exacte pour confirmer cette seule génération :"));
+        reviewLayout.Controls.Add(recoveryConfirmation);
+        var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
+        buttons.Controls.Add(cancelRecovery); buttons.Controls.Add(generateRecovery); reviewLayout.Controls.Add(buttons);
+        recoveryReview.Controls.Add(reviewLayout); layout.Controls.Add(recoveryReview);
+        var results = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
+        recoveryResult.Name = "RecoveryResult"; layout.Controls.Add(recoveryResult);
+        results.Controls.Add(recoveryOpenFolder); results.Controls.Add(recoveryHandover); layout.Controls.Add(results);
+        page.Controls.Add(layout); tabs.TabPages.Add(page);
+    }
+
+    private AuthAccount? SelectedAccount() => inventoryReady && accounts.SelectedRows.Count == 1 ? accounts.SelectedRows[0].Tag as AuthAccount : null;
+    private void StartRecovery()
+    {
+        var target = SelectedAccount();
+        if (busy || uncertainGeneration || HasUnhandedReceipt || target is null || !target.ConfirmedAt.HasValue || target.RecoveryRestricted) return;
+        ResetOperation(); recoveryTarget = target; recoveryEmail.Text = target.Email;
+        tabs.SelectedIndex = 2; UpdateControls(); recoveryChecks[0].Focus();
+        SetMessage("Préparation de récupération : vérifiez la demande, l’identité et le canal connu avant toute génération.");
+    }
+
+    private async Task PrepareRecoveryAsync()
+    {
+        if (workflow is null || recoveryTarget is null || !inventoryReady) return;
+        receipt = null; recoveryReceipt = null; receiptHandedOver = false; recoveryConfirmation.Clear();
+        var h = recoveryChecks.Select(x => x.Checked).ToArray(); var w = recoveryWorkstation.Select(x => x.Checked).ToArray();
+        preparedRecovery = await workflow.PrepareRecoveryAsync(recoveryTarget, new(h[0], h[1], h[2], h[3], h[4]), new(w[0], w[1], w[2], w[3], w[4], w[5]));
+        recoverySummary.Text = $"Mon BPREA PROD · Opération : récupération de mot de passe\nAdresse : {preparedRecovery.Email}\n" +
+            $"Identifiant du compte validé en interne · Même UUID conservé\nContrôle d’identité et canal de remise attestés\nInventaire récent : {FormatDate(preparedRecovery.Inventory.ObservedAt)} · Stockage privé conforme\n\n" + preparedRecovery.ConfirmationText;
+        recoveryReview.Visible = true; recoveryConfirmation.Focus(); tabs.TabPages[2].ScrollControlIntoView(recoveryReview);
+        SetMessage("Préflight réussi. Aucun lien généré. Confirmation valable moins de cinq minutes ; inventaire et UUID relus sous verrou.");
+    }
+
+    private async Task GenerateRecoveryAsync()
+    {
+        if (workflow is null || preparedRecovery is null) return;
+        var operation = preparedRecovery; preparedRecovery = null; recoveryReview.Visible = false;
+        recoveryReceipt = await workflow.GenerateRecoveryAsync(operation, recoveryConfirmation.Text);
+        recoveryReceiptEmail = operation.Email; recoveryReceiptHandedOver = false;
+        recoveryConfirmation.Clear(); foreach (var check in recoveryChecks.Concat(recoveryWorkstation)) check.Checked = false;
+        inventoryReady = false; recoveryTarget = null;
+        recoveryResult.Text = $"Compte : {operation.Email} · Fichier privé : auth-link-{recoveryReceipt.OperationId:D}.txt\nLien de récupération généré et enregistré dans le dossier privé. Aucun email n’a été envoyé. Remettez-le au titulaire vérifié, qui choisit seul son mot de passe. Validité limitée : réglages PROD à vérifier. Génération ≠ mot de passe changé. Ne l’ouvrez pas sur le poste administrateur.";
+        SetMessage("Lien de récupération enregistré dans le dossier privé. Remise au titulaire à acquitter séparément.");
+        inventoryStatus.Text = "Lien généré · Remise à acquitter séparément · Actualisation en lecture seule disponible.";
+    }
+
+    private async Task HandoverAsync(bool recovery)
+    {
+        var id = recovery ? recoveryReceipt?.OperationId : receipt?.OperationId;
+        if (workflow is null || id is null || !confirmHandover()) return;
+        await workflow.MarkHandedOverAsync(id.Value);
+        if (recovery) recoveryReceiptHandedOver = true; else receiptHandedOver = true;
+        SetMessage("Remise déclarée séparément dans le journal privé. L’activation ou le changement de mot de passe reste à vérifier.");
+    }
+
+    private void ResetRecovery(bool clearReceipt = true)
+    {
+        preparedRecovery = null; recoveryTarget = null;
+        if (clearReceipt) { recoveryReceipt = null; recoveryReceiptEmail = null; recoveryReceiptHandedOver = false; recoveryResult.Text = ""; }
+        recoveryEmail.Text = recoveryReceiptEmail ?? ""; recoveryConfirmation.Clear(); recoveryReview.Visible = false;
+        foreach (var check in recoveryChecks.Concat(recoveryWorkstation)) check.Checked = false;
+        UpdateControls();
+    }
+
     private async Task UnlockAsync()
     {
         workflow?.Dispose(); workflow = null;
@@ -178,22 +304,26 @@ public sealed class MainForm : Form
     private async Task RefreshAsync()
     {
         if (workflow is null) return;
-        accounts.Rows.Clear(); inventoryStatus.Text = "Lecture de l’inventaire… Invitations suspendues.";
+        inventoryReady = false; ResetRecovery(false); accounts.Rows.Clear(); inventoryStatus.Text = "Lecture de l’inventaire… Générations suspendues.";
         prepared = null; review.Visible = false;
         try {
             var inventory = await workflow.RefreshAsync();
             foreach (var account in inventory.Accounts)
-                accounts.Rows.Add(account.Email, account.State, FormatDate(account.CreatedAt), FormatDate(account.ConfirmedAt));
+            {
+                var row = accounts.Rows.Add(account.Email, account.State, FormatDate(account.CreatedAt), FormatDate(account.ConfirmedAt));
+                accounts.Rows[row].Tag = account;
+            }
+            accounts.ClearSelection(); inventoryReady = true;
             inventoryStatus.Text = $"{inventory.Count}/7 comptes · {inventory.AvailableParticipantPlaces} place(s) participant disponible(s) · " +
                 $"Exploitant : {(inventory.OperatorPresent ? "présent" : "absent, 1 place réservée")} · Lu le {FormatDate(inventory.ObservedAt)}";
             SetMessage("Inventaire complet relu. La confirmation de l’adresse ne prouve pas une connexion actuelle.");
-        } catch { inventoryStatus.Text = "Inventaire indisponible ou incomplet · Invitations bloquées"; throw; }
+        } catch { inventoryStatus.Text = "Inventaire indisponible ou incomplet · Générations bloquées"; throw; }
     }
 
     private async Task PrepareAsync()
     {
         if (workflow is null) return;
-        receipt = null; receiptHandedOver = false; confirmation.Clear();
+        ResetRecovery(); receipt = null; receiptHandedOver = false; confirmation.Clear();
         prepared = await workflow.PrepareAsync(email.Text,
             new HumanAttestations(notice.Checked, voluntary.Checked, channel.Checked),
             new WorkstationAttestations(privatePost.Checked, exclusive.Checked, noCloud.Checked, opening.Checked, prerequisites.Checked, expiry.Checked));
@@ -222,7 +352,7 @@ public sealed class MainForm : Form
         if (busy) return;
         busy = true; UpdateControls();
         try { await action(); }
-        catch (AdminException error) { SetMessage(AdminMessages.For(error.Code)); if (error.Code is "uncertain" or "pending") { uncertainGeneration = true; prepared = null; review.Visible = false; } }
+        catch (AdminException error) { SetMessage(AdminMessages.For(error.Code)); if (error.Code is "uncertain" or "recovery_uncertain" or "pending") { uncertainGeneration = true; prepared = null; preparedRecovery = null; review.Visible = false; recoveryReview.Visible = false; } }
         catch { SetMessage("Opération interrompue. Aucun détail sensible affiché. Vérifiez l’inventaire en lecture seule ; ne répétez pas une génération incertaine."); }
         finally { busy = false; UpdateControls(); }
     }
@@ -232,7 +362,7 @@ public sealed class MainForm : Form
         if (busy) return;
         workflow?.Dispose(); workflow = null; key.Clear();
         uncertainGeneration = false;
-        ResetOperation(); accounts.Rows.Clear();
+        inventoryReady = false; ResetOperation(); accounts.Rows.Clear();
         inventoryStatus.Text = "Inventaire non lu · Capacité maximale : 7 comptes";
         connection.Text = "PROD · Session verrouillée";
         SetMessage("Session verrouillée. La clé n’est pas conservée sur disque. Les réservations privées restent conservées.");
@@ -241,7 +371,7 @@ public sealed class MainForm : Form
 
     private void ResetOperation(bool resetChecks = true)
     {
-        prepared = null; receipt = null; receiptHandedOver = false; confirmation.Clear(); review.Visible = false;
+        ResetRecovery(); prepared = null; receipt = null; receiptHandedOver = false; confirmation.Clear(); review.Visible = false;
         if (resetChecks) ResetChecks();
         UpdateControls();
     }
@@ -253,14 +383,20 @@ public sealed class MainForm : Form
         unlockPanel.Enabled = !busy; tabs.Enabled = !busy;
         lockSession.Enabled = connected && !busy; activity.Visible = busy;
         refresh.Enabled = connected && !busy;
-        prepare.Enabled = connected && !busy && prepared is null && !uncertainGeneration;
+        prepare.Enabled = connected && inventoryReady && !busy && prepared is null && !uncertainGeneration && !HasUnhandedReceipt;
+        var selected = SelectedAccount();
+        recoverAccess.Enabled = connected && !busy && !uncertainGeneration && !HasUnhandedReceipt && selected?.ConfirmedAt is not null && !selected.RecoveryRestricted;
+        prepareRecovery.Enabled = connected && inventoryReady && !busy && !uncertainGeneration && recoveryTarget is not null && preparedRecovery is null;
+        generateRecovery.Enabled = connected && !busy && !uncertainGeneration && preparedRecovery is not null;
+        recoveryOpenFolder.Enabled = connected && !busy && recoveryReceipt is not null;
+        recoveryHandover.Enabled = connected && !busy && recoveryReceipt is not null && !recoveryReceiptHandedOver;
         generate.Enabled = connected && !busy && prepared is not null;
         openFolder.Enabled = connected && !busy && receipt is not null;
         handover.Enabled = connected && !busy && receipt is not null && !receiptHandedOver;
     }
     private void OpenPrivateFolder()
     {
-        if (receipt is null) return;
+        if (receipt is null && recoveryReceipt is null) return;
         try { workflow?.OpenPrivateFolder(); }
         catch { SetMessage("Ouverture du dossier privé refusée. Vérifiez ses protections avant de le consulter."); }
     }

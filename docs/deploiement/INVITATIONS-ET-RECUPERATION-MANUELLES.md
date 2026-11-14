@@ -65,6 +65,10 @@ Le journal privé conserve uniquement projet, empreinte de cible, identifiant d'
 
 La validité PROD retenue doit être relue dans l'[architecture Auth](../architecture/AUTHENTIFICATION.md) avant remise ; les 60 secondes de la stack de tests ne constituent pas sa durée. Le titulaire active ou récupère depuis un navigateur neuf, confirme l'action puis choisit seul son mot de passe. L'exécuteur ne teste pas ce parcours sur PROD et aucun lien réel ne doit être généré pour le qualifier sans mandat de recette distinct.
 
+### Application Windows V1.1
+
+Le [guide Mon BPREA Admin](../../tools/mon-bprea-admin/README.md#récupérer-laccès-à-un-compte-confirmé) décrit le parcours graphique équivalent, sans terminal à l’utilisation : compte confirmé sélectionné, identité et demande attestées, confirmation exacte, même UUID, un seul POST et remise privée séparément acquittée. Les récupérations Windows ajoutent un journal immuable aux réservations V1 ; aucune migration automatique des fichiers privés. Utiliser les sources Node et l’exécutable de cette même livraison : une ancienne copie Node ignore ce journal. Le verrou reste partagé. Une réservation incertaine ou un fichier perdu avant remise bloque toute reprise automatique ; aucun retrait de preuve pour recommencer. Node conserve les octets de ses anciennes réservations achevées avant leur remplacement. Cette livraison et ses tests synthétiques n’autorisent aucune opération réelle sur PROD.
+
 ## Préparer exclusivement la stack de tests
 
 Node.js 24 LTS et `npm ci`, Docker démarré, CLI **2.121.0**, projet **`mon-bprea-lot6-1-local`**. Suivre [TESTS](../TESTS.md) pour démarrer la stack et ses migrations. Aucun runner n'est à rediriger vers un projet hébergé.

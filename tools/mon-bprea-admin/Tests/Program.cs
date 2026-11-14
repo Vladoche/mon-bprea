@@ -4,7 +4,7 @@ using System.Text.Json;
 using MonBprea.Admin.Core;
 using MonBprea.Admin.Tests;
 
-internal static class Program
+internal static partial class Program
 {
     private static int _passed;
     private static string _stage = "initialization";
@@ -22,11 +22,14 @@ internal static class Program
         {
             if (args.Length != 1) throw new InvalidOperationException("Provide the synthetic Node contract vector file.");
             _stage = "node-contract-parity";
+            NodeVectorsPath = args[0];
             Parity(args[0]);
             _stage = "account-consultation";
             await Consultation();
             _stage = "invitation-client";
             await Invitations();
+            _stage = "recovery-client";
+            await Recoveries();
             _stage = "windows-private-store";
             await StoreTests.RunAsync(Check);
             Console.WriteLine($"PASS: {_passed} assertions, synthetic transports only; no hosted request.");
@@ -69,6 +72,7 @@ internal static class Program
     {
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         var root = doc.RootElement;
+        RecoveryParity(root);
         foreach (var item in root.GetProperty("emailCases").EnumerateArray())
         {
             string? normalized = null;
@@ -285,8 +289,11 @@ internal static class Program
         public bool ReadFailure, Redirect, WrongTarget, NextPage, PostFailure, PostRedirect, PostHttpFailure, PostHangsBody;
         public int? Total;
         public int Posts, Requests;
+        public JsonElement LastPostBody;
+        public string OperationType = "invite", TargetEmail = Recipient;
+        public Task? HoldPost;
         public Action? BeforePost;
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Requests++;
             Check("fixed origin", request.RequestUri?.GetLeftPart(UriPartial.Authority) == AdminContract.Api);
@@ -296,22 +303,24 @@ internal static class Program
                 && request.Version == HttpVersion.Version11 && request.VersionPolicy == HttpVersionPolicy.RequestVersionExact);
             var path = request.RequestUri.AbsolutePath;
             if (ReadFailure && request.Method == HttpMethod.Get) throw new HttpRequestException("synthetic provider detail suppressed");
-            if (Redirect) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Found) { Headers = { Location = new Uri("https://example.test/") }, RequestMessage = request });
+            if (Redirect) return new HttpResponseMessage(HttpStatusCode.Found) { Headers = { Location = new Uri("https://example.test/") }, RequestMessage = request };
             string response;
             if (request.Method == HttpMethod.Post)
             {
                 Check("only generate endpoint", path == "/auth/v1/admin/generate_link");
                 Check("fixed callback query", request.RequestUri.Query == "?redirect_to=" + Uri.EscapeDataString(AdminContract.Callback));
                 Posts++; BeforePost?.Invoke();
+                if (HoldPost is not null) await HoldPost.WaitAsync(cancellationToken);
                 if (PostFailure) throw new TaskCanceledException("synthetic timeout response loss");
-                if (PostRedirect) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Found) { Headers = { Location = new Uri("https://example.test/") }, RequestMessage = request });
-                if (PostHttpFailure) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.UnprocessableEntity) { Content = new StringContent("sensitive provider details suppressed"), RequestMessage = request });
-                if (PostHangsBody) return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new HangingContent(), RequestMessage = request });
+                if (PostRedirect) return new HttpResponseMessage(HttpStatusCode.Found) { Headers = { Location = new Uri("https://example.test/") }, RequestMessage = request };
+                if (PostHttpFailure) return new HttpResponseMessage(HttpStatusCode.UnprocessableEntity) { Content = new StringContent("sensitive provider details suppressed"), RequestMessage = request };
+                if (PostHangsBody) return new HttpResponseMessage(HttpStatusCode.OK) { Content = new HangingContent(), RequestMessage = request };
                 var content = request.Content!.ReadAsStringAsync(cancellationToken).GetAwaiter().GetResult();
                 using var body = JsonDocument.Parse(content);
-                Check("invite exact body", body.RootElement.EnumerateObject().Count() == 3 && body.RootElement.GetProperty("type").GetString() == "invite"
-                    && body.RootElement.GetProperty("email").GetString() == Recipient && body.RootElement.GetProperty("redirectTo").GetString() == AdminContract.Callback);
-                response = PostBody ?? LinkResponse();
+                LastPostBody = body.RootElement.Clone();
+                Check("invite exact body", body.RootElement.EnumerateObject().Count() == 3 && body.RootElement.GetProperty("type").GetString() == OperationType
+                    && body.RootElement.GetProperty("email").GetString() == TargetEmail && body.RootElement.GetProperty("redirectTo").GetString() == AdminContract.Callback);
+                response = PostBody ?? LinkResponse(type: OperationType);
             }
             else if (path == "/auth/v1/settings") response = SettingsBody ?? JsonSerializer.Serialize(Settings);
             else
@@ -323,7 +332,7 @@ internal static class Program
             if (WrongTarget) result.RequestMessage = new HttpRequestMessage(request.Method, "https://example.test/");
             if (path == "/auth/v1/admin/users" && Total.HasValue) result.Headers.Add("x-total-count", Total.Value.ToString());
             if (path == "/auth/v1/admin/users" && NextPage) result.Headers.Add("Link", "<https://example.test/?page=2>; rel=\"next\"");
-            return Task.FromResult(result);
+            return result;
         }
         public static string LinkResponse(string callback = AdminContract.Callback, string type = "invite")
         {
@@ -367,6 +376,16 @@ internal static class Program
         public Task ValidateAsync() { Validations++; if (!Valid) throw new AdminException("private"); return Task.CompletedTask; }
         public Task<bool> HasUncertainOperationAsync() => Task.FromResult(Uncertain);
         public Task<bool> HasTargetReservationAsync(string email) => Task.FromResult(Reserved);
+        private bool recoveryCompleted;
+        public Task<bool> HasRecoveryReservationAsync(string email) => Task.FromResult(Reserved && !(recoveryCompleted && Handovers > 0));
+        public Task<Guid> ReserveRecoveryAsync(string email, string accountId, RecoveryAttestations human)
+        {
+            if (recoveryCompleted && Handovers > 0) Reserved = false;
+            recoveryCompleted = false; Handovers = 0;
+            return ReserveAsync(email, Human);
+        }
+        public async Task DeliverRecoveryAsync(string email, Guid id, string link)
+        { await DeliverAsync(email, id, link); recoveryCompleted = true; }
         public Task<IDisposable> AcquireLockAsync() { if (Locked) throw new AdminException("busy"); Locked = true; return Task.FromResult<IDisposable>(new Lease(() => Locked = false)); }
         public Task<Guid> ReserveAsync(string email, HumanAttestations human)
         {

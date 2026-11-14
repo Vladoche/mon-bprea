@@ -7,6 +7,7 @@ namespace MonBprea.Admin.Core;
 public sealed class AdminSession : IDisposable
 {
     private string? _secret;
+    private AccountInventory? _lastInventory;
     private readonly string _operatorEmail;
     private readonly IPrivateStore _store;
     private readonly TimeProvider _clock;
@@ -40,7 +41,8 @@ public sealed class AdminSession : IDisposable
     public async Task<AccountInventory> RefreshAsync()
     {
         Unlocked();
-        return await ReadInventoryAsync().ConfigureAwait(false);
+        _lastInventory = null;
+        return _lastInventory = await ReadInventoryAsync().ConfigureAwait(false);
     }
 
     public async Task<PreparedInvitation> PrepareAsync(string email, HumanAttestations human, WorkstationAttestations workstation)
@@ -62,38 +64,83 @@ public sealed class AdminSession : IDisposable
         if (inventory.Accounts.Any(x => !x.ConfirmedAt.HasValue && !x.InvitedAt.HasValue)) throw new AdminException("lookup");
     }
 
+    public async Task<PreparedRecovery> PrepareRecoveryAsync(AuthAccount selected, RecoveryAttestations human, WorkstationAttestations workstation)
+    {
+        Unlocked();
+        if (!human.Complete || !workstation.Complete) throw new AdminException("attestations");
+        if (_lastInventory is null || !_lastInventory.Accounts.Contains(selected)) throw new AdminException("missing");
+        CheckAge(_lastInventory);
+        CheckRecoveryTarget(_lastInventory, selected);
+        await _store.ValidateAsync().ConfigureAwait(false);
+        if (await _store.HasUncertainOperationAsync().ConfigureAwait(false) || await _store.HasRecoveryReservationAsync(selected.Email).ConfigureAwait(false)) throw new AdminException("pending");
+        var inventory = await ReadInventoryAsync().ConfigureAwait(false);
+        CheckRecoveryTarget(inventory, selected);
+        return new(_sessionId, selected, inventory, human, workstation, _clock.GetUtcNow());
+    }
+
+    private static void CheckRecoveryTarget(AccountInventory inventory, AuthAccount selected)
+    {
+        var current = inventory.Accounts.SingleOrDefault(x => x.Id == selected.Id && x.Email == selected.Email);
+        if (current is null || !current.ConfirmedAt.HasValue || current.RecoveryRestricted) throw new AdminException("missing");
+    }
+
+    private void CheckAge(AccountInventory inventory)
+    {
+        var age = _clock.GetUtcNow() - inventory.ObservedAt;
+        if (age < TimeSpan.Zero || age >= AdminContract.MaximumInventoryAge) throw new AdminException("stale");
+    }
+
     public async Task<InvitationReceipt> GenerateAsync(PreparedInvitation prepared, string exactConfirmation)
     {
         Unlocked();
         if (prepared.SessionId != _sessionId || exactConfirmation != prepared.ConfirmationText) throw new AdminException("confirmation");
         if (Interlocked.Exchange(ref prepared.Spent, 1) != 0) throw new AdminException("pending");
+        var id = await GenerateOperationAsync(prepared.Email, prepared.Inventory, prepared.Human.Complete && prepared.Workstation.Complete,
+            "invite", null, () => _store.ReserveAsync(prepared.Email, prepared.Human),
+            (operation, link) => _store.DeliverAsync(prepared.Email, operation, link)).ConfigureAwait(false);
+        return new(id, _store.DirectoryPath, _clock.GetUtcNow());
+    }
+
+    public async Task<RecoveryReceipt> GenerateRecoveryAsync(PreparedRecovery prepared, string exactConfirmation)
+    {
+        Unlocked();
+        if (_lastInventory is null) throw new AdminException("lookup");
+        if (prepared.SessionId != _sessionId || exactConfirmation != prepared.ConfirmationText) throw new AdminException("confirmation");
+        if (Interlocked.Exchange(ref prepared.Spent, 1) != 0) throw new AdminException("pending");
+        var id = await GenerateOperationAsync(prepared.Email, prepared.Inventory, prepared.Human.Complete && prepared.Workstation.Complete,
+            "recovery", prepared.Account, () => _store.ReserveRecoveryAsync(prepared.Email, prepared.Account.Id, prepared.Human),
+            (operation, link) => _store.DeliverRecoveryAsync(prepared.Email, operation, link)).ConfigureAwait(false);
+        return new(id, _store.DirectoryPath, _clock.GetUtcNow());
+    }
+
+    private async Task<Guid> GenerateOperationAsync(string email, AccountInventory inventory, bool attestationsComplete,
+        string type, AuthAccount? account, Func<Task<Guid>> reserve, Func<Guid, string, Task> deliver)
+    {
         if (!await _generation.WaitAsync(0).ConfigureAwait(false)) throw new AdminException("busy");
         try
         {
-            var age = _clock.GetUtcNow() - prepared.Inventory.ObservedAt;
-            if (age < TimeSpan.Zero || age > AdminContract.MaximumInventoryAge) throw new AdminException("stale");
-            if (!prepared.Human.Complete || !prepared.Workstation.Complete) throw new AdminException("attestations");
+            CheckAge(inventory);
+            if (!attestationsComplete) throw new AdminException("attestations");
             await _store.ValidateAsync().ConfigureAwait(false);
             using var lease = await _store.AcquireLockAsync().ConfigureAwait(false);
-            if (await _store.HasUncertainOperationAsync().ConfigureAwait(false) || await _store.HasTargetReservationAsync(prepared.Email).ConfigureAwait(false)) throw new AdminException("pending");
+            if (await _store.HasUncertainOperationAsync().ConfigureAwait(false)
+                || await (type == "recovery" ? _store.HasRecoveryReservationAsync(email) : _store.HasTargetReservationAsync(email)).ConfigureAwait(false)) throw new AdminException("pending");
             var current = await ReadInventoryAsync().ConfigureAwait(false);
-            CheckTarget(current, prepared.Email);
-            if (current.Snapshot != prepared.Inventory.Snapshot) throw new AdminException("drift");
+            if (current.Snapshot != inventory.Snapshot) throw new AdminException("drift");
+            if (account is null) CheckTarget(current, email); else CheckRecoveryTarget(current, account);
+            CheckAge(inventory);
             Unlocked();
-            var operationId = await _store.ReserveAsync(prepared.Email, prepared.Human).ConfigureAwait(false);
+            var operationId = await reserve().ConfigureAwait(false);
             try
             {
                 using var result = await SendAsync(HttpMethod.Post,
                     AdminContract.Api + "/auth/v1/admin/generate_link?redirect_to=" + Uri.EscapeDataString(AdminContract.Callback),
-                    JsonSerializer.Serialize(new { type = "invite", email = prepared.Email, redirectTo = AdminContract.Callback })).ConfigureAwait(false);
-                var raw = result.RootElement;
-                // GoTrue returns link properties and user fields in one object;
-                // supabase-js _generateLinkResponse extracts the same fields.
-                var link = AdminContract.BuildRestManualLink(raw, prepared.Email);
-                await _store.DeliverAsync(prepared.Email, operationId, link).ConfigureAwait(false);
-                return new(operationId, _store.DirectoryPath, _clock.GetUtcNow());
+                    JsonSerializer.Serialize(new { type, email, redirectTo = AdminContract.Callback })).ConfigureAwait(false);
+                var link = AdminContract.BuildRestManualLink(result.RootElement, email, type, account?.Id);
+                await deliver(operationId, link).ConfigureAwait(false);
+                return operationId;
             }
-            catch { throw new AdminException("uncertain"); }
+            catch { throw new AdminException(type == "recovery" ? "recovery_uncertain" : "uncertain"); }
         }
         finally { _generation.Release(); }
     }

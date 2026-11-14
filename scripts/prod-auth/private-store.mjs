@@ -1,39 +1,64 @@
 // Stockage opérateur uniquement, hors dépôt. Aucun jeton dans le journal.
-import { lstatSync, realpathSync, openSync, writeFileSync, readFileSync, closeSync, fsyncSync, unlinkSync, renameSync } from 'node:fs';
+import { lstatSync, readdirSync, realpathSync, openSync, writeFileSync, readFileSync, closeSync, fsyncSync, unlinkSync, renameSync } from 'node:fs';
 import { resolve, relative, isAbsolute, dirname, join, parse } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID, createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { fail, PROD_PROJECT, validateProdCallback } from './environment.mjs';
+import { fail, ProdAuthLinkError, PROD_PROJECT, validateProdCallback } from './environment.mjs';
+
+import { inspectRecoveryJournal, parseRecoveryJson } from './recovery-journal.mjs';
 
 const repository = fileURLToPath(new URL('../../', import.meta.url));
 const inside = (parent, child) => { const path = relative(parent, child); return path === '' || (!path.startsWith('..') && !isAbsolute(path)); };
 const keyFor = email => createHash('sha256').update(`${PROD_PROJECT}\0${email}`).digest('hex');
 const identifier = /^[a-f0-9-]{36}$/;
 
-function verifyWindowsAcl(path) {
-  // Chemin par environnement, jamais interpolé dans une commande. Aucun secret hérité.
-  const script = "$ErrorActionPreference='Stop'; $p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $acl=Get-Acl -LiteralPath $p; $owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid){exit 2}; foreach($rule in $acl.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin @($sid,'S-1-5-18')){exit 3}}; Write-Output 'PRIVATE_OK'";
+function privateFailure(reason) {
+  const error = new ProdAuthLinkError('private');
+  // Fixed diagnostic codes only: never a path, SID, subprocess output or content.
+  error.privateReason = reason;
+  throw error;
+}
+
+function verifyWindowsAcl(path, newEmptyFile = false) {
+  // Environment carries only the checked path, never a key or link. Use the
+  // same .NET ACL APIs as C#: no cmdlet/module discovery on a cold runner.
+  const readAcl = "$sections=[System.Security.AccessControl.AccessControlSections]::Owner -bor [System.Security.AccessControl.AccessControlSections]::Access; if([System.IO.Directory]::Exists($p)){$acl=[System.IO.Directory]::GetAccessControl($p,$sections)}else{$acl=[System.IO.File]::GetAccessControl($p,$sections)}; ";
+  let script = "$ErrorActionPreference='Stop'; $p=$env:MON_BPREA_PRIVATE_CHECK; $sid=[System.Security.Principal.WindowsIdentity]::GetCurrent().User; " + readAcl;
+  if (newEmptyFile) {
+    // An elevated token can assign Administrators as the default owner. Change
+    // only our new empty file, before content, preserving the existing DACL.
+    script += "$file=[System.IO.FileInfo]::new($p); if($file.Length -ne 0 -or ($file.Attributes -band [System.IO.FileAttributes]::ReparsePoint)){exit 4}; $owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid.Value){if($owner -ne 'S-1-5-32-544'){exit 5}; $security=[System.Security.AccessControl.FileSecurity]::new(); $security.SetOwner($sid); [System.IO.File]::SetAccessControl($p,$security)}; " + readAcl;
+  }
+  script += "$owner=$acl.GetOwner([System.Security.Principal.SecurityIdentifier]).Value; if($owner -ne $sid.Value){exit 2}; foreach($rule in $acl.GetAccessRules($true,$true,[System.Security.Principal.SecurityIdentifier])){if($rule.AccessControlType -eq 'Allow' -and $rule.IdentityReference.Value -notin @($sid.Value,'S-1-5-18')){exit 3}}; [Console]::WriteLine('PRIVATE_OK')";
   const systemRoot = process.env.SystemRoot || process.env.SYSTEMROOT;
-  if (!systemRoot) fail('private');
-  const answer = execFileSync(join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
-    ['-NoProfile', '-NonInteractive', '-Command', script], { encoding: 'utf8', windowsHide: true, timeout: 10_000,
-      stdio: ['ignore', 'pipe', 'pipe'], env: { SystemRoot: systemRoot, MON_BPREA_PRIVATE_CHECK: path } });
-  if (answer.trim() !== 'PRIVATE_OK') fail('private');
+  if (!systemRoot) privateFailure('system_root');
+  let answer;
+  try {
+    answer = execFileSync(join(systemRoot, 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'),
+      ['-NoProfile', '-NonInteractive', '-Command', "try { " + script + " } catch { [Console]::WriteLine('PRIVATE_FAILURE_' + $_.Exception.GetType().Name); exit 1 }"],
+      { encoding: 'utf8', windowsHide: true, timeout: 45_000, stdio: ['ignore', 'pipe', 'pipe'],
+        env: { SystemRoot: systemRoot, MON_BPREA_PRIVATE_CHECK: path } });
+  } catch (error) {
+    const classification = String(error?.stdout || '').match(/PRIVATE_FAILURE_([A-Za-z]{1,64})/);
+    privateFailure(classification ? 'acl_' + classification[1].toLowerCase()
+      : Number.isInteger(error?.status) ? 'acl_exit_' + error.status : error?.code === 'ETIMEDOUT' ? 'acl_timeout' : 'acl_start');
+  }
+  if (answer.trim() !== 'PRIVATE_OK') privateFailure('acl_output');
 }
 
 export function verifyPrivateDirectory(value) {
   try {
-    if (!isAbsolute(value) || /[\x00-\x1f\x7f]/.test(value) || /^(?:\\\\|\/\/)/.test(value)) fail('private');
+    if (!isAbsolute(value) || /[\x00-\x1f\x7f]/.test(value) || /^(?:\\\\|\/\/)/.test(value)) privateFailure('absolute_path');
     const directory = resolve(value);
-    if (inside(repository, directory) || inside(directory, repository) || directory === parse(directory).root) fail('private');
+    if (inside(repository, directory) || inside(directory, repository) || directory === parse(directory).root) privateFailure('repository_path');
     // Refuse liens/jonctions à chaque niveau avant de choisir un chemin de sortie.
     for (let path = directory; ; path = dirname(path)) {
       const stat = lstatSync(path);
-      if (stat.isSymbolicLink() || !stat.isDirectory()) fail('private');
+      if (stat.isSymbolicLink() || !stat.isDirectory()) privateFailure('directory_ancestor');
       if (dirname(path) === path) break;
     }
-    if (resolve(realpathSync(directory)).toLowerCase() !== directory.toLowerCase()) fail('private');
+    if (resolve(realpathSync(directory)).toLowerCase() !== directory.toLowerCase()) privateFailure('canonical_path');
     if (process.platform === 'win32') {
       verifyWindowsAcl(directory);
     } else {
@@ -41,14 +66,15 @@ export function verifyPrivateDirectory(value) {
       if (stat.uid !== process.getuid() || (stat.mode & 0o077) !== 0) fail('private');
     }
     return directory;
-  } catch { fail('private'); }
+  } catch (error) { if (error instanceof ProdAuthLinkError && error.privateReason) throw error; privateFailure('directory_stat'); }
 }
 
-function privateFile(path) {
+function privateFile(path, newEmptyFile = false) {
   const stat = lstatSync(path);
   if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1
       || (process.platform !== 'win32' && (stat.uid !== process.getuid() || (stat.mode & 0o077) !== 0))) fail('private');
-  if (process.platform === 'win32') verifyWindowsAcl(path);
+  if (newEmptyFile && stat.size !== 0) fail('private');
+  if (process.platform === 'win32') verifyWindowsAcl(path, newEmptyFile);
 }
 
 function syncDirectory(directory) {
@@ -64,7 +90,7 @@ function writeExclusive(path, text) {
   try {
     descriptor = openSync(path, 'wx', 0o600);
     // Contrôler le fichier encore vide, avant d’y écrire un secret.
-    privateFile(path);
+    privateFile(path, true);
     writeFileSync(descriptor, text, 'utf8'); fsyncSync(descriptor);
   } finally { if (descriptor !== undefined) closeSync(descriptor); }
   privateFile(path);
@@ -88,6 +114,20 @@ export function createPrivateStore(value) {
       return record;
     } catch (error) { if (error?.code === 'ENOENT') return null; fail('private'); }
   };
+  const recoveryBlocked = email => {
+    try {
+      const entries = readdirSync(directory).filter(name => name.startsWith('recovery-') && name.endsWith('.json')).map(name => {
+        const path = join(directory, name); privateFile(path);
+        if (lstatSync(path).size > 65536) fail('private');
+        return { name, record: parseRecoveryJson(readFileSync(path, 'utf8')) };
+      });
+      return inspectRecoveryJournal(entries, operationId => {
+        const path = join(directory, `auth-link-${operationId}.txt`); privateFile(path);
+        if (lstatSync(path).size > 4096) fail('private');
+        return readFileSync(path, 'utf8');
+      }).some(r => r.status === 'reserved' || r.targetHash === keyFor(email) && r.status !== 'handed-over');
+    } catch { fail('private'); }
+  };
   return {
     directory,
     async withLock(operation) {
@@ -97,8 +137,9 @@ export function createPrivateStore(value) {
       try { return await operation(); }
       finally { unlinkSync(path); }
     },
-    async read(email) { return readReservation(email)?.status === 'reserved'; },
+    async read(email) { return recoveryBlocked(email) || readReservation(email)?.status === 'reserved'; },
     async reserve(email, type) {
+      if (recoveryBlocked(email)) fail('pending');
       const previous = readReservation(email);
       if (previous?.status === 'reserved') fail('pending');
       const operationId = randomUUID();
@@ -107,6 +148,10 @@ export function createPrivateStore(value) {
       const path = journalPath(email);
       // Remplacement atomique seulement d’une réservation acquittée, sous verrou.
       if (previous) {
+        const history = join(directory, `history-reservation-${previous.operationId}.json`);
+        const text = readFileSync(path, 'utf8');
+        try { privateFile(history); if (readFileSync(history, 'utf8') !== text) fail('private'); }
+        catch (error) { if (error?.code !== 'ENOENT') throw error; writeExclusive(history, text); }
         const temporary = join(directory, `reservation-${operationId}.new`);
         writeExclusive(temporary, JSON.stringify(record)); renameSync(temporary, path); syncDirectory(directory);
       } else writeExclusive(path, JSON.stringify(record));

@@ -2,8 +2,8 @@
 // The C# test runner consumes this output to verify compatibility independently.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { PROD_API, PROD_CALLBACK, validateProdTarget } from '../../scripts/prod-auth/environment.mjs';
-import { buildProdManualLink, inspectProdAuthSettings, inspectProdAccounts } from '../../scripts/prod-auth/generator.mjs';
+import { PROD_API, PROD_CALLBACK, validateProdTarget, prodAdminFetch } from '../../scripts/prod-auth/environment.mjs';
+import { buildProdManualLink, inspectProdAuthSettings, inspectProdAccounts, generateProdAuthLink } from '../../scripts/prod-auth/generator.mjs';
 
 if (process.argv.length !== 3) throw new Error('Usage: node contract-vectors.mjs OUTPUT.json');
 const email = 'participant@example.test';
@@ -83,6 +83,50 @@ for (const [name, accounts] of [
     const inventory = await inspectProdAccounts({ listUsers: async () => ({ data: { users: accounts } }) }, email);
     result.inventoryCases.push({ name, users: accounts, valid: true, count: inventory.count });
   } catch { result.inventoryCases.push({ name, users: accounts, valid: false }); }
+}
+// Recovery expectations come from the real Node generator and transport guard.
+result.recoveryLinkCases = [];
+for (const [name, mutate] of [...mutations.filter(([name]) => !['wrong type', 'wrong action type', 'duplicate type'].includes(name)),
+  ['wrong type', data => { data.properties.verification_type = 'invite'; }],
+  ['wrong action type', data => { data.properties.action_link = data.properties.action_link.replace('type=recovery', 'type=invite'); }],
+  ['duplicate type', data => { data.properties.action_link += '&type=recovery'; }],
+  ['unexpected uuid', data => { data.user.id = '22222222-2222-4222-8222-222222222222'; }],
+  ['uppercase email', data => { data.user.email = email.toUpperCase(); }],
+  ['token newline', data => { data.properties.hashed_token += '\n'; }]]) {
+  const data = linkData(); data.user.email_confirmed_at = '2026-11-01T10:00:00Z';
+  data.properties.verification_type = 'recovery'; data.properties.action_link = data.properties.action_link.replace('type=invite', 'type=recovery');
+  mutate(data);
+  try { result.recoveryLinkCases.push({ name, data, valid: true, link: buildProdManualLink(data, { type: 'recovery', email, expectedId: user.id }) }); }
+  catch { result.recoveryLinkCases.push({ name, data, valid: false }); }
+}
+const env = { SUPABASE_PROD_PROJECT_REF: 'oqoqrxwfbkhtpksqimgd', SUPABASE_PROD_URL: PROD_API,
+  SUPABASE_PROD_SITE_URL: 'https://vladoche.github.io/mon-bprea/', SUPABASE_PROD_ADMIN_KEY: 'sb_secret_SYNTHETIC_ONLY_WITH_NO_AUTH_CAPABILITY',
+  SUPABASE_PROD_PRIVATE_DIR: '/synthetic-only', SUPABASE_PROD_OPERATOR_EMAIL: 'operator@example.test' };
+const runtime = { isNode: true, nodeMajor: 24, stdinTTY: true, stdoutTTY: true, hasBrowser: false };
+result.recoveryTargetCases = [];
+for (const [name, accounts] of [['confirmed', [{ ...user, email_confirmed_at: '2026-11-01T10:00:00Z' }]],
+  ['absent', []], ['pending', [user]], ['invalid uuid', [{ ...user, id: 'invalid', email_confirmed_at: '2026-11-01T10:00:00Z' }]],
+  ['seven', [{ ...user, email_confirmed_at: '2026-11-01T10:00:00Z' }, ...users(6)]]]) {
+  let parameters = null;
+  try {
+    await generateProdAuthLink({ env, runtime, type: 'recovery', email,
+      store: { withLock: action => action(), read: async () => false, reserve: async () => 'synthetic-operation', markDelivered: async () => {} },
+      confirm: async () => `CONFIRMER PROD recovery ${email}`, deliver: async () => {},
+      makeAdmin: () => ({ getSettings: async () => settings, listUsers: async () => ({ data: { users: accounts } }),
+        generateLink: async p => { parameters = p; const data = linkData(); data.properties.verification_type = 'recovery';
+          data.properties.action_link = data.properties.action_link.replace('type=invite', 'type=recovery'); return { data }; } }) });
+    result.recoveryTargetCases.push({ name, users: accounts, valid: true, parameters });
+  } catch { result.recoveryTargetCases.push({ name, users: accounts, valid: false, parameters }); }
+}
+result.recoveryRequestCases = [];
+const requestUrl = `${PROD_API}/auth/v1/admin/generate_link?redirect_to=${encodeURIComponent(PROD_CALLBACK)}`;
+for (const [name, mutate] of [['valid', p => p], ['extra password', p => ({ ...p, password: 'synthetic-forbidden' })],
+  ['wrong type', p => ({ ...p, type: 'invite' })], ['wrong email', p => ({ ...p, email: 'other@example.test' })],
+  ['wrong callback', p => ({ ...p, redirectTo: 'https://example.test/' })]]) {
+  const body = mutate({ type: 'recovery', email, redirectTo: PROD_CALLBACK }); let accepted = false;
+  const transport = prodAdminFetch({ type: 'recovery', email, fetcher: async () => { accepted = true; return {}; } });
+  try { await transport(requestUrl, { method: 'POST', body: JSON.stringify(body) }); } catch {}
+  result.recoveryRequestCases.push({ name, body, valid: accepted });
 }
 const output = resolve(process.argv[2]);
 mkdirSync(dirname(output), { recursive: true });
