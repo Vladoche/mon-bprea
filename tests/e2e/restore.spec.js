@@ -74,6 +74,7 @@ test('fichier corrompu, version inconnue, tiers, autre projet et visiteur refus√
   await select(page, foreign); await expect(page.locator('[data-restore-detail]')).toContainText('autre compte');
   const project = backup(); project.sourceScope.supabaseOrigin = 'https://other.invalid'; await select(page, project); await expect(page.locator('[data-restore-detail]')).toContainText('projet Supabase');
   expect(api.writes).toEqual([]);
+  await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
   await page.locator('header').getByRole('button', { name: 'D√©connexion', exact: true }).click(); await expect(page.locator('[data-restore-file]')).toBeDisabled();
   await expect(page.locator('[data-restore-preview]')).toBeHidden();
 });

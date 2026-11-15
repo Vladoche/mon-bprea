@@ -10,8 +10,7 @@ const keyOf = value => JSON.stringify([value?.season, value?.brightness]);
 export function initAppearance() {
   const appearance = window.BpreaAppearance;
   const toggle = document.getElementById('theme-toggle');
-  const open = document.getElementById('appearance-open');
-  if (!appearance || !toggle || !open) return;
+  if (!appearance || !toggle) return;
   // Keep the initial visual choice while the asynchronous identity is unknown.
   // A click in this interval applies temporarily without writing visitor data.
   appearance.setSource('blocked', appearance.getPreferences());
@@ -64,7 +63,7 @@ export function initAppearance() {
   const brightness = dialog.querySelector('#appearance-brightness');
   const save = dialog.querySelector('#appearance-save');
   const find = id => dialog.querySelector(`#${id}`);
-  let service, snapshot, source = null, epoch = 0, inFlight = 0, protectedDialog = false, latest = null, preview = null, markup = '';
+  let service, snapshot, source = null, epoch = 0, inFlight = 0, protectedDialog = false, latest = null, preview = null, markup = '', opener = null;
   const announce = message => { find('appearance-action-message').textContent = message || ''; };
   function available() { find('appearance-restore').hidden = !latest || keyOf(latest) === keyOf(appearance.getPreferences()); }
   function update() {
@@ -83,8 +82,8 @@ export function initAppearance() {
     }
     if (device || !dialog.open || !protectedDialog) { season.value = preferences.season; brightness.value = preferences.brightness; }
     toggle.querySelector('.theme-icon').innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${dark ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>' : '<path d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z"/>'}</svg>`;
-    toggle.querySelector('.theme-label').textContent = dark ? 'Mode clair' : 'Mode sombre';
     toggle.setAttribute('aria-label', dark ? 'Activer le mode clair' : 'Activer le mode sombre');
+    toggle.title = dark ? 'Activer le mode clair' : 'Activer le mode sombre';
     dialog.querySelector('#appearance-current').textContent = `${seasonLabels[state.season]} · ${timeLabels[state.time]} · mode ${dark ? 'sombre' : 'clair'}`;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
@@ -98,8 +97,14 @@ export function initAppearance() {
       : 'Choix temporaire appliqué. Identité à vérifier ; choix non enregistré.';
     available();
   }
-  open.addEventListener('click', () => { protectedDialog = false; update(); dialog.showModal(); });
-  dialog.addEventListener('close', () => { protectedDialog = false; preview = null; find('appearance-import-preview').hidden = true; if (latest && !inFlight) appearance.applyPreferences(latest); open.focus(); });
+  // The profile page renders asynchronously. Delegation keeps the single
+  // existing preferences service available without a redundant header control.
+  document.addEventListener('click', event => {
+    const open = event.target.closest('#appearance-open');
+    if (!open) return;
+    opener = open; protectedDialog = false; update(); dialog.showModal();
+  });
+  dialog.addEventListener('close', () => { protectedDialog = false; preview = null; find('appearance-import-preview').hidden = true; if (latest && !inFlight) appearance.applyPreferences(latest); if (opener?.isConnected) opener.focus(); });
   season.addEventListener('change', () => change({ season: season.value }));
   brightness.addEventListener('change', () => change({ brightness: brightness.value }));
   for (const control of [season, brightness]) {

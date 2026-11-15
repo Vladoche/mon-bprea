@@ -49,6 +49,22 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   root.querySelector('h1').textContent = descriptions[page][0];
   root.querySelector('.auth-top > p').textContent = descriptions[page][1];
   const panel = root.querySelector('.auth-panel');
+  function followProfileAnchor() {
+    if (page !== 'profile' || !['#informations-compte', '#parametres'].includes(location.hash)) return;
+    const target = root.querySelector(location.hash);
+    if (target) requestAnimationFrame(() => { if (target.isConnected) target.scrollIntoView({ block: 'start' }); });
+  }
+  if (page === 'profile') {
+    panel.id = 'informations-compte';
+    const settings = document.createElement('section');
+    settings.id = 'parametres';
+    settings.className = 'wrap auth-panel profile-settings';
+    settings.setAttribute('aria-labelledby', 'profile-settings-title');
+    settings.innerHTML = '<h2 id="profile-settings-title">Paramètres</h2><p>Adapte la saison et la luminosité de ton espace. Sans compte, tu peux choisir de mémoriser ton apparence sur cet appareil. Une fois connecté, les réglages du compte et leur synchronisation restent disponibles dans le même dialogue.</p><button id="appearance-open" class="btn btn-outline" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" aria-label="Paramètres d’apparence">Régler l’apparence</button>';
+    root.append(settings);
+    window.addEventListener('hashchange', followProfileAnchor, { signal: abort.signal });
+    followProfileAnchor();
+  }
   if (page === 'auth-reset') {
     panel.innerHTML = '<h2>Récupérer ton compte avec assistance</h2><p>Les comptes Mon BPREA sont gérés personnellement, sans service d’envoi automatique d’e-mails.</p><p>Pour récupérer ton compte, écris via le <a href="contact.html">contact officiel, accessible sans connexion</a>. Tu peux aussi joindre la personne qui t’a invité par votre moyen de communication habituel.</p><p>Après vérification de ton identité, elle pourra te transmettre un lien personnel pour choisir un nouveau mot de passe.</p><p>Ne communique jamais ton mot de passe ni ton lien personnel.</p><div class="auth-links"><a href="connexion.html">Retour à la connexion</a></div>';
     return;
@@ -203,12 +219,13 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
       try {
         const profile = await service.getProfile();
         if (disposed || request !== requestId || service.getState().status !== 'authenticated' || service.getState().user?.id !== user.id) return;
-        panel.innerHTML = `<h2>Les informations du compte</h2>${messageMarkup()}<dl class="auth-details"><div><dt>Adresse e-mail</dt><dd data-email></dd></div><div><dt>Compte créé le</dt><dd data-created></dd></div></dl><form class="auth-form"><div class="auth-field"><label for="auth-pseudo">Pseudo (facultatif)</label><input id="auth-pseudo" name="pseudo" type="text" autocomplete="nickname" aria-describedby="auth-pseudo-help"><small id="auth-pseudo-help">De 2 à 40 caractères, ou laisse ce champ vide. Ne saisis pas d’information sensible.</small></div><button class="btn btn-primary" type="submit">Enregistrer le pseudo</button></form><hr class="auth-divider"><div class="auth-account-actions"><a href="mot-de-passe-oublie.html">Récupération assistée du mot de passe</a><button class="btn btn-outline" type="button" data-sign-out>Déconnexion</button></div>`;
+        panel.innerHTML = `<h2>Informations du compte</h2>${messageMarkup()}<dl class="auth-details"><div><dt>Adresse e-mail</dt><dd data-email></dd></div><div><dt>Compte créé le</dt><dd data-created></dd></div></dl><form class="auth-form"><div class="auth-field"><label for="auth-pseudo">Pseudo (facultatif)</label><input id="auth-pseudo" name="pseudo" type="text" autocomplete="nickname" aria-describedby="auth-pseudo-help"><small id="auth-pseudo-help">De 2 à 40 caractères, ou laisse ce champ vide. Ne saisis pas d’information sensible.</small></div><button class="btn btn-primary" type="submit">Enregistrer le pseudo</button></form><hr class="auth-divider"><div class="auth-account-actions"><a href="mot-de-passe-oublie.html">Récupération assistée du mot de passe</a><button class="btn btn-outline" type="button" data-sign-out>Déconnexion</button></div>`;
         panel.querySelector('[data-email]').textContent = user.email || 'Adresse indisponible';
         const created = new Date(user.created_at);
         panel.querySelector('[data-created]').textContent = user.created_at && Number.isFinite(created.getTime()) ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'Europe/Paris' }).format(created) : 'Date indisponible';
         const form = panel.querySelector('form');
         form.elements.pseudo.value = profile.pseudo || '';
+        followProfileAnchor();
         listen(form, 'submit', async event => {
           event.preventDefault();
           if (pending) return;

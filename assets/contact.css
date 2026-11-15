@@ -26,7 +26,7 @@
 .contact-page footer{margin-top:48px;padding-block:26px;color:var(--muted);font-size:13px}
 /* Sans theme-init, suivre le choix système. Avec JS, garder saisons/horaires et préférence existante. */
 @media(prefers-color-scheme:dark){
-  :root:not([data-theme]){color-scheme:dark;--bg:#121b15;--white:#1b2920;--text:#e0eade;--muted:#b5c6b7;--line:#425749;--green:#a6d4af;--green-light:#294431;--color-surface-soft:#223429;--color-focus:#a5bdff}
+  :root:not([data-theme]){color-scheme:dark;--bg:#121b15;--white:#1b2920;--text:#e0eade;--muted:#b5c6b7;--line:#425749;--green:#a6d4af;--green-light:#294431;--color-surface-soft:#223429;--color-focus:#a5bdff;--color-terracotta-text:#f0b58e;--color-vegetal:#a5d5ae}
 }
 @media(max-width:390px){.contact-card,.contact-care{padding:18px}.contact-page main{font-size:16px}}
 @media print{.contact-page header,.contact-page footer,.contact-page .skip-link{display:none}.contact-page main{color:#000}.contact-page section{break-inside:avoid}}

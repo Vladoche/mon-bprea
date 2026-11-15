@@ -1,4 +1,5 @@
 import { units, lessons } from './content.js';
+import { initAuthHeader } from './auth-header.js';
 
 const fallbackItems = [
   { id: 'home', label: 'Accueil', href: 'index.html', pages: ['home'] },
@@ -7,6 +8,11 @@ const fallbackItems = [
 ];
 const instances = new WeakMap();
 let configurationPromise;
+const navigationIcons = {
+  home: '<path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/>',
+  courses: '<path d="M3 5.5c3-1 6-1 9 1 3-2 6-2 9-1v14c-3-1-6-1-9 1-3-2-6-2-9-1v-14ZM12 6.5v14"/>',
+  tools: '<path d="m14 6 4-3 3 3-3 4m-4-4-9 9a3 3 0 0 0 4 4l9-9m-4-4 4 4M3 3l5 2 1 4-2 2-4-1-2-5m8 6 3 3"/>',
+};
 
 function validEntry(entry) {
   return entry && typeof entry === 'object' && typeof entry.id === 'string' && /^[a-z0-9-]+$/.test(entry.id) &&
@@ -55,6 +61,11 @@ function createLink(entry, page, selectedUnit, className = 'primary-nav__link') 
     if (page === 'uc' && entry.unitId === selectedUnit) link.setAttribute('aria-current', 'page');
   } else {
     link.textContent = entry.label;
+    if (className === 'primary-nav__top-link' && navigationIcons[entry.id]) {
+      const label = element('span', '', entry.label);
+      link.innerHTML = `<svg class="primary-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${navigationIcons[entry.id]}</svg>`;
+      link.append(label);
+    }
     if (entry.pages?.includes(page)) link.classList.add('active');
     if (entry.source === 'units' && ['courses', 'uc', 'course', 'quiz'].includes(page)) link.classList.add('active');
     // The first page identifies the actual destination; remaining pages merely
@@ -120,8 +131,10 @@ function renderNavigation(root, items, page) {
     item.append(line);
     list.append(item);
   }
-  // Shared full-width panels preserve a compact three-link mobile row while
-  // allowing the two independent disclosures to remain open without overlap.
+  const account = element('li', 'primary-nav__item account-actions');
+  account.innerHTML = '<div class="primary-nav__entry"><span class="primary-nav__top-link" role="status">Vérification…</span></div>';
+  list.append(account);
+  // Full-width panels stay outside the four entries, including the mobile grid.
   root.replaceChildren(list, ...panelNodes);
   return panels;
 }
@@ -141,8 +154,17 @@ export async function initNavigation(root, page = document.body.dataset.page) {
   const items = await configurationPromise;
   if (signal.aborted) return;
   const panels = renderNavigation(root, items, page);
-  const desktop = matchMedia('(min-width: 761px)');
+  initAuthHeader(root.querySelector('.account-actions'), page);
+  const desktop = matchMedia('(min-width: 601px)');
   let lastOpened = null;
+
+  // Account state can replace its disclosure without rebuilding navigation or
+  // attaching a second set of keyboard/outside-click handlers.
+  function entries() {
+    const accountButton = root.querySelector('[data-navigation-toggle="profile"]');
+    const accountPanel = accountButton && document.getElementById(accountButton.getAttribute('aria-controls'));
+    return [...panels.values(), ...(accountPanel ? [{ button: accountButton, panel: accountPanel, label: 'Mon profil' }] : [])];
+  }
 
   function setOpen(entry, open) {
     entry.panel.hidden = !open;
@@ -150,19 +172,20 @@ export async function initNavigation(root, page = document.body.dataset.page) {
     entry.button.setAttribute('aria-label', `${open ? 'Masquer' : 'Afficher'} les sous-rubriques de ${entry.label}`);
   }
   function closeAll() {
-    for (const entry of panels.values()) setOpen(entry, false);
+    for (const entry of entries()) setOpen(entry, false);
   }
   root.addEventListener('click', event => {
     const button = event.target.closest('button[data-navigation-toggle]');
     if (button && root.contains(button)) {
-      const entry = panels.get(button.dataset.navigationToggle);
+      const entry = entries().find(candidate => candidate.button === button);
+      if (!entry) return;
       const open = entry.panel.hidden;
       if (desktop.matches) closeAll();
       setOpen(entry, open);
       if (open) {
         lastOpened = entry;
         // Opening takes keyboard users straight to the disclosed destinations.
-        entry.panel.querySelector('a')?.focus();
+        entry.panel.querySelector('a,button')?.focus();
       }
     } else if (event.target.closest('a')) {
       closeAll();
@@ -170,15 +193,15 @@ export async function initNavigation(root, page = document.body.dataset.page) {
   }, { signal });
   root.addEventListener('keydown', event => {
     if (event.key === 'Tab' && !event.shiftKey) {
-      const entry = [...panels.values()].find(candidate => !candidate.panel.hidden && candidate.button === event.target);
+      const entry = entries().find(candidate => !candidate.panel.hidden && candidate.button === event.target);
       if (entry) {
         event.preventDefault();
-        entry.panel.querySelector('a')?.focus();
+        entry.panel.querySelector('a,button')?.focus();
         return;
       }
     }
     if (event.key === 'Tab' && event.shiftKey) {
-      const entry = [...panels.values()].find(candidate => !candidate.panel.hidden && candidate.panel.querySelector('a') === event.target);
+      const entry = entries().find(candidate => !candidate.panel.hidden && candidate.panel.querySelector('a,button') === event.target);
       if (entry) {
         event.preventDefault();
         entry.button.focus();
@@ -186,7 +209,7 @@ export async function initNavigation(root, page = document.body.dataset.page) {
       }
     }
     if (event.key !== 'Escape') return;
-    const open = [...panels.values()].filter(entry => !entry.panel.hidden);
+    const open = entries().filter(entry => !entry.panel.hidden);
     if (!open.length) return;
     const entry = open.find(candidate => candidate.panel.contains(event.target) || candidate.button === event.target) ?? (open.includes(lastOpened) ? lastOpened : open[0]);
     event.preventDefault();
@@ -197,7 +220,7 @@ export async function initNavigation(root, page = document.body.dataset.page) {
   document.addEventListener('pointerdown', event => { if (!root.contains(event.target)) closeAll(); }, { signal });
   document.addEventListener('focusin', event => { if (!root.contains(event.target)) closeAll(); }, { signal });
   desktop.addEventListener('change', () => {
-    const focused = [...panels.values()].find(entry => entry.panel.contains(document.activeElement));
+    const focused = entries().find(entry => entry.panel.contains(document.activeElement));
     closeAll();
     focused?.button.focus();
   }, { signal });

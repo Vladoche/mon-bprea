@@ -64,7 +64,7 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
     'monbprea.botanical.v1': '{"schemaVersion":1,"answers":[],"sessions":[]}',
   };
   await seed(page, histories);
-  await page.goto('/mon-bprea/itk.html');
+  await page.goto('/mon-bprea/profil.html#parametres');
   await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
   await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
   await expect(page.locator('html')).toHaveAttribute('data-season', 'autumn');
@@ -133,7 +133,7 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
 test('auto reste auto pendant les seuils horaires, saisons et changements d’heure locaux', async ({ page }) => {
   const original = JSON.stringify({ version: 1, season: 'auto', brightness: 'auto' });
   await seed(page, { [ARCHIVED]: original });
-  await page.goto('/mon-bprea/itk.html');
+  await page.goto('/mon-bprea/profil.html#parametres');
   await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
   await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
   for (const [instant, season, time, theme] of [
@@ -174,7 +174,7 @@ test('erreur de stockage : choix temporaire visible, sauvegarde et anciennes cl�
       return nativeSet.call(this, name, value);
     };
   }, { key: KEY, legacy: LEGACY, original });
-  await page.goto('/mon-bprea/itk.html');
+  await page.goto('/mon-bprea/profil.html#parametres');
   await expect(page.locator('#appearance-save')).toHaveText('Apparence mémorisée sur cet appareil.');
   await openAppearance(page).click();
   await dialogFor(page).getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
