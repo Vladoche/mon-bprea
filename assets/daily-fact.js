@@ -117,8 +117,8 @@ function leafIcon() {
 }
 
 /**
- * Hydrate the section supplied by the app. On home it follows exam preparation;
- * on other pages it precedes page content. Returns an optional cleanup callback.
+ * Hydrate the reading aid inside Mes cours, after the UC cards.
+ * Returns an optional cleanup callback. Selection and dismissal stay page-local.
  */
 export async function initDailyFact(root) {
   if (!(root instanceof Element)) return () => {};

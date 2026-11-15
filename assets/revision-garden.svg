@@ -1,0 +1,33 @@
+<!-- Illustration originale Mon BPREA, créée dans le dépôt. Aucun asset externe. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" width="640" height="480" fill="none">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#e6ebda"/><stop offset="1" stop-color="#f5eddd"/></linearGradient>
+    <linearGradient id="glass" x2="1" y2="1"><stop stop-color="#fffff8" stop-opacity=".8"/><stop offset="1" stop-color="#d5e0c4" stop-opacity=".4"/></linearGradient>
+  </defs>
+  <rect width="640" height="480" rx="32" fill="url(#sky)"/>
+  <circle cx="498" cy="95" r="49" fill="#edcf9f"/>
+  <path d="M0 282Q115 211 249 275T640 257V480H0Z" fill="#b6c5a0"/>
+  <path d="M0 338Q164 250 357 324T640 301V480H0Z" fill="#8ea97d"/>
+  <path d="m119 216 111-93h213l83 93v151H119Z" fill="url(#glass)"/>
+  <g stroke="#52735b" stroke-width="4" stroke-linejoin="round">
+    <path d="m119 367 1-151 110-93 83 93v151M230 123h213l83 93v151M120 216h406M313 367h213M188 159h287M173 172v195m81-168v168m123-213v213m74-235v235M120 279h406"/>
+    <path d="M119 367h407" stroke-width="6"/>
+  </g>
+  <g fill="#b77a57">
+    <path d="m150 350 136 0 28 17H145Zm194 0h141l13 17H354Z"/>
+    <path d="m91 395 261-8 31 25-316 8Zm301-7 175 16 17 22-193-18Z"/>
+    <path d="m45 446 363-17 33 33-417 12Zm402-14 158 14 19 28-160-12Z"/>
+  </g>
+  <g stroke="#3f6444" stroke-width="4" stroke-linecap="round">
+    <path d="M176 347v-35m46 35v-44m47 44v-29m101 29v-32m46 32v-45m47 45v-35M120 398v-22m53 20v-25m52 23v-25m55 24v-21m165 25v-21m60 26v-23M94 448v-28m63 25v-30m66 26v-28m64 26v-25m65 22v-27m148 35v-23m62 28v-26"/>
+  </g>
+  <g fill="#587c4d">
+    <path d="M176 330q-29-1-23-23 24 0 23 23Zm0-7q0-25 24-24 4 24-24 24Zm46-1q-32-5-25-29 26 2 25 29Zm0-8q3-24 26-23 3 24-26 23Zm47 20q-26-2-22-22 23 1 22 22Zm101-4q-26-2-22-22 23 1 22 22Zm0-7q1-24 24-24 4 23-24 24Zm46-4q-31-4-24-27 24 1 24 27Zm0-6q3-24 25-23 3 23-25 23Zm47 17q-26-2-22-22 23 1 22 22Z"/>
+  </g>
+  <g fill="#d3ddb3">
+    <ellipse cx="120" cy="376" rx="17" ry="9" transform="rotate(23 120 376)"/><ellipse cx="173" cy="372" rx="19" ry="10" transform="rotate(-18 173 372)"/>
+    <ellipse cx="225" cy="372" rx="17" ry="9"/><ellipse cx="280" cy="373" rx="18" ry="10"/>
+    <ellipse cx="445" cy="376" rx="18" ry="10"/><ellipse cx="505" cy="380" rx="18" ry="10"/>
+    <ellipse cx="94" cy="423" rx="20" ry="11"/><ellipse cx="157" cy="418" rx="20" ry="11"/><ellipse cx="223" cy="416" rx="20" ry="11"/><ellipse cx="287" cy="417" rx="20" ry="11"/><ellipse cx="352" cy="412" rx="20" ry="11"/><ellipse cx="500" cy="425" rx="20" ry="11"/><ellipse cx="562" cy="430" rx="20" ry="11"/>
+  </g>
+</svg>

@@ -3,6 +3,8 @@ import { validateCredentials, validatePassword, validatePseudo } from './auth-va
 import { renderBreadcrumbs } from './breadcrumbs.js';
 import { initExportUI } from './export-ui.js';
 import { initErasureUI } from './erasure-ui.js';
+import { getCourseQuizService } from './course-quiz-service.js';
+import { initCourseQuizPanel } from './course-quiz-ui.js';
 
 const controllers = new WeakMap();
 const restoreHandlers = new WeakSet();
@@ -26,12 +28,14 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   let disposed = false;
   let disposeExport = () => {};
   let disposeErasure = () => {};
+  let disposeCourseQuiz = () => {};
   const dispose = () => {
     disposed = true;
     abort.abort();
     unsubscribe();
     disposeExport();
     disposeErasure();
+    disposeCourseQuiz();
     link = null;
     for (const input of root.querySelectorAll('input[type="password"]')) input.value = '';
     if (page === 'profile' || page === 'auth-callback') root.textContent = 'Vérification de la session…';
@@ -50,7 +54,7 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   root.querySelector('.auth-top > p').textContent = descriptions[page][1];
   const panel = root.querySelector('.auth-panel');
   function followProfileAnchor() {
-    if (page !== 'profile' || !['#informations-compte', '#parametres'].includes(location.hash)) return;
+    if (page !== 'profile' || !['#informations-compte', '#parametres', '#donnees-synchronisation'].includes(location.hash)) return;
     const target = root.querySelector(location.hash);
     if (target) requestAnimationFrame(() => { if (target.isConnected) target.scrollIntoView({ block: 'start' }); });
   }
@@ -61,7 +65,22 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
     settings.className = 'wrap auth-panel profile-settings';
     settings.setAttribute('aria-labelledby', 'profile-settings-title');
     settings.innerHTML = '<h2 id="profile-settings-title">Paramètres</h2><p>Adapte la saison et la luminosité de ton espace. Sans compte, tu peux choisir de mémoriser ton apparence sur cet appareil. Une fois connecté, les réglages du compte et leur synchronisation restent disponibles dans le même dialogue.</p><button id="appearance-open" class="btn btn-outline" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" aria-label="Paramètres d’apparence">Régler l’apparence</button>';
+    const data = document.createElement('section');
+    data.id = 'donnees-synchronisation';
+    data.className = 'profile-learning-sync';
+    data.setAttribute('aria-labelledby', 'profile-learning-sync-title');
+    data.innerHTML = '<h3 id="profile-learning-sync-title">Données et synchronisation</h3><p>Gère ici la sauvegarde de tes cours et QCM, l’import volontaire de l’historique de cet appareil et les conflits éventuels. Les exercices hebdomadaires, la botanique et les itinéraires techniques conservent leurs réglages sur leurs pages respectives.</p><div data-course-quiz-settings><p role="status">Vérification de la sauvegarde des cours et QCM…</p></div>';
+    settings.append(data);
     root.append(settings);
+    const syncRoot = data.querySelector('[data-course-quiz-settings]');
+    getCourseQuizService().then(sync => {
+      if (disposed) { sync.stop(); return; }
+      const unsubscribeSync = initCourseQuizPanel(syncRoot, sync);
+      disposeCourseQuiz = () => { unsubscribeSync(); sync.stop(); };
+      followProfileAnchor();
+    }).catch(() => {
+      if (!disposed) syncRoot.innerHTML = '<p role="status">La sauvegarde des cours et QCM est indisponible. Recharge la page pour réessayer. Les données enregistrées sont conservées.</p>';
+    });
     window.addEventListener('hashchange', followProfileAnchor, { signal: abort.signal });
     followProfileAnchor();
   }

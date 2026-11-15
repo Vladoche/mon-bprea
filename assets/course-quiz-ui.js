@@ -10,6 +10,26 @@ const labels = {
 };
 const titleFor = id => lessons.find(lesson => lesson.id === id)?.title || id;
 
+/** Contextual feedback only. Services and identity guards keep running even
+ * when this notice is hidden; management controls live in profile settings. */
+export function initCourseQuizNotice(root, service) {
+  root.innerHTML = '<p id="course-quiz-sync-status" role="status" aria-atomic="true"></p><p data-course-quiz-notice-detail></p><a class="ui-link" href="profil.html#donnees-synchronisation">Données et synchronisation des cours et QCM <span aria-hidden="true">→</span></a>';
+  const status = root.querySelector('[role="status"]');
+  const detail = root.querySelector('[data-course-quiz-notice-detail]');
+  return service.subscribe(state => {
+    const sync = state.sync;
+    const attention = ['pending', 'offline', 'session', 'conflict', 'error', 'storage-error'].includes(sync.state) ||
+      sync.pending > 0 || sync.conflicts?.some(conflict => !conflict.resolved) || sync.operations?.length > 0 ||
+      !!state.view.error && sync.state !== 'loading';
+    const label = state.view.error && !['session', 'storage-error', 'error'].includes(sync.state)
+      ? 'Progression indisponible · données conservées' : labels[sync.state] || labels.session;
+    status.textContent = `${label}${sync.pending ? ` · ${sync.pending} opération${sync.pending > 1 ? 's' : ''} en attente` : ''}`;
+    detail.textContent = state.view.error || sync.error || '';
+    detail.hidden = !detail.textContent;
+    root.hidden = !attention;
+  });
+}
+
 function conflictMarkup(conflict) {
   const operation = conflict.operation || conflict.local?.operation;
   const lessonId = conflict.lessonId || operation?.lessonId || operation?.payload?.p_lesson_id;

@@ -19,7 +19,7 @@ function metric(page, label) {
 
 test('navigation à quatre rubriques et artefact versionné sous préfixe Pages', async ({ page, request }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Faire pousser');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Ton espace de révision');
   const nav = page.getByRole('navigation', { name: 'Navigation principale' });
   await expect(nav.getByRole('list').first().locator(':scope > li')).toHaveCount(4);
   await nav.getByRole('link', { name: 'Mes cours', exact: true }).click();
@@ -52,7 +52,8 @@ test('navigation à quatre rubriques et artefact versionné sous préfixe Pages'
     const response = await publishedPage.goto(`/mon-bprea/${file}`);
     expect(response.status(), file).toBe(200);
     await expect(publishedPage.getByRole('heading', { level: 1 })).toBeVisible();
-    await expect(publishedPage.getByRole('region', { name: 'Tu savais que… ?' })).toBeVisible();
+    const fact = publishedPage.getByRole('region', { name: 'Tu savais que… ?' });
+    if (file === 'mes-cours.html') await expect(fact).toBeVisible(); else await expect(fact).toHaveCount(0);
     if (file === 'reconnaissance-plantes.html') await expect(publishedPage.getByRole('group', { name: 'Catégories botaniques' })).toBeVisible();
   }
   expect(resources.length).toBeGreaterThan(0);
@@ -139,10 +140,9 @@ test('Dashboard : état vide puis deux premières réponses réelles, sans gonfl
 test('calendrier : événements, examen, changement de mois et accès depuis l’accueil', async ({ page }) => {
   await page.route('**/assets/calendar-events.json*', route => route.fulfill({ json: calendar }));
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Examen UC 03 du jeu de tests' })).toBeVisible();
-  await expect(page.getByText('J − 3', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Voir le calendrier' }).click();
-  await expect(page).toHaveURL(/calendrier\.html\?month=2026-10$/);
+  await expect(page.locator('#exam-preparation')).toHaveCount(0);
+  await page.locator('footer').getByRole('link', { name: 'Calendrier', exact: true }).click();
+  await expect(page).toHaveURL(/calendrier\.html$/);
   await expect(page.getByRole('heading', { name: 'octobre 2026', exact: true })).toBeVisible();
   await page.getByRole('button', { name: /^Examen : Examen UC 03 du jeu de tests/ }).first().click();
   const detail = page.getByRole('dialog', { name: 'Examen UC 03 du jeu de tests' });
@@ -185,7 +185,7 @@ test('outils sous préfixe : génération ITK, export CSV et téléchargement PD
 
 test('apparence mobile : préférences conservées, données intactes et anecdote renouvelée', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/');
+  await page.goto('/mes-cours.html');
   const anecdote = page.getByRole('region', { name: 'Tu savais que… ?' });
   await expect(anecdote).toBeVisible();
   const firstId = await anecdote.getAttribute('data-fact-id');
@@ -199,7 +199,7 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-  await page.goto('/');
+  await page.goto('/mes-cours.html');
   await page.reload();
   await expect(anecdote).toBeVisible();
   await expect(anecdote).toHaveAttribute('data-fact-id', firstId);
@@ -213,6 +213,7 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), file).toBe(true);
   }
+  await page.goto('/mes-cours.html');
   await page.getByRole('button', { name: 'Masquer l’anecdote sur cette page' }).click();
   await expect(anecdote).toBeHidden();
   await page.reload();

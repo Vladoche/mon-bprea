@@ -30,6 +30,12 @@
 .auth-account-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .auth-account-actions a { color: var(--green); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
 .auth-panel[aria-busy="true"] .auth-form { opacity: .7; }
+/* Course/QCM management is part of settings, with the existing component. */
+.profile-learning-sync { min-width:0; overflow-wrap:anywhere; border-top:1px solid var(--line); margin-top:var(--space-6); padding-top:var(--space-5); scroll-margin-top:var(--space-5); }
+.profile-learning-sync h3 { font-size:var(--font-size-card); }
+.profile-learning-sync>p { font-size:var(--font-size-label); max-width:var(--reading-width); }
+.profile-learning-sync .course-quiz-panel { padding:var(--space-4); font-size:var(--font-size-meta); background:var(--color-surface-soft); }
+.profile-learning-sync .course-quiz-actions .btn { font-size:var(--font-size-meta); }
 @media (max-width: 760px) {
   .auth-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
   .auth-panel, .auth-aside { padding: 24px; }

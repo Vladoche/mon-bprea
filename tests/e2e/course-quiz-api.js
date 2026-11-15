@@ -21,14 +21,15 @@ const same = (a,b) => Object.entries(a).every(([key,value]) => b[key] === value)
 export function createCourseQuizAPI() {
   const courses = new Map(), attempts = new Map(), sent = [];
   const fixture = { courses, attempts, sent, restOffline: false, authOffline: false, loseQuizAck: false };
-  fixture.install = async (context, account = 'A', visitorRaw = null) => {
+  fixture.install = async (context, account = 'A', visitorRaw = null, sitePath = '/') => {
+    const siteUrl = `http://127.0.0.1:4173${sitePath}`;
     await context.addInitScript(({ session, key, visitorRaw }) => {
       if (localStorage.getItem('course-quiz-fixture-seeded')) return;
       localStorage.setItem('course-quiz-fixture-seeded', 'yes');
       if (session) localStorage.setItem(key, JSON.stringify(session));
       if (visitorRaw !== null) localStorage.setItem('bprea-demo-progress-v1', visitorRaw);
-    }, { session: account ? sessionFor(account) : null, key: 'bprea-auth-course-quiz.invalid-/', visitorRaw });
-    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: apiOrigin, publishableKey: 'sb_publishable_syntheticCourseQuiz', siteUrl: 'http://127.0.0.1:4173/' } }));
+    }, { session: account ? sessionFor(account) : null, key: `bprea-auth-course-quiz.invalid-${sitePath}`, visitorRaw });
+    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: apiOrigin, publishableKey: 'sb_publishable_syntheticCourseQuiz', siteUrl } }));
     await context.route(`${apiOrigin}/**`, async route => {
       const request = route.request(), url = new URL(request.url()), uid = owner(request);
       const respond = (value, status = 200) => route.fulfill({ status, contentType: 'application/json', body: json(value), headers: { 'access-control-allow-origin': '*' } });
