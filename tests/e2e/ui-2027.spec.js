@@ -117,7 +117,17 @@ test('navigation : cinq largeurs, clavier, resize, texte agrandi et contraste fo
   await expect(disclosure(page, 'Mes cours')).toHaveAttribute('aria-expanded', 'false');
   // 200% text enlargement complements the 320px reflow check.
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    const reflow = await page.evaluate(() => ({
+      width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
+      overflowing: [...document.querySelectorAll('body *')].filter(node => {
+        const box = node.getBoundingClientRect();
+        return box.width > 0 && box.right > innerWidth + 1;
+      }).map(node => `${node.tagName}.${node.className}: ${node.textContent.slice(0, 60)}`).slice(0, 10),
+    }));
+    expect(reflow.scrollWidth, JSON.stringify(reflow)).toBeLessThanOrEqual(width);
+  }
   await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
   const button = disclosure(page, 'Outils');
   await page.keyboard.press('Tab');

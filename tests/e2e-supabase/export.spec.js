@@ -65,6 +65,7 @@ test('Export réel : dix tables, pagination, caches en attente, RLS A/B et sessi
     expect(JSON.stringify(await sqlSnapshot(a)) === JSON.stringify(beforeA)).toBe(true);
     expect(JSON.stringify(await sqlSnapshot(b)) === JSON.stringify(beforeB)).toBe(true);
     stage = 'compte B dans le même navigateur';
+    await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
     await expect(page.locator('[data-export-download]')).toBeDisabled();
     await signInDrill(page, b); await page.goto(`${LOCAL_SITE}profil.html`); const fileB = await copy(page);
@@ -78,6 +79,7 @@ test('Export réel : dix tables, pagination, caches en attente, RLS A/B et sessi
       try { await route.continue(); } catch { /* Expected: export AbortController cancelled the held request. */ }
     });
     await page.locator('[data-export-prepare]').click(); await reached;
+    await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); released();
     await expect(page.locator('[data-export-download]')).toBeDisabled(); await expect(page.locator('[data-export-prepare]')).toBeDisabled();
   } catch { failure = new Error(`Export Supabase local non validé : ${stage}. Données, sessions et fichier non journalisés.`); }

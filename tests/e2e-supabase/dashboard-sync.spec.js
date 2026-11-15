@@ -51,6 +51,7 @@ async function respond(page, index, { correct = true, training = false } = {}) {
 }
 
 async function signOut(page) {
+  await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
   await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
   await expect(page.locator('#dashboard-sync-status')).toContainText('Mode visiteur');
 }

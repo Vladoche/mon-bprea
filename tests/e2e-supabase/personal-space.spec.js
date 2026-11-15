@@ -6,7 +6,7 @@ import { waitForIdentity } from '../helpers/personal-browser.js';
 import { answerDrillQuestion } from '../helpers/drill-browser.js';
 import { lessons } from '../../assets/content.js';
 import { botanicalBank, botanicalPath, botanicalSynced, startBotanical, answerBotanical, finishBotanical, expectBotanicalHistory } from '../helpers/botanical-browser.js';
-import { itkPath, itkParameters, settingsAction, settingsSynced, settingsCacheReady, generateItk, expectItk, chooseAppearance, closeAppearance } from '../helpers/settings-browser.js';
+import { itkPath, itkParameters, settingsAction, settingsSynced, settingsCacheReady, generateItk, expectItk, chooseAppearance, closeAppearance, openAppearanceComponent } from '../helpers/settings-browser.js';
 
 const lesson = lessons.find(item => item.id === 'matiere-organique');
 const coursePath = `${LOCAL_SITE}cours.html?id=${lesson.id}`, quizPath = `${LOCAL_SITE}exercices.html?id=${lesson.id}`;
@@ -123,6 +123,7 @@ test('Espace personnel réel : A vers B puis A, aucun historique ni outbox écha
     stage = 'intention A conservée sans réseau';
     const outage = route => route.abort('failed'), pattern = `${a.environment.url}/rest/v1/**`; await page.route(pattern, outage);
     await generateItk(page, { ...itkParameters, area: '789' }); await expect(page.locator('#itk-sync-status')).toContainText(/ligne|attente/i);
+    await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); await page.unroute(pattern, outage);
     stage = 'B vide dans tous les domaines'; await signInDrill(page, b); await drillSynced(page); await expect(page.locator('.drill-correction')).toHaveCount(0);
     await page.goto(dashboardPath); await expect(page.locator('#dashboard-sync-status')).toHaveText('Historique personnel synchronisé');
@@ -135,7 +136,9 @@ test('Espace personnel réel : A vers B puis A, aucun historique ni outbox écha
       expect(await rows(b, table)).toEqual([]);
       const foreign = await b.client.from(table).select('*').eq('user_id', a.userId); expect(foreign.error).toBeNull(); expect(foreign.data).toEqual([]);
     }
-    stage = 'retour A et reprise de sa seule intention'; await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); await signInDrill(page, a);
+    stage = 'retour A et reprise de sa seule intention';
+    await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
+    await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); await signInDrill(page, a);
     await verifyBrowser(page, { area: '789' }); await verifyDatabase(a, { area: '789' });
     expect(await rows(b, 'itk_settings')).toEqual([]);
   } catch (issue) { failure = new Error(`Séparation transversale A/B non validée : ${stage}${issue.recipeStep ? ` / ${issue.recipeStep}` : ''}.`); }
@@ -211,7 +214,7 @@ test('Espace personnel réel : conflits cours, ITK, apparence et botanique isol�
     stage = 'conflits conservés au rechargement et résolutions explicites'; await page.goto(itkPath);
     await expect(page.locator('#itk-sync-status')).toContainText('Conflit'); await page.locator('#itk-conflicts summary').last().click();
     await page.locator('#itk-conflicts').getByRole('button', { name: 'Garder la version du compte', exact: true }).click();
-    await page.locator('#appearance-open').click(); await page.locator('#appearance-conflicts summary').last().click();
+    await openAppearanceComponent(page); await page.locator('#appearance-conflicts summary').last().click();
     await page.locator('#appearance-conflicts').getByRole('button', { name: 'Garder la version du compte', exact: true }).click(); await closeAppearance(page); await settingsSynced(page);
     await page.goto(coursePath); await expect(page.locator('#course-quiz-sync-status')).toContainText('Conflit'); await page.locator('.course-quiz-conflict summary').last().click();
     await page.locator('.course-quiz-conflict').getByRole('button', { name: 'Garder la version du compte', exact: true }).click(); await courseSynced(page);

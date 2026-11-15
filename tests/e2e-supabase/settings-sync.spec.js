@@ -44,6 +44,7 @@ test('Paramètres réels A : deux appareils, huit valeurs ITK, apparence auto et
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
     expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'auto', brightness: 'auto' });
     stage = 'autre compte sur le même profil';
+    await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
     await signIn(page, b); expect((await settingsAction(page, 'state')).view.itk).toBeNull();
     expect((await settingsAction(page, 'state')).view.appearance).toBeNull();
@@ -51,6 +52,7 @@ test('Paramètres réels A : deux appareils, huit valeurs ITK, apparence auto et
       expect(await rows(b, table)).toEqual([]);
       const foreign = await b.client.from(table).select('*').eq('user_id', a.userId); expect(foreign.error).toBeNull(); expect(foreign.data).toEqual([]);
     }
+    await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); await signIn(page, a); await expectItk(page, itkParameters);
     expect(await settingsRecords(page)).toHaveLength(2);
   } catch { failure = new Error(`Paramètres Supabase locaux non validés : ${stage}. Aucun jeton ni mot de passe publié.`); }

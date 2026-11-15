@@ -8,7 +8,9 @@ Les comptes, préférences et historiques des recettes sont fictifs ; aucun acc�
 Validation finale locale : `npm ci` réussi, 618 tests unitaires/intégration
 réussis et un test ignoré sous Windows, 123 parcours E2E réussis. Le SDK navigateur
 reconstruit est identique. Le rendu public de la notice reste reproductible et
-l'empreinte du texte approuvé est inchangée. `git diff --check` est sans erreur.
+l'empreinte du texte approuvé est inchangée. Après correction du reflow, les
+19 contrôles ciblés interface et Contact ont été rejoués avec succès.
+`git diff --check` est sans erreur.
 
 ## Procédure reproductible
 
@@ -51,14 +53,14 @@ Médianes locales sous Windows, Node.js 24.22.0, Chromium 156.0.8078.4
 
 | Mesure | Main | PR1 | Écart |
 | --- | ---: | ---: | ---: |
-| CSS chargés | 61 013 o | 66 360 o | +5 347 o |
+| CSS chargés | 61 013 o | 66 471 o | +5 458 o |
 | JavaScript chargé | 804 132 o | 812 383 o | +8 251 o |
 | Requêtes, document inclus | 79 | 80 | +1 |
-| LCP laboratoire | 1 476 ms | 1 528 ms | +52 ms |
-| CLS | 0,2308 | 0,0843 | −0,1465 |
-| Événement `load` | 1 179,1 ms | 1 160,2 ms | −18,9 ms |
-| Titre et navigation disponibles | 1 555 ms | 1 531 ms | −24 ms |
-| Interaction jusqu'à deux images suivantes | 26,8 ms | 34 ms | +7,2 ms |
+| LCP laboratoire | 1 628 ms | 1 700 ms | +72 ms |
+| CLS | 0,2232 | 0,0843 | −0,1389 |
+| Événement `load` | 1 153,9 ms | 1 187,3 ms | +33,4 ms |
+| Titre et navigation disponibles | 1 743,6 ms | 1 847,6 ms | +104 ms |
+| Interaction jusqu'à deux images suivantes | 33,5 ms | 46,2 ms | +12,7 ms |
 
 L'interaction porte sur le changement de luminosité et l'ouverture de Mes cours.
 Cette durée de laboratoire **n'est pas un INP de terrain**. Les résultats ne
@@ -69,6 +71,12 @@ pendant le chargement asynchrone. Les réserves de hauteur du header et du conte
 ainsi que l'initialisation différée du footer, ramènent le CLS sous 0,1 sans
 retirer les bandeaux d'accueil réservés à PR2. Le déplacement résiduel vient de
 l'insertion existante des panneaux d'accueil.
+
+La CI Linux a révélé un débordement des libellés longs à 200 % de texte. Leur
+repli est maintenant explicite dans le header et le footer, sans masquer les
+contenus. Le contrôle couvre aussi 320 px avec texte doublé ; trois polices de
+remplacement ont été vérifiées localement. Les sélecteurs de déconnexion de la
+suite Supabase réelle suivent le menu, sans changement des assertions Auth/RLS.
 
 Les budgets diagnostiques du script sont : +16 Kio de CSS, +16 Kio de JavaScript,
 deux requêtes supplémentaires, hausse LCP maximale de 500 ms ou 50 % de la

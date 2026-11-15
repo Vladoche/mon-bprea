@@ -461,6 +461,8 @@ summary:focus-visible,
 /* Footer 2027 : surfaces stables, paysage vectoriel purement décoratif. */
 .site-footer{position:relative;isolation:isolate;margin-top:80px;padding:42px 0 24px;overflow:hidden;border:1px solid var(--line);border-bottom:0;border-radius:32px 32px 0 0;background:var(--white);color:var(--text)}
 .site-footer .footer-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.35fr 1fr 1.3fr 1fr;gap:36px;align-items:start}
+.site-footer .footer-grid>*{min-width:0}
+.site-footer .footer-column{overflow-wrap:anywhere}
 .site-footer .footer-identity{padding-right:20px;border-right:1px solid var(--line)}
 .site-footer .footer-identity p{font-size:var(--font-size-label);margin:20px 0 0;line-height:1.65}
 .site-footer .brand{padding:0;text-decoration:none}
@@ -469,7 +471,7 @@ summary:focus-visible,
 .site-footer .footer-column h2{margin:0 0 12px;color:var(--color-terracotta-text);font:750 var(--font-size-body)/1.5 system-ui,sans-serif;letter-spacing:0}
 .site-footer .footer-column ul{list-style:none;padding:0;margin:0}
 .site-footer .footer-column li{margin:0}
-.site-footer .footer-column a{display:inline-flex;align-items:center;min-height:36px;padding:6px 0;color:var(--text);font-size:var(--font-size-label);line-height:1.5;text-decoration:none}
+.site-footer .footer-column a{display:block;max-width:100%;min-height:36px;padding:6px 0;color:var(--text);font-size:var(--font-size-label);line-height:1.5;text-decoration:none;overflow-wrap:anywhere}
 .site-footer .footer-column a:hover{color:var(--green);text-decoration:underline;text-underline-offset:4px}
 .site-footer .footer-bottom{position:relative;z-index:1;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:32px;margin-top:30px;border-top:1px solid var(--line);color:var(--muted);font-size:var(--font-size-meta);line-height:1.6}
 .site-footer .footer-bottom span{max-width:100%}
