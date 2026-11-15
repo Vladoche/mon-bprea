@@ -16,6 +16,7 @@ public sealed partial class WindowsPrivateStore
     public Task<bool> HasRecoveryReservationAsync(string email) => Safe(() =>
     {
         VerifyPrivateDirectory();
+        if (ReadClosures().Count != 0) return true;
         var hash = TargetHash(email);
         var legacy = ReservationPath(email);
         if (File.Exists(legacy))

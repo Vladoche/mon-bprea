@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace MonBprea.Admin.Core;
 
-public sealed class AdminSession : IDisposable
+public sealed partial class AdminSession : IDisposable
 {
     private string? _secret;
     private AccountInventory? _lastInventory;
@@ -174,7 +174,8 @@ public sealed class AdminSession : IDisposable
             request.Headers.Accept.ParseAdd("application/json");
             if (body is not null) request.Content = new StringContent(body, Encoding.UTF8, "application/json");
             using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode || response.RequestMessage?.RequestUri?.AbsoluteUri != url || response.Headers.Location is not null) throw new AdminException("transport");
+            if (!response.IsSuccessStatusCode || method == HttpMethod.Delete && response.StatusCode != HttpStatusCode.OK
+                || response.RequestMessage?.RequestUri?.AbsoluteUri != url || response.Headers.Location is not null) throw new AdminException("transport");
             if (response.Content.Headers.ContentLength > 262_144) throw new AdminException("transport");
             await using var stream = await response.Content.ReadAsStreamAsync(timeout.Token).ConfigureAwait(false);
             using var buffer = new MemoryStream();

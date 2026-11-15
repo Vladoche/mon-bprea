@@ -13,6 +13,23 @@ namespace MonBprea.Admin.Tests;
 
 public static class StoreTests
 {
+    internal static WindowsPrivateStore CreateLocalClosureStore()
+    {
+        var root = Path.Combine(ExpandExistingPath(Path.GetTempPath()), "mon-bprea-admin12-native-synthetic-" + Guid.NewGuid().ToString("N"));
+        CreateProtectedDirectory(root);
+        var config = Path.Combine(root, "operator.json"); WriteConfig(config, DateTimeOffset.UtcNow);
+        WritePrivateFixture(Path.Combine(root, "deletions.json"), "[]");
+        return new WindowsPrivateStore(root, config);
+    }
+    internal static void RemoveLocalClosureStore(WindowsPrivateStore store)
+    {
+        var path = Path.GetFullPath(store.DirectoryPath);
+        var parent = ExpandExistingPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!path.StartsWith(parent, StringComparison.OrdinalIgnoreCase)
+            || !Path.GetFileName(path).StartsWith("mon-bprea-admin12-native-synthetic-", StringComparison.Ordinal)
+            || Directory.EnumerateFileSystemEntries(path,"*",SearchOption.AllDirectories).Any(p=>File.GetAttributes(p).HasFlag(FileAttributes.ReparsePoint))) throw new InvalidOperationException();
+        Directory.Delete(path,recursive:true);
+    }
     public static string DiagnosticStage { get; private set; } = "not-started";
     private const string Email = "synthetic-participant@example.invalid";
     private const string Token = "SYNTHETIC_TEST_TOKEN_NO_PRODUCTION_0123456789";
@@ -201,6 +218,54 @@ public static class StoreTests
             var malformed = Store("malformed");
             WritePrivateFixture(Path.Combine(malformed.DirectoryPath, "reservation-broken.json"), "{}");
             await Refuses("malformed reservation blocks new invitations", () => malformed.HasUncertainOperationAsync(), "private");
+
+            DiagnosticStage = "closure-intent-journal-and-node-compatibility";
+            var closure = Store("closure");
+            await Refuses("missing deletion ledger blocks closure", () => closure.ReadDeletionLedgerHashAsync(), "private");
+            var ledgerPath = Path.Combine(closure.DirectoryPath, "deletions.json");
+            WritePrivateFixture(ledgerPath, "[]\n");
+            var ledgerBytes = File.ReadAllBytes(ledgerPath);
+            var ledgerHash = await closure.ReadDeletionLedgerHashAsync();
+            check("ledger hash matches actual Node JSON.stringify empty array", ledgerHash == ClosureContract.Hash("[]"));
+            var account = new AuthAccount("22222222-2222-4222-8222-222222222222", Email, now, now, null);
+            var inv = new AccountInventory([new("11111111-1111-4111-8111-111111111111", "operator@example.test", now, now, null), account], now, "synthetic", true);
+            var request = new ClosureRequest("REQ-STORE-SYNTHETIC", now, new(true,true,true,true,true,true,true,true,true));
+            var evidence = new ClosureEvidence(AdminContract.Project, account.Id, inv.Accounts[0].Id, inv.Snapshot, now,
+                ClosureContract.Tables.ToDictionary(t => t, _ => 1L), ClosureContract.ForeignKeys, true, true, 0, 0, 1, 1,
+                ClosureContract.Hash("witness"), true, now.AddDays(-1), ClosureContract.Hash("manifest"), ledgerHash);
+            var plan = new PreparedClosure(Guid.NewGuid(), account, inv, request, evidence, ledgerHash);
+            await Refuses("closure reservation requires shared lock", () => closure.ReserveClosureAsync(plan), "busy");
+            Guid closureOperation;
+            using (await closure.AcquireLockAsync()) {
+                await closure.RecordClosurePreparationAsync(account, request);
+                check("preparation leaves deletion ledger bytes unchanged", File.ReadAllBytes(ledgerPath).SequenceEqual(ledgerBytes));
+                closureOperation = await closure.ReserveClosureAsync(plan);
+                check("intent and current ledger both durable before return", File.Exists(Path.Combine(closure.DirectoryPath, $"closure-{closureOperation:D}-intent.json"))
+                    && File.ReadAllText(ledgerPath).Contains(closureOperation.ToString("D"), StringComparison.Ordinal));
+                check("previous ledger exact bytes archived", File.ReadAllBytes(Path.Combine(closure.DirectoryPath, $"history-deletions-{closureOperation:D}.json")).SequenceEqual(ledgerBytes));
+                check("ledger change invalidates previous restore binding", await closure.ReadDeletionLedgerHashAsync() != ledgerHash);
+                await closure.RecordClosureResultAsync(new(closureOperation, ClosureStatus.Uncertain, "uncertain", false, false, now));
+                await Refuses("closure result cannot silently overwrite history", () => closure.RecordClosureResultAsync(new(closureOperation, ClosureStatus.ActiveDataVerifiedDeleted, "http-success", true, true, now)), "private");
+            }
+            var restartedClosure = new WindowsPrivateStore(closure.DirectoryPath, configPath, clock: () => now);
+            check("closure uncertainty persists after reopening store", await restartedClosure.HasUncertainOperationAsync()
+                && await restartedClosure.HasRecoveryReservationAsync(Email));
+            await NodeProbe(closure.DirectoryPath, "pending", check);
+            var closureTexts = Directory.EnumerateFiles(closure.DirectoryPath, "*.json").Select(File.ReadAllText).ToArray();
+            check("closure journal excludes clear address, links, scores and secrets", closureTexts.All(t => !t.Contains(Email, StringComparison.Ordinal)
+                && !t.Contains("sb_secret_", StringComparison.Ordinal) && !t.Contains("token_hash", StringComparison.Ordinal) && !t.Contains("score", StringComparison.OrdinalIgnoreCase)));
+            check("closure records and ledger encrypted", Directory.EnumerateFiles(closure.DirectoryPath, "closure-*.json").All(p => File.GetAttributes(p).HasFlag(FileAttributes.Encrypted))
+                && File.GetAttributes(ledgerPath).HasFlag(FileAttributes.Encrypted));
+            // Simulate power loss before ledger replacement: immutable intent
+            // remains, so both readers must refuse instead of removing it.
+            File.WriteAllBytes(ledgerPath, ledgerBytes);
+            await Refuses("lost ledger update blocks all C# operations", () => restartedClosure.HasUncertainOperationAsync(), "private");
+            await NodeProbe(closure.DirectoryPath, "pending", check);
+            File.Delete(Path.Combine(closure.DirectoryPath, $"closure-{closureOperation:D}-result.json"));
+            File.Delete(Path.Combine(closure.DirectoryPath, $"closure-{closureOperation:D}-intent.json"));
+            File.WriteAllText(ledgerPath, "[{\"version\":3,\"type\":\"closure\",\"operationId\":\"" + closureOperation.ToString("D") + "\"}]");
+            await Refuses("ledger intention without its immutable event blocks C#", () => restartedClosure.HasUncertainOperationAsync(), "private");
+            await NodeProbe(closure.DirectoryPath, "pending", check);
 
             DiagnosticStage = "unsafe-storage-rejections";
             var insecure = Store("insecure");

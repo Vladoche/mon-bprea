@@ -5,5 +5,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="../Core/MonBprea.Admin.Core.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../Core/MonBprea.Admin.Core.csproj" /><InternalsVisibleTo Include="MonBprea.Admin.Tests" /></ItemGroup>
 </Project>

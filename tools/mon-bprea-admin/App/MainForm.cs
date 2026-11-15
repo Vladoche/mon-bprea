@@ -2,7 +2,7 @@ using MonBprea.Admin.Core;
 
 namespace MonBprea.Admin.App;
 
-public sealed class MainForm : Form
+public sealed partial class MainForm : Form
 {
     private readonly Func<UnlockInput, IAdminWorkflow> createWorkflow;
     private IAdminWorkflow? workflow;
@@ -14,6 +14,7 @@ public sealed class MainForm : Form
     private bool HasUnhandedReceipt => receipt is not null && !receiptHandedOver || recoveryReceipt is not null && !recoveryReceiptHandedOver;
     private AuthAccount? recoveryTarget;
     private bool inventoryReady;
+    private AccountInventory? displayedInventory;
     private readonly Func<bool> confirmHandover;
     private InvitationReceipt? receipt;
     private bool receiptHandedOver;
@@ -81,13 +82,14 @@ public sealed class MainForm : Form
 
     public MainForm() : this(input => new AdminWorkflow(input)) { }
 
-    internal MainForm(Func<UnlockInput, IAdminWorkflow> factory, Func<bool>? confirmHandover = null)
+    internal MainForm(Func<UnlockInput, IAdminWorkflow> factory, Func<bool>? confirmHandover = null, MonBprea.Admin.WindowsSecurity.IAdminCredentialVault? credentialVault = null)
     {
         createWorkflow = factory;
+        vault = credentialVault ?? new MonBprea.Admin.WindowsSecurity.AdminCredentialVault();
         this.confirmHandover = confirmHandover ?? (() => MessageBox.Show(this,
             "Le lien a-t-il été effectivement remis au seul titulaire vérifié par le canal privé convenu ?",
             "Attestation de remise", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2) == DialogResult.Yes);
-        Text = "Mon BPREA Admin 1.1";
+        Text = "Mon BPREA Admin 1.2";
         Name = "MainForm";
         AutoScaleMode = AutoScaleMode.Dpi;
         Font = new Font("Segoe UI", 10);
@@ -106,7 +108,7 @@ public sealed class MainForm : Form
         var header = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, Padding = new Padding(20, 14, 20, 12), ColumnCount = 2 };
         header.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         header.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-        var title = TextLabel("Mon BPREA Admin 1.1"); title.Font = new Font(Font.FontFamily, 19, FontStyle.Bold);
+        var title = TextLabel("Mon BPREA Admin 1.2"); title.Font = new Font(Font.FontFamily, 19, FontStyle.Bold);
         header.Controls.Add(title, 0, 0); header.Controls.Add(lockSession, 1, 0);
         header.Controls.Add(TextLabel("Gestion privée des utilisateurs"), 0, 1);
         header.Controls.Add(connection, 0, 2); header.SetColumnSpan(connection, 2);
@@ -115,7 +117,7 @@ public sealed class MainForm : Form
         message.Dock = DockStyle.Fill; message.AutoSize = false; message.Name = "OperationStatus";
         footer.Controls.Add(message);
         Controls.Add(tabs); Controls.Add(unlockPanel); Controls.Add(footer); Controls.Add(activity); Controls.Add(header);
-        BuildUnlock(); BuildAccounts(); BuildInvitation(); BuildRecovery();
+        BuildUnlock(); BuildAccounts(); BuildInvitation(); BuildRecovery(); BuildClosure();
         unlock.Click += async (_, _) => await RunAsync(UnlockAsync);
         lockSession.Click += (_, _) => Lock();
         refresh.Click += async (_, _) => await RunAsync(RefreshAsync);
@@ -132,6 +134,7 @@ public sealed class MainForm : Form
         cancelRecovery.Click += (_, _) => { ResetRecovery(); SetMessage("Préparation annulée. Aucun lien généré."); };
         accounts.SelectionChanged += (_, _) => {
             if (busy) return;
+            ResetClosure();
             ResetRecovery(false);
             var target = SelectedAccount();
             selectionHint.Text = target is null ? "Sélectionnez un compte confirmé." : target.ConfirmedAt.HasValue && !target.RecoveryRestricted
@@ -154,8 +157,9 @@ public sealed class MainForm : Form
     {
         var layout = Vertical();
         layout.Controls.Add(TextLabel("Déverrouillage administratif"));
-        layout.Controls.Add(TextLabel("La clé moderne sb_secret_ du seul projet PROD reste en mémoire pour cette session. Aucun enregistrement de la clé."));
+        layout.Controls.Add(TextLabel("La clé moderne sb_secret_ du seul projet PROD reste en mémoire pour cette session. Mémorisation Windows facultative, désactivée par défaut."));
         AddField(layout, "Clé administrateur", key);
+        BuildCredentialControls(layout);
         AddField(layout, "Adresse vérifiée du compte exploitant", operatorEmail);
         AddField(layout, "Dossier privé commun avec l’exécuteur Node", privateDirectory);
         var browseDirectory = Button("Choisir le dossier privé…", "BrowsePrivateDirectory");
@@ -180,7 +184,7 @@ public sealed class MainForm : Form
     {
         var page = new TabPage("Comptes") { Padding = new Padding(14) };
         var bar = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
-        bar.Controls.Add(refresh); bar.Controls.Add(recoverAccess); bar.Controls.Add(selectionHint);
+        bar.Controls.Add(refresh); bar.Controls.Add(recoverAccess); bar.Controls.Add(closeAccount); bar.Controls.Add(selectionHint);
         accounts.Name = "Accounts"; accounts.Dock = DockStyle.Fill;
         accounts.ReadOnly = true; accounts.AllowUserToAddRows = false; accounts.AllowUserToDeleteRows = false;
         accounts.AutoGenerateColumns = false; accounts.RowHeadersVisible = false;
@@ -304,10 +308,11 @@ public sealed class MainForm : Form
     private async Task RefreshAsync()
     {
         if (workflow is null) return;
-        inventoryReady = false; ResetRecovery(false); accounts.Rows.Clear(); inventoryStatus.Text = "Lecture de l’inventaire… Générations suspendues.";
+        inventoryReady = false; ResetClosure(); ResetRecovery(false); accounts.Rows.Clear(); inventoryStatus.Text = "Lecture de l’inventaire… Générations suspendues.";
         prepared = null; review.Visible = false;
         try {
             var inventory = await workflow.RefreshAsync();
+            displayedInventory = inventory;
             foreach (var account in inventory.Accounts)
             {
                 var row = accounts.Rows.Add(account.Email, account.State, FormatDate(account.CreatedAt), FormatDate(account.ConfirmedAt));
@@ -352,7 +357,7 @@ public sealed class MainForm : Form
         if (busy) return;
         busy = true; UpdateControls();
         try { await action(); }
-        catch (AdminException error) { SetMessage(AdminMessages.For(error.Code)); if (error.Code is "uncertain" or "recovery_uncertain" or "pending") { uncertainGeneration = true; prepared = null; preparedRecovery = null; review.Visible = false; recoveryReview.Visible = false; } }
+        catch (AdminException error) { SetMessage(AdminMessages.For(error.Code)); if (error.Code is "uncertain" or "recovery_uncertain" or "closure_uncertain" or "pending") { uncertainGeneration = true; prepared = null; preparedRecovery = null; review.Visible = false; recoveryReview.Visible = false; ResetClosure(); } }
         catch { SetMessage("Opération interrompue. Aucun détail sensible affiché. Vérifiez l’inventaire en lecture seule ; ne répétez pas une génération incertaine."); }
         finally { busy = false; UpdateControls(); }
     }
@@ -360,17 +365,19 @@ public sealed class MainForm : Form
     private void Lock()
     {
         if (busy) return;
-        workflow?.Dispose(); workflow = null; key.Clear();
+        workflow?.Dispose(); workflow = null; key.Clear(); rememberKey.Checked = false; ResetClosure();
+        closureAttempted = false; closureResult.Text = "";
         uncertainGeneration = false;
-        inventoryReady = false; ResetOperation(); accounts.Rows.Clear();
+        inventoryReady = false; displayedInventory = null; ResetOperation(); accounts.Rows.Clear();
         inventoryStatus.Text = "Inventaire non lu · Capacité maximale : 7 comptes";
         connection.Text = "PROD · Session verrouillée";
-        SetMessage("Session verrouillée. La clé n’est pas conservée sur disque. Les réservations privées restent conservées.");
+        SetMessage("Session verrouillée. Pour retirer aussi une clé mémorisée, utilisez Supprimer la clé mémorisée. Les réservations privées restent conservées.");
         UpdateControls(); key.Focus();
     }
 
     private void ResetOperation(bool resetChecks = true)
     {
+        ResetClosure();
         ResetRecovery(); prepared = null; receipt = null; receiptHandedOver = false; confirmation.Clear(); review.Visible = false;
         if (resetChecks) ResetChecks();
         UpdateControls();
@@ -385,6 +392,7 @@ public sealed class MainForm : Form
         refresh.Enabled = connected && !busy;
         prepare.Enabled = connected && inventoryReady && !busy && prepared is null && !uncertainGeneration && !HasUnhandedReceipt;
         var selected = SelectedAccount();
+        UpdateClosureControls(connected, selected);
         recoverAccess.Enabled = connected && !busy && !uncertainGeneration && !HasUnhandedReceipt && selected?.ConfirmedAt is not null && !selected.RecoveryRestricted;
         prepareRecovery.Enabled = connected && inventoryReady && !busy && !uncertainGeneration && recoveryTarget is not null && preparedRecovery is null;
         generateRecovery.Enabled = connected && !busy && !uncertainGeneration && preparedRecovery is not null;
