@@ -74,6 +74,12 @@ fonctionnent sous `/mon-bprea/`. Les nouveaux textes et contrôles sont soumis �
 des assertions ciblées de contraste composé, noms, focus et reflow. Le profil
 et ses commandes sont aussi vérifiés à 320 px avec texte à 200 %.
 
+Le premier passage CI Linux a révélé un débordement de « Aucune donnée » dans
+la synthèse hebdomadaire à 320 px avec texte doublé, absent du rendu Windows
+initial. La ligne permet maintenant le repli sur plusieurs rangées ; le contrôle
+local de texte agrandi impose aussi une police Verdana plus large. Les assertions
+de reflow restent inchangées.
+
 Ces contrôles ne constituent pas une certification WCAG, une recette lecteur
 d’écran, un zoom natif ou un essai sur appareil physique. Les simulations HTTP
 qualifient l’interface ; la preuve Auth/RLS vient de la stack locale et de la CI,
@@ -120,10 +126,10 @@ automne/clair. Médianes Windows ; mesures de laboratoire, pas de garantie terra
 
 | Page | LCP (ms) | CLS | Transféré, document inclus (Ko) | Requêtes |
 | --- | ---: | ---: | ---: | ---: |
-| Accueil | 1764 → 1712 | 0.08428 → 0.00000 | 911.25 → 898.95 | 80 → 78 |
-| Mes cours | 1300 → 1240 | 0.08412 → 0.00000 | 913.50 → 906.68 | 79 → 79 |
-| S’exercer | 1560 → 1384 | 0.12718 → 0.00041 | 913.51 → 890.06 | 79 → 76 |
-| Outils | 1352 → 1376 | 0.08412 → 0.00000 | 913.50 → 890.05 | 79 → 76 |
+| Accueil | 1808 → 1664 | 0.08428 → 0.00000 | 911.25 → 898.97 | 80 → 78 |
+| Mes cours | 1332 → 1320 | 0.08412 → 0.00000 | 913.50 → 906.70 | 79 → 79 |
+| S’exercer | 1688 → 1396 | 0.12718 → 0.00041 | 913.51 → 890.08 | 79 → 76 |
+| Outils | 1420 → 1404 | 0.08412 → 0.00000 | 913.50 → 890.07 | 79 → 76 |
 
 Poids CSS/JS/images décompressés en octets ; cartes et interactions en ms.
 L’interaction mesure le changement de luminosité et l’ouverture du menu Mes cours
@@ -131,13 +137,14 @@ jusqu’à deux images suivantes : **ce n’est pas l’INP de terrain**.
 
 | Page | CSS | JavaScript | Images | Cartes disponibles | Interaction |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Accueil | 66686 → 70660 | 813002 → 799372 | 0 → 2635 | 1915.9 → 1716.5 | 46.8 → 39.0 |
-| Mes cours | 69278 → 67226 | 813002 → 808263 | 0 → 0 | 1605.3 → 1480.6 | 36.3 → 36.7 |
-| S’exercer | 69278 → 65047 | 813002 → 799372 | 0 → 0 | 1572.4 → 1505.8 | 39.2 → 37.9 |
-| Outils | 69278 → 65047 | 813002 → 799372 | 0 → 0 | 1528.7 → 1466.3 | 31.5 → 34.0 |
+| Accueil | 66686 → 70676 | 813002 → 799372 | 0 → 2635 | 1942.3 → 1668.7 | 65.3 → 42.0 |
+| Mes cours | 69278 → 67242 | 813002 → 808263 | 0 → 0 | 1724.2 → 1635.6 | 40.0 → 42.1 |
+| S’exercer | 69278 → 65063 | 813002 → 799372 | 0 → 0 | 1697.2 → 1537.6 | 41.8 → 40.0 |
+| Outils | 69278 → 65063 | 813002 → 799372 | 0 → 0 | 1642.5 → 1510.5 | 38.8 → 33.4 |
 
-Aucun budget diagnostique dépassé. Le léger écart LCP d’Outils (+24 ms) reste
-sous le seuil et compatible avec la variabilité du laboratoire. Aucun flou coûteux
+Aucun budget diagnostique dépassé sur les quatre pages. Les mesures brutes
+permettent de distinguer les écarts observés de la variabilité du laboratoire.
+Aucun flou coûteux
 n’est ajouté aux cartes ou au hero ; le header PR1 reste inchangé. Les fichiers
 `performance-index.json`, `performance-mes-cours.json`,
 `performance-s-exercer.json` et `performance-outils.json` conservent mesures
