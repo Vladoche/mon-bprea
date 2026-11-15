@@ -96,12 +96,16 @@ jobs:
           mkdir -p .tmp/ui-2027-foundations/baseline
           git archive "$BASE_SHA" assets ':(top,glob)*.html' | tar -xf - -C .tmp/ui-2027-foundations/baseline
       - name: Comparer les mesures de laboratoire
-        run: node scripts/measure-ui-foundations.mjs
+        run: |
+          node scripts/measure-ui-foundations.mjs
+          for page in mes-cours s-exercer outils; do
+            node scripts/measure-ui-foundations.mjs --page "$page.html" --output ".tmp/ui-2027-foundations/performance-$page.json"
+          done
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: ui-performance-lab-${{ github.run_id }}
-          path: .tmp/ui-2027-foundations/performance.json
+          path: .tmp/ui-2027-foundations/performance*.json
           retention-days: 14
           if-no-files-found: ignore

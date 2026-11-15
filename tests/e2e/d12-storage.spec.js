@@ -43,12 +43,11 @@ test('D12 visiteur neuf : accès limités, révision normale et anecdote masqué
     return route.abort();
   });
   await observeStorage(page);
-  await page.goto(prefix);
+  await page.goto(prefix + 'mes-cours.html');
   const fact = page.getByRole('region', { name: 'Tu savais que… ?' });
   await expect(fact).toBeVisible();
-  await expect.poll(() => accesses(page, [progress, 'bprea-demo-drill-v1'])).toEqual(expect.arrayContaining([
-    ['getItem', progress], ['getItem', 'bprea-demo-drill-v1'],
-  ]));
+  await expect.poll(() => accesses(page, [progress])).toContainEqual(['getItem', progress]);
+  expect(await accesses(page, ['bprea-demo-drill-v1'])).toEqual([]);
   const optional = [appearance, legacyTheme, dismissed, itk, rememberedItk];
   expect(await accesses(page, optional)).toEqual([]);
   expect(await accesses(page, [rememberedAppearance])).toEqual([['getItem', rememberedAppearance]]);
@@ -73,7 +72,7 @@ test('D12 visiteur neuf : accès limités, révision normale et anecdote masqué
   expect(await accesses(page, optional)).toEqual([]);
   await closeFact.click();
   await page.goto(prefix + 'cours.html?id=matiere-organique');
-  await expect(fact).toBeVisible();
+  await expect(fact).toHaveCount(0);
   await page.getByRole('checkbox', { name: 'Marquer ce cours comme terminé' }).check();
   await expect.poll(() => localKeys(page)).toEqual([dismissed, progress].sort());
   await page.goto(prefix + 'itk.html');
@@ -218,6 +217,7 @@ test('D12 stockage bloqué : thème, anecdote et calcul restent disponibles', as
   await expect(page.locator('#appearance-action-message')).toContainText('stockage local est indisponible');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await closeAppearance(page);
+  await page.goto(prefix + 'mes-cours.html');
   await page.getByRole('button', { name: 'Masquer l’anecdote sur cette page' }).click();
   await expect(page.getByRole('region', { name: 'Tu savais que… ?' })).toBeHidden();
   await page.reload();

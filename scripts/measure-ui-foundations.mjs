@@ -10,6 +10,8 @@ const args = process.argv.slice(2);
 const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
 const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline'));
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
+const pageFile = option('--page', 'index.html');
+if (!['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html'].includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
 const runs = Number(option('--runs', '5'));
 if (!Number.isInteger(runs) || runs < 1 || runs > 10) throw new Error('Runs must be an integer from 1 to 10.');
 const roots = { before: baseline, after: repository };
@@ -29,7 +31,7 @@ await stat(resolve(baseline, 'index.html'));
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch();
-const results = { methodology: { browser: browser.version(), runs, viewport: '1440x1000', cpuSlowdown: 4, latencyMs: 20, throughputBytesPerSecond: 1250000, cache: 'cold browser context per run; no-store server', appearance: 'autumn/light', settleMs: 1000, useful: 'h1 and primary navigation visible', interaction: 'trusted click to second animation frame, laboratory presentation latency; not field INP' }, before: [], after: [] };
+const results = { methodology: { page: pageFile, browser: browser.version(), runs, viewport: '1440x1000', cpuSlowdown: 4, latencyMs: 20, throughputBytesPerSecond: 1250000, cache: 'cold browser context per run; no-store server', appearance: 'autumn/light', settleMs: 1000, useful: 'h1 and primary navigation visible', cards: 'first course, unit or activity card visible', bytes: 'Resource Timing; decoded bodies and transferred bytes, document included in totals; local server without compression', interaction: 'trusted click to second animation frame, laboratory presentation latency; not field INP' }, before: [], after: [] };
 try {
   // Alternate the two sources to reduce warm-up and machine-load bias.
   for (let run = 0; run < runs; run++) for (const phase of ['before', 'after']) {
@@ -57,25 +59,28 @@ try {
     const errors = [], failedResponses = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 400) failedResponses.push(response.url()); });
-    await page.goto(`${origin}/${phase}/index.html`);
+    await page.goto(`${origin}/${phase}/${pageFile}`);
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card').first().waitFor();
+    const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
       const resources = performance.getEntriesByType('resource');
+      const navigation = performance.getEntriesByType('navigation')[0];
       const bytes = extension => resources.filter(item => new URL(item.name).pathname.endsWith(extension)).reduce((sum, item) => sum + item.decodedBodySize, 0);
-      return { ...window.__uiMetrics, cssBytes: bytes('.css'), jsBytes: bytes('.js'), requests: resources.length + 1, loadMs: performance.getEntriesByType('navigation')[0].loadEventEnd };
+      return { ...window.__uiMetrics, cssBytes: bytes('.css'), jsBytes: bytes('.js'), imageBytes: resources.filter(item => /\.(svg|avif|webp|png|jpe?g)$/.test(new URL(item.name).pathname)).reduce((sum, item) => sum + item.decodedBodySize, 0), decodedBytes: navigation.decodedBodySize + resources.reduce((sum, item) => sum + item.decodedBodySize, 0), transferBytes: navigation.transferSize + resources.reduce((sum, item) => sum + item.transferSize, 0), requests: resources.length + 1, loadMs: navigation.loadEventEnd };
     });
     await page.locator('#theme-toggle').click();
     await page.locator('[data-navigation-toggle="courses"]').click();
     await page.waitForFunction(() => window.__uiMetrics.interactions.length === 2);
     metrics.interactions = await page.evaluate(() => window.__uiMetrics.interactions);
-    results[phase].push({ run: run + 1, ...metrics, usefulMs, errors, failedResponses });
+    results[phase].push({ run: run + 1, ...metrics, usefulMs, cardsReadyMs, errors, failedResponses });
     await context.close();
   }
   const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
-  results.medians = Object.fromEntries(['before', 'after'].map(phase => [phase, Object.fromEntries(['cssBytes', 'jsBytes', 'requests', 'lcp', 'cls', 'loadMs', 'usefulMs'].map(key => [key, median(results[phase].map(run => run[key]))]).concat([['interactionMs', median(results[phase].flatMap(run => run.interactions))]]))]));
+  results.medians = Object.fromEntries(['before', 'after'].map(phase => [phase, Object.fromEntries(['cssBytes', 'jsBytes', 'imageBytes', 'decodedBytes', 'transferBytes', 'requests', 'lcp', 'cls', 'loadMs', 'usefulMs', 'cardsReadyMs'].map(key => [key, median(results[phase].map(run => run[key]))]).concat([['interactionMs', median(results[phase].flatMap(run => run.interactions))]]))]));
   const before = results.medians.before, after = results.medians.after;
   // Broad diagnostic budgets account for ordinary local-laboratory variability.
   // They flag a targeted investigation, without grading the site with a global score.

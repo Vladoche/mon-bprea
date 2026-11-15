@@ -1,0 +1,63 @@
+/* PR2 uses the shared 2027 tokens and controls; the garden is a local SVG. */
+.home-hero { display:grid; grid-template-columns:1.15fr 1fr; gap:var(--space-7); align-items:center; padding-block:var(--space-7) var(--space-8); }
+.home-hero-copy { min-width:0; }
+.home-hero h1 { max-width:720px; font-size:clamp(2.25rem,4.1vw,3.65rem); line-height:1.12; letter-spacing:-.055em; margin:var(--space-4) 0 var(--space-5); }
+.home-hero h1 em { display:block; font-style:normal; color:var(--color-terracotta-text); }
+.home-hero-copy>p { max-width:550px; font-size:1.0625rem; line-height:1.8; }
+.home-actions { display:flex; flex-wrap:wrap; gap:var(--space-3); margin-top:var(--space-5); }
+.home-actions .btn { max-width:100%; }
+.home-hero-copy>.home-resume-note { min-height:3.6em; font-size:var(--font-size-meta); line-height:1.8; margin:var(--space-4) 0 0; }
+.home-garden { position:relative; min-width:0; border-radius:var(--radius-lg); border:1px solid var(--line); background:var(--color-accent-soft); box-shadow:var(--shadow-raised); padding:var(--space-2); transform:rotate(1deg); }
+.home-garden img { display:block; width:100%; height:auto; aspect-ratio:4/3; border-radius:var(--radius-md); }
+.home-garden-caption { position:absolute; inset:auto var(--space-5) var(--space-5) auto; padding:var(--space-3) var(--space-4); border-radius:var(--radius-md); background:var(--color-surface-glass); color:var(--text); border:1px solid var(--line); font-size:var(--font-size-meta); line-height:1.5; font-weight:650; }
+.home-modules { padding-bottom:var(--space-7); }
+.home-unit-summary { display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-3); margin:var(--space-5) 0; font-size:var(--font-size-meta); }
+.home-unit-summary>span { color:var(--muted); }
+.home-course-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--space-4); }
+.home-course-card { display:flex; flex-direction:column; min-width:0; padding:var(--space-5); background:var(--white); border:1px solid var(--line); border-radius:var(--radius-lg); box-shadow:var(--shadow-raised); transition:border-color var(--transition-control),box-shadow var(--transition-control); }
+.home-course-card:hover { border-color:var(--color-terracotta); box-shadow:var(--shadow-menu); }
+.home-course-top { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); margin-bottom:var(--space-5); }
+.home-course-state { color:var(--muted); font-size:var(--font-size-meta); text-align:right; }
+.home-course-state[data-state="done"] { color:var(--color-success); font-weight:700; }
+.home-course-card>.eyebrow { font-size:.6875rem; }
+.home-course-card h3 { font-size:1.25rem; line-height:1.4; margin:var(--space-3) 0; }
+.home-course-card p { font-size:var(--font-size-label); line-height:1.8; margin-bottom:var(--space-5); }
+.home-course-meta { display:flex; align-items:center; justify-content:space-between; gap:var(--space-3); margin-top:auto; padding-top:var(--space-4); border-top:1px solid var(--line); font-size:var(--font-size-meta); color:var(--muted); }
+.home-support { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-5) var(--space-7); border-block:1px solid var(--line); padding-block:var(--space-7); }
+.home-support h2 { font-size:var(--font-size-section); margin:var(--space-3) 0; }
+.home-support p { max-width:490px; font-size:var(--font-size-label); margin:0; }
+.home-support ul { list-style:none; margin:0; padding:0; display:grid; gap:var(--space-5); grid-row:span 2; }
+.home-support li { display:flex; align-items:flex-start; gap:var(--space-4); }
+.home-support li>svg { flex-shrink:0; color:var(--color-vegetal); margin-top:var(--space-1); }
+.home-support strong,.home-support small { display:block; }
+.home-support strong { font-size:var(--font-size-label); }
+.home-support small { font-size:var(--font-size-meta); color:var(--muted); margin-top:var(--space-1); }
+.home-support>a { justify-self:start; align-self:start; font-size:var(--font-size-label); padding-block:var(--space-2); }
+.home-all-courses { display:flex; align-items:center; justify-content:space-between; gap:var(--space-5); padding-block:var(--space-7) var(--space-5); }
+.home-all-courses h2 { font-size:var(--font-size-section); margin-bottom:var(--space-2); }
+.home-all-courses p { font-size:var(--font-size-label); margin:0; }
+.home-all-courses .btn { flex-shrink:0; }
+@media(max-width:1024px) {
+  .home-hero { gap:var(--space-5); }
+  .home-garden-caption { display:none; }
+  .home-course-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .home-course-card:last-child { grid-column:1/-1; }
+}
+@media(max-width:760px) {
+  .home-hero { grid-template-columns:1fr; padding-block:var(--space-6) var(--space-7); }
+  .home-hero h1 { font-size:clamp(2rem,7.5vw,3rem); }
+  .home-hero-copy>p { font-size:1rem; }
+  .home-garden { transform:none; max-width:480px; width:100%; justify-self:center; }
+  .home-garden img { aspect-ratio:2.5; max-height:180px; object-fit:cover; object-position:50% 60%; }
+  .home-support { grid-template-columns:1fr; gap:var(--space-5); }
+  .home-support ul { grid-row:auto; }
+  .home-all-courses { flex-direction:column; align-items:flex-start; }
+}
+@media(max-width:525px) {
+  .home-actions { flex-direction:column; align-items:stretch; }
+  .home-course-grid { grid-template-columns:1fr; }
+  .home-course-card:last-child { grid-column:auto; }
+  .home-all-courses .btn { width:100%; }
+}
+@media(prefers-reduced-motion:reduce) { .home-course-card { transition:none; } }
+@media(forced-colors:active) { .home-garden { display:none; } .home-course-card { border-color:CanvasText; } }

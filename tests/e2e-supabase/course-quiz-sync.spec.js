@@ -5,7 +5,8 @@ import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/
 import { LOCAL_SITE } from '../helpers/auth-local.js';
 import { lessons } from '../../assets/content.js';
 import { learningDocument } from '../fixtures/personal-data.js';
-import { personalRecords } from '../helpers/personal-browser.js';
+import { personalRecords, authIdentity } from '../helpers/personal-browser.js';
+import { openCourseQuizSettings, refreshCourseQuiz as refresh } from '../helpers/course-quiz-browser.js';
 
 // All identity and SQL assertions use the existing guarded, ephemeral local
 // fixture. No fabricated Auth response or privileged pedagogical assertion.
@@ -13,7 +14,6 @@ const lesson = lessons.find(item => item.id === 'matiere-organique');
 const courseUrl = `${LOCAL_SITE}cours.html?id=${lesson.id}`;
 const quizUrl = `${LOCAL_SITE}exercices.html?id=${lesson.id}`;
 const synced = page => expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
-const refresh = async page => { await page.getByRole('button', { name: 'Actualiser la progression', exact: true }).click(); await synced(page); };
 
 async function signIn(page, student, url = courseUrl) {
   await signInDrill(page, student); await page.goto(url); await synced(page);
@@ -116,7 +116,7 @@ test('QCM réels : perte HTTP après commit, outbox persistante puis reprise', a
     await page.reload(); await expect(page.locator('#quiz-history li')).toHaveCount(2);
     await expect(page.locator('#course-quiz-sync-status')).toContainText(/attente|indisponible|appareil|hors ligne/i);
     stage = 'retour réseau après rechargement'; await page.unroute(`${student.environment.url}/**`, outage);
-    await page.getByRole('button', { name: 'Actualiser la progression', exact: true }).click(); await synced(page);
+    await refresh(page);
     expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(2);
     await page.reload(); await synced(page); await expect(page.locator('#quiz-history li')).toHaveCount(2);
   } catch { failure = new Error(`Reprise QCM Supabase locale non validée : ${stage}. État : ${await diagnostics(page)}.`); }
@@ -144,6 +144,7 @@ test('Cours réel : conflit CAS et tentative parfaite conservée indépendamment
     expect((await sqlRows(student, 'course_states'))[0].done).toBe(false);
     const document = (await records(page))[0]; expect(document.conflicts.some(item => !item.resolved)).toBe(true);
     stage = 'résolution volontaire sur nouvelle révision';
+    await openCourseQuizSettings(page);
     await page.locator('.course-quiz-conflict').first().locator('summary').click();
     await page.getByRole('button', { name: 'Conserver mon choix', exact: true }).click(); await synced(page);
     const final = (await sqlRows(student, 'course_states'))[0]; expect(final.done).toBe(true); expect(final.revision).toBe(2);
@@ -168,13 +169,13 @@ test('Import réel volontaire : manifeste de positions, doublons légitimes et s
     await signIn(page, student, quizUrl); await expect(page.locator('#quiz-history li')).toHaveCount(0);
     expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(0);
     stage = 'prévisualisation puis annulation';
-    await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
-    await expect(page.getByRole('dialog')).toContainText('appareil');
-    await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' })).toContainText('appareil');
+    await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click();
     expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(0);
-    stage = 'confirmation explicite'; await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
+    stage = 'confirmation explicite'; await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
     await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await synced(page);
-    await expect(page.locator('#quiz-history li')).toHaveCount(2);
+    await page.goto(quizUrl); await synced(page); await expect(page.locator('#quiz-history li')).toHaveCount(2);
     const attempts = await sqlRows(student, 'quiz_attempts'); expect(attempts).toHaveLength(2);
     expect(new Set(attempts.map(item => item.attempt_id)).size).toBe(2);
     expect(attempts.map(item => [item.score, item.total, Date.parse(item.completed_at)])).toEqual([
@@ -182,13 +183,52 @@ test('Import réel volontaire : manifeste de positions, doublons légitimes et s
     ]);
     const before = (await records(page))[0]; expect(before.imports).toHaveLength(1);
     stage = 'rechargement et nouvel essai de la même source'; await page.reload(); await synced(page);
-    await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
+    await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
     const confirm = page.getByRole('button', { name: 'Confirmer l’import', exact: true });
-    if (await confirm.isEnabled()) await confirm.click(); else await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+    if (await confirm.isEnabled()) await confirm.click(); else await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click();
     await refresh(page); expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(2);
     const after = (await records(page))[0]; expect(after.imports).toEqual(before.imports);
     expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe(raw);
   } catch { failure = new Error(`Import cours/QCM Supabase local non validé : ${stage}. État : ${await diagnostics(page)}.`); }
   finally { if (student) try { await student.cleanup(); } catch { failure = new Error('Nettoyage du compte fictif import incomplet.'); } }
+  if (failure) throw failure;
+});
+
+test('Hubs réels : progression, reprise, cache hors API et séparation des comptes', async ({ page }) => {
+  test.setTimeout(120000);
+  const students = []; let stage = 'comptes locaux', failure;
+  try {
+    const a = await createDrillStudent(); students.push(a);
+    const b = await createDrillStudent(); students.push(b);
+    await configureDrillPage(page, a.environment); await signIn(page, a);
+    stage = 'cours et QCM sauvegardés automatiquement';
+    await page.locator('#mark-done').check(); await synced(page);
+    await page.goto(quizUrl); await synced(page); await answerQuiz(page, 2); await synced(page);
+    await page.goto(LOCAL_SITE); await synced(page);
+    await expect(page.locator('[data-unit-percent="uc3"]')).toHaveText('25 % des cours terminés');
+    await expect(page.getByRole('link', { name: 'Reprendre mes révisions' })).toHaveAttribute('href', `cours.html?id=${lesson.id}`);
+    await expect(page.locator('.course-quiz-panel, .daily-fact, #exam-preparation')).toHaveCount(0);
+    await page.goto(`${LOCAL_SITE}mes-cours.html`); await synced(page);
+    await expect(page.locator('[data-unit-progress-label="uc3"]')).toContainText('1 / 4 cours terminés · 25 %');
+    await expect(page.locator('main .daily-fact')).toBeVisible();
+    stage = 'relecture personnelle pendant une panne API';
+    const pattern = `${a.environment.url}/**`, outage = route => route.abort('failed');
+    await page.route(pattern, outage); await page.reload();
+    await expect(page.locator('[data-unit-progress-label="uc3"]')).toContainText('25 %');
+    await expect(page.locator('[data-learning-source]')).toHaveText('Progression de ton compte');
+    await expect(page.locator('.course-quiz-notice')).toBeVisible();
+    await page.unroute(pattern, outage); await authIdentity(page, { retry: true }); await refresh(page);
+    stage = 'compte B puis retour à A';
+    await signOut(page); await signIn(page, b, `${LOCAL_SITE}mes-cours.html`);
+    await expect(page.locator('[data-unit-progress-label="uc3"]')).toContainText('0 %');
+    expect(await sqlRows(b, 'course_states')).toEqual([]);
+    await signOut(page); await signIn(page, a, LOCAL_SITE);
+    await expect(page.locator('[data-unit-percent="uc3"]')).toHaveText('25 % des cours terminés');
+    await expect(page.getByRole('link', { name: 'Reprendre mes révisions' })).toHaveAttribute('href', `cours.html?id=${lesson.id}`);
+    expect(await sqlRows(a, 'quiz_attempts')).toHaveLength(1);
+  } catch { failure = new Error(`Hubs Supabase locaux non validés : ${stage}. Aucune réponse Auth brute publiée.`); }
+  finally {
+    for (const student of students.toReversed()) try { await student.cleanup(); } catch { failure = new Error('Nettoyage des seuls comptes fictifs hubs incomplet.'); }
+  }
   if (failure) throw failure;
 });

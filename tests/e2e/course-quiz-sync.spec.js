@@ -5,13 +5,13 @@ import { mkdir } from 'node:fs/promises';
 import { lessons } from '../../assets/content.js';
 import { accounts, createCourseQuizAPI } from './course-quiz-api.js';
 import { makeSeries, answerFor } from '../fixtures/drill.js';
+import { openCourseQuizSettings, refreshCourseQuiz as refresh } from '../helpers/course-quiz-browser.js';
 
 const lesson = lessons[0];
 const course = `/cours.html?id=${lesson.id}`;
 const quiz = `/exercices.html?id=${lesson.id}`;
 const now = new Date('2026-10-25T10:00:00.000Z');
 const synced = page => expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
-const refresh = async page => { await page.getByRole('button', { name: 'Actualiser la progression', exact: true }).click(); await synced(page); };
 async function answer(page, score) {
   for (const [i, question] of lesson.quiz.entries()) await page.locator(`input[name="q${i}"][value="${i < score ? question.answer : (question.answer + 1) % question.options.length}"]`).check();
   await page.locator('#check-quiz').click();
@@ -110,25 +110,27 @@ test('import volontaire : prévisualisation, annulation et manifeste réutilisé
   await page.goto(quiz); await synced(page); await expect(page.locator('#quiz-history li')).toHaveCount(0); expect(api.attempts.size).toBe(0);
   const provenance = () => page.evaluate(() => localStorage.getItem('bprea-demo-progress-provenance-v1'));
   expect(await provenance()).toBeNull();
-  const open = () => page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
+  const open = async () => { await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click(); };
   await open(); const dialog = page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' });
   await expect(dialog).toContainText('pas nécessairement liée au compte');
   await expect(dialog).toContainText('Tentatives QCM exploitables');
   expect(await provenance()).toBeNull();
-  await page.getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.attempts.size).toBe(0);
+  await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.attempts.size).toBe(0);
   expect(await provenance()).toBeNull();
   await open(); await capture(page,'import-desktop-light');
   await page.setViewportSize({ width: 390, height: 844 }); await capture(page,'import-mobile-light');
-  await page.getByRole('button', { name: 'Annuler', exact: true }).click(); await setTheme(page,'dark'); await open(); await capture(page,'import-mobile-dark');
+  await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click(); await setTheme(page,'dark'); await open(); await capture(page,'import-mobile-dark');
   await page.setViewportSize({ width: 1280, height: 900 }); await capture(page,'import-desktop-dark');
   await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await synced(page);
   const confirmedId = await provenance();
   expect(confirmedId).toMatch(/^[0-9a-f-]{36}$/i);
+  await page.goto(quiz); await synced(page);
   await expect(page.locator('#quiz-history li')).toHaveCount(2); expect(api.attempts.size).toBe(2);
   expect(await provenance()).toBe(confirmedId);
   const ids = await page.locator('#quiz-history li').evaluateAll(rows => rows.map(row => row.dataset.attemptId)); expect(new Set(ids).size).toBe(2);
   await page.reload(); await synced(page); await open(); await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click();
   await expect(page.locator('#course-quiz-action-message')).toContainText('déjà enregistré');
+  await page.goto(quiz); await synced(page);
   await expect(page.locator('#quiz-history li')).toHaveCount(2); expect(api.attempts.size).toBe(2);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe(raw);
 });
@@ -144,6 +146,7 @@ test('conflit explicite, focus stable et choix conservé avec nouvel UUID sur mo
   const key = `${accounts.A.id}:${lesson.id}`, row = api.courses.get(key);
   api.courses.set(key, { ...row, operation_id: '63200000-0000-4000-8000-000000000099', base_revision: row.revision, revision: row.revision + 1 });
   api.restOffline = false;
+  await openCourseQuizSettings(page);
   await page.getByRole('button', { name: 'Actualiser la progression', exact: true }).click();
   await expect(page.locator('#course-quiz-sync-status')).toContainText('Conflit');
   const details = page.locator('.course-quiz-conflict'); await details.locator('summary').click();
@@ -153,14 +156,15 @@ test('conflit explicite, focus stable et choix conservé avec nouvel UUID sur mo
   await setTheme(page,'dark'); await capture(page,'conflict-desktop-dark');
   await page.setViewportSize({ width: 390, height: 844 });
   const choice = page.getByRole('button', { name: 'Conserver mon choix', exact: true }); await choice.focus();
-  await choice.click(); await synced(page); await expect(page.locator('#mark-done')).not.toBeChecked();
+  await choice.click(); await synced(page);
   await expect(page.getByRole('button', { name: 'Actualiser la progression', exact: true })).toBeFocused();
   const updates = api.sent.filter(item => item.url.endsWith('/personal_save_course'));
   expect(updates.at(-1).body.p_operation_id).not.toBe(updates.at(-2).body.p_operation_id);
+  await page.goto(course); await synced(page); await expect(page.locator('#mark-done')).not.toBeChecked();
   await capture(page,'personal-mobile-dark');
 });
 
-test('mode visiteur local et bandeau examen personnel sans mélange avec le Drill visiteur', async ({ page }) => {
+test('mode visiteur local puis accueil personnel sans mélange des historiques', async ({ page }) => {
   await page.goto(quiz);
   await expect(page.locator('#course-quiz-sync-status')).toContainText('visiteur');
   await answer(page,2); await expect(page.locator('#quiz-history li')).toHaveCount(1);
@@ -172,15 +176,13 @@ test('mode visiteur local et bandeau examen personnel sans mélange avec le Dril
   const series = makeSeries();
   series.answers[series.questions[0].id] = answerFor(series.questions[0]);
   await page.evaluate(value => localStorage.setItem('bprea-demo-drill-v1', JSON.stringify(value)), { version: 1, series: { [series.id]: series } });
-  await page.route('**/assets/calendar-events.json*', route => route.fulfill({ json: { version: 1, events: [{ id: 'exam-synthetic', type: 'examen', unit: 'uc3', title: 'Examen de la recette cours', start: '2026-10-26' }] } }));
   const api = createCourseQuizAPI(); await api.install(page.context());
   // The earlier navigation already seeded no fixture; this first API-enabled
   // page now receives account A, whose empty course history remains separate.
   await page.goto('/'); await synced(page);
-  await expect(page.locator('[data-progress-total-done]')).toHaveText('0');
-  await expect(page.locator('.exam-metric').nth(1)).toContainText('Aucune tentative historisée');
-  await expect(page.locator('.exam-drill')).toContainText('Aucune série d’exercices hebdomadaires commencée');
-  await expect(page.locator('.exam-drill')).not.toContainText('1 réponses comptabilisées');
+  await expect(page.locator('[data-unit-percent="uc3"]')).toHaveText('0 % des cours terminés');
+  await expect(page.locator('#exam-preparation')).toHaveCount(0);
+  expect(JSON.parse(await page.evaluate(() => localStorage.getItem('bprea-demo-drill-v1'))).series[series.id].answers).toEqual(series.answers);
   expect(api.attempts.size).toBe(0);
 });
 

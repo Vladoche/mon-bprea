@@ -5,6 +5,7 @@ import { createDashboardModel } from './dashboard-stats.js';
 import { getParisWeek } from './drill-engine.js';
 import { DRILL_STORAGE_KEY } from './drill-store.js';
 import { getDrillSyncService } from './drill-sync-service.js';
+import { learningOverview } from './learning-overview.js';
 
 const clean = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 const number = value => new Intl.NumberFormat('fr-FR').format(value);
@@ -35,10 +36,57 @@ function linkCard({ href, title, description, symbol, action, primary = false, k
 }
 
 export function initCourseHub(root) {
-  root.innerHTML = `${intro('courses', 'Mes cours', 'Retrouve les cours de ta formation par unité capitalisable, puis passe aux activités de révision à ton rythme.', 'COMPRENDRE, PUIS METTRE EN PRATIQUE')}<section class="wrap hub-unit-section" aria-labelledby="hub-units-heading"><div class="hub-section-heading"><div><h2 id="hub-units-heading">Cours par UC</h2><p>Choisis une unité pour accéder à ses chapitres et à ses leçons.</p></div><span class="hub-count">${units.length} unités</span></div><div class="hub-unit-grid">${units.map(unit => {
-    const count = lessons.filter(lesson => lesson.unit === unit.id).length;
-    return `<a class="hub-unit-card" href="uc.html?id=${encodeURIComponent(unit.id)}"><span class="unit-icon tone-${clean(unit.tone)}">${icon(unit.icon)}</span><span class="eyebrow">${clean(unit.code)}</span><h3>${clean(unit.title)}</h3><p>${clean(unit.short)}</p><div class="hub-unit-bottom"><span>${count ? `${count} cours disponible${count > 1 ? 's' : ''} · <span data-unit-done="${unit.id}">—</span> terminé(s)` : 'Cours à venir'}</span><span class="hub-unit-arrow" aria-hidden="true">→</span></div></a>`;
-  }).join('')}</div></section><section class="wrap hub-next-panel" aria-labelledby="hub-practice-heading"><div><span class="eyebrow">DANS MES COURS</span><h2 id="hub-practice-heading">S’exercer</h2><p>Retrouve les exercices hebdomadaires, tes résultats et ton calendrier de révision.</p></div><a class="btn btn-primary" href="s-exercer.html">Accéder à S’exercer <span aria-hidden="true">→</span></a></section>`;
+  const first = lessons[0];
+  root.innerHTML = `${intro('courses', 'Mes cours', 'Comprendre une notion, retrouver un cours, puis mettre tes connaissances en pratique. Avance à ton rythme.', 'TON CARNET DE FORMATION')}
+    ${first ? `<section class="wrap hub-resume" aria-labelledby="hub-resume-heading"><div><span class="eyebrow" data-resume-kicker>POUR COMMENCER</span><h2 id="hub-resume-heading" data-resume-title>${clean(first.title)}</h2><p data-resume-note>Un premier cours pour découvrir le sol vivant.</p></div><a class="btn btn-outline" data-course-resume href="cours.html?id=${encodeURIComponent(first.id)}"><span data-course-resume-label>Découvrir ce cours</span><span aria-hidden="true">→</span></a></section>` : ''}
+    <section class="wrap hub-unit-section" aria-labelledby="hub-units-heading"><div class="hub-section-heading"><div><span class="eyebrow">LES UNITÉS DE TA FORMATION</span><h2 id="hub-units-heading">Cours par UC</h2><p>Cinq UC nationales et deux UCARE. Les cours disponibles sont regroupés dans l’UC 03.</p></div><span class="hub-count">${units.length} unités</span></div><p class="learning-source" data-learning-source>Vérification de la progression…</p><div class="hub-unit-grid">${units.map(unitCard).join('')}</div></section>
+    <section class="daily-fact wrap" id="course-daily-fact" hidden></section>
+    <section class="wrap hub-next-panel" aria-labelledby="hub-practice-heading"><div><span class="eyebrow">À TOI DE JOUER</span><h2 id="hub-practice-heading">Passe de la lecture à la pratique</h2><p>Exercices hebdomadaires, résultats et calendrier : retrouve tes repères pour réviser.</p></div><a class="btn btn-primary" href="s-exercer.html">Accéder à S’exercer <span aria-hidden="true">→</span></a></section>`;
+}
+
+function unitCard(unit) {
+  const count = lessons.filter(lesson => lesson.unit === unit.id).length;
+  return `<a class="hub-unit-card${count ? ' hub-unit-card-ready' : ''}" href="uc.html?id=${encodeURIComponent(unit.id)}" data-learning-unit="${unit.id}"><div class="hub-unit-top"><span class="unit-icon tone-${clean(unit.tone)}">${icon(unit.icon)}</span><span class="hub-availability">${count ? 'Cours disponibles' : 'À venir'}</span></div><span class="eyebrow">${clean(unit.code)}</span><h3>${clean(unit.title)}</h3><p>${clean(unit.short)}</p><div class="hub-unit-bottom"><span>${count} cours disponible${count > 1 ? 's' : ''}</span><span class="hub-unit-arrow" aria-hidden="true">→</span></div>${count ? `<div class="learning-progress"><span data-unit-progress-label="${unit.id}">Progression indisponible</span><progress data-unit-progress="${unit.id}" max="100" aria-label="Cours terminés · ${clean(unit.code)}" hidden></progress></div>` : '<span class="learning-future">Les cours de cette unité seront ajoutés ici.</span>'}</a>`;
+}
+
+export function initHome(root) {
+  const selection = lessons.slice(0, 3);
+  const unit = units.find(unit => unit.id === selection[0]?.unit);
+  root.innerHTML = `<section class="wrap home-hero" aria-labelledby="home-heading"><div class="home-hero-copy"><span class="eyebrow">BIENVENUE SUR BPREA</span><h1 id="home-heading">Ton espace de révision <em>pour le BPREA</em></h1><p>Des cours clairs, des outils efficaces et des ressources concrètes pour t’accompagner vers la réussite de ta formation.</p><div class="home-actions"><a class="btn btn-primary" data-revision-start href="s-exercer.html"><span data-revision-start-label>Commencer à réviser</span><span aria-hidden="true">→</span></a><a class="btn btn-outline" href="mes-cours.html">Explorer les cours</a></div><p class="home-resume-note" data-revision-hint>Choisis une série d’exercices pour te lancer, à ton rythme.</p></div><div class="home-garden" aria-hidden="true"><img src="assets/revision-garden.svg" width="640" height="480" alt="" decoding="async" fetchpriority="low"><span class="home-garden-caption">Cultiver ses connaissances,<br>une notion à la fois.</span></div></section>
+    <section class="wrap home-modules" aria-labelledby="home-modules-heading"><div class="hub-section-heading"><div><span class="eyebrow">TES CARNETS DE RÉVISION</span><h2 id="home-modules-heading">Des modules complets pour progresser</h2><p>Commence par le sol vivant : ${lessons.length} cours disponibles, accompagnés de leurs QCM.</p></div></div>${unit ? `<div class="home-unit-summary"><a class="ui-link" href="uc.html?id=${encodeURIComponent(unit.id)}">${clean(unit.code)} · ${clean(unit.title)} <span aria-hidden="true">↗</span></a><span data-unit-percent="${unit.id}">Progression indisponible</span></div>` : ''}<div class="home-course-grid">${selection.map(lesson => `<a class="home-course-card" href="cours.html?id=${encodeURIComponent(lesson.id)}"><div class="home-course-top"><span class="hub-card-icon">${icon('leaf')}</span><span class="home-course-state" data-course-card-state="${lesson.id}">Progression indisponible</span></div><span class="eyebrow">${clean(lesson.chapter)}</span><h3>${clean(lesson.title)}</h3><p>${clean(lesson.summary)}</p><div class="home-course-meta"><span>${lesson.minutes} min · QCM de ${lesson.quiz.length} questions</span><span class="hub-unit-arrow" aria-hidden="true">→</span></div></a>`).join('')}</div><p class="learning-source" data-learning-source>Vérification de la progression…</p></section>
+    <section class="wrap home-support" aria-labelledby="home-support-heading"><div><span class="eyebrow">DE LA THÉORIE AU TERRAIN</span><h2 id="home-support-heading">Tout pour nourrir tes révisions</h2><p>Lis les cours, teste ce que tu as retenu et prépare tes cultures avec des outils concrets.</p></div><ul><li>${icon('book')}<span><strong>Des notions expliquées</strong><small>Des cours courts et des sources pour approfondir.</small></span></li><li>${icon('exercise')}<span><strong>De la pratique régulière</strong><small>Dix exercices par UC et par semaine, sans limite de reprise.</small></span></li><li>${icon('flask')}<span><strong>Des outils pour le terrain</strong><small>Itinéraires techniques, botanique et ressources.</small></span></li></ul><a class="ui-link" href="outils.html">Découvrir les outils <span aria-hidden="true">→</span></a></section>
+    <section class="wrap home-all-courses" aria-labelledby="home-all-heading"><div><h2 id="home-all-heading">Ta formation, à ton rythme</h2><p>Retrouve les sept UC et UCARE, les cours disponibles et ceux à venir.</p></div><a class="btn btn-outline" href="mes-cours.html">Voir toutes les unités <span aria-hidden="true">→</span></a></section>`;
+}
+
+/** Patch only changing text and values: links keep keyboard focus during sync. */
+export function updateLearningOverview(root, snapshot) {
+  const model = learningOverview(snapshot);
+  for (const { unit, count, done, percent } of model.units) {
+    root.querySelectorAll(`[data-unit-percent="${unit.id}"]`).forEach(node => { node.textContent = percent === null ? 'Progression indisponible' : `${percent} % des cours terminés`; });
+    root.querySelectorAll(`[data-unit-progress-label="${unit.id}"]`).forEach(node => { node.textContent = percent === null ? 'Progression indisponible · données conservées' : `${done} / ${count} cours terminés · ${percent} %`; });
+    root.querySelectorAll(`[data-unit-progress="${unit.id}"]`).forEach(node => { node.hidden = percent === null; if (percent !== null) node.value = percent; else node.removeAttribute('value'); });
+  }
+  for (const { lesson, known, done } of model.courses) root.querySelectorAll(`[data-course-card-state="${lesson.id}"]`).forEach(node => {
+    node.textContent = !known ? 'Progression indisponible' : done ? 'Terminé' : 'À découvrir';
+    node.dataset.state = !known ? 'unknown' : done ? 'done' : 'new';
+  });
+  root.querySelectorAll('[data-learning-source]').forEach(node => { node.textContent = model.source; });
+  const resume = model.resume?.lesson;
+  const start = root.querySelector('[data-revision-start]');
+  if (start) {
+    start.setAttribute('href', resume ? `cours.html?id=${encodeURIComponent(resume.id)}` : 's-exercer.html');
+    root.querySelector('[data-revision-start-label]').textContent = resume ? 'Reprendre mes révisions' : 'Commencer à réviser';
+    root.querySelector('[data-revision-hint]').textContent = resume ? `Dernier QCM daté : ${resume.title}.` : 'Choisis une série d’exercices pour te lancer, à ton rythme.';
+  }
+  const course = root.querySelector('[data-course-resume]');
+  if (course) {
+    const lesson = resume || lessons[0];
+    course.setAttribute('href', `cours.html?id=${encodeURIComponent(lesson.id)}`);
+    root.querySelector('[data-resume-kicker]').textContent = resume ? 'REPRENDRE UN COURS' : 'POUR COMMENCER';
+    root.querySelector('[data-resume-title]').textContent = lesson.title;
+    root.querySelector('[data-resume-note]').textContent = resume ? 'Retrouve le cours associé au dernier QCM daté de cet espace.' : 'Un premier cours pour découvrir le sol vivant.';
+    root.querySelector('[data-course-resume-label]').textContent = resume ? 'Reprendre ce cours' : 'Découvrir ce cours';
+  }
 }
 
 function weeklySummary(now, snapshot) {
@@ -62,7 +110,7 @@ export function initPracticeHub(root) {
   const { signal } = controller;
   let service;
   let snapshot = { mode: 'blocked', sync: { state: 'loading' } };
-  root.innerHTML = `${intro('practice', 'S’exercer', 'Retrouve tes exercices, tes résultats et ton calendrier de révision.', 'DANS MES COURS')}<section class="wrap hub-weekly" aria-labelledby="hub-weekly-heading"><div id="hub-weekly-content" aria-live="polite" aria-atomic="false"></div></section><section class="wrap hub-practice-grid" aria-label="Activités de révision">${linkCard({ href: 'drill.html', title: 'Exercices hebdomadaires', description: 'Retrouve les séries de dix exercices par UC, renouvelées chaque semaine, et reprends celles déjà commencées à ton rythme.', symbol: 'exercise', action: 'Ouvrir les exercices', primary: true, kicker: 'POUR METTRE EN PRATIQUE' })}${linkCard({ href: 'tableau-de-bord.html', title: 'Tableau de bord', description: 'Consulte ton activité, tes résultats et les notions à retravailler à partir de tes réponses enregistrées.', symbol: 'chart', action: 'Consulter mes résultats' })}${linkCard({ href: 'calendrier.html', title: 'Calendrier', description: 'Retrouve ton emploi du temps annuel et les périodes d’examen pour organiser tes révisions.', symbol: 'calendar', action: 'Ouvrir le calendrier' })}</section>`;
+  root.innerHTML = `${intro('practice', 'S’exercer', 'Une série pour aujourd’hui, des repères pour la suite. Entraîne-toi à ton rythme.', 'METTRE SES CONNAISSANCES EN PRATIQUE')}<section class="wrap hub-practice-start" aria-label="Commencer ou reprendre une série">${linkCard({ href: 'drill.html', title: 'Exercices hebdomadaires', description: 'Dix exercices par UC chaque semaine. Commence une série ou retrouve celles déjà entamées : les semaines précédentes restent accessibles.', symbol: 'exercise', action: 'Ouvrir les exercices', primary: true, kicker: 'PRÊT POUR UNE SÉRIE ?' })}</section><section class="wrap hub-weekly" aria-labelledby="hub-weekly-heading"><div id="hub-weekly-content" aria-live="polite" aria-atomic="false"></div></section><section class="wrap hub-practice-grid" aria-label="Résultats et organisation">${linkCard({ href: 'tableau-de-bord.html', title: 'Tableau de bord', description: 'Retrouve tes résultats et les notions à retravailler à partir de tes réponses enregistrées.', symbol: 'chart', action: 'Consulter mes résultats' })}${linkCard({ href: 'calendrier.html', title: 'Calendrier', description: 'Organise tes révisions avec ton emploi du temps et les périodes d’examen.', symbol: 'calendar', action: 'Ouvrir le calendrier' })}</section>`;
   const summary = root.querySelector('#hub-weekly-content');
   let lastMarkup = '';
   function refresh() {
@@ -96,5 +144,5 @@ export function initPracticeHub(root) {
 }
 
 export function initToolsHub(root) {
-  root.innerHTML = `${intro('tools', 'Outils', 'Des ressources pour approfondir tes connaissances et préparer tes cultures.', 'DES APPUIS POUR ALLER PLUS LOIN')}<section class="wrap hub-tools-grid" aria-label="Outils disponibles">${linkCard({ href: 'itk.html', title: 'Générateur ITK', description: 'Prépare un itinéraire technique indicatif selon ta culture et tes contraintes, puis consulte ou exporte ses étapes.', symbol: 'flask', action: 'Créer un itinéraire technique' })}${linkCard({ href: 'ressources.html', title: 'Ressources documentaires', description: 'Consulte les liens utiles, PDF, fiches techniques et ressources classées par UC et associées aux cours.', symbol: 'book', action: 'Explorer la bibliothèque' })}${linkCard({ href: 'reconnaissance-plantes.html', title: 'Reconnaissance des plantes', description: 'Entraîne ton regard avec des photographies sourcées, découvre les caractères botaniques et retrouve ton historique local.', symbol: 'leaf', action: 'Observer et reconnaître' })}</section>`;
+  root.innerHTML = `${intro('tools', 'Outils', 'Préparer une culture, approfondir une notion ou reconnaître une plante : choisis ton point de départ.', 'DES APPUIS POUR LE TERRAIN')}<section class="wrap hub-tools-grid" aria-label="Outils disponibles">${linkCard({ href: 'itk.html', title: 'Générateur ITK', description: 'Prépare un itinéraire technique indicatif adapté à ta culture, puis exporte ses étapes.', symbol: 'flask', action: 'Créer un itinéraire technique' })}${linkCard({ href: 'ressources.html', title: 'Ressources documentaires', description: 'Approfondis tes cours avec des sources, fiches techniques et PDF classés par UC.', symbol: 'book', action: 'Explorer la bibliothèque' })}${linkCard({ href: 'reconnaissance-plantes.html', title: 'Reconnaissance des plantes', description: 'Observe les caractères botaniques et entraîne ton regard avec des photographies sourcées.', symbol: 'leaf', action: 'Observer et reconnaître' })}</section>`;
 }
