@@ -245,6 +245,7 @@ test('photographie indisponible : passage hors calcul et aucune erreur imputée 
 test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au clavier', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${prefix}outils.html`);
+  await page.locator('footer').getByRole('link', { name: 'Paramètres', exact: true }).click();
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('winter');
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
@@ -265,11 +266,13 @@ test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au 
   await page.keyboard.press('Enter');
   await expect(page.locator('#bot-feedback').getByRole('heading', { level: 2 })).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.locator('footer').getByRole('link', { name: 'Paramètres', exact: true }).click();
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('light');
   await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await page.goto(`${prefix}reconnaissance-plantes.html`);
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');

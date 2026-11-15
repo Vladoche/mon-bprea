@@ -94,6 +94,7 @@ test('botanique : A vers visiteur puis B suspend la question privée et restitue
   await startBotanical(page); await answerBotanical(page); await finishBotanical(page); await botanicalSynced(page);
   await page.getByRole('button', { name: 'Choisir une nouvelle session', exact: true }).click(); await startBotanical(page);
   await page.getByRole('group', { name: 'Quatre propositions' }).getByRole('button').first().click();
+  await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
   await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
   await expect(page.locator('#botanical-sync-status')).toContainText('visiteur');
   await expect(page.getByRole('group', { name: 'Quatre propositions' })).toHaveCount(0); await expectBotanicalHistory(page, { attempted: 0 });

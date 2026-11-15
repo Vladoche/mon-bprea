@@ -27,13 +27,21 @@ export async function expectItk(page, values) {
   for (const [key, value] of Object.entries(values)) await expect(page.locator(`#${key}`)).toHaveValue(value);
 }
 export async function chooseAppearance(page, season, brightness) {
-  if (!await page.locator('#appearance-dialog').isVisible()) await page.locator('#appearance-open').click();
+  await openAppearanceComponent(page);
   await page.locator('#appearance-season').selectOption(season);
   await page.locator('#appearance-brightness').selectOption(brightness);
 }
+// These service scenarios retain unsaved ITK/conflict state on its original
+// document. The actual Profile > Settings trigger is exercised by UI tests.
+export async function openAppearanceComponent(page) {
+  await expect(page.locator('#appearance-dialog')).toBeAttached();
+  if (!await page.locator('#appearance-dialog').isVisible()) {
+    await page.evaluate(() => document.querySelector('#appearance-dialog').showModal());
+  }
+}
 export async function closeAppearance(page) {
   await page.locator('#appearance-dialog').press('Escape');
-  await expect(page.locator('#appearance-open')).toBeFocused();
+  await expect(page.locator('#appearance-dialog')).not.toBeVisible();
 }
 export async function settingsRecords(page) {
   return personalRecords(page, 'mon-bprea-settings-personal-v1');

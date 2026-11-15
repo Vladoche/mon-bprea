@@ -20,7 +20,7 @@ test('connexion sous préfixe Pages : service non configuré, aucune inscription
   await expect(page.getByRole('button', { name: /créer.*compte|s’inscrire/i })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Mot de passe oublié', exact: true })).toHaveAttribute('href', 'mot-de-passe-oublie.html');
   const nav = page.getByRole('navigation', { name: 'Navigation principale' });
-  await expect(nav.getByRole('list').first().locator(':scope > li')).toHaveCount(3);
+  await expect(nav.getByRole('list').first().locator(':scope > li')).toHaveCount(4);
   await nav.getByRole('link', { name: 'Mes cours', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mes cours');
   await expect(page.locator('header').getByRole('link', { name: 'Connexion', exact: true })).toBeVisible();

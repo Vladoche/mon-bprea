@@ -12,7 +12,7 @@ describe('release Pages : préflight en lecture seule et absence de publication 
   it('vérifie et génère la notice sur un runner sans dépendances npm ni outils administratifs', () => {
     const directory = mkdtempSync(join(tmpdir(), 'bprea-notice-release-'));
     try {
-      for (const path of ['scripts/build-privacy-notice.mjs', 'scripts/preopening/notice-preview.mjs',
+      for (const path of ['scripts/build-privacy-notice.mjs', 'scripts/preopening/notice-preview.mjs', 'assets/footer.js',
         'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md', 'confidentialite.html']) {
         const destination = join(directory, path);
         mkdirSync(dirname(destination), { recursive: true });

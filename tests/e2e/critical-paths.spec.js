@@ -17,11 +17,11 @@ function metric(page, label) {
   return page.getByRole('term').filter({ hasText: new RegExp(`^${label}$`) }).locator('..').getByRole('definition');
 }
 
-test('navigation à trois rubriques et artefact versionné sous préfixe Pages', async ({ page, request }) => {
+test('navigation à quatre rubriques et artefact versionné sous préfixe Pages', async ({ page, request }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Faire pousser');
   const nav = page.getByRole('navigation', { name: 'Navigation principale' });
-  await expect(nav.getByRole('list').first().locator(':scope > li')).toHaveCount(3);
+  await expect(nav.getByRole('list').first().locator(':scope > li')).toHaveCount(4);
   await nav.getByRole('link', { name: 'Mes cours', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mes cours');
   await nav.getByRole('button', { name: 'Afficher les sous-rubriques de Mes cours' }).click();
@@ -191,6 +191,7 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
   const firstId = await anecdote.getAttribute('data-fact-id');
   const progress = '{"matiere-organique":{"done":true,"score":2}}';
   await page.evaluate(raw => localStorage.setItem('bprea-demo-progress-v1', raw), progress);
+  await page.locator('footer').getByRole('link', { name: 'Paramètres', exact: true }).click();
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('winter');
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
@@ -198,6 +199,7 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
   await page.keyboard.press('Escape');
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.goto('/');
   await page.reload();
   await expect(anecdote).toBeVisible();
   await expect(anecdote).toHaveAttribute('data-fact-id', firstId);

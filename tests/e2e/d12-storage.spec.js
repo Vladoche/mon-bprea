@@ -96,7 +96,7 @@ test('D12 ancien thème seul : Contact ignore la clé, reprise volontaire en mé
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   expect(await accesses(page, [appearance, legacyTheme, rememberedAppearance])).toEqual([['getItem', rememberedAppearance]]);
-  await page.goto(prefix);
+  await page.goto(prefix + 'profil.html#parametres');
   await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
   const remember = page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' });
   await expect(remember).toBeDisabled();

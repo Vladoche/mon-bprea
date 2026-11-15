@@ -19,6 +19,7 @@ async function signIn(page, student, url = courseUrl) {
   await signInDrill(page, student); await page.goto(url); await synced(page);
 }
 async function signOut(page) {
+  await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
   await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
   await expect(page.locator('#course-quiz-sync-status')).toContainText('visiteur');
 }

@@ -90,6 +90,7 @@ test('le changement A vers B masque résultats et réponses en cours puis restit
   await page.goto(quiz); await synced(page); await answer(page,3); await synced(page);
   await page.getByRole('button', { name: 'Recommencer', exact: true }).click();
   await page.locator('input[name="q0"]').first().check();
+  await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
   await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
   await expect(page.locator('#course-quiz-sync-status')).toContainText('visiteur');
   await expect(page.locator('#quiz-history li')).toHaveCount(0); await expect(page.locator('#quiz-result')).toBeEmpty();

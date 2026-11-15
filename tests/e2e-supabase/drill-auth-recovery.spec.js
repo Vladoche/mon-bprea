@@ -20,7 +20,12 @@ test('Drill réel : reprise du même compte après panne Auth sans événement o
     let blocked = true;
     await page.route(`${student.environment.url}/auth/v1/user*`, route => blocked ? route.abort('failed') : route.continue());
     expect(await verifyAuth(page)).toEqual({ status: 'offline', userId: student.userId });
-    await expect(page.locator('header').getByRole('link', { name: 'Mon profil', exact: true })).toHaveCount(0);
+    // A recognized offline identity keeps account navigation available. This
+    // does not grant permission to send pending answers before Auth recovers.
+    const header = page.locator('header');
+    await expect(header.getByRole('link', { name: 'Mon profil', exact: true })).toBeVisible();
+    await expect(header.getByRole('status')).toContainText('Hors ligne. Identité locale reconnue');
+    await expect(header.getByRole('link', { name: 'Connexion', exact: true })).toHaveCount(0);
 
     stage = 'réponse locale persistée et tentative de vérification Auth interrompue';
     const question = page.locator('.drill-question').first();

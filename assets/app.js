@@ -13,7 +13,7 @@ import { initCourseHub, initPracticeHub, initToolsHub } from './section-hubs.js'
 import { initAppearance } from './appearance.js';
 import { initDailyFact } from './daily-fact.js';
 import { initBotanical } from './botanical.js';
-import { initAuthHeader } from './auth-header.js';
+import { initFooter } from './footer.js';
 import { initAuthPage } from './auth-pages.js';
 import { bindItkPersonal } from './itk-personal-ui.js';
 
@@ -61,15 +61,9 @@ const icon = (name, size=20) => `<svg class="icon" width="${size}" height="${siz
 function header() {
   const page = document.body.dataset.page;
   const title = document.title;
-  $('#app-header').innerHTML = `<a class="skip-link" href="#app-main">Aller au contenu</a><div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf', 20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="primary-nav" id="primary-navigation" aria-label="Navigation principale"></nav><div class="header-actions"><button class="theme-toggle" id="theme-toggle" type="button"><span class="theme-icon" aria-hidden="true"></span><span class="theme-label"></span></button><button class="appearance-open" id="appearance-open" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" aria-label="Paramètres d’apparence"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3" fill="var(--white)"/><circle cx="15" cy="17" r="3" fill="var(--white)"/></svg><span class="appearance-label">Apparence</span></button></div></div>`;
+  $('#app-header').innerHTML = `<a class="skip-link" href="#app-main">Aller au contenu</a><div class="header-in wrap"><a class="brand" href="index.html" aria-label="Revenir à l'accueil"><span class="brand-symbol">${icon('leaf', 20)}</span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="primary-nav" id="primary-navigation" aria-label="Navigation principale"></nav><div class="header-actions"><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activer le mode sombre"><span class="theme-icon" aria-hidden="true"></span></button></div></div>`;
   initAppearance();
-  const account = document.createElement('div');
-  account.className = 'account-actions';
-  account.setAttribute('aria-label', 'Compte personnel');
-  $('.header-actions').prepend(account);
-  initAuthHeader(account);
   initNavigation($('#primary-navigation'), page);
-  $('#app-footer').innerHTML = `<div class="wrap footer-in"><span>© ${new Date().getFullYear()} · Mon BPREA</span><a href="contact.html">Contact et assistance</a><a href="confidentialite.html">Confidentialité</a><span>Contenus de démonstration non officiels · ${page === 'dashboard' ? 'Source des résultats précisée dans le Tableau de bord' : 'Données pédagogiques conservées sur cet appareil'}</span></div>`;
   document.title = `${title} · Mon BPREA`;
 }
 function unitCard(u) {
@@ -272,7 +266,7 @@ function updateProgressElements() {
   }
   $$('[data-lesson-completed]').forEach(node => node.hidden = !available || !isDone(node.dataset.lessonCompleted));
   $$('[data-progress-source]').forEach(node => node.textContent = available ? progressSource() : 'Progression indisponible : les données doivent être vérifiées.');
-  const footer = $('#app-footer .footer-in > span:last-child');
+  const footer = $('#footer-progress-source');
   if (footer) footer.textContent = `Contenus de démonstration non officiels · ${available ? progressSource() : 'Source des cours et QCM à vérifier'}`;
   refreshProgressUI();
 }
@@ -287,6 +281,10 @@ async function init(){
     progress = progressAvailable() ? progressState.view.progress : {};
   }
   ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
+  // Render the expanded footer after the initial page content. Hydrating it
+  // before the course source resolves briefly filled the viewport with footer
+  // links, then displaced the whole surface when the page became available.
+  initFooter($('#app-footer'), { page });
   if (usesProgress) {
     const panel = document.createElement('section');
     panel.className = 'wrap course-quiz-sync'; panel.setAttribute('aria-label', 'Sauvegarde des cours et QCM');

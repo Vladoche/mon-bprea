@@ -120,6 +120,7 @@ test('JSON réel : nouvel appareil A, historiques et intentions manquantes, conf
     let release, entered; const held = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });
     await fresh.page.route(`${a.environment.url}/rest/v1/quiz_attempts*`, async route => { entered(); await held; try { await route.continue(); } catch { /* cancelled */ } });
     await preview(fresh.page, file); await reached;
+    await fresh.page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await fresh.page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click(); release();
     await expect(fresh.page.locator('[data-restore-preview]')).toBeHidden(); await expect(fresh.page.locator('[data-restore-apply]')).toBeDisabled();
     expect(JSON.stringify(await readPersonalTables(a)) === JSON.stringify(after)).toBe(true);

@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, join, basename } from 'node:path';
+import { footerMarkup } from '../../assets/footer.js';
 
 export function noticeHtml(markdown, { preview = true } = {}) {
   const escape = text => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
@@ -36,6 +37,7 @@ export function noticeHtml(markdown, { preview = true } = {}) {
   ${preview ? '' : `<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script src="assets/theme-init.js"></script>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/navigation.css">
   <link rel="stylesheet" href="assets/contact.css">`}
   <style>
     :root {
@@ -57,7 +59,7 @@ export function noticeHtml(markdown, { preview = true } = {}) {
       }
     }
     body { margin: 0; background: var(--background); color: var(--text); }
-    .wrap { width: min(44rem, calc(100% - 2rem)); margin-inline: auto; }
+    main.wrap { width: min(44rem, calc(100% - 2rem)); margin-inline: auto; }
     header { padding-block: .85rem; background: var(--surface); border-bottom: 1px solid var(--border); }
     header p { margin-block: 0; color: var(--green); font-weight: 750; }
     main { padding-block: 1.25rem 3rem; overflow-wrap: anywhere; }
@@ -78,18 +80,18 @@ export function noticeHtml(markdown, { preview = true } = {}) {
     ${preview ? '' : `:root { --background: var(--bg); --surface: var(--white); --border: var(--line); --text: var(--color-text); --green: var(--color-accent); }
     .notice-links { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; margin-block-start: .5rem; }
     .notice-links a { display: inline-block; padding-block: .3rem; }
-    footer { border-top: 1px solid var(--border); padding-block: 1rem; }
+
     @media print { header, footer, .skip { display: none; } }`}
   </style>
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
-  <header><div class="wrap"><p>Mon BPREA · Espace de révision</p>${preview ? '' : '<nav class="notice-links" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="mes-cours.html">Mes cours</a><a href="connexion.html">Connexion</a><a href="contact.html">Contact et assistance</a></nav>'}</div></header>
+  ${preview ? '<header><div class="wrap"><p>Mon BPREA · Espace de révision</p></div></header>' : '<header class="standalone-header"><div class="wrap"><a class="brand" href="index.html" aria-label="Mon BPREA · Accueil"><span class="brand-symbol"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4c-9-1-15 2-15 8a6 6 0 0 0 6 6c6 0 9-6 9-14Z"/><path d="M4 21 15 10"/></svg></span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="standalone-nav" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="mes-cours.html">Mes cours</a><a href="outils.html">Outils</a><a href="connexion.html">Connexion</a></nav></div></header>'}
   <main class="wrap" id="contenu" tabindex="-1">
     ${preview ? '<aside role="note"><strong>Aperçu local de la version 1.1.</strong> Le fond de la version 1.0 a été approuvé le 5 novembre 2026. Les modifications et la publication restent à approuver.</aside>' : ''}
     ${blocks.join('\n    ')}
   </main>
-  ${preview ? '' : '<footer><div class="wrap notice-links"><a href="contact.html">Contact et assistance</a><a href="confidentialite.html">Confidentialité</a></div></footer>'}
+  ${preview ? '' : `<footer class="site-footer">${footerMarkup()}</footer>`}
 </body>
 </html>
 `.replace(/^[ \t]+$/gm, '');

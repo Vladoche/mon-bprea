@@ -9,6 +9,7 @@
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <script src="assets/theme-init.js"></script>
   <link rel="stylesheet" href="assets/style.css">
+  <link rel="stylesheet" href="assets/navigation.css">
   <link rel="stylesheet" href="assets/contact.css">
   <style>
     :root {
@@ -30,7 +31,7 @@
       }
     }
     body { margin: 0; background: var(--background); color: var(--text); }
-    .wrap { width: min(44rem, calc(100% - 2rem)); margin-inline: auto; }
+    main.wrap { width: min(44rem, calc(100% - 2rem)); margin-inline: auto; }
     header { padding-block: .85rem; background: var(--surface); border-bottom: 1px solid var(--border); }
     header p { margin-block: 0; color: var(--green); font-weight: 750; }
     main { padding-block: 1.25rem 3rem; overflow-wrap: anywhere; }
@@ -51,13 +52,13 @@
     :root { --background: var(--bg); --surface: var(--white); --border: var(--line); --text: var(--color-text); --green: var(--color-accent); }
     .notice-links { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; margin-block-start: .5rem; }
     .notice-links a { display: inline-block; padding-block: .3rem; }
-    footer { border-top: 1px solid var(--border); padding-block: 1rem; }
+
     @media print { header, footer, .skip { display: none; } }
   </style>
 </head>
 <body>
   <a class="skip" href="#contenu">Aller au contenu</a>
-  <header><div class="wrap"><p>Mon BPREA · Espace de révision</p><nav class="notice-links" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="mes-cours.html">Mes cours</a><a href="connexion.html">Connexion</a><a href="contact.html">Contact et assistance</a></nav></div></header>
+  <header class="standalone-header"><div class="wrap"><a class="brand" href="index.html" aria-label="Mon BPREA · Accueil"><span class="brand-symbol"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4c-9-1-15 2-15 8a6 6 0 0 0 6 6c6 0 9-6 9-14Z"/><path d="M4 21 15 10"/></svg></span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="standalone-nav" aria-label="Navigation principale"><a href="index.html">Accueil</a><a href="mes-cours.html">Mes cours</a><a href="outils.html">Outils</a><a href="connexion.html">Connexion</a></nav></div></header>
   <main class="wrap" id="contenu" tabindex="-1">
 
     <h1>Notice de confidentialité de Mon BPREA</h1>
@@ -108,6 +109,12 @@
     <h2 id="evolutions-de-la-notice" tabindex="-1">Évolutions de la notice</h2>
     <p>La version et sa date figurent en tête de cette page. Si l’usage des données change, la notice est mise à jour et les personnes concernées sont informées des changements importants avant leur application.</p>
   </main>
-  <footer><div class="wrap notice-links"><a href="contact.html">Contact et assistance</a><a href="confidentialite.html">Confidentialité</a></div></footer>
+  <footer class="site-footer"><div class="wrap footer-grid">
+    <div class="footer-identity"><a class="brand" href="index.html" aria-label="Mon BPREA · Accueil"><span class="brand-symbol"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4c-9-1-15 2-15 8a6 6 0 0 0 6 6c6 0 9-6 9-14Z"/><path d="M4 21 15 10"/></svg></span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><p>Un espace pour apprendre,<br>cultiver ses connaissances.</p></div>
+    <nav class="footer-column" aria-label="Navigation de bas de page"><h2>Navigation</h2><ul><li><a href="index.html">Accueil</a></li><li><a href="mes-cours.html">Mes cours</a></li><li><a href="outils.html">Outils</a></li><li><a data-footer-account href="connexion.html">Connexion</a></li></ul></nav>
+    <nav class="footer-column" aria-label="Ressources utiles"><h2>Ressources</h2><ul><li><a href="ressources.html">Ressources documentaires</a></li><li><a href="calendrier.html">Calendrier</a></li><li><a href="contact.html">Contact et assistance</a></li></ul></nav>
+    <nav class="footer-column" aria-label="Informations et préférences"><h2>Informations</h2><ul><li><a href="confidentialite.html">Confidentialité</a></li><li><a href="profil.html#parametres">Paramètres</a></li></ul></nav>
+  </div><div class="wrap footer-bottom"><span>© Mon BPREA · Projet personnel indépendant</span><span id="footer-progress-source">Contenus de démonstration non officiels</span></div>
+  <svg class="footer-landscape" viewBox="0 0 1440 180" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path fill="currentColor" opacity=".07" d="M0 120C160 8 300 170 500 125S800 12 1010 75s300-85 430-35v140H0Z"/><path fill="currentColor" opacity=".1" d="M0 170c220-65 350 35 560-20S940 75 1100 125s230-70 340-45v100H0Z"/><g fill="none" stroke="currentColor" stroke-width="1" opacity=".12"><path d="M800 180c180-70 400-55 640-90M950 180c120-50 330-60 490-75M1110 180c80-40 210-50 330-60"/></g></svg></footer>
 </body>
 </html>

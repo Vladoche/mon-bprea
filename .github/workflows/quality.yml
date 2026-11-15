@@ -59,13 +59,49 @@ jobs:
         run: node scripts/install-chromium.mjs
       - name: Vérifier les parcours navigateur
         run: npm run test:e2e
-      - name: Conserver les traces et captures en cas d’échec
-        if: failure()
+      - name: Conserver les captures pour validation visuelle et les traces
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-failure-${{ github.run_id }}
+          name: playwright-review-${{ github.run_id }}
           path: |
             test-results/
             playwright-report/
-          retention-days: 7
+          retention-days: 14
+          if-no-files-found: ignore
+
+  ui-performance:
+    name: ui-performance-lab
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Récupérer les deux versions à comparer
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Installer Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Installer les dépendances
+        run: npm ci
+      - name: Installer Chromium verrouillé
+        run: node scripts/install-chromium.mjs
+      - name: Préparer la référence publique de main
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p .tmp/ui-2027-foundations/baseline
+          git archive "$BASE_SHA" assets ':(top,glob)*.html' | tar -xf - -C .tmp/ui-2027-foundations/baseline
+      - name: Comparer les mesures de laboratoire
+        run: node scripts/measure-ui-foundations.mjs
+      - name: Conserver mesures brutes, médianes et budgets diagnostiques
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-performance-lab-${{ github.run_id }}
+          path: .tmp/ui-2027-foundations/performance.json
+          retention-days: 14
           if-no-files-found: ignore

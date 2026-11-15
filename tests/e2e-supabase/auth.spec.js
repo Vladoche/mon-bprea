@@ -31,6 +31,7 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
     await expect(main.getByRole('status')).toContainText('Ton nouveau mot de passe est enregistré.');
   }
   async function signOut() {
+    await header.getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await header.getByRole('button', { name: 'Déconnexion', exact: true }).click();
     await expect(header.getByRole('link', { name: 'Connexion', exact: true })).toBeVisible();
     await expect(header.getByRole('link', { name: 'Mon profil', exact: true })).toHaveCount(0);

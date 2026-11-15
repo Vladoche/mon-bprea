@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createSettingsAPI, settingsRow, accounts } from './settings-api.js';
-import { itkPath, itkParameters, settingsAction, settingsSynced, settingsCacheReady, generateItk, expectItk, chooseAppearance, closeAppearance, settingsRecords } from '../helpers/settings-browser.js';
+import { itkPath, itkParameters, settingsAction, settingsSynced, settingsCacheReady, generateItk, expectItk, chooseAppearance, closeAppearance, openAppearanceComponent, settingsRecords } from '../helpers/settings-browser.js';
 import { waitForIdentity, waitForPersistedOperation } from '../helpers/personal-browser.js';
 const now = new Date('2026-10-25T10:00:00.000Z');
 test.beforeEach(async ({ page }) => { await page.clock.install({ time: now }); });
@@ -86,7 +86,7 @@ test('apparence : préférences auto conservées, clavier et rendu local jour/nu
     await second.goto(itkPath); await settingsSynced(second);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
     expect(api.rows.appearance.get(accounts.A.id)).toMatchObject({ season: 'auto', brightness: 'auto' });
-    await page.locator('#appearance-open').click(); await captureMatrix(page, 'appearance'); await closeAppearance(page);
+    await openAppearanceComponent(page); await captureMatrix(page, 'appearance'); await closeAppearance(page);
   } finally { await context.close(); }
 });
 

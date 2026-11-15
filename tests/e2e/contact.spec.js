@@ -21,7 +21,7 @@ for (const width of [320, 390, 1280]) {
         await expect(email).toHaveAttribute('href', `mailto:${policy.contact.email}`);
         await expect(page.locator('form, input, iframe')).toHaveCount(0);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        expect(await page.locator('body').evaluate(node => getComputedStyle(node).backgroundColor)).toBe(colorScheme === 'dark' ? 'rgb(18, 27, 21)' : 'rgb(247, 249, 242)');
+        expect(await page.locator('body').evaluate(node => getComputedStyle(node).backgroundColor)).toBe(colorScheme === 'dark' ? 'rgb(18, 27, 21)' : 'rgb(250, 247, 240)');
         await page.keyboard.press('Tab');
         await expect(page.getByRole('link', { name: 'Aller au contenu', exact: true })).toBeFocused();
         await page.keyboard.press('Enter');

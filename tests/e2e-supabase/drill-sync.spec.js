@@ -13,6 +13,7 @@ async function respond(page, index = 0, training = false) {
   await expect(question.locator('.drill-correction')).toBeVisible();
 }
 async function signOut(page) {
+  await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
   await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
   await expect(page.locator('main')).toContainText('Mode visiteur');
 }
