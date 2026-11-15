@@ -225,7 +225,7 @@ test('hubs accessibles : cinq largeurs, texte doublé, clavier, contrastes et pr
       for (const contrast of contrasts) expect(contrast.ratio, `${file} ${brightness}: ${contrast.text}`).toBeGreaterThanOrEqual(4.5);
       report.push({ file, brightness, contrasts });
     }
-    await page.addStyleTag({ content: 'html { font-size:200% !important; } body { font-family:Verdana,sans-serif !important; }' });
+    await page.addStyleTag({ content: 'html { font-size:200% !important; } body,h1,h2,h3 { font-family:Verdana,sans-serif !important; }' });
     for (const width of [320, 390, 768]) {
       await page.setViewportSize({ width, height: 1000 });
       const reflow = await page.evaluate(() => ({ width:innerWidth, total:document.documentElement.scrollWidth, overflow:[...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 1).map(node => `${node.tagName}.${node.className}`).slice(0, 8) }));

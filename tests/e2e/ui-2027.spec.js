@@ -55,6 +55,8 @@ test('navigation : cinq largeurs, clavier, resize, texte agrandi et contraste fo
   await expect(page.locator('header .brand')).toHaveAttribute('href', 'index.html');
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
+    // Let the breakpoint's change event close the previous menu before opening one.
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
     for (const name of ['Mes cours', 'Outils']) {
       const button = disclosure(page, name);
       await button.focus();

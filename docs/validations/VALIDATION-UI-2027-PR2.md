@@ -76,9 +76,15 @@ et ses commandes sont aussi vérifiés à 320 px avec texte à 200 %.
 
 Le premier passage CI Linux a révélé un débordement de « Aucune donnée » dans
 la synthèse hebdomadaire à 320 px avec texte doublé, absent du rendu Windows
-initial. La ligne permet maintenant le repli sur plusieurs rangées ; le contrôle
-local de texte agrandi impose aussi une police Verdana plus large. Les assertions
+initial. La capture du passage suivant a aussi permis d’identifier le titre
+« S’exercer », dont le texte dépassait malgré une boîte de taille correcte.
+La ligne de synthèse et les titres autorisent maintenant le repli ; le contrôle
+local impose aussi une police Verdana plus large au corps et aux titres. Le
+débordement du titre a été reproduit localement avant correction. Les assertions
 de reflow restent inchangées.
+Le test clavier attend aussi la notification du breakpoint après un changement
+de largeur, avant d’ouvrir un menu ; cinq répétitions ciblées puis les 26 scénarios
+réussissent sans modifier le composant de navigation PR1.
 
 Ces contrôles ne constituent pas une certification WCAG, une recette lecteur
 d’écran, un zoom natif ou un essai sur appareil physique. Les simulations HTTP
@@ -126,10 +132,10 @@ automne/clair. Médianes Windows ; mesures de laboratoire, pas de garantie terra
 
 | Page | LCP (ms) | CLS | Transféré, document inclus (Ko) | Requêtes |
 | --- | ---: | ---: | ---: | ---: |
-| Accueil | 1808 → 1664 | 0.08428 → 0.00000 | 911.25 → 898.97 | 80 → 78 |
-| Mes cours | 1332 → 1320 | 0.08412 → 0.00000 | 913.50 → 906.70 | 79 → 79 |
-| S’exercer | 1688 → 1396 | 0.12718 → 0.00041 | 913.51 → 890.08 | 79 → 76 |
-| Outils | 1420 → 1404 | 0.08412 → 0.00000 | 913.50 → 890.07 | 79 → 76 |
+| Accueil | 1556 → 1492 | 0.08428 → 0.00000 | 911.25 → 898.99 | 80 → 78 |
+| Mes cours | 1252 → 1240 | 0.08412 → 0.00000 | 913.50 → 906.73 | 79 → 79 |
+| S’exercer | 1560 → 1324 | 0.12718 → 0.00041 | 913.51 → 890.10 | 79 → 76 |
+| Outils | 1288 → 1284 | 0.08412 → 0.00000 | 913.50 → 890.09 | 79 → 76 |
 
 Poids CSS/JS/images décompressés en octets ; cartes et interactions en ms.
 L’interaction mesure le changement de luminosité et l’ouverture du menu Mes cours
@@ -137,10 +143,13 @@ jusqu’à deux images suivantes : **ce n’est pas l’INP de terrain**.
 
 | Page | CSS | JavaScript | Images | Cartes disponibles | Interaction |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Accueil | 66686 → 70676 | 813002 → 799372 | 0 → 2635 | 1942.3 → 1668.7 | 65.3 → 42.0 |
-| Mes cours | 69278 → 67242 | 813002 → 808263 | 0 → 0 | 1724.2 → 1635.6 | 40.0 → 42.1 |
-| S’exercer | 69278 → 65063 | 813002 → 799372 | 0 → 0 | 1697.2 → 1537.6 | 41.8 → 40.0 |
-| Outils | 69278 → 65063 | 813002 → 799372 | 0 → 0 | 1642.5 → 1510.5 | 38.8 → 33.4 |
+| Accueil | 66686 → 70700 | 813002 → 799372 | 0 → 2635 | 1656.2 → 1494.9 | 28.9 → 29.1 |
+| Mes cours | 69278 → 67266 | 813002 → 808263 | 0 → 0 | 1503.2 → 1449.8 | 31.5 → 31.9 |
+| S’exercer | 69278 → 65087 | 813002 → 799372 | 0 → 0 | 1566.5 → 1429.1 | 31.7 → 33.8 |
+| Outils | 69278 → 65087 | 813002 → 799372 | 0 → 0 | 1443.6 → 1373.4 | 29.9 → 28.6 |
+
+Affichage utile (titre et navigation visibles), en ms : accueil 1646.7 → 1488.3,
+Mes cours 1477.2 → 1443.7, S’exercer 1559.3 → 1423.0, Outils 1437.4 → 1366.6.
 
 Aucun budget diagnostique dépassé sur les quatre pages. Les mesures brutes
 permettent de distinguer les écarts observés de la variabilité du laboratoire.

@@ -1,7 +1,7 @@
 /* Page hubs share the PR1 surfaces, type scale, radii and controls. */
 .hub-intro { padding-bottom:var(--space-6); }
 .hub-intro>p { max-width:760px; font-size:1rem; }
-.hub-intro h1 { font-size:var(--font-size-page); }
+.hub-intro h1 { font-size:var(--font-size-page); overflow-wrap:anywhere; }
 .hub-section-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--space-5); margin-bottom:var(--space-5); }
 .hub-section-heading h2 { font-size:var(--font-size-section); margin:var(--space-2) 0; }
 .hub-section-heading p { font-size:var(--font-size-label); margin:0; }
