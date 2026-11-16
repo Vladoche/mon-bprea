@@ -27,7 +27,7 @@ Mon profil — profil.html (compte reconnu)
 Connexion — connexion.html (visiteur, à la place de Mon profil)
 ```
 
-Cette hiérarchie organise les accès. Elle n’oblige pas à repasser par le menu : les liens directs entre cours et exercices, les ressources associées, les liens du Tableau de bord et le calendrier depuis le bandeau d’examens restent disponibles.
+Cette hiérarchie organise les accès. Elle n’oblige pas à repasser par le menu : les liens directs entre cours et exercices, les ressources associées et les liens du Tableau de bord restent disponibles. Le calendrier (`calendrier.html`) est accessible depuis le sous-menu Mes cours → S’exercer → Calendrier, la carte Calendrier du hub S’exercer et le lien Calendrier du footer.
 
 ## Fichiers responsables
 
