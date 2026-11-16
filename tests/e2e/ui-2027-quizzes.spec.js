@@ -15,7 +15,11 @@ async function open(page, url = quiz) {
 async function fill(page, score = 2) {
   for (const [i, q] of lesson.quiz.entries()) await page.locator(`input[name="q${i}"][value="${i < score ? q.answer : (q.answer + 1) % q.options.length}"]`).check();
 }
-const noOverflow = async page => expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
+const noOverflow = async page => {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(page.viewportSize().width);
+  const overflowing = await page.locator('.quiz-aside,.quiz-best-card,.quiz-advice,.quiz-result-box p').evaluateAll(nodes => nodes.filter(n => n.scrollWidth > n.clientWidth + 1).map(n => ({ class: n.className, text: n.textContent.slice(0, 60) })));
+  expect(overflowing).toEqual([]);
+};
 const synced = page => expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
 async function personal(page) { const api = createCourseQuizAPI(); await api.install(page.context(), 'A', null, prefix); return api; }
 
@@ -230,6 +234,9 @@ test('QCM : cinq largeurs, longues propositions, nombreuses questions et texte �
       if (width === 320) expect(await page.locator('.option').first().evaluate(n => n.getBoundingClientRect().height)).toBeGreaterThanOrEqual(44);
     }
   }
+  await page.setViewportSize({ width: 1024, height: 1000 });
+  await page.addStyleTag({ content: 'body,h1,h2,h3,legend{font-family:Arial,sans-serif!important}' });
+  await noOverflow(page);
 });
 
 test('QCM : contrastes des huit palettes et états, clavier, préférences', async ({ page }, info) => {

@@ -154,20 +154,20 @@ sans compression locale. L’horloge de performance navigateur reste réelle.
 
 | Médiane | Main #64 | QCM lot 2 |
 | --- | ---: | ---: |
-| LCP | 1 172 ms | 1 196 ms |
+| LCP | 1 280 ms | 1 308 ms |
 | CLS de chargement | 0 | 0 |
-| CSS décodé | 58 479 octets | 67 282 octets |
+| CSS décodé | 58 479 octets | 67 353 octets |
 | JavaScript décodé | 810 631 octets | 815 817 octets |
 | Requêtes | 76 | 78 |
-| Load event | 1 105,9 ms | 1 132,7 ms |
-| Titre et navigation visibles | 1 340,8 ms | 1 424,7 ms |
-| Questions prêtes | 1 353,6 ms | 1 435,9 ms |
-| Sélection → seconde frame | 25,5 ms | 24,9 ms |
-| Correction → seconde frame | 40,6 ms | 44,0 ms |
-| Écriture DOM de l’historique | 0,2 ms | 0,3 ms |
-| Présentation de l’historique | 14,7 ms | 12,6 ms |
+| Load event | 1 168,9 ms | 1 178,2 ms |
+| Titre et navigation visibles | 1 592,6 ms | 1 662,6 ms |
+| Questions prêtes | 1 612,9 ms | 1 678,7 ms |
+| Sélection → seconde frame | 17,9 ms | 17,4 ms |
+| Correction → seconde frame | 58,4 ms | 91,3 ms |
+| Écriture DOM de l’historique | 0,8 ms | 0,4 ms |
+| Présentation de l’historique | 28,0 ms | 33,8 ms |
 
-Aucun budget diagnostique dépassé. +8 803 octets CSS, +5 186 octets JS et deux
+Aucun budget diagnostique dépassé. +8 874 octets CSS, +5 186 octets JS et deux
 requêtes statiques (feuille ciblée et module). Aucune requête vers un service
 supplémentaire, dépendance ou image lourde. Ces latences de laboratoire ne sont
 pas un INP de terrain.
@@ -178,6 +178,21 @@ verticale volontaire des cartes et du panneau de résultat, visible dans les
 captures ; il ne doit pas être confondu avec le CLS de chargement nul. La page
 ne défile pas explicitement lors de la correction (`preventScroll` conservé).
 Le confort de cette extension fait partie de la revue humaine des captures.
+
+## Correctif issu de la première CI
+
+La première exécution Qualité sur `bfae117` a réussi 175 E2E et échoué sur
+les deux contrôles de reflow à 200 % : largeur 1 040 px au lieu de 1 024 px.
+Capture et trace Linux consultées ; les cartes de la grille latérale pouvaient
+imposer leur largeur minimale selon les métriques de police. La grille est
+maintenant bornée avec `minmax(0,1fr)`, les cartes peuvent rétrécir et les mots
+reviennent à la ligne. Aucun masquage du débordement n’est ajouté.
+
+Reproduction puis contrôle avec system-ui, Arial, sans-serif et Tahoma à 200 % :
+les cartes restent dans leur colonne. Les dix QCM renforcés ont réussi ; ils
+vérifient désormais aussi les débordements internes des cartes et un changement
+de police à 1 024 px. Les mesures et galeries ci-dessus ont été régénérées.
+Les résultats CI à retenir restent ceux de la tête finale indiquée dans la PR.
 
 ## Limites et livraison
 
