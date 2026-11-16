@@ -3,6 +3,7 @@ import { initResources, initCourseResources, initUnitResources } from './resourc
 import { initCalendar } from './calendar.js';
 import { getCourseQuizService } from './course-quiz-service.js';
 import { initCourseQuizNotice } from './course-quiz-ui.js';
+import { renderQuizPage, renderQuizResult, quizSaveStatus } from './course-quiz-page.js';
 import { validAttempt } from './course-quiz-model.js';
 import { initDrill } from './drill.js';
 import { initDashboard } from './dashboard.js';
@@ -105,18 +106,31 @@ function course() {
 }
 function quizzes() {
   const l = lessons.find(x => x.id === params.get('id')) || lessons[0];
-  let answers = {}, submitted = false, saving = false, attempt = null;
+  let answers = {}, submitted = false, saving = false, attempt = null, savedLocally = false;
   let source = `${progressState.mode}:${progressState.scope}`;
-  $('#app-main').innerHTML = `<section class="page-top wrap">${renderBreadcrumbs('quiz', { lesson: l })}<div class="page-eyebrow">TEST DE CONNAISSANCES · ${l.quiz.length} QUESTIONS</div><h1>Vérifie ce que tu as retenu.</h1><p>${clean(l.title)} — réponds aux questions, puis découvre le corrigé et les explications.</p></section><section class="wrap content-layout quiz-layout"><div class="content-panel"><div id="quiz-questions">${l.quiz.map((q,i)=>`<fieldset class="question" data-question="${i}"><legend><span>QUESTION ${String(i+1).padStart(2,'0')}</span>${clean(q.q)}</legend>${q.options.map((option,j)=>`<label class="option"><input type="radio" name="q${i}" value="${j}"/><span class="option-letter">${String.fromCharCode(65+j)}</span><span>${clean(option)}</span></label>`).join('')}<div class="explanation" id="explain-${i}" hidden></div></fieldset>`).join('')}</div><div class="quiz-controls"><button id="check-quiz" class="btn btn-primary" disabled>Corriger mes réponses ${icon('check',18)}</button><button id="retry-quiz" class="btn btn-outline" hidden>Recommencer</button></div><div id="quiz-result" aria-live="polite"></div><section class="quiz-history-panel" aria-labelledby="quiz-history-title"><h2 id="quiz-history-title">Mes tentatives QCM</h2><p id="quiz-history-source"></p><div id="quiz-history"></div></section></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">CONSEIL</span><h3>Ne révise pas en pilotage automatique.</h3><p>Essaie de justifier ta réponse avant de regarder la correction. C’est plus utile que de mémoriser seulement la lettre.</p></div><div class="aside-card"><span class="eyebrow">MEILLEUR SCORE</span><div class="big-ratio"><span id="quiz-best-score">—</span><span> / ${l.quiz.length}</span></div><p data-progress-source></p></div></aside></section>`;
+  $('#app-main').innerHTML = renderQuizPage(l, icon);
   const form = $('#quiz-questions'), check = $('#check-quiz'), retry = $('#retry-quiz');
   const date = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
   let historyMarkup;
   function reset() {
-    answers = {}; submitted = false; saving = false; attempt = null;
+    answers = {}; submitted = false; saving = false; attempt = null; savedLocally = false;
     $$('input',form).forEach(x => { x.checked = false; x.disabled = !progressAvailable(); });
     $$('.option',form).forEach(x => x.classList.remove('correct','incorrect'));
-    $$('.explanation',form).forEach(x => x.hidden = true);
+    $$('.explanation,.option-verdict',form).forEach(x => x.hidden = true);
+    updateEntryProgress();
     check.hidden = false; check.disabled = true; retry.hidden = true; $('#quiz-result').replaceChildren();
+  }
+  function updateEntryProgress() {
+    const count = Object.keys(answers).length, remaining = l.quiz.length - count;
+    $('#quiz-answer-count').textContent = `${count} réponse${count > 1 ? 's' : ''} sur ${l.quiz.length} renseignée${count > 1 ? 's' : ''}`;
+    $('#quiz-answer-progress').value = count;
+    $('#quiz-check-hint').textContent = submitted ? 'Corrigé disponible sous chaque question.' : !progressAvailable() ? 'Progression indisponible : vérifie la source avant de répondre.' : remaining ? `Réponds encore à ${remaining === 1 ? 'une question' : `${remaining} questions`} pour accéder au corrigé.` : 'Tout est renseigné. Tu peux découvrir le corrigé.';
+  }
+  function updateSaveStatus() {
+    if (!savedLocally) return;
+    const message = `Progression enregistrée sur cet appareil. ${quizSaveStatus(progressState)}`;
+    const status = $('#quiz-save-status');
+    if (status && status.textContent !== message) status.textContent = message;
   }
   refreshProgressUI = () => {
     const nextSource = `${progressState.mode}:${progressState.scope}`;
@@ -124,7 +138,11 @@ function quizzes() {
     const available = progressAvailable();
     $$('input',form).forEach(input => input.disabled = submitted || !available);
     check.disabled = submitted || !available || Object.keys(answers).length !== l.quiz.length;
+    updateEntryProgress();
+    retry.disabled = saving || !available;
+    updateSaveStatus();
     const saved = progress[l.id];
+    $('#quiz-best-detail').textContent = !available ? 'Meilleur score indisponible pour le moment.' : saved?.score !== undefined ? 'Ton meilleur résultat enregistré pour ce cours.' : 'Aucun score enregistré pour ce cours.';
     $('#quiz-best-score').textContent = available && saved?.score !== undefined ? saved.score : '—';
     $('#quiz-history-source').textContent = available ? progressSource() : progressState.view.error || 'La progression doit être vérifiée.';
     const rows = available && Array.isArray(saved?.quizAttempts) ? saved.quizAttempts : [];
@@ -138,42 +156,62 @@ function quizzes() {
     const match = event.target.name?.match(/^q(\d+)$/);
     if (match) answers[Number(match[1])] = Number(event.target.value);
     check.disabled = Object.keys(answers).length !== l.quiz.length;
+    updateEntryProgress();
   });
   async function saveAttempt() {
     if (saving || !attempt) return;
     saving = true;
     const epoch = progressEpoch;
     const pending = attempt;
-    $('#quiz-result').innerHTML = `<div class="quiz-result-box"><div><strong>${pending.score} / ${pending.total} bonnes réponses</strong><p role="status">Enregistrement sur cet appareil…</p></div></div>`;
-    $('#quiz-result').tabIndex = -1;
-    $('#quiz-result').focus({ preventScroll: true });
+    const resultRoot = $('#quiz-result');
+    if (!resultRoot.firstElementChild) {
+      resultRoot.innerHTML = renderQuizResult(pending);
+      $('#retry-quiz-save').addEventListener('click', saveAttempt);
+    }
+    $('#quiz-save-error').hidden = true;
+    $('#retry-quiz-save').hidden = true;
+    $('#quiz-save-status').textContent = 'Enregistrement sur cet appareil…';
+    retry.disabled = true;
+    resultRoot.focus({ preventScroll: true });
     if (courseQuizService.getState().sync.state === 'storage-error') await courseQuizService.retry();
     if (epoch !== progressEpoch) return;
     const result = await courseQuizService.recordQuiz(l.id, pending);
     if (epoch !== progressEpoch) return;
     saving = false;
-    $('#quiz-result').innerHTML = `<div class="quiz-result-box">${icon('check',28)}<div><strong>${pending.score} / ${pending.total} bonnes réponses</strong><p>${pending.score === pending.total && !result.error ? 'Sans faute ! Ton choix de terminer le cours a été enregistré sur cet appareil.' : 'Relis les corrections et recommence quand tu veux.'}</p>${result.error ? `<p role="alert">Erreur de sauvegarde : ${clean(result.error)} Cette tentative n’est pas annoncée comme enregistrée.</p><button class="btn btn-outline" type="button" id="retry-quiz-save">Réessayer l’enregistrement</button>` : `<p>Progression enregistrée sur cet appareil.${progressState.mode === 'personal' ? ' Le suivi de synchronisation précise son envoi au compte.' : ' Mode visiteur : sauvegarde locale uniquement.'}</p>`}</div></div>`;
-    $('#retry-quiz-save')?.addEventListener('click', saveAttempt);
+    savedLocally = !result.error;
+    if (result.error) {
+      $('#quiz-save-status').textContent = '';
+      $('#quiz-save-error').textContent = `Erreur de sauvegarde : ${result.error} Le résultat reste affiché ; cette tentative n’est pas annoncée comme enregistrée.`;
+      $('#quiz-save-error').hidden = false;
+      $('#retry-quiz-save').hidden = false;
+    }
+
     refreshProgressUI();
   }
   check.addEventListener('click', async () => {
-    if (submitted || !progressAvailable()) return;
+    if (submitted || !progressAvailable() || Object.keys(answers).length !== l.quiz.length) return;
     submitted = true;
     let score = 0;
     l.quiz.forEach((q,i) => {
       const ok = answers[i] === q.answer;
       if (ok) score++;
       const fs = $(`[data-question="${i}"]`);
-      $$('.option',fs).forEach((el,j) => { if (j === q.answer) el.classList.add('correct'); if (j === answers[i] && !ok) el.classList.add('incorrect'); });
+      $$('.option',fs).forEach((el,j) => {
+        if (j === q.answer) el.classList.add('correct');
+        if (j === answers[i] && !ok) el.classList.add('incorrect');
+        const verdict = $('.option-verdict', el);
+        verdict.textContent = j === q.answer ? (ok ? 'Ta réponse · Bonne réponse' : 'Bonne réponse') : j === answers[i] ? 'Ta réponse · Incorrecte' : '';
+        verdict.hidden = !verdict.textContent;
+      });
       const explanation = $(`#explain-${i}`); explanation.hidden = false;
-      explanation.innerHTML = `<strong>${ok ? 'Bonne réponse' : 'À corriger'}</strong> — ${clean(q.why)}`;
+      explanation.innerHTML = `<strong>${icon(ok ? 'check' : 'warning', 18)} ${ok ? 'Bonne réponse' : 'Ta réponse est incorrecte'}</strong><p>Bonne réponse : ${clean(q.options[q.answer])}</p><p>${clean(q.why)}</p>`;
     });
     $$('input',form).forEach(x => x.disabled = true);
-    check.hidden = true; retry.hidden = false;
+    check.hidden = true; retry.hidden = false; updateEntryProgress();
     attempt = { score, total: l.quiz.length, completedAt: new Date().toISOString() };
     await saveAttempt();
   });
-  retry.addEventListener('click', () => { if (!saving) { reset(); $('input',form)?.focus({ preventScroll: true }); } });
+  retry.addEventListener('click', () => { if (!saving) { reset(); refreshProgressUI(); $('input',form)?.focus({ preventScroll: true }); } });
 }
 function selectOptions(options,selected){return options.map(x=>`<option value="${clean(x)}" ${selected===x?'selected':''}>${clean(x)}</option>`).join('');}
 function dateForMonth(month,year){return new Date(year,month-1,15,12);}
@@ -274,6 +312,9 @@ async function init(){
     $('#app-main > section')?.after(notice);
     if (courseQuizService) {
       const disposeNotice = initCourseQuizNotice(notice, courseQuizService);
+      // The QCM result owns save announcements; keep the shared notice readable
+      // without announcing the same transition twice.
+      if (page === 'quiz') { $('#course-quiz-sync-status').removeAttribute('role'); }
       // The service subscription is independent of the detailed profile panel.
       const unsubscribe = courseQuizService.subscribe(state => {
         if (`${state.mode}:${state.scope}` !== `${progressState.mode}:${progressState.scope}` || state.sync.state === 'session' && progressState.sync.state !== 'session') progressEpoch++;

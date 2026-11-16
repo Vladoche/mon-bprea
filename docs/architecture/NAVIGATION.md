@@ -86,7 +86,7 @@ collisions des nouvelles ancres ; les liens natifs conservent fragment et
 historique, avec focus sur le titre. Sur petit écran, sommaire, article et
 ressources, essentiel puis fin de cours suivent le flux. Les tableaux défilent
 dans leur région nommée. La complétion reste manuelle via le service existant ;
-le QCM garde son URL et son interface. La suite suit `order` dans la seule UC
+le QCM garde son URL ; sa présentation 2027 utilise `course-quiz-page.js` et sa feuille ciblée, avec les radios natifs et toutes les questions sur une page. La suite suit `order` dans la seule UC
 concernée ; le dernier cours revient à son unité. Voir la
 [validation et ses limites](../validations/VALIDATION-UI-2027-PR3-LOT1.md).
 
