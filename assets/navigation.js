@@ -12,6 +12,12 @@ const navigationIcons = {
   home: '<path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-7h6v7"/>',
   courses: '<path d="M3 5.5c3-1 6-1 9 1 3-2 6-2 9-1v14c-3-1-6-1-9 1-3-2-6-2-9-1v-14ZM12 6.5v14"/>',
   tools: '<path d="m14 6 4-3 3 3-3 4m-4-4-9 9a3 3 0 0 0 4 4l9-9m-4-4 4 4M3 3l5 2 1 4-2 2-4-1-2-5m8 6 3 3"/>',
+  itk: '<path d="M9 3h6m-5 0v6L4 19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2L14 9V3M7 15h10"/>',
+  resources: '<path d="M3 5.5c3-1 6-1 9 1 3-2 6-2 9-1v14c-3-1-6-1-9 1-3-2-6-2-9-1v-14ZM12 6.5v14"/>',
+  botanical: '<path d="M20 4c-9-1-15 2-15 8a6 6 0 0 0 6 6c6 0 9-6 9-14ZM4 21 15 10"/>',
+  drill: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 3h6v4H9V3ZM8 13l2 2 5-5M8 18h8"/>',
+  dashboard: '<path d="M4 20h16M7 16V9m5 7V4m5 12v-4"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18"/>',
 };
 
 function validEntry(entry) {
@@ -61,9 +67,9 @@ function createLink(entry, page, selectedUnit, className = 'primary-nav__link') 
     if (page === 'uc' && entry.unitId === selectedUnit) link.setAttribute('aria-current', 'page');
   } else {
     link.textContent = entry.label;
-    if (className === 'primary-nav__top-link' && navigationIcons[entry.id]) {
+    if (['primary-nav__top-link', 'primary-nav__link'].includes(className) && navigationIcons[entry.id]) {
       const label = element('span', '', entry.label);
-      link.innerHTML = `<svg class="primary-nav__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${navigationIcons[entry.id]}</svg>`;
+      link.innerHTML = `<svg class="primary-nav__icon${className === 'primary-nav__link' ? ' primary-nav__link-icon' : ''}" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${navigationIcons[entry.id]}</svg>`;
       link.append(label);
     }
     if (entry.pages?.includes(page)) link.classList.add('active');
@@ -109,7 +115,7 @@ function renderNavigation(root, items, page) {
       panel.setAttribute('role', 'group');
       panel.setAttribute('aria-labelledby', link.id);
       button.setAttribute('aria-controls', panel.id);
-      button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+      button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
       line.append(button);
       if (entry.groups) {
         for (const group of entry.groups) {
@@ -157,6 +163,7 @@ export async function initNavigation(root, page = document.body.dataset.page) {
   initAuthHeader(root.querySelector('.account-actions'), page);
   const desktop = matchMedia('(min-width: 601px)');
   let lastOpened = null;
+  let positionFrame = 0;
 
   // Account state can replace its disclosure without rebuilding navigation or
   // attaching a second set of keyboard/outside-click handlers.
@@ -167,9 +174,42 @@ export async function initNavigation(root, page = document.body.dataset.page) {
   }
 
   function setOpen(entry, open) {
+    entry.panel.inert = !open;
     entry.panel.hidden = !open;
+    if (open) entry.panel.removeAttribute('aria-hidden');
+    else entry.panel.setAttribute('aria-hidden', 'true');
     entry.button.setAttribute('aria-expanded', String(open));
     entry.button.setAttribute('aria-label', `${open ? 'Masquer' : 'Afficher'} les sous-rubriques de ${entry.label}`);
+    entry.button.closest('.primary-nav__entry').classList.toggle('is-open', open);
+    if (open) positionPanel(entry);
+  }
+  // Panels keep their native disclosure semantics outside the entry list.
+  // Measure only visible panels, on opening or a relevant layout change.
+  function positionPanel(entry) {
+    const { panel, button } = entry;
+    if (!desktop.matches) {
+      panel.style.removeProperty('left');
+      panel.style.removeProperty('top');
+      panel.style.removeProperty('--nav-panel-height');
+      return;
+    }
+    const parent = panel.offsetParent.getBoundingClientRect();
+    const anchor = button.closest('.primary-nav__entry').getBoundingClientRect();
+    // offsetWidth ignores the short entry/exit transform animation.
+    const width = panel.offsetWidth;
+    const preferred = button.dataset.navigationToggle === 'profile' ? anchor.right - width : (anchor.left + anchor.right - width) / 2;
+    const left = Math.max(parent.left, Math.min(preferred, parent.right - width));
+    const top = anchor.bottom - parent.top + 12;
+    panel.style.left = `${left - parent.left}px`;
+    panel.style.top = `${top}px`;
+    panel.style.setProperty('--nav-panel-height', `${Math.max(100, innerHeight - anchor.bottom - 28)}px`);
+  }
+  function schedulePosition() {
+    if (positionFrame || !entries().some(entry => !entry.panel.hidden)) return;
+    positionFrame = requestAnimationFrame(() => {
+      positionFrame = 0;
+      entries().filter(entry => !entry.panel.hidden).forEach(positionPanel);
+    });
   }
   function closeAll() {
     for (const entry of entries()) setOpen(entry, false);
@@ -180,7 +220,7 @@ export async function initNavigation(root, page = document.body.dataset.page) {
       const entry = entries().find(candidate => candidate.button === button);
       if (!entry) return;
       const open = entry.panel.hidden;
-      if (desktop.matches) closeAll();
+      closeAll();
       setOpen(entry, open);
       if (open) {
         lastOpened = entry;
@@ -224,4 +264,11 @@ export async function initNavigation(root, page = document.body.dataset.page) {
     closeAll();
     focused?.button.focus();
   }, { signal });
+  window.addEventListener('resize', schedulePosition, { signal });
+  const layout = new ResizeObserver(schedulePosition);
+  layout.observe(root.closest('.header-in') || root);
+  // Late identity and text/preference changes can resize entries while the
+  // outer header keeps exactly the same dimensions.
+  root.querySelectorAll('.primary-nav__list > li').forEach(item => layout.observe(item));
+  signal.addEventListener('abort', () => { layout.disconnect(); cancelAnimationFrame(positionFrame); }, { once: true });
 }

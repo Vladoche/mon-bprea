@@ -37,3 +37,47 @@ export async function textContrasts(target) {
     });
   });
 }
+
+/** Sample actual rendered backgrounds, including photographs behind glass.
+ * Diagnostic text hiding is never used for the review captures themselves. */
+export async function renderedTextContrasts(page, selector) {
+  const target = page.locator(selector);
+  const samples = await target.evaluate(root => {
+    const clip = root.getBoundingClientRect();
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), values = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      if (!node.textContent.trim() || node.parentElement.closest('[hidden],[inert],.sr-only')) continue;
+      const range = document.createRange(); range.selectNodeContents(node);
+      const rects = [...range.getClientRects()].map(r => ({
+        x: Math.max(0, clip.left, r.left), y: Math.max(0, clip.top, r.top),
+        right: Math.min(innerWidth, clip.right, r.right), bottom: Math.min(innerHeight, clip.bottom, r.bottom),
+      })).filter(r => r.right > r.x && r.bottom > r.y);
+      if (rects.length) values.push({ text: node.textContent.trim(), color: getComputedStyle(node.parentElement).color, rects });
+    }
+    root.classList.add('review-contrast-sample');
+    return values;
+  });
+  const style = await page.addStyleTag({ content: '.review-contrast-sample,.review-contrast-sample *{color:transparent!important;text-shadow:none!important}' });
+  let screenshot;
+  try { screenshot = await page.screenshot({ animations: 'disabled' }); }
+  finally { await style.evaluate(node => node.remove()); await target.evaluate(node => node.classList.remove('review-contrast-sample')); }
+  return page.evaluate(async ({ samples, png }) => {
+    const image = new Image(); image.src = `data:image/png;base64,${png}`; await image.decode();
+    const canvas = document.createElement('canvas'); canvas.width = image.width; canvas.height = image.height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }); ctx.drawImage(image, 0, 0);
+    const colorCanvas = document.createElement('canvas'); colorCanvas.width = colorCanvas.height = 1;
+    const colors = colorCanvas.getContext('2d', { willReadFrequently: true });
+    const light = rgb => rgb.map(v => { const c = v / 255; return c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4; }).reduce((sum, v, i) => sum + v * [.2126, .7152, .0722][i], 0);
+    return samples.map(sample => {
+      colors.fillStyle = sample.color; colors.fillRect(0, 0, 1, 1);
+      const foreground = light([...colors.getImageData(0, 0, 1, 1).data].slice(0, 3));
+      let ratio = Infinity;
+      for (const r of sample.rects) for (const dx of [.1, .5, .9]) for (const dy of [.2, .5, .8]) {
+        const bg = light([...ctx.getImageData(Math.floor(r.x + (r.right - r.x) * dx), Math.floor(r.y + (r.bottom - r.y) * dy), 1, 1).data].slice(0, 3));
+        ratio = Math.min(ratio, (Math.max(bg, foreground) + .05) / (Math.min(bg, foreground) + .05));
+      }
+      return { text: sample.text, ratio };
+    });
+  }, { samples, png: screenshot.toString('base64') });
+}
