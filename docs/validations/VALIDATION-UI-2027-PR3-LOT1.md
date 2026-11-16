@@ -2,8 +2,11 @@
 
 Base : PR #61 fusionnée, `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a`.
 Branche : `feat/ui-2027-learning-experience`. Validation du 16 novembre 2026.
-[PR #63 ouverte](https://github.com/Vladoche/mon-bprea/pull/63), sans fusion ;
-aucune publication Pages ou mutation PROD. Les
+[PR #63 fusionnée](https://github.com/Vladoche/mon-bprea/pull/63) le 16/11/2026
+à 14:38:57 UTC, commit `9de353168d5ddc9a9ecd02ac7fdaa6f0e1bc9d98`.
+Les preuves ci-dessous portent la tête finale `3dae6b0` livrée avant fusion ;
+aucune nouvelle campagne ni publication Pages ou mutation PROD n’est déduite
+de la fusion. Les
 [checks](https://github.com/Vladoche/mon-bprea/pull/63/checks) et artefacts finaux
 sont liés dans la description de la PR.
 
@@ -169,5 +172,6 @@ Pas d’appareil physique, de lecteur d’écran ou de zoom natif revendiqué.
 Le texte à 200 % est simulé par la taille racine ; la conformité WCAG complète
 n’est pas certifiée. L’unité longue reste synthétique, les contenus réels
 restent limités à quatre cours dans un seul chapitre. La revue esthétique
-humaine et la décision de fusion restent nécessaires. Aucun changement de
+humaine n’est pas remplacée par les captures ; la fusion a depuis été décidée
+le 16/11 en #63. Aucun changement de
 contrat de stockage/synchronisation, de migration ou de réglage Auth.

@@ -10,11 +10,11 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    refaire `git fetch origin` et vérifier les PR pertinentes avant toute modification.
 2. Créer une branche dédiée depuis la référence autorisée, préserver les travaux
    existants et consulter seulement les contrats utiles. [PR #63, lot 1 UC et
-   lecture](https://github.com/Vladoche/mon-bprea/pull/63)
-   est suivi sur `feat/ui-2027-learning-experience`, mise à jour après la fusion
-   documentaire #62 ; consulter sa validation et l’état central avant de continuer.
-3. Prochain chantier fonctionnel : revue de **PR3 lot 1**, puis suites QCM/Drill/
-   statistiques sur la même branche selon le périmètre autorisé ; PR4 outils
+   lecture](https://github.com/Vladoche/mon-bprea/pull/63) est fusionnée sur main
+   depuis le 16/11. Le [correctif d’apparence #64](https://github.com/Vladoche/mon-bprea/pull/64)
+   reste ouvert sur `codex/fix-appearance-navigation`, actualisé avec cette fusion.
+3. Prochain chantier fonctionnel : revue de **#64**, puis suites QCM/Drill/
+   statistiques de PR3 selon le périmètre autorisé ; PR4 outils
    spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
    13 novembre 2026 est passée.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le

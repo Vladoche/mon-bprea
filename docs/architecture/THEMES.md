@@ -1,10 +1,10 @@
 # Apparence dynamique
 
-Le header commun propose une **icône clair/sombre** (`#theme-toggle`), sans bouton Apparence. Elle force la luminosité choisie sans modifier la saison. Les réglages complets sont dans **Mon profil → Paramètres → Régler l’apparence** (`profil.html#parametres`, bouton `#appearance-open`). Le dialogue `#appearance-dialog` conserve le clavier natif (Tab, Maj+Tab, Échap), la fermeture et le retour au contrôle d’ouverture. Les changements visuels sont immédiats ; sélectionner **Automatique selon l’heure** rétablit les ambiances horaires.
+Le header commun propose une **icône clair/sombre** (`#theme-toggle`), sans bouton Apparence. Elle force la luminosité choisie sans modifier la saison. En visiteur, son clic mémorise ce choix sur l’appareil pour les prochaines pages ; l’infobulle l’explique et un statut accessible annonce le résultat. Les réglages complets sont dans **Mon profil → Paramètres → Régler l’apparence** (`profil.html#parametres`, bouton `#appearance-open`). Le dialogue `#appearance-dialog` conserve le clavier natif (Tab, Maj+Tab, Échap), la fermeture et le retour au contrôle d’ouverture. Les changements visuels sont immédiats ; sélectionner **Automatique selon l’heure** rétablit les ambiances horaires.
 
 | Contexte | Chemin et sauvegarde |
 | --- | --- |
-| Visiteur, Auth désactivée ou sans compte | Header : clair/sombre ; footer « Paramètres » vers `profil.html#parametres`, dont les réglages d’apparence restent accessibles sans connexion. Choix temporaires, mémorisation appareil volontaire |
+| Visiteur, Auth désactivée ou sans compte | Header : clair/sombre mémorisé au clic ; footer « Paramètres » vers `profil.html#parametres`, dont les réglages restent accessibles sans connexion. Dans le dialogue, choix temporaires puis mémorisation/retrait volontaires |
 | Compte connecté | Mon profil → Paramètres ; préférences personnelles via `settings-service.js`, cache isolé et synchronisation existante |
 | Compte reconnu hors ligne | Même menu Mon profil ; cache personnel utilisable si le service reconnaît la portée. Choix conservés localement, attente distante signalée ; aucune confirmation réseau inventée |
 | Identité en vérification ou à revérifier, stockage personnel indisponible | Choix visuel temporaire ; pas d’écriture visiteur ni personnelle non vérifiée. Le dialogue indique la limite |
@@ -44,7 +44,7 @@ La préférence d’appareil volontaire utilise **`bprea-demo-appearance-device-
 {"version":1,"season":"autumn","brightness":"dark"}
 ```
 
-Les saisons sont `auto`, `spring`, `summer`, `autumn`, `winter` ; les luminosités `auto`, `light`, `dark`. Sans mémorisation valide, le modèle commence en `auto`/`auto`. Changer un contrôle ne mémorise pas automatiquement le choix pour la prochaine page. **Mémoriser mon apparence sur cet appareil** écrit seulement ce choix ; **Retirer l’apparence mémorisée** retire cette seule clé, en gardant le rendu courant. Le choix tout automatique ne nécessite pas de mémorisation.
+Les saisons sont `auto`, `spring`, `summer`, `autumn`, `winter` ; les luminosités `auto`, `light`, `dark`. Sans mémorisation valide, le modèle commence en `auto`/`auto`. Le clic lune/soleil du header appelle la mémorisation existante en visiteur : la navigation, le rechargement et les autres onglets retrouvent ce choix dès le script avant CSS, sans nouvelle clé. Les sélecteurs du dialogue restent des choix de page ; **Mémoriser mon apparence sur cet appareil** permet de les garder explicitement. **Retirer l’apparence mémorisée** retire cette seule clé, en gardant le rendu courant. Le choix tout automatique ne nécessite pas de mémorisation.
 
 Les anciennes clés `bprea-demo-appearance-v1` et `bprea-demo-theme-v1` sont préservées, sans reprise silencieuse. **Reprendre une ancienne apparence** applique explicitement une valeur lisible à la page courante ; une mémorisation séparée est nécessaire pour les prochaines pages. Une valeur d’appareil illisible n’est pas écrasée par le bouton de mémorisation ; l’erreur est signalée. Si le stockage est bloqué, le rendu temporaire reste possible mais sa conservation n’est pas garantie.
 
@@ -63,3 +63,18 @@ Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise CA
 Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications historiques dans [VALIDATION-LOT5.md](../archives/validations/VALIDATION-LOT5.md).
 
 Les parcours d’accès et la présentation 2027 sont qualifiés dans [PR1](../validations/VALIDATION-UI-2027-PR1.md) et [PR2](../validations/VALIDATION-UI-2027-PR2.md). Les contrats de préférences ne sont pas modifiés par cette maintenance documentaire.
+
+Correction de navigation du 16/11/2026 : le bouton du header ne gardait auparavant
+le choix que sur la page. La régression est reproduite avant correction puis
+couverte par `tests/e2e/appearance-navigation.spec.js` : Accueil → Outils → Mes
+cours, clair/sombre, rechargement, second onglet et retrait, à 390 et 1440 px.
+Le compte continue à utiliser le service personnel ; une identité bloquée ne
+permet aucune écriture visiteur et les erreurs/quota/valeurs inconnues ne sont
+pas annoncés comme une mémorisation réussie. La notice approuvée reste intacte.
+
+Validation locale : régression Accueil → Outils reproduite avant le correctif ;
+15 tests unitaires/intégration d’apparence et 43 scénarios E2E distincts réussis
+(apparence, D12, paramètres personnels et navigation commune). Captures
+ordinateur/mobile conservées dans `.tmp/fix-appearance-navigation/` pour revue,
+avec le constat avant correction ; les nouveaux parcours produisent aussi leurs
+captures dans l’artefact Playwright CI. Pas de recette PROD revendiquée.
