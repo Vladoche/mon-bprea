@@ -11,7 +11,9 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification factuelle : **16 novembre 2026, 13:10 UTC**.
+- Dernière vérification Git/PR et correctif local : **16 novembre 2026**.
+  Les relevés Pages/HTTP ci-dessous restent ceux de **13:10 UTC** ; aucune
+  nouvelle recette hébergée ni lecture de sauvegarde dans cette intervention.
 - Sources : `git fetch origin`, code de `origin/main`, [PR GitHub](https://github.com/Vladoche/mon-bprea/pulls?q=is%3Apr),
   [historique Pages](https://github.com/Vladoche/mon-bprea/actions/workflows/deploy.yml),
   checks des têtes finales #58–#61, lectures HTTP publiques de l’accueil et de sa
@@ -29,21 +31,22 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a` |
-| Dernière PR fusionnée | [#61](https://github.com/Vladoche/mon-bprea/pull/61), 16/11/2026 à 09:22:11 UTC |
+| Dernier commit | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
+| Dernière PR fusionnée | [#62](https://github.com/Vladoche/mon-bprea/pull/62), 16/11/2026 à 13:53:25 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61) |
-| PR ouvertes | Aucune au relevé de 13:10 UTC ; [maintenance documentaire #62](https://github.com/Vladoche/mon-bprea/pull/62) ouverte à 13:21 UTC, non fusionnée |
-| Prochain chantier | PR3 : pages pédagogiques UC, lecture, QCM et exercices ; ne pas présenter des travaux locaux comme fusionnés |
+| PR ouverte | [#63](https://github.com/Vladoche/mon-bprea/pull/63), PR3 lot 1 UC/lecture, non fusionnée |
+| Correctif en cours | Mode clair/sombre perdu à la navigation, reproduit puis corrigé sur `codex/fix-appearance-navigation` ; branche distincte de PR3 |
+| Prochain chantier | Revue du correctif d’apparence et de PR3 lot 1 ; lots pédagogiques suivants selon autorisation |
 
-La branche locale `feat/ui-2027-learning-experience` contient des travaux PR3
-non commités au démarrage de cette maintenance. Ils sont préservés dans leur
-worktree ; aucune PR3 ouverte n’était visible sur GitHub à la vérification.
-La présente branche `docs/project-status-and-release-tracking` part de main
-et ne contient pas ces changements.
+PR3 lot 1 est commitée et poussée en #63, tête `3dae6b0`, avec quatre checks
+réussis ; elle reste ouverte sans publication. Le correctif d’apparence est
+indépendant, issu de main après #62 : clic lune/soleil conservé en visiteur avec
+la clé existante, sans modifier les contrats personnels. Voir les
+[règles d’apparence et tests ciblés](../architecture/THEMES.md).
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#61. **Code testé** : leurs têtes finales
+**Code fusionné** : main inclut #59–#62. **Code testé** : les têtes finales #59–#61
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -57,7 +60,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a` |
+| Dernier commit main | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -129,8 +132,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Poursuivre **PR3, pages pédagogiques**, sur sa branche indépendante ; qualifier
-   UC/lecture puis les autres parcours pédagogiques selon son périmètre réel.
+1. Examiner le correctif clair/sombre et **PR3 lot 1, UC/lecture**, avec leurs
+   checks et captures, sans fusion automatique ; poursuivre ensuite les autres
+   parcours pédagogiques selon le périmètre autorisé.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
 3. Décider séparément d’une publication du code fusionné, puis appliquer le

@@ -9,9 +9,16 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- Correctif clair/sombre entre pages : le clic lune/soleil mémorise désormais
+  le choix visiteur avec la clé d’appareil existante. Préférences personnelles,
+  retrait et protections de stockage conservés ; branche
+  `codex/fix-appearance-navigation`, non fusionnée.
+- PR3 lot 1 UC/lecture : [#63 ouverte](https://github.com/Vladoche/mon-bprea/pull/63),
+  non fusionnée, sur `feat/ui-2027-learning-experience`.
 - Documentation : centralisation de l’état du projet, historique des jalons,
   registre Pages et guides synchronisés avec main ; branche
-  `docs/project-status-and-release-tracking`, [PR #62](https://github.com/Vladoche/mon-bprea/pull/62).
+  [PR #62 fusionnée](https://github.com/Vladoche/mon-bprea/pull/62) le 16/11 à
+  13:53:25 UTC (`ae1d66f8c98360928d64a395a155c52f8eb972f4`).
 - Frontend fusionné après le dernier commit publié : refonte 2027 #59–#61
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
   propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
