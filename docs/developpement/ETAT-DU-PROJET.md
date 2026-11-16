@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `456e844152a5be65598e891c9c53b8fb619524f0` |
-| Dernière PR fusionnée | [#64](https://github.com/Vladoche/mon-bprea/pull/64), 16/11/2026 à 15:04:49 UTC |
-| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64) |
-| PR ouverte | [#65](https://github.com/Vladoche/mon-bprea/pull/65), QCM de cours PR3 lot 2, `feat/ui-2027-course-quizzes` ; revue humaine avant fusion, [checks de tête](https://github.com/Vladoche/mon-bprea/pull/65/checks) |
-| Prochain chantier | Revue des QCM PR3 lot 2 ; Drill/statistiques suivants de PR3 selon autorisation |
+| Dernier commit | `2322aab6424961f2afdc78a4bfe49e608262c0ef` |
+| Dernière PR fusionnée | [#65](https://github.com/Vladoche/mon-bprea/pull/65), 16/11/2026 à 18:52:04 UTC |
+| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65) |
+| PR ouverte | [#66](https://github.com/Vladoche/mon-bprea/pull/66), Drill PR3 lot 3, `feat/ui-2027-weekly-drill` ; [validation et captures](../validations/VALIDATION-UI-2027-PR3-LOT3.md), revue humaine avant fusion, sans publication |
+| Prochain chantier | Revue humaine du Drill PR3 lot 3, puis décision de fusion ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -45,12 +45,13 @@ Les quatre checks de sa tête finale `3dae6b0` ont réussi ; cette validation
 ne vaut pas une recette hébergée. Le correctif #64 est fusionné depuis le
 16/11 à 15:04:49 UTC ; ses quatre
 [checks](https://github.com/Vladoche/mon-bprea/pull/64/checks) sont réussis sur
-`6187c7d719c63765e47d3470da5fd6e580c59a40`. Le lot QCM reste distinct de main ;
-voir sa [validation](../validations/VALIDATION-UI-2027-PR3-LOT2.md).
+`6187c7d719c63765e47d3470da5fd6e580c59a40`. Les QCM #65 sont fusionnés le
+16/11 à 18:52:04 UTC ; leur tête finale est `2e626256ade23dd2cc5173f596e8a375647c85ae`.
+Voir leur [validation datée](../validations/VALIDATION-UI-2027-PR3-LOT2.md).
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#64. **Code testé** : les têtes finales #59–#61, #63 et #64
+**Code fusionné** : main inclut #59–#65. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -64,7 +65,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `456e844152a5be65598e891c9c53b8fb619524f0` |
+| Dernier commit main | `2322aab6424961f2afdc78a4bfe49e608262c0ef` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -89,7 +90,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Mes cours | Sept UC/UCARE, progression réelle, anecdote après les UC ; #60 | Cours disponibles dans la seule UC 03 | [Architecture](../architecture/ARCHITECTURE.md) |
 | Pages UC | Chapitres ouverts, cartes et unités vides modernisés ; #63 | Refonte fusionnée ; cours dans la seule UC 03 | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 | Lecture des cours | Sommaire interne et mise en page de lecture ; #63 | Quatre cours illustratifs UC 03, complétion et persistance conservées | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
-| QCM | Contrats historiques conservés ; présentation 2027 PR3 lot 2 en revue | Lot 2 non fusionné ; anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
+| QCM | Présentation 2027 PR3 lot 2 fusionnée #65, contrats historiques conservés | Refonte non publiée ; anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
 | Tableau de bord | Statistiques des premières réponses Drill, synthèse partagée | Réussite calculée sur les seuls exercices réalisés, sans gamification | [Dashboard](../architecture/DASHBOARD.md) |
 | Calendrier | Événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Événements](../architecture/ARCHITECTURE.md#modifier-les-événements-et-les-examens) |
@@ -136,9 +137,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir les captures comparatives et les contrôles des **QCM PR3 lot 2**,
-   puis décider séparément de leur fusion. #63 et #64 sont fusionnées ;
-   Drill/statistiques restent des chantiers distincts selon autorisation.
+1. Revoir les captures comparatives et les contrôles du **Drill PR3 lot 3**,
+   puis décider séparément de sa fusion. #63–#65 sont fusionnées ; le lot 4
+   tableau de bord/statistiques reste distinct et attend son autorisation.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
 3. Décider séparément d’une publication du code fusionné, puis appliquer le

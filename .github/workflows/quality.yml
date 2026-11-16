@@ -108,6 +108,7 @@ jobs:
             node scripts/measure-ui-foundations.mjs --page "cours.html?id=$id" --output ".tmp/ui-2027-foundations/performance-$id.json"
           done
           node scripts/measure-ui-foundations.mjs --page 'exercices.html?id=matiere-organique' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-quiz.json
+          node scripts/measure-ui-foundations.mjs --page 'drill.html?unit=uc3&week=2026-W47' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-drill.json
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()
         uses: actions/upload-artifact@v7
@@ -116,5 +117,6 @@ jobs:
           path: |
             .tmp/ui-2027-foundations/performance*.json
             .tmp/ui-2027-foundations/quiz-review/
+            .tmp/ui-2027-foundations/drill-review/
           retention-days: 14
           if-no-files-found: ignore
