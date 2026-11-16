@@ -13,7 +13,7 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    lecture](https://github.com/Vladoche/mon-bprea/pull/63) est fusionnée sur main
    depuis le 16/11. Le [correctif d’apparence #64](https://github.com/Vladoche/mon-bprea/pull/64)
    est fusionné depuis le 16/11 à 15:04:49 UTC (`456e844`).
-3. Prochain chantier fonctionnel : revue des **QCM PR3 lot 2**, branche
+3. Prochain chantier fonctionnel : revue des [QCM PR3 lot 2, #65](https://github.com/Vladoche/mon-bprea/pull/65), branche
    `feat/ui-2027-course-quizzes` ; suites Drill/statistiques de PR3 selon
    autorisation. PR4 outils spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
    13 novembre 2026 est passée.

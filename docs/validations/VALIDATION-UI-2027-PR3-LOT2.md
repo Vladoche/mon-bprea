@@ -6,6 +6,7 @@ Moderniser uniquement la présentation des QCM classiques, sans changer notation
 contenus, historique ou synchronisation. Base vérifiée après `git fetch origin` :
 `456e844152a5be65598e891c9c53b8fb619524f0` ; #63 fusionnée le 16/11/2026 à
 14:38:57 UTC et #64 à 15:04:49 UTC. Branche `feat/ui-2027-course-quizzes`.
+[PR #65 ouverte](https://github.com/Vladoche/mon-bprea/pull/65).
 Ni fusion, ni publication Pages, ni opération hébergée autorisées dans ce lot.
 
 ## États définis avant implémentation
@@ -67,6 +68,7 @@ Windows pour permettre la connexion loopback et les sous-processus Chromium.
 | `npm run test:supabase` | 12 groupes Auth/RLS réussis, expiration réelle invitation/récupération/JWT comprise |
 | `npm run test:drill:supabase` | 22 groupes PostgreSQL/Auth/API réussis |
 | `npm run test:personal:supabase` | 26 groupes PostgreSQL/Auth/API réussis |
+| Liens locaux, syntaxe JS, recherche ciblée de secrets et `git diff --check` | Réussis sur les fichiers concernés |
 | E2E Supabase réel ciblé `course-quiz-sync.spec.js` | 5 réussis : deux appareils, isolation A/B, perte d’acquittement, conflits CAS, import et hubs |
 
 Les 177 E2E ont précédé les derniers ajustements de présentation ; les 10 QCM
@@ -183,3 +185,10 @@ Aucun défaut P0 constaté dans les contrôles exécutés. La revue esthétique 
 reste nécessaire avant fusion, notamment sur l’extension verticale du corrigé.
 Les contrôles ciblés ne valent ni certification WCAG ni recette hébergée.
 Ce lot reste une PR ouverte : ni fusion, ni publication Pages, ni mutation PROD.
+
+`npm run delivery:complete -- --json` exécuté après simulation et arrêt des tests :
+**22,55 Mo libérés**, 148 fichiers, un build admissible, zéro échec. **3 257,76 Mo
+conservés**, au-delà du plafond de 500 Mo, du fait des preuves et groupes
+protégés/non qualifiés ; aucune purge supplémentaire. Les sauvegardes et
+journaux privés sont conservés. Docker Desktop reste disponible ; seule la
+stack locale dédiée a été arrêtée, avec sa conservation par défaut.

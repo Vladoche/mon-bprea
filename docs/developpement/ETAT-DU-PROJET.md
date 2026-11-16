@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `456e844152a5be65598e891c9c53b8fb619524f0` |
 | Dernière PR fusionnée | [#64](https://github.com/Vladoche/mon-bprea/pull/64), 16/11/2026 à 15:04:49 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64) |
-| Livraison en cours | QCM de cours PR3 lot 2, `feat/ui-2027-course-quizzes` ; revue humaine et CI finale à vérifier avant fusion |
+| PR ouverte | [#65](https://github.com/Vladoche/mon-bprea/pull/65), QCM de cours PR3 lot 2, `feat/ui-2027-course-quizzes` ; revue humaine avant fusion, [checks de tête](https://github.com/Vladoche/mon-bprea/pull/65/checks) |
 | Prochain chantier | Revue des QCM PR3 lot 2 ; Drill/statistiques suivants de PR3 selon autorisation |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais

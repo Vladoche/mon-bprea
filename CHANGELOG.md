@@ -11,7 +11,8 @@ La version de l’application Windows reste propre à cet outil.
 
 - QCM de cours PR3 lot 2 : cartes de questions/réponses, compteur de saisie,
   corrections explicites, résultat et sauvegarde distincts, historique et retry
-  conservés. Branche `feat/ui-2027-course-quizzes`, non fusionnée.
+  conservés. [PR #65 ouverte](https://github.com/Vladoche/mon-bprea/pull/65),
+  branche `feat/ui-2027-course-quizzes`, non fusionnée.
   [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT2.md).
 - Correctif clair/sombre #64 fusionné ; voir l’entrée datée ci-dessous.
 - PR3 lot 1 UC/lecture #63 fusionnée ; voir l’entrée datée ci-dessous.
