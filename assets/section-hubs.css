@@ -97,3 +97,10 @@
   .hub-link-card,.hub-unit-card,.hub-resume,.hub-next-panel { border-color:CanvasText; }
   .hub-link-card-primary .hub-card-action { background:Highlight; color:HighlightText; }
 }
+/* PR2b: visual continuity only; all hub destinations and state renderers stay intact. */
+.hub-unit-card,.hub-link-card,.hub-weekly{background:linear-gradient(135deg,var(--white),var(--color-surface-soft));border-radius:calc(var(--radius-lg) + 4px);box-shadow:var(--shadow-raised),inset 0 1px 0 #ffffff40}
+.hub-unit-card:hover,.hub-link-card:hover{border-color:var(--color-control-border);background:var(--white)}
+.hub-unit-card:active,.hub-link-card:active{background:var(--color-accent-soft)}
+.hub-unit-arrow{box-shadow:var(--shadow-raised)}
+.hub-card-icon{box-shadow:inset 0 1px 0 #ffffff60,0 4px 8px #49362412}
+@media(forced-colors:active){.hub-unit-card,.hub-link-card,.hub-weekly{background:Canvas;box-shadow:none}}
