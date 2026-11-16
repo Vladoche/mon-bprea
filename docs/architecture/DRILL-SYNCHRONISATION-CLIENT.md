@@ -1,6 +1,6 @@
 # Mode Drill — synchronisation du client (lot 6.2.2)
 
-Le Drill connecté utilise un cache personnel et les RPC du [contrat PostgreSQL](DRILL-SYNCHRONISATION-BACKEND.md). Le mode visiteur garde intégralement `bprea-demo-drill-v1`. Aucun historique visiteur n'est importé automatiquement. Le site reste statique et la configuration publiée reste désactivée. Les preuves exécutées figurent dans [VALIDATION-LOT6-2-2.md](../archives/validations/VALIDATION-LOT6-2-2.md).
+Le Drill connecté utilise un cache personnel et les RPC du [contrat PostgreSQL](DRILL-SYNCHRONISATION-BACKEND.md). Le mode visiteur garde intégralement `bprea-demo-drill-v1`. Aucun historique visiteur n'est importé automatiquement. Le frontend reste statique et la configuration Auth **versionnée** reste désactivée ; la configuration de l’artefact publié est suivie dans le [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages). Les preuves exécutées figurent dans [VALIDATION-LOT6-2-2.md](../archives/validations/VALIDATION-LOT6-2-2.md).
 
 ## Frontières des modules
 
@@ -12,7 +12,7 @@ Le Drill connecté utilise un cache personnel et les RPC du [contrat PostgreSQL]
 | `drill-sync-model.js` | Validation des lignes, réconciliation, dépendances, confirmations et archives de conflits |
 | `drill-sync-transport.js` | Client Supabase partagé, JWT fixé par requête, RPC et pagination complète |
 | `drill-sync-service.js` | Sélection visiteur/personnel, générations, abonnements, envois et backoff |
-| `drill-sync-ui.js`, `drill.js` | États accessibles, reprise explicite des conflits et interface pédagogique existante |
+| `drill-sync-ui.js`, `drill.js`, `drill-page.js` | États accessibles, reprise explicite des conflits, orchestration et présentation 2027 ; mêmes appels du service |
 | `auth-local-identity.js`, `auth-service.js` | Identité Auth vérifiée et continuité locale limitée en cas de panne |
 
 ## Persistance personnelle atomique

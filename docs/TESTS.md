@@ -29,6 +29,7 @@ Pendant le développement, exécuter la suite liée au risque modifié. Réserve
 | --- | --- |
 | Unité ou intégration ciblée | `npm test -- tests/unit/settings-model.test.js -t "apparence"` |
 | Parcours navigateur ciblé | `npm run test:e2e -- tests/e2e/critical-paths.spec.js --workers=2` |
+| Drill 2027 : rendu, brouillons, premières réponses, entraînements et reflow | `npm run test:e2e -- tests/e2e/ui-2027-drill.spec.js --workers=2` |
 | Répéter un scénario observé | `npm run test:e2e -- tests/e2e/settings-sync.spec.js --grep "panne API" --repeat-each=3 --workers=2` |
 | Auth désactivée, sans stack | `npm run test:e2e -- tests/e2e/auth.spec.js` |
 | Validation locale complète | `npm test`, puis `npm run test:e2e`, puis `npm run build:auth-sdk` et `git diff --exit-code -- assets/vendor/supabase.js` |

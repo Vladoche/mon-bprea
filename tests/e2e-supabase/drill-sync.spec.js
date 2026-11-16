@@ -29,6 +29,27 @@ test('Drill réel : multi-appareils, insertion non acquittée, hors ligne persis
       localStorage.setItem('bprea-demo-appearance-device-v1', '{"version":1,"season":"winter","brightness":"dark"}'); }, visitor);
     stage = 'connexion A et création de série'; await signInDrill(page, a);
     await page.getByRole('button', { name: 'Commencer cette série' }).click(); await synced(page);
+    // The previous empty view can still say "Synchronisé" while creation commits.
+    // Wait for the actual operation's confirmation before counting draft traffic.
+    await waitForPersistedOperation(page, 'mon-bprea-drill-personal-v1', a.userId, { type: 'series', state: 'confirmed' });
+    stage = 'brouillon personnel conservé sans opération réseau supplémentaire';
+    const draftBefore = await personalRecord(page), draftRPCs = [];
+    const countDraftRPC = request => { if (new URL(request.url()).pathname.startsWith('/rest/v1/rpc/drill_')) draftRPCs.push(true); };
+    page.on('request', countDraftRPC);
+    const draftForm = page.locator('.drill-question').nth(3).locator('form');
+    const draftQuestion = await draftForm.getAttribute('data-question');
+    stage = 'sélection et commit du brouillon personnel';
+    await draftForm.getByRole('radio').first().check();
+    await expect.poll(async () => (await personalRecord(page)).drill.series['uc3__2026-W42'].drafts[draftQuestion]).toBeTruthy();
+    stage = 'rechargement du brouillon personnel';
+    await page.reload(); await synced(page);
+    await expect(page.locator('.drill-question').nth(3).getByRole('radio').first()).toBeChecked();
+    const draftAfter = await personalRecord(page);
+    stage = 'identités de la file conservées après brouillon et rechargement';
+    expect(draftAfter.operations.map(item => item.id)).toEqual(draftBefore.operations.map(item => item.id));
+    stage = 'brouillon personnel sans réponse comptabilisée ni RPC';
+    expect(draftAfter.drill.series['uc3__2026-W42'].answers).toEqual({}); expect(draftRPCs).toEqual([]);
+    page.off('request', countDraftRPC);
     stage = 'première réponse, entraînement et rechargement'; await respond(page); await synced(page);
     await expect(page.locator('.drill-correction').first()).toBeFocused();
     await respond(page, 0, true); await synced(page);

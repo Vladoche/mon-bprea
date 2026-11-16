@@ -1,6 +1,29 @@
-# Mode Drill hebdomadaire — lot 2
+# Mode Drill hebdomadaire
 
 Le [Mode Drill](../../drill.html) propose dix exercices distincts par UC et par semaine lorsque sa banque contient au moins dix questions valides. Une série inachevée ou peu réussie ne bloque jamais les suivantes. Chaque première réponse validée donne accès à une correction ; la série peut être interrompue puis reprise dans le même navigateur.
+
+## Interface de révision 2027
+
+Le panneau repliable « Choisir une UC » présente la disponibilité de la banque
+et la série de la semaine courante. La fiche de série contient le sélecteur de
+semaine, les quatre résultats calculés et une barre des premières réponses
+validées. Une source illisible affiche un état indisponible, sans supposer zéro.
+Les brouillons ne font pas avancer cette barre ; le taux de réussite reste séparé.
+
+Avant démarrage, les dix questions sont consultables dans un aperçu repliable.
+Les radios natifs sauvegardent un brouillon ; seule « Valider cette réponse »
+comptabilise la première réponse. La correction distingue choix initial, réponse
+attendue, explication et référence réelles. « Revoir cette question » ouvre un
+encadré « Entraînement supplémentaire », sans modifier le résultat initial.
+L’historique affiche les séries incomplètes et terminées, sans limite d’ancienneté.
+
+La présentation est dans `assets/drill-page.js`, l’orchestration dans `drill.js`
+et les styles dans `drill.css`. Les mises à jour conservent les cartes inchangées,
+les contrôles de brouillon et les panneaux ouverts. Après validation, la correction
+de la question reçoit le focus sans défilement imposé. Les erreurs sont affichées
+aussi près de la question ; la confirmation locale reste distincte de la
+synchronisation. Les actions et archives de conflits sont conservées.
+Voir la [validation PR3 lot 3](../validations/VALIDATION-UI-2027-PR3-LOT3.md).
 
 ## Banque livrée et portée pédagogique
 
@@ -118,14 +141,26 @@ Sans réponse validée, `successRate` vaut **`null`**, affiché **« Aucune donn
 
 Les réponses Drill restent distinctes des QCM de cours, même lorsque l’énoncé est repris de ceux-ci. Additionner ces deux ensembles comme des questions uniques doublerait certains exercices ; leurs taux et dénominateurs doivent donc rester explicitement séparés. Aucun de ces taux ne représente une probabilité de réussir l’examen.
 
-Lorsqu’un examen est associé à une UC, le bandeau d’accueil présente son suivi Drill dans une ligne distincte : résultats de la semaine courante si la série est commencée, indication explicite sinon, et accès au Mode Drill. Un éventuel bilan de l’historique Drill porte également sur les premières réponses comptabilisées. Ce suivi n’est pas ajouté à la complétion, au taux ni à l’indice des QCM de cours existants.
+Le hub [S’exercer](../../s-exercer.html) propose l’accès au Drill et le suivi de
+la semaine courante depuis sa source réelle. Le bandeau d’examen a été retiré
+de l’accueil lors de la refonte des hubs (#60). Les résultats Drill restent
+distincts de la complétion et des taux des QCM de cours.
 
 ## Limites du stockage local
 
-La progression appartient à ce navigateur, à ce profil et à l’origine du site. Elle n’est pas synchronisée entre appareils, entre navigateurs ou entre un aperçu local et GitHub Pages. Effacer les données du navigateur entraîne leur perte. Le lot ne fournit pas d’interface d’export/import de la progression Drill.
+En mode visiteur, la progression appartient à ce navigateur, à ce profil et à
+l’origine du site ; elle n’est pas synchronisée entre appareils. Les comptes
+utilisent le [cache personnel et la synchronisation](DRILL-SYNCHRONISATION-CLIENT.md),
+sans import visiteur implicite. Effacer les données du navigateur peut supprimer
+les choix et réponses non synchronisés. Export et retrait suivent les circuits
+du [profil](AUTHENTIFICATION.md), inchangés par cette refonte.
 
-Les écritures relisent les données locales les plus récentes et utilisent **Web Locks** lorsque le navigateur le permet pour sérialiser les modifications entre onglets. Sans Web Locks, une relecture avec contrôle de changement limite les collisions, sans garantir une transaction atomique contre deux écritures exactement simultanées. Les autres onglets ouverts actualisent leur affichage sur l’événement de stockage.
+En mode visiteur, les écritures relisent les données locales les plus récentes et utilisent **Web Locks** lorsque le navigateur le permet pour sérialiser les modifications entre onglets. Sans Web Locks, une relecture avec contrôle de changement limite les collisions, sans garantir une transaction atomique contre deux écritures exactement simultanées. Les autres onglets ouverts actualisent leur affichage sur l’événement de stockage.
 
 Si le stockage est bloqué ou plein, l’application indique que l’enregistrement a échoué. Les données existantes ne sont pas remplacées par un document vide. Un format local inconnu ou un JSON illisible bloque les écritures plutôt que de réinitialiser l’historique. Les séries ou réponses partiellement invalides sont signalées et exclues des statistiques lorsqu’elles ne peuvent pas être interprétées ; leur contenu brut reste conservé.
 
-Le site reste statique, sans compte, backend ni dépendance supplémentaire. Les réponses attendues sont présentes dans le JSON chargé par le navigateur : ce mode est un outil d’entraînement, pas un dispositif d’examen surveillé.
+Le frontend reste statique et utilisable en visiteur. Les espaces personnels
+utilisent Supabase selon les contrats liés ci-dessus. Aucune dépendance n’est
+ajoutée par la présentation 2027. Les réponses attendues sont présentes dans le
+JSON chargé par le navigateur : ce mode est un outil d’entraînement, pas un
+dispositif d’examen surveillé.

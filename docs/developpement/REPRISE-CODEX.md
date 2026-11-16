@@ -13,9 +13,11 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    lecture](https://github.com/Vladoche/mon-bprea/pull/63) est fusionnée sur main
    depuis le 16/11. Le [correctif d’apparence #64](https://github.com/Vladoche/mon-bprea/pull/64)
    est fusionné depuis le 16/11 à 15:04:49 UTC (`456e844`).
-3. Prochain chantier fonctionnel : revue des [QCM PR3 lot 2, #65](https://github.com/Vladoche/mon-bprea/pull/65), branche
-   `feat/ui-2027-course-quizzes` ; suites Drill/statistiques de PR3 selon
-   autorisation. PR4 outils spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
+3. Les [QCM PR3 lot 2, #65](https://github.com/Vladoche/mon-bprea/pull/65) sont
+   fusionnés depuis le 16/11 à 18:52:04 UTC (`2322aab`). Revoir les captures du
+   [Drill PR3 lot 3](../validations/VALIDATION-UI-2027-PR3-LOT3.md), branche
+   `feat/ui-2027-weekly-drill`, avant décision de fusion. Le lot 4 tableau de bord
+   reste distinct et exige son autorisation. PR4 outils spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
    13 novembre 2026 est passée.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le
    [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
@@ -43,6 +45,7 @@ fictive. Aucun nettoyage des sauvegardes ou preuves protégées.
 | Installation PROD et reprise SQL | [Runbook et preuves](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) |
 | Application Windows V1.2 et blocage de suppression PROD | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
 | Entretien du poste | [Maintenance de `.tmp`](MAINTENANCE-DOSSIER-TMP.md) |
+| Refonte UX/UI 2027 — Drill, PR3 lot 3 | [Validation et revue](../validations/VALIDATION-UI-2027-PR3-LOT3.md) |
 | Refonte UX/UI 2027 — QCM de cours, PR3 lot 2 | [Validation et revue](../validations/VALIDATION-UI-2027-PR3-LOT2.md) |
 | Refonte UX/UI 2027 — UC et lecture, PR3 lot 1 | [Validation et composants](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 

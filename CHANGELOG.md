@@ -9,15 +9,17 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
-- QCM de cours PR3 lot 2 : cartes de questions/réponses, compteur de saisie,
-  corrections explicites, résultat et sauvegarde distincts, historique et retry
-  conservés. [PR #65 ouverte](https://github.com/Vladoche/mon-bprea/pull/65),
-  branche `feat/ui-2027-course-quizzes`, non fusionnée.
-  [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT2.md).
+- Drill hebdomadaire PR3 lot 3 : sélection UC et semaines, cartes de questions,
+  progression des premières réponses, corrections, entraînements supplémentaires
+  et historique modernisés. Brouillons, snapshots et synchronisation conservés ;
+  mises à jour ciblées pour préserver focus et lecture. Branche
+  `feat/ui-2027-weekly-drill`, en préparation de revue, sans publication.
+  [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT3.md).
+- QCM de cours PR3 lot 2 #65 fusionné ; voir l’entrée datée ci-dessous.
 - Correctif clair/sombre #64 fusionné ; voir l’entrée datée ci-dessous.
 - PR3 lot 1 UC/lecture #63 fusionnée ; voir l’entrée datée ci-dessous.
 - Maintenance documentaire #62 fusionnée ; voir l’entrée datée ci-dessous.
-- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#64
+- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#65
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
   propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
 
@@ -27,6 +29,13 @@ et conserver le statut de publication séparément ; ne jamais exiger le futur S
 de merge dans la PR elle-même. Une correction de ponctuation n’impose pas d’entrée.
 
 ## 2026-11-16
+
+### Modifié — [#65](https://github.com/Vladoche/mon-bprea/pull/65), QCM de cours PR3 lot 2
+
+Cartes de questions/réponses, compteur de saisie, corrections explicites, résultat
+et sauvegarde distincts, historique et retry conservés. Fusion le 16/11 à
+18:52:04 UTC, `2322aab6424961f2afdc78a4bfe49e608262c0ef`, sans publication Pages.
+[Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT2.md).
 
 ### Corrigé — [#64](https://github.com/Vladoche/mon-bprea/pull/64), clair/sombre entre pages
 
