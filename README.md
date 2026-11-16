@@ -2,14 +2,17 @@
 
 Site de révision BPREA en HTML, CSS et JavaScript, publié sur [GitHub Pages](https://vladoche.github.io/mon-bprea/). Le site fonctionne sans Node.js à l’exécution. Les outils npm servent au développement et à la préparation du SDK navigateur.
 
-**État de la livraison et prochaine action : [fiche de reprise Codex](docs/developpement/REPRISE-CODEX.md).** Cette fiche porte le suivi actuel ; les anciens comptes rendus sont conservés dans [les archives de validations](docs/archives/validations/). Le défaut Auth publié reste désactivé. L’accès personnel prévu est privé, sur invitation, après les validations et autorisations requises.
+**État actuel, code fusionné et version publiée : [état du projet](docs/developpement/ETAT-DU-PROJET.md).** Consulter le [changelog](CHANGELOG.md) pour les jalons et la [fiche de reprise Codex](docs/developpement/REPRISE-CODEX.md) pour démarrer un chantier. Les preuves datées restent dans les validations et leurs archives.
+
+L’accès personnel du site publié est **sur invitation avec Auth PROD activée** selon le dernier déploiement vérifié. La configuration `assets/auth-config.json` **versionnée reste volontairement désactivée** : elle ne décrit pas la configuration injectée dans l’artefact de production. La refonte 2027 fusionnée sur main n’est pas encore publiée à la dernière vérification ; consulter l’état central pour les SHA et dates.
 
 ## Fonctionnalités
 
+- **Accueil et navigation 2027** : accueil panoramique, accès Mes cours/Outils et Mon profil (Connexion pour les visiteurs), reprise depuis une activité datée et hubs harmonisés.
 - **Mes cours** : 5 UC nationales et 2 UCARE, quatre cours d’exemple UC 03, QCM et progression.
 - **S’exercer** : séries hebdomadaires de dix exercices par UC, brouillons, corrections, entraînements et historique ; Tableau de bord et calendrier.
 - **Outils** : générateur ITK avec export CSV/impression, bibliothèque documentaire et reconnaissance des plantes.
-- **Apparence** : saisons, ambiances horaires, modes clair/sombre et préférences ; navigation responsive et accessible.
+- **Apparence** : icône clair/sombre dans le header, saisons et ambiances horaires dans Profil → Paramètres ; mémorisation d’appareil volontaire et préférences personnelles synchronisées.
 - **Espace personnel configuré** : activation, connexion, récupération assistée, synchronisation des cours/QCM, Drill, botanique, paramètres ITK et apparence ; copie JSON, restauration limitée et gestion locale des données personnelles.
 
 Les contenus restent illustratifs : la banque Drill couvre surtout l’UC 03, les autres UC signalent leur banque incomplète ; la botanique contient douze espèces et le calendrier ne contient aucune date de formation inventée. Les statistiques portent sur les exercices réalisés, sans badge ni récompense. L’ITK et les indices de préparation sont des repères pédagogiques, sans valeur de prescription ou de prédiction de réussite.
@@ -72,4 +75,8 @@ Les données visiteur restent distinctes des caches personnels isolés par envir
 
 Le workflow [Publier le site BPREA](.github/workflows/deploy.yml) prépare `site-public/` avec `scripts/prepare-pages.py`, puis publie cet artefact via GitHub Actions. Les HTML racine, les ressources publiques autorisées et les PDF gardent leurs chemins ; documentation, tests, scripts et `.tmp/` sont exclus. Le [guide de versionnement des ressources](docs/architecture/CACHE.md) détaille le cache busting.
 
-Une poussée sur `main` ou le lancement manuel du workflow peut publier. Fusion, déploiement et opération PROD exigent l’autorisation explicite prévue par les [consignes du dépôt](AGENTS.md). La [fiche de reprise](docs/developpement/REPRISE-CODEX.md), le [runbook PROD](docs/architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) et le [plan de préouverture](docs/deploiement/PLAN-PREOUVERTURE-PRIVEE.md) portent les conditions encore applicables.
+La publication est **manuelle uniquement** (`workflow_dispatch`) sur `main`, avec accord `publish_auth_production=true` et empreinte LF de la notice finale approuvée. Le workflow vérifie décision/branche, notice et paramètres publics/Auth en lecture seule avant de préparer, déposer puis publier l’artefact. Un push, une fusion ou les tests de PR ne déclenchent pas Pages. Le [registre de publication](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages) décrit le suivi et la recette hébergée distincte.
+
+## Contribuer
+
+Créer une branche dédiée, préserver les données et travaux existants, appliquer [AGENTS.md](AGENTS.md) et choisir les [contrôles proportionnés](docs/TESTS.md). Pour une livraison significative, actualiser les guides affectés, le changelog et les jalons de l’état central ; conserver les preuves historiques. Commit/push restent dans le mandat donné ; fusion, déploiement et opération PROD exigent leur autorisation explicite. Le [runbook PROD](docs/architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) et le [plan de préouverture](docs/deploiement/PLAN-PREOUVERTURE-PRIVEE.md) portent les conditions d’exploitation ; aucune échéance ne vaut accord d’ouverture.

@@ -1,6 +1,6 @@
 # Anecdote quotidienne
 
-Le bandeau « Tu savais que… ? » utilise exclusivement `assets/daily-facts.json` ; aucune API externe n’est appelée. Les liens documentaires sont ouverts uniquement à la demande. La première banque contient dix faits reformulés à partir des références INRAE, Ephytia et FAO indiquées dans chaque entrée.
+Depuis PR2, « Tu savais que… ? » apparaît **uniquement dans Mes cours**, après les cartes des UC (`#course-daily-fact` dans `<main>`). Il ne figure plus sur l’accueil ni sous le header commun. Son moteur quotidien reste distinct de ce déplacement. Le bandeau utilise exclusivement `assets/daily-facts.json` ; aucune API externe n’est appelée. Les liens documentaires sont ouverts uniquement à la demande. La première banque contient dix faits reformulés à partir des références INRAE, Ephytia et FAO indiquées dans chaque entrée.
 
 ## Rotation et masquage
 
@@ -10,7 +10,7 @@ Tous les visiteurs utilisant la même version de la banque voient donc le même 
 
 La date est revérifiée chaque minute lorsque la page est visible, au retour sur l’onglet et à l’événement `pageshow`. Le nouveau jour apparaît sans déploiement et sans rechargement, au plus tard à la vérification suivante. Cela utilise l’horloge de l’appareil, sans serveur de temps.
 
-Le bouton de fermeture écrit uniquement la date `AAAA-MM-JJ` dans la clé `bprea-demo-daily-fact-dismissed-v1`. Une date ancienne n’a aucun effet : le bandeau revient le lendemain. Cette clé est indépendante des exercices, statistiques et préférences ; aucune clé n’est supprimée. Le masquage se synchronise entre onglets du même site par l’événement `storage`. Si le stockage est bloqué, le choix reste valable dans la page courante ; sa conservation après navigation ou rechargement ne peut pas être garantie.
+Le bouton « Masquer l’anecdote sur cette page » conserve un booléen en mémoire pour le jour affiché. Le masquage ne persiste pas après rechargement et ne se synchronise pas entre onglets. Au changement de jour, il est réinitialisé. L’ancienne clé `bprea-demo-daily-fact-dismissed-v1` n’est plus lue ni écrite par le module ; elle n’est pas supprimée. Aucune progression ou préférence n’est modifiée.
 
 ## Ajouter un fait
 
@@ -35,6 +35,10 @@ Les entrées obligatoires invalides et les doublons sont exclus, dans l’ordre 
 
 ## Intégration et vérification ponctuelle
 
-`initDailyFact(root)` reçoit un élément `<section>` déjà placé par l’application et retourne une promesse contenant une fonction de nettoyage optionnelle. Sur l’accueil, placer la section dans `<main>`, **après la préparation aux examens** ; ailleurs, la placer immédiatement après le header, avant `<main>`, pour préserver le bandeau lors des rendus asynchrones des pages. Charger `assets/daily-fact.css`. Le module applique la classe `daily-fact`, un nom accessible et l’attribut `hidden` selon le contenu ou le masquage. Après fermeture au clavier, le focus revient au contenu principal.
+`assets/app.js` importe dynamiquement `daily-fact.js` seulement pour `data-page="courses"`, après rendu du hub. Le module et sa banque ne sont pas chargés sur les autres pages. `initDailyFact(root)` hydrate la section existante, applique le nom accessible et `hidden`, puis retourne une fonction de nettoyage. La banque est chargée une fois par document ; le catalogue de ressources reste optionnel selon les associations.
+
+Une réinitialisation de la même racine annule les écouteurs précédents par `AbortController`. Le nettoyage arrête le minuteur et les événements de visibilité/`pageshow` ; `app.js` le branche sur `pagehide`. L’échec de l’import facultatif ne bloque pas Mes cours. Après fermeture au clavier, le focus revient au contenu principal. `mes-cours.html` charge `assets/daily-fact.css` et les tokens communs.
 
 Les exports `getParisDay(date)`, `selectDailyFact(facts, dateCivile)` et `normalizeDailyFacts(document, ressources)` sont utilisés par le site et peuvent être exercés directement par les tests du lot 5.1 ; voir [../TESTS.md](../TESTS.md). Pour la vérification visuelle, contrôler deux instants autour de minuit à Paris, deux dates consécutives, le passage du dernier au premier fait, puis la fermeture et le rechargement. Vérifier aussi « En savoir plus », les liens de cours, le clavier et un écran mobile. Les réglages de thème utilisent les tokens CSS communs ; le bandeau n’ajoute pas d’animation et respecte `prefers-reduced-motion`.
+
+Le déplacement et son chargement conditionnel sont couverts par la [validation PR2](../validations/VALIDATION-UI-2027-PR2.md). La rotation et le contrat JSON restent ceux du moteur existant.

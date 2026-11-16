@@ -2,8 +2,8 @@
 
 ## Objectif du projet et priorité actuelle
 
-Rendre Mon BPREA utilisable sur son site public au plus tard le **vendredi 13 novembre 2026**, dans le cadre de la préouverture privée sur invitation : activation, connexion et fonctionnalités existantes avec conservation des données.
-Privilégier les corrections concrètes, les tests pertinents et la livraison. Cette échéance ne vaut pas autorisation d’ouvrir les inscriptions ou de modifier PROD.
+Maintenir Mon BPREA utilisable dans le cadre de la préouverture privée sur invitation, avec conservation des données, et poursuivre la refonte UX/UI 2027 selon l’[état du projet](docs/developpement/ETAT-DU-PROJET.md). La cible initiale du **13 novembre 2026** est passée ; consulter les jalons vérifiés et les prochaines actions avant de reprendre.
+Privilégier les corrections concrètes, les tests pertinents et la livraison. Ce contexte ne vaut pas autorisation d’ouvrir les inscriptions, de publier le site ou de modifier PROD.
 Commencer par la [fiche de reprise Codex](docs/developpement/REPRISE-CODEX.md), puis ouvrir uniquement les références utiles au chantier demandé.
 
 ## Organisation essentielle du dépôt
@@ -51,6 +51,19 @@ Justifier la priorité par un impact démontré ou un risque crédible pour l’
 3. Vérifier le comportement et la persistance concernés avec les contrôles proportionnés ci-dessous ; corriger les régressions observées avant de conclure.
 4. Livrer un diff limité et vérifiable. Après les contrôles réussis et l’arrêt des processus concernés, exécuter `npm run delivery:complete` avant le compte rendu, même sans commit ni PR. Respecter les autorisations Git et PROD.
 5. Résumer le résultat et les seules suites nécessaires, sans nouveau rapport permanent ni numéro de lot automatique.
+
+## Maintenance documentaire à chaque livraison significative
+
+À la création d’une PR, identifier les fichiers fonctionnels, guides et contrats concernés, les évolutions d’architecture ou de comportement et les limites connues. Avant livraison :
+
+1. Vérifier les références concernées et corriger les passages devenus faux d’après le code et les preuves disponibles.
+2. Ajouter les changements significatifs dans `CHANGELOG.md`, section `Non publié`, avec intitulé stable puis lien de PR dès que connu ; aucune entrée systématique pour une correction insignifiante.
+3. Actualiser `docs/developpement/ETAT-DU-PROJET.md` si un jalon, une décision ou la prochaine action change ; garder `REPRISE-CODEX.md` courte et orientée vers ces sources.
+4. Vérifier les liens locaux, références de fichiers et ancres importantes ; citer les résultats réellement exécutés et déclarer les contrôles non exécutés.
+5. Distinguer fusion, validation, publication et recette hébergée. Après fusion, vérifier numéro/date/SHA réels lors de la reprise suivante, sans exiger le futur commit de merge dans sa propre PR. Après publication autorisée, actualiser le registre Pages du guide d’exploitation depuis le workflow réussi et sa recette, puis l’état central.
+6. Préserver les rapports et preuves historiques avec leurs limites datées ; si un passage est déplacé, conserver sa trace et ses liens.
+
+Une information possède un emplacement principal, les autres guides y renvoient. Pour une petite correction, maintenir seulement les documents concernés ; aucun nouveau rapport ou changelog systématique. Pour une livraison majeure, la cohérence de ces suivis est un critère de livraison. Ce suivi documentaire n’autorise aucune fusion, publication ou opération PROD.
 
 ## Commandes utiles et validation proportionnée
 
