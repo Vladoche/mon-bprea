@@ -271,3 +271,27 @@ aucun déploiement Pages et aucune nouvelle branche/PR.
 `npm run delivery:complete -- --json` a libéré **22,51 Mo** (144 fichiers),
 sans échec. `.tmp` conserve **2 903,75 Mo** de groupes protégés/non qualifiés
 et de preuves utiles, au-delà du plafond de 500 Mo ; aucune purge supplémentaire.
+
+### Correctif de hover après revue manuelle
+
+Le flash signalé sur « Commencer à réviser » et « Voir toutes les unités »
+est reproduit avec les animations actives : le dégradé disparaissait alors
+que le fond passait de transparent à terracotta pendant 160 ms. Le dégradé
+reste désormais présent à l’entrée comme à la sortie ; seul son cadrage
+évolue doucement. Les cartes de l’accueil et des hubs conservent aussi leur
+fond au hover. Une deuxième oscillation est reproduite près du bord des
+pilules du header : leur déplacement de 1 px alternait le hover lors de petits
+mouvements de souris. Ce déplacement est retiré ; ombre et voile restent actifs.
+Cette correction remplace l’élévation géométrique décrite plus haut dans PR2c.
+
+Trois nouveaux E2E exécutent les transitions réelles, avec inversions rapides,
+les deux CTA et les cartes sur quatre saisons/clair-sombre, les bords du header
+à 1440/768/390 px et les contrôles communs des **19 pages**, profil synthétique
+compris. Ils vérifient la continuité du dégradé image par image, l’absence de
+transparence introduite et la stabilité des zones cliquables. Mouvement réduit,
+contrastes, clavier et responsive restent vérifiés par les suites existantes.
+Résultat final local : **147 E2E réussis**, **623 tests unitaires/intégration
+réussis et 1 ignoré**. Aucun changement JavaScript fonctionnel ni données.
+Le nettoyage obligatoire a été exécuté avant de relancer l’aperçu manuel :
+**67,55 Mo libérés**, 432 fichiers, zéro échec ; **2 949,20 Mo** conservés
+avant relance du serveur, avec preuves et groupes protégés préservés.
