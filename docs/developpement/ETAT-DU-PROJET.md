@@ -35,7 +35,7 @@ pas une preuve opérationnelle.
 | Dernière PR fusionnée | [#62](https://github.com/Vladoche/mon-bprea/pull/62), 16/11/2026 à 13:53:25 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61) |
 | PR ouverte | [#63](https://github.com/Vladoche/mon-bprea/pull/63), PR3 lot 1 UC/lecture, non fusionnée |
-| Correctif en cours | Mode clair/sombre perdu à la navigation, reproduit puis corrigé sur `codex/fix-appearance-navigation` ; branche distincte de PR3 |
+| Correctif ouvert | [#64](https://github.com/Vladoche/mon-bprea/pull/64), mode clair/sombre conservé à la navigation ; `codex/fix-appearance-navigation`, branche distincte de PR3, non fusionnée |
 | Prochain chantier | Revue du correctif d’apparence et de PR3 lot 1 ; lots pédagogiques suivants selon autorisation |
 
 PR3 lot 1 est commitée et poussée en #63, tête `3dae6b0`, avec quatre checks

@@ -11,8 +11,8 @@ La version de l’application Windows reste propre à cet outil.
 
 - Correctif clair/sombre entre pages : le clic lune/soleil mémorise désormais
   le choix visiteur avec la clé d’appareil existante. Préférences personnelles,
-  retrait et protections de stockage conservés ; branche
-  `codex/fix-appearance-navigation`, non fusionnée.
+  retrait et protections de stockage conservés ; [PR #64 ouverte](https://github.com/Vladoche/mon-bprea/pull/64),
+  branche `codex/fix-appearance-navigation`, non fusionnée.
 - PR3 lot 1 UC/lecture : [#63 ouverte](https://github.com/Vladoche/mon-bprea/pull/63),
   non fusionnée, sur `feat/ui-2027-learning-experience`.
 - Documentation : centralisation de l’état du projet, historique des jalons,
