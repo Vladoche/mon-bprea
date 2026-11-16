@@ -32,7 +32,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a` |
 | Dernière PR fusionnée | [#61](https://github.com/Vladoche/mon-bprea/pull/61), 16/11/2026 à 09:22:11 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61) |
-| PR ouvertes à la vérification | Aucune ; cette maintenance documentaire sera proposée séparément |
+| PR ouvertes | Aucune au relevé de 13:10 UTC ; [maintenance documentaire #62](https://github.com/Vladoche/mon-bprea/pull/62) ouverte à 13:21 UTC, non fusionnée |
 | Prochain chantier | PR3 : pages pédagogiques UC, lecture, QCM et exercices ; ne pas présenter des travaux locaux comme fusionnés |
 
 La branche locale `feat/ui-2027-learning-experience` contient des travaux PR3

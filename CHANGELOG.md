@@ -11,7 +11,7 @@ La version de l’application Windows reste propre à cet outil.
 
 - Documentation : centralisation de l’état du projet, historique des jalons,
   registre Pages et guides synchronisés avec main ; branche
-  `docs/project-status-and-release-tracking`, PR à compléter avant livraison.
+  `docs/project-status-and-release-tracking`, [PR #62 ouverte](https://github.com/Vladoche/mon-bprea/pull/62), non fusionnée.
 - Frontend fusionné après le dernier commit publié : refonte 2027 #59–#61
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
   propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
