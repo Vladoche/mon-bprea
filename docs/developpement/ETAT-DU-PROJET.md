@@ -11,7 +11,9 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification factuelle : **16 novembre 2026, 13:10 UTC**.
+- Dernière vérification Git/PR et livraison locale : **16 novembre 2026**.
+  Les relevés Pages/HTTP ci-dessous restent ceux de **13:10 UTC** ; aucun
+  nouveau contrôle hébergé ou de sauvegarde privée dans cette livraison PR3.
 - Sources : `git fetch origin`, code de `origin/main`, [PR GitHub](https://github.com/Vladoche/mon-bprea/pulls?q=is%3Apr),
   [historique Pages](https://github.com/Vladoche/mon-bprea/actions/workflows/deploy.yml),
   checks des têtes finales #58–#61, lectures HTTP publiques de l’accueil et de sa
@@ -29,21 +31,24 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a` |
-| Dernière PR fusionnée | [#61](https://github.com/Vladoche/mon-bprea/pull/61), 16/11/2026 à 09:22:11 UTC |
-| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61) |
-| PR ouvertes | Aucune au relevé de 13:10 UTC ; [maintenance documentaire #62](https://github.com/Vladoche/mon-bprea/pull/62) ouverte à 13:21 UTC, non fusionnée |
-| Prochain chantier | PR3 : pages pédagogiques UC, lecture, QCM et exercices ; ne pas présenter des travaux locaux comme fusionnés |
+| Dernier commit | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
+| Dernière PR fusionnée | [#62](https://github.com/Vladoche/mon-bprea/pull/62), 16/11/2026 à 13:53:25 UTC |
+| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62) |
+| PR ouverte | [#63](https://github.com/Vladoche/mon-bprea/pull/63), PR3 lot 1 UC/lecture ; `feat/ui-2027-learning-experience`, non fusionnée |
+| Prochain chantier | Revue de PR3 lot 1 ; lots QCM/Drill/statistiques suivants sur la même branche selon autorisation |
 
-La branche locale `feat/ui-2027-learning-experience` contient des travaux PR3
-non commités au démarrage de cette maintenance. Ils sont préservés dans leur
-worktree ; aucune PR3 ouverte n’était visible sur GitHub à la vérification.
-La présente branche `docs/project-status-and-release-tracking` part de main
-et ne contient pas ces changements.
+Le lot 1 modernise uniquement les pages UC et la lecture. La branche a été
+créée depuis #61 puis avancée vers #62 avant réapplication des travaux préservés.
+Les contenus pédagogiques, données et contrats de synchronisation restent
+identiques. Les preuves locales et limites sont dans la
+[validation PR3 lot 1](../validations/VALIDATION-UI-2027-PR3-LOT1.md).
+Ce lot n’est ni fusionné ni publié ; consulter les
+[checks de la PR](https://github.com/Vladoche/mon-bprea/pull/63/checks) sur sa tête
+finale et ses artefacts de captures/mesures avant la décision humaine.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#61. **Code testé** : leurs têtes finales
+**Code fusionné** : main inclut #59–#62. **Code testé** : les têtes finales #59–#61
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -57,7 +62,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a` |
+| Dernier commit main | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -80,8 +85,8 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | --- | --- | --- | --- |
 | Navigation et accueil | Header/footer 2027, accueil panoramique ; #59–#61 | Refonte non publiée ; reprise seulement depuis une activité datée fiable | [Navigation](../architecture/NAVIGATION.md) |
 | Mes cours | Sept UC/UCARE, progression réelle, anecdote après les UC ; #60 | Cours disponibles dans la seule UC 03 | [Architecture](../architecture/ARCHITECTURE.md) |
-| Pages UC | UC, chapitres et liens existants | Refonte PR3 en préparation locale | [Navigation](../architecture/NAVIGATION.md) |
-| Lecture des cours | Quatre cours UC 03, complétion et persistance | Contenus illustratifs ; PR3 à poursuivre | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
+| Pages UC | UC, chapitres et liens existants | PR3 lot 1 développé et testé localement, non fusionné | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
+| Lecture des cours | Quatre cours UC 03, complétion et persistance | PR3 lot 1 développé et testé localement, non fusionné ; contenus illustratifs | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 | QCM | Corrections, meilleurs scores et tentatives historisées | Anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
 | Tableau de bord | Statistiques des premières réponses Drill, synthèse partagée | Réussite calculée sur les seuls exercices réalisés, sans gamification | [Dashboard](../architecture/DASHBOARD.md) |
@@ -129,8 +134,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Poursuivre **PR3, pages pédagogiques**, sur sa branche indépendante ; qualifier
-   UC/lecture puis les autres parcours pédagogiques selon son périmètre réel.
+1. Examiner **PR3 lot 1, UC et lecture**, ses captures et sa CI sur la tête finale.
+   Laisser la PR ouverte jusqu’à décision humaine ; poursuivre ensuite les autres
+   lots pédagogiques sur la même branche, selon le périmètre autorisé.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
 3. Décider séparément d’une publication du code fusionné, puis appliquer le

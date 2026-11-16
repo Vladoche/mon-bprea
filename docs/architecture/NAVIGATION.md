@@ -38,6 +38,7 @@ Cette hiérarchie organise les accès. Elle n’oblige pas à repasser par le me
 | `assets/auth-header.js` | Destination de compte dynamique, menu Profil et déconnexion ; identité fournie par le service Auth. |
 | `assets/navigation.css` | Présentation commune des menus, états actifs et adaptation aux écrans. |
 | `assets/breadcrumbs.js` | Construction des fils d’Ariane selon la hiérarchie. |
+| `assets/learning-pages.js`, `assets/learning-pages.css` | Présentation UC/lecture, chapitres ouverts et sommaire dérivé des titres réels ; styles propres aux deux pages. |
 | `assets/section-hubs.js` | Rendu des pages Mes cours, S’exercer et Outils ; lecture de la synthèse hebdomadaire existante. |
 | `assets/section-hubs.css` | Cartes, grilles et synthèse des pages de rubrique en modes clair et sombre. |
 | `assets/app.js` | En-tête partagé et choix du rendu selon `data-page`. |
@@ -71,6 +72,25 @@ Les cours et UC restent définis dans `assets/content.js`, les ressources dans `
 Après une modification, vérifie les liens, les états actifs et les fils d’Ariane sur les pages concernées. Pour une nouvelle page, déclare son appartenance dans la configuration de navigation et complète le helper de fil d’Ariane si nécessaire. Les liens doivent rester relatifs, par exemple `drill.html`, sans `/` initial ni nom de dépôt codé en dur.
 
 ## Pages de rubrique
+
+### UC et lecture des cours — PR3 lot 1
+
+`uc.html?id=…` présente le vrai titre, les chapitres ouverts, les cours et les
+ressources associés. Les états « À découvrir », « Terminé » et « Progression
+indisponible » viennent de la vue vérifiée existante. Une unité vide affiche
+« Contenus à venir », sans cours fictif ni ratio 0/0.
+
+`cours.html?id=…` conserve le corps pédagogique et les essentiels. Le sommaire
+est dérivé des H2/H3 rendus, préserve les identifiants présents et évite les
+collisions des nouvelles ancres ; les liens natifs conservent fragment et
+historique, avec focus sur le titre. Sur petit écran, sommaire, article et
+ressources, essentiel puis fin de cours suivent le flux. Les tableaux défilent
+dans leur région nommée. La complétion reste manuelle via le service existant ;
+le QCM garde son URL et son interface. La suite suit `order` dans la seule UC
+concernée ; le dernier cours revient à son unité. Voir la
+[validation et ses limites](../validations/VALIDATION-UI-2027-PR3-LOT1.md).
+
+### Hubs
 
 **Mes cours** présente les sept UC issues de `units`, avec le nombre réel de cours de `lessons` et un accès à `uc.html?id=…`. Une unité sans cours affiche « À venir ». La progression des cours disponibles est issue de la source vérifiée ; inconnue, elle reste indisponible. L’anecdote est placée après les UC et la page offre un accès à S’exercer sans y imbriquer les outils techniques.
 

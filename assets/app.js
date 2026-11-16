@@ -7,7 +7,9 @@ import { validAttempt } from './course-quiz-model.js';
 import { initDrill } from './drill.js';
 import { initDashboard } from './dashboard.js';
 import { initNavigation } from './navigation.js';
-import { renderBreadcrumbs, chapterAnchor } from './breadcrumbs.js';
+import { renderBreadcrumbs } from './breadcrumbs.js';
+import { renderUnit, renderCourse, initCourseReading } from './learning-pages.js';
+import { learningOverview } from './learning-overview.js';
 import { initHome, initCourseHub, initPracticeHub, initToolsHub, updateLearningOverview } from './section-hubs.js';
 import { initAppearance } from './appearance.js';
 import { initBotanical } from './botanical.js';
@@ -64,28 +66,26 @@ function header() {
   document.title = `${title} · Mon BPREA`;
 }
 function home() { initHome($('#app-main')); }
-function lessonsList(list) {return list.map((l,i)=>`<a href="${lessonUrl(l.id)}" class="lesson-row"><span class="lesson-number">${String(i+1).padStart(2,'0')}</span><div class="lesson-details"><strong>${clean(l.title)}</strong><span>${clean(l.summary)}</span></div><div class="lesson-right"><span>${l.minutes} min</span><span class="completed-label" data-lesson-completed="${l.id}" ${isDone(l.id)&&progressAvailable()?'':'hidden'}>✓ Terminé</span>${icon('arrow',18)}</div></a>`).join('');}
-function chapterList(list) {
-  const chapters = new Map();
-  list.forEach(lesson => { if (!chapters.has(lesson.chapter)) chapters.set(lesson.chapter, []); chapters.get(lesson.chapter).push(lesson); });
-  return [...chapters].map(([chapter, items]) => `<section class="course-chapter" id="${clean(chapterAnchor(chapter))}" aria-labelledby="${clean(chapterAnchor(chapter))}-title"><div class="course-chapter-heading"><span class="eyebrow">CHAPITRE</span><h3 id="${clean(chapterAnchor(chapter))}-title">${clean(chapter)}</h3></div>${lessonsList(items)}</section>`).join('');
-}
 function unit() {
-  const u=units.find(x=>x.id===params.get('id'))||units[2];const list=lessons.filter(x=>x.unit===u.id);
-  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('uc', { unit: u })}<div class="page-eyebrow">${u.code} · BPREA</div><h1>${clean(u.title)}</h1><p>${clean(u.short)}. <span class="soft-text">Démo indépendante à adapter à ta formation.</span></p></section><section class="wrap content-layout"><div class="content-panel"><div class="panel-heading"><div><span class="eyebrow">SOMMAIRE DES COURS</span><h2>${list.length?'Chapitres et leçons':'Contenu à construire'}</h2></div><span class="pill">${list.length} cours</span></div>${list.length?`<p class="panel-subtitle">Notions introductives sur la biologie du sol, avec exercices interactifs.</p>${chapterList(list)}`:`<div class="empty-state"><div class="empty-icon">${icon(u.icon,32)}</div><h3>Cette unité attend tes ressources.</h3><p>La navigation est prête. Tu pourras y ajouter chapitres, cours, schémas et exercices lorsque tu auras rassemblé les supports.</p><a class="text-link" href="${unitUrl('uc3')}">Voir un exemple de cours ${icon('arrow',17)}</a></div>`}<section id="unit-resources" aria-label="Ressources associées à cette UC"></section></div><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">MON AVANCEMENT</span><div class="big-ratio"><span data-unit-done="${u.id}">${progressAvailable()?list.filter(l=>isDone(l.id)).length:'—'}</span><span> / ${list.length} cours</span></div><div class="thick-track"><span data-unit-track="${u.id}" style="width:${progressAvailable()?pct(list.filter(l=>isDone(l.id)).length,list.length):0}%"></span></div><p data-progress-source>${clean(progressSource())}</p></div><div class="aside-card"><span class="eyebrow">À SAVOIR</span><h3>Ce n’est pas un support officiel.</h3><p>Les intitulés nationaux correspondent au BPREA, mais les chapitres de la démo sont libres et doivent être ajustés à ta formation.</p></div></aside></section>`;
+  const u = units.find(item => item.id === params.get('id')) || units[2];
+  $('#app-main').innerHTML = renderUnit(u, lessons, icon);
   initUnitResources($('#unit-resources'), u);
 }
 function course() {
-  const l=lessons.find(x=>x.id===params.get('id'))||lessons[0], index=lessons.indexOf(l), next=lessons[index+1];
-  $('#app-main').innerHTML=`<section class="page-top wrap">${renderBreadcrumbs('course', { lesson: l })}<div class="page-eyebrow">UC 03 <span class="dot-spacer">·</span> ${clean(l.chapter)} <span class="dot-spacer">·</span> ${l.minutes} min</div><h1>${clean(l.title)}</h1><p>${clean(l.summary)}</p><div class="course-labels"><span class="pill status-ready">Cours de démonstration</span><span class="pill">${clean(l.level)}</span></div></section><section class="wrap content-layout course-layout"><article class="content-panel course-article">${l.body}<section id="course-resources" aria-label="Ressources associées à ce cours"></section><div class="finish-box"><div><span class="eyebrow">PRÊT À VÉRIFIER TES ACQUIS ?</span><h3>Passer aux exercices</h3><p>Trois questions corrigées sur ce cours, avec un historique de tes tentatives.</p></div><a class="btn btn-primary" href="${quizUrl(l.id)}">Faire le QCM ${icon('arrow',17)}</a></div><div class="done-box"><label class="done-toggle"><input type="checkbox" id="mark-done" ${isDone(l.id)?'checked':''}/><span class="check-visual">${icon('check',14)}</span><span>Marquer ce cours comme terminé</span></label><span class="mini-muted" id="done-state">${isDone(l.id)?'Terminé ✓':'Pas encore terminé'}</span></div>${next?`<a class="next-lesson" href="${lessonUrl(next.id)}"><span>PROCHAIN COURS <strong>${clean(next.title)}</strong></span>${icon('arrow',19)}</a>`:''}</article><aside class="aside-stack"><div class="aside-card aside-highlight"><span class="eyebrow">L’ESSENTIEL</span><ul class="essentials">${l.essentials.map(x=>`<li>${icon('check',16)}<span>${clean(x)}</span></li>`).join('')}</ul></div><div class="aside-card"><span class="eyebrow">OUTILS DE RÉVISION</span><a class="aside-link" href="${quizUrl(l.id)}">${icon('flask',18)} Exercices de ce cours ${icon('arrow',16)}</a><a class="aside-link" href="${unitUrl('uc3')}">${icon('book',18)} Tous les cours UC 03 ${icon('arrow',16)}</a></div></aside></section>`;
+  const l = lessons.find(item => item.id === params.get('id')) || lessons[0];
+  const u = units.find(item => item.id === l.unit);
+  $('#app-main').innerHTML = renderCourse(l, u, lessons, icon);
+  initCourseReading($('#app-main'));
   initCourseResources($('#course-resources'), l);
   const checkbox = $('#mark-done');
   let savingCourse = false, requestedDone = null, savingEpoch = null;
   refreshProgressUI = () => {
-    const saving = savingCourse && savingEpoch === progressEpoch && progressAvailable();
-    checkbox.checked = saving ? requestedDone : progressAvailable() && isDone(l.id);
-    checkbox.disabled = saving || !progressAvailable();
-    $('#done-state').textContent = !progressAvailable() ? 'Progression indisponible' : isDone(l.id) ? 'Terminé ✓' : 'Pas encore terminé';
+    const saved = learningOverview(progressState).courses.find(item => item.lesson.id === l.id);
+    const available = progressAvailable() && saved.known;
+    const saving = savingCourse && savingEpoch === progressEpoch && available;
+    checkbox.checked = saving ? requestedDone : available && saved.done;
+    checkbox.disabled = saving || !available;
+    $('#done-state').textContent = !available ? 'Progression indisponible' : saved.done ? 'Terminé ✓' : 'Pas encore terminé';
     if (saving) $('#done-state').textContent = 'Enregistrement sur cet appareil…';
   };
   refreshProgressUI();
