@@ -10,7 +10,7 @@ au démarrage. Les workflows de sa tête `2e62625` sont réussis :
 [Qualité](https://github.com/Vladoche/mon-bprea/actions/runs/43931763360) et
 [Auth/RLS](https://github.com/Vladoche/mon-bprea/actions/runs/43931763364).
 
-La présente livraison reste en préparation de revue : aucune fusion, publication
+La [PR #66](https://github.com/Vladoche/mon-bprea/pull/66) est ouverte pour revue : aucune fusion, publication
 Pages ou mutation Supabase hébergée. Tableau de bord/statistiques PR3 lot 4 hors
 refonte. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
 reste la source de publication ; aucune recette hébergée n’est déduite des tests.
@@ -202,5 +202,6 @@ des tests/laboratoire/aperçu, `npm run delivery:complete -- --json` a réussi :
 processus inactifs, zéro échec, **0 octet supprimé**, **3 586,78 Mo conservés**
 avant commit. Les builds contenant des sources non encore intégrées restent
 non qualifiés ; sauvegardes et preuves sont protégées. Le passage après commit
-et la mesure finale sont consignés dans la PR ; le plafond de 500 Mo n’autorise
-aucune purge supplémentaire.
+a qualifié un build : **149 fichiers, 22,58 Mo libérés**, zéro échec ;
+**3 564,36 Mo conservés** après nettoyage, au-delà du plafond dans les groupes
+protégés/non qualifiés. Le plafond de 500 Mo n’autorise aucune purge supplémentaire.

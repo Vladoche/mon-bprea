@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `2322aab6424961f2afdc78a4bfe49e608262c0ef` |
 | Dernière PR fusionnée | [#65](https://github.com/Vladoche/mon-bprea/pull/65), 16/11/2026 à 18:52:04 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65) |
-| PR en préparation de revue | Drill PR3 lot 3, `feat/ui-2027-weekly-drill` ; [validation et captures](../validations/VALIDATION-UI-2027-PR3-LOT3.md), sans fusion ni publication |
+| PR ouverte | [#66](https://github.com/Vladoche/mon-bprea/pull/66), Drill PR3 lot 3, `feat/ui-2027-weekly-drill` ; [validation et captures](../validations/VALIDATION-UI-2027-PR3-LOT3.md), revue humaine avant fusion, sans publication |
 | Prochain chantier | Revue humaine du Drill PR3 lot 3, puis décision de fusion ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais

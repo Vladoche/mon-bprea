@@ -16,7 +16,7 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
 3. Les [QCM PR3 lot 2, #65](https://github.com/Vladoche/mon-bprea/pull/65) sont
    fusionnés depuis le 16/11 à 18:52:04 UTC (`2322aab`). Revoir les captures du
    [Drill PR3 lot 3](../validations/VALIDATION-UI-2027-PR3-LOT3.md), branche
-   `feat/ui-2027-weekly-drill`, avant décision de fusion. Le lot 4 tableau de bord
+   `feat/ui-2027-weekly-drill`, [PR #66 ouverte](https://github.com/Vladoche/mon-bprea/pull/66), avant décision de fusion. Le lot 4 tableau de bord
    reste distinct et exige son autorisation. PR4 outils spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
    13 novembre 2026 est passée.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le

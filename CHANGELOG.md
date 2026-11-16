@@ -13,7 +13,7 @@ La version de l’application Windows reste propre à cet outil.
   progression des premières réponses, corrections, entraînements supplémentaires
   et historique modernisés. Brouillons, snapshots et synchronisation conservés ;
   mises à jour ciblées pour préserver focus et lecture. Branche
-  `feat/ui-2027-weekly-drill`, en préparation de revue, sans publication.
+  `feat/ui-2027-weekly-drill`, [PR #66 ouverte](https://github.com/Vladoche/mon-bprea/pull/66), sans publication.
   [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT3.md).
 - QCM de cours PR3 lot 2 #65 fusionné ; voir l’entrée datée ci-dessous.
 - Correctif clair/sombre #64 fusionné ; voir l’entrée datée ci-dessous.
