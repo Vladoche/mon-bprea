@@ -94,12 +94,18 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           mkdir -p .tmp/ui-2027-foundations/baseline
-          git archive "$BASE_SHA" assets ':(top,glob)*.html' | tar -xf - -C .tmp/ui-2027-foundations/baseline
+          git archive "$BASE_SHA" assets documents ':(top,glob)*.html' | tar -xf - -C .tmp/ui-2027-foundations/baseline
       - name: Comparer les mesures de laboratoire
         run: |
           node scripts/measure-ui-foundations.mjs
           for page in mes-cours s-exercer outils; do
             node scripts/measure-ui-foundations.mjs --page "$page.html" --output ".tmp/ui-2027-foundations/performance-$page.json"
+          done
+          for id in uc3 uc1; do
+            node scripts/measure-ui-foundations.mjs --page "uc.html?id=$id" --output ".tmp/ui-2027-foundations/performance-$id.json"
+          done
+          for id in matiere-organique rapport-cn; do
+            node scripts/measure-ui-foundations.mjs --page "cours.html?id=$id" --output ".tmp/ui-2027-foundations/performance-$id.json"
           done
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()

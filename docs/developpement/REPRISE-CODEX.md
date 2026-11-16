@@ -9,13 +9,14 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
 1. Lire `git status`, les consignes et les faits datés de l’état du projet ;
    refaire `git fetch origin` et vérifier les PR pertinentes avant toute modification.
 2. Créer une branche dédiée depuis la référence autorisée, préserver les travaux
-   existants et consulter seulement les contrats utiles. Au démarrage de cette
-   maintenance le 16/11, PR3 avait des travaux locaux sur
-   `feat/ui-2027-learning-experience`, sans PR ouverte : ne pas les intégrer à une
-   branche documentaire ni les présenter comme fusionnés.
-3. Prochain chantier fonctionnel : **PR3, pages pédagogiques**, puis PR4 outils
-   spécialisés et PR5 profil/harmonisation. Vérifier la progression réelle de ce
-   chantier à la reprise. La cible initiale du 13 novembre 2026 est passée.
+   existants et consulter seulement les contrats utiles. [PR #63, lot 1 UC et
+   lecture](https://github.com/Vladoche/mon-bprea/pull/63) est fusionnée sur main
+   depuis le 16/11. Le [correctif d’apparence #64](https://github.com/Vladoche/mon-bprea/pull/64)
+   reste ouvert sur `codex/fix-appearance-navigation`, actualisé avec cette fusion.
+3. Prochain chantier fonctionnel : revue de **#64**, puis suites QCM/Drill/
+   statistiques de PR3 selon le périmètre autorisé ; PR4 outils
+   spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
+   13 novembre 2026 est passée.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le
    [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
    avant d’affirmer une publication. L’écart de publication et la fraîcheur de
@@ -42,6 +43,7 @@ fictive. Aucun nettoyage des sauvegardes ou preuves protégées.
 | Installation PROD et reprise SQL | [Runbook et preuves](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) |
 | Application Windows V1.2 et blocage de suppression PROD | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
 | Entretien du poste | [Maintenance de `.tmp`](MAINTENANCE-DOSSIER-TMP.md) |
+| Refonte UX/UI 2027 — UC et lecture, PR3 lot 1 | [Validation, composants et suite sur la même branche](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 
 La [fiche historique conservée](../archives/validations/REPRISE-CODEX-2026-11-14.md)
 garde la traçabilité de l’installation, Auth, première utilisation, sauvegarde et

@@ -11,9 +11,9 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification Git/PR et correctif local : **16 novembre 2026**.
-  Les relevés Pages/HTTP ci-dessous restent ceux de **13:10 UTC** ; aucune
-  nouvelle recette hébergée ni lecture de sauvegarde dans cette intervention.
+- Dernière vérification Git/PR et livraison locale : **16 novembre 2026**.
+  Les relevés Pages/HTTP ci-dessous restent ceux de **13:10 UTC** ; aucun
+  nouveau contrôle hébergé ou de sauvegarde privée dans cette livraison.
 - Sources : `git fetch origin`, code de `origin/main`, [PR GitHub](https://github.com/Vladoche/mon-bprea/pulls?q=is%3Apr),
   [historique Pages](https://github.com/Vladoche/mon-bprea/actions/workflows/deploy.yml),
   checks des têtes finales #58–#61, lectures HTTP publiques de l’accueil et de sa
@@ -31,22 +31,24 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
-| Dernière PR fusionnée | [#62](https://github.com/Vladoche/mon-bprea/pull/62), 16/11/2026 à 13:53:25 UTC |
-| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61) |
-| PR ouverte | [#63](https://github.com/Vladoche/mon-bprea/pull/63), PR3 lot 1 UC/lecture, non fusionnée |
-| Correctif ouvert | [#64](https://github.com/Vladoche/mon-bprea/pull/64), mode clair/sombre conservé à la navigation ; `codex/fix-appearance-navigation`, branche distincte de PR3, non fusionnée |
-| Prochain chantier | Revue du correctif d’apparence et de PR3 lot 1 ; lots pédagogiques suivants selon autorisation |
+| Dernier commit | `9de353168d5ddc9a9ecd02ac7fdaa6f0e1bc9d98` |
+| Dernière PR fusionnée | [#63](https://github.com/Vladoche/mon-bprea/pull/63), 16/11/2026 à 14:38:57 UTC |
+| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63) |
+| PR ouverte | [#64](https://github.com/Vladoche/mon-bprea/pull/64), clair/sombre conservé entre pages ; `codex/fix-appearance-navigation`, non fusionnée |
+| Prochain chantier | Revue du correctif d’apparence #64 ; lots QCM/Drill/statistiques suivants de PR3 selon autorisation |
 
-PR3 lot 1 est commitée et poussée en #63, tête `3dae6b0`, avec quatre checks
-réussis ; elle reste ouverte sans publication. Le correctif d’apparence est
-indépendant, issu de main après #62 : clic lune/soleil conservé en visiteur avec
-la clé existante, sans modifier les contrats personnels. Voir les
-[règles d’apparence et tests ciblés](../architecture/THEMES.md).
+Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
+fusionné sur main. Les contenus pédagogiques, données et contrats de
+synchronisation restent identiques. Les preuves locales et limites sont dans la
+[validation PR3 lot 1](../validations/VALIDATION-UI-2027-PR3-LOT1.md).
+Les quatre checks de sa tête finale `3dae6b0` ont réussi ; cette validation
+ne vaut pas une recette hébergée. Le correctif #64 est développé sur sa branche
+distincte, mise à jour avec cette fusion ; consulter ses
+[checks](https://github.com/Vladoche/mon-bprea/pull/64/checks) sur la tête finale.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#62. **Code testé** : les têtes finales #59–#61
+**Code fusionné** : main inclut #59–#63. **Code testé** : les têtes finales #59–#61 et #63
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -60,7 +62,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
+| Dernier commit main | `9de353168d5ddc9a9ecd02ac7fdaa6f0e1bc9d98` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -83,8 +85,8 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | --- | --- | --- | --- |
 | Navigation et accueil | Header/footer 2027, accueil panoramique ; #59–#61 | Refonte non publiée ; reprise seulement depuis une activité datée fiable | [Navigation](../architecture/NAVIGATION.md) |
 | Mes cours | Sept UC/UCARE, progression réelle, anecdote après les UC ; #60 | Cours disponibles dans la seule UC 03 | [Architecture](../architecture/ARCHITECTURE.md) |
-| Pages UC | UC, chapitres et liens existants | Refonte PR3 en préparation locale | [Navigation](../architecture/NAVIGATION.md) |
-| Lecture des cours | Quatre cours UC 03, complétion et persistance | Contenus illustratifs ; PR3 à poursuivre | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
+| Pages UC | Chapitres ouverts, cartes et unités vides modernisés ; #63 | Refonte fusionnée ; cours dans la seule UC 03 | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
+| Lecture des cours | Sommaire interne et mise en page de lecture ; #63 | Quatre cours illustratifs UC 03, complétion et persistance conservées | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 | QCM | Corrections, meilleurs scores et tentatives historisées | Anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
 | Tableau de bord | Statistiques des premières réponses Drill, synthèse partagée | Réussite calculée sur les seuls exercices réalisés, sans gamification | [Dashboard](../architecture/DASHBOARD.md) |
@@ -132,9 +134,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Examiner le correctif clair/sombre et **PR3 lot 1, UC/lecture**, avec leurs
-   checks et captures, sans fusion automatique ; poursuivre ensuite les autres
-   parcours pédagogiques selon le périmètre autorisé.
+1. Examiner le correctif clair/sombre **#64**, ses captures et sa CI sur la tête
+   finale. PR3 lot 1 est fusionné ; poursuivre les autres lots pédagogiques sur
+   leur branche selon le périmètre autorisé, sans fusion automatique du correctif.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
 3. Décider séparément d’une publication du code fusionné, puis appliquer le

@@ -11,16 +11,18 @@ const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name)
 const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline'));
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
 const pageFile = option('--page', 'index.html');
-if (!['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html'].includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
+const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn'];
+if (!allowedPages.includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
+const readingPage = pageFile.startsWith('cours.html');
 const runs = Number(option('--runs', '5'));
 if (!Number.isInteger(runs) || runs < 1 || runs > 10) throw new Error('Runs must be an integer from 1 to 10.');
 const roots = { before: baseline, after: repository };
-const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg' };
+const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.pdf': 'application/pdf' };
 const server = createServer(async (request, response) => {
   try {
     const parts = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).split('/').filter(Boolean);
     const root = roots[parts.shift()];
-    if (!root || parts.some(part => part.startsWith('.') || part.includes('\\')) || !(parts.length === 1 && parts[0].endsWith('.html') || parts[0] === 'assets')) return response.writeHead(404).end();
+    if (!root || parts.some(part => part.startsWith('.') || part.includes('\\')) || !(parts.length === 1 && parts[0].endsWith('.html') || ['assets', 'documents'].includes(parts[0]))) return response.writeHead(404).end();
     const target = resolve(root, ...parts);
     if (!target.startsWith(root + sep)) return response.writeHead(404).end();
     const file = await readFile(target);
@@ -44,13 +46,19 @@ try {
     await client.send('Network.emulateNetworkConditions', { offline: false, latency: 20, downloadThroughput: 1250000, uploadThroughput: 1250000 });
     await page.addInitScript(() => {
       localStorage.setItem('bprea-demo-appearance-device-v1', JSON.stringify({ version: 1, season: 'autumn', brightness: 'light' }));
-      window.__uiMetrics = { lcp: 0, cls: 0, shifts: [], interactions: [] };
+      window.__uiMetrics = { lcp: 0, cls: 0, shifts: [], interactions: [], readingInteractions: [] };
       new PerformanceObserver(list => { for (const entry of list.getEntries()) window.__uiMetrics.lcp = entry.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
       new PerformanceObserver(list => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) {
         window.__uiMetrics.cls += entry.value;
         window.__uiMetrics.shifts.push({ time: entry.startTime, value: entry.value, sources: entry.sources.map(source => ({ node: source.node?.id || source.node?.className || source.node?.tagName || 'detached', previous: source.previousRect.toJSON(), current: source.currentRect.toJSON() })) });
       } }).observe({ type: 'layout-shift', buffered: true });
       document.addEventListener('click', event => {
+        const reading = event.target.closest('.reading-toc a, #mark-done');
+        if (reading) {
+          const start = performance.now();
+          if (reading.id === 'mark-done') window.__uiMetrics.completionStart = start;
+          requestAnimationFrame(() => requestAnimationFrame(() => window.__uiMetrics.readingInteractions.push({ control: reading.id || 'toc', presentationMs: performance.now() - start })));
+        }
         if (!event.target.closest('#theme-toggle, [data-navigation-toggle="courses"]')) return;
         const start = performance.now();
         requestAnimationFrame(() => requestAnimationFrame(() => window.__uiMetrics.interactions.push(performance.now() - start)));
@@ -63,24 +71,36 @@ try {
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
-    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card').first().waitFor();
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article').first().waitFor();
     const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
       const resources = performance.getEntriesByType('resource');
       const navigation = performance.getEntriesByType('navigation')[0];
       const bytes = extension => resources.filter(item => new URL(item.name).pathname.endsWith(extension)).reduce((sum, item) => sum + item.decodedBodySize, 0);
-      return { ...window.__uiMetrics, cssBytes: bytes('.css'), jsBytes: bytes('.js'), imageBytes: resources.filter(item => /\.(svg|avif|webp|png|jpe?g)$/.test(new URL(item.name).pathname)).reduce((sum, item) => sum + item.decodedBodySize, 0), decodedBytes: navigation.decodedBodySize + resources.reduce((sum, item) => sum + item.decodedBodySize, 0), transferBytes: navigation.transferSize + resources.reduce((sum, item) => sum + item.transferSize, 0), requests: resources.length + 1, loadMs: navigation.loadEventEnd };
+      return { ...window.__uiMetrics, tocInitMs: performance.getEntriesByName('course-reading-init')[0]?.duration ?? null, cssBytes: bytes('.css'), jsBytes: bytes('.js'), imageBytes: resources.filter(item => /\.(svg|avif|webp|png|jpe?g)$/.test(new URL(item.name).pathname)).reduce((sum, item) => sum + item.decodedBodySize, 0), decodedBytes: navigation.decodedBodySize + resources.reduce((sum, item) => sum + item.decodedBodySize, 0), transferBytes: navigation.transferSize + resources.reduce((sum, item) => sum + item.transferSize, 0), requests: resources.length + 1, loadMs: navigation.loadEventEnd };
     });
     await page.locator('#theme-toggle').click();
     await page.locator('[data-navigation-toggle="courses"]').click();
     await page.waitForFunction(() => window.__uiMetrics.interactions.length === 2);
     metrics.interactions = await page.evaluate(() => window.__uiMetrics.interactions);
+    await page.keyboard.press('Escape');
+    if (readingPage) {
+      if (await page.locator('.reading-toc a').count()) {
+        await page.locator('.reading-toc a').first().click();
+        await page.waitForFunction(() => window.__uiMetrics.readingInteractions.some(row => row.control === 'toc'));
+      }
+      await page.locator('#mark-done').click();
+      await page.waitForFunction(() => document.querySelector('#done-state').textContent === 'Terminé ✓');
+      metrics.completionSavedMs = await page.evaluate(() => performance.now() - window.__uiMetrics.completionStart);
+      await page.waitForFunction(() => window.__uiMetrics.readingInteractions.some(row => row.control === 'mark-done'));
+      metrics.readingInteractions = await page.evaluate(() => window.__uiMetrics.readingInteractions);
+    }
     results[phase].push({ run: run + 1, ...metrics, usefulMs, cardsReadyMs, errors, failedResponses });
     await context.close();
   }
   const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
-  results.medians = Object.fromEntries(['before', 'after'].map(phase => [phase, Object.fromEntries(['cssBytes', 'jsBytes', 'imageBytes', 'decodedBytes', 'transferBytes', 'requests', 'lcp', 'cls', 'loadMs', 'usefulMs', 'cardsReadyMs'].map(key => [key, median(results[phase].map(run => run[key]))]).concat([['interactionMs', median(results[phase].flatMap(run => run.interactions))]]))]));
+  results.medians = Object.fromEntries(['before', 'after'].map(phase => [phase, Object.fromEntries(['cssBytes', 'jsBytes', 'imageBytes', 'decodedBytes', 'transferBytes', 'requests', 'lcp', 'cls', 'loadMs', 'usefulMs', 'cardsReadyMs', 'tocInitMs', 'completionSavedMs'].map(key => [key, median(results[phase].map(run => run[key] ?? null))]).concat([['interactionMs', median(results[phase].flatMap(run => run.interactions))]]))]));
   const before = results.medians.before, after = results.medians.after;
   // Broad diagnostic budgets account for ordinary local-laboratory variability.
   // They flag a targeted investigation, without grading the site with a global score.

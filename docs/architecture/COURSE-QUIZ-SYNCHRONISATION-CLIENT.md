@@ -13,7 +13,7 @@ Le client consomme exclusivement `course_states`, `quiz_attempts`, `personal_sav
 | `course-quiz-transport.js` | Session vérifiée, JWT fixé, RPC et scans paginés |
 | `course-quiz-service.js` | Identité active, choix de source, abonnements, reprise et erreurs |
 | `sync-runtime.js` | Classification d’erreurs et backoff partagés avec le Drill |
-| `course-quiz-ui.js`, `app.js`, `section-hubs.js`, `exam-preparation.js` | Messages accessibles, import, conflits et parcours pédagogiques |
+| `course-quiz-ui.js`, `app.js`, `section-hubs.js`, `learning-pages.js`, `exam-preparation.js` | Messages accessibles, import, conflits et parcours pédagogiques ; présentation UC/lecture distincte, sans nouveau contrat de stockage |
 
 Le visiteur conserve la clé `bprea-demo-progress-v1`, son format, ses archives et ses fonctionnalités. Un compte utilise uniquement son espace personnel. Aucune lecture visiteur ne remplit implicitement un espace personnel. L’identité incertaine masque les données privées ; une identité locale reconnue par le service Auth permet la consultation et l’écriture du cache fiable pendant une panne, sans autorisation d’envoyer.
 

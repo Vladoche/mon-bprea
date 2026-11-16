@@ -13,13 +13,9 @@ La version de l’application Windows reste propre à cet outil.
   le choix visiteur avec la clé d’appareil existante. Préférences personnelles,
   retrait et protections de stockage conservés ; [PR #64 ouverte](https://github.com/Vladoche/mon-bprea/pull/64),
   branche `codex/fix-appearance-navigation`, non fusionnée.
-- PR3 lot 1 UC/lecture : [#63 ouverte](https://github.com/Vladoche/mon-bprea/pull/63),
-  non fusionnée, sur `feat/ui-2027-learning-experience`.
-- Documentation : centralisation de l’état du projet, historique des jalons,
-  registre Pages et guides synchronisés avec main ; branche
-  [PR #62 fusionnée](https://github.com/Vladoche/mon-bprea/pull/62) le 16/11 à
-  13:53:25 UTC (`ae1d66f8c98360928d64a395a155c52f8eb972f4`).
-- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#61
+- PR3 lot 1 UC/lecture #63 fusionnée ; voir l’entrée datée ci-dessous.
+- Maintenance documentaire #62 fusionnée ; voir l’entrée datée ci-dessous.
+- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#63
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
   propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
 
@@ -29,6 +25,21 @@ et conserver le statut de publication séparément ; ne jamais exiger le futur S
 de merge dans la PR elle-même. Une correction de ponctuation n’impose pas d’entrée.
 
 ## 2026-11-16
+
+### Modifié — [#63](https://github.com/Vladoche/mon-bprea/pull/63), UC et lecture PR3 lot 1
+
+Chapitres et cartes de cours délimités, unités vides, typographie de lecture,
+sommaire interne, tableaux défilants et fin de cours. Contenus, ressources,
+progression et synchronisation conservés ; interfaces QCM/Drill/statistiques
+hors refonte. Fusion le 16/11 à 14:38:57 UTC,
+`9de353168d5ddc9a9ecd02ac7fdaa6f0e1bc9d98`, sans publication Pages.
+[Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT1.md).
+
+### Documenté — [#62](https://github.com/Vladoche/mon-bprea/pull/62), état et historique
+
+État central du projet, changelog, registre Pages et guides synchronisés avec le
+code. Fusion le 16/11 à 13:53:25 UTC, `ae1d66f8c98360928d64a395a155c52f8eb972f4`.
+Cette maintenance ne publie pas le site et ne renouvelle pas les preuves PROD.
 
 ### Corrigé — [#61](https://github.com/Vladoche/mon-bprea/pull/61), PR2b/PR2c
 
