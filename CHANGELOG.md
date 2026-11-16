@@ -9,13 +9,14 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
-- Correctif clair/sombre entre pages : le clic lune/soleil mémorise désormais
-  le choix visiteur avec la clé d’appareil existante. Préférences personnelles,
-  retrait et protections de stockage conservés ; [PR #64 ouverte](https://github.com/Vladoche/mon-bprea/pull/64),
-  branche `codex/fix-appearance-navigation`, non fusionnée.
+- QCM de cours PR3 lot 2 : cartes de questions/réponses, compteur de saisie,
+  corrections explicites, résultat et sauvegarde distincts, historique et retry
+  conservés. Branche `feat/ui-2027-course-quizzes`, non fusionnée.
+  [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT2.md).
+- Correctif clair/sombre #64 fusionné ; voir l’entrée datée ci-dessous.
 - PR3 lot 1 UC/lecture #63 fusionnée ; voir l’entrée datée ci-dessous.
 - Maintenance documentaire #62 fusionnée ; voir l’entrée datée ci-dessous.
-- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#63
+- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#64
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
   propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
 
@@ -25,6 +26,12 @@ et conserver le statut de publication séparément ; ne jamais exiger le futur S
 de merge dans la PR elle-même. Une correction de ponctuation n’impose pas d’entrée.
 
 ## 2026-11-16
+
+### Corrigé — [#64](https://github.com/Vladoche/mon-bprea/pull/64), clair/sombre entre pages
+
+Le clic lune/soleil conserve le choix visiteur via la clé existante ; préférences
+personnelles et refus de stockage préservés. Fusion le 16/11 à 15:04:49 UTC,
+`456e844152a5be65598e891c9c53b8fb619524f0`, sans publication Pages.
 
 ### Modifié — [#63](https://github.com/Vladoche/mon-bprea/pull/63), UC et lecture PR3 lot 1
 

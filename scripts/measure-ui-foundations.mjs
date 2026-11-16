@@ -1,4 +1,5 @@
 // Local laboratory comparison only. No field INP, hosted accounts or external traffic.
+import { lessons } from '../assets/content.js';
 import { chromium } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile, mkdir, stat, writeFile } from 'node:fs/promises';
@@ -10,9 +11,18 @@ const args = process.argv.slice(2);
 const option = (name, fallback) => args.includes(name) ? args[args.indexOf(name) + 1] : fallback;
 const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline'));
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
+const baselineRef = option('--baseline-ref', 'baseline directory supplied by caller');
 const pageFile = option('--page', 'index.html');
-const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn'];
+const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique'];
 if (!allowedPages.includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
+const quizPage = pageFile.startsWith('exercices.html');
+const reviewDirectory = resolve(dirname(output), 'quiz-review');
+async function quizShot(page, phase, state, width) {
+  await mkdir(reviewDirectory, { recursive: true });
+  await page.evaluate(() => document.fonts.ready);
+  const name = `${phase}-${state}-${width}.png`;
+  await page.screenshot({ path: resolve(reviewDirectory, name), fullPage: true, animations: 'disabled' });
+}
 const readingPage = pageFile.startsWith('cours.html');
 const runs = Number(option('--runs', '5'));
 if (!Number.isInteger(runs) || runs < 1 || runs > 10) throw new Error('Runs must be an integer from 1 to 10.');
@@ -46,13 +56,30 @@ try {
     await client.send('Network.emulateNetworkConditions', { offline: false, latency: 20, downloadThroughput: 1250000, uploadThroughput: 1250000 });
     await page.addInitScript(() => {
       localStorage.setItem('bprea-demo-appearance-device-v1', JSON.stringify({ version: 1, season: 'autumn', brightness: 'light' }));
-      window.__uiMetrics = { lcp: 0, cls: 0, shifts: [], interactions: [], readingInteractions: [] };
+      window.__uiMetrics = { lcp: 0, cls: 0, shifts: [], interactions: [], readingInteractions: [], quizSelections: [], quizCorrections: [], quizHistory: [], allShifts: 0 };
+      new PerformanceObserver(list => { for (const entry of list.getEntries()) window.__uiMetrics.allShifts += entry.value; }).observe({ type: 'layout-shift', buffered: true });
+      const innerHTML = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+      Object.defineProperty(Element.prototype, 'innerHTML', { ...innerHTML, set(value) {
+        if (this.id !== 'quiz-history') return innerHTML.set.call(this, value);
+        const start = performance.now(); innerHTML.set.call(this, value);
+        const domMs = performance.now() - start;
+        requestAnimationFrame(() => requestAnimationFrame(() => window.__uiMetrics.quizHistory.push({ domMs, presentationMs: performance.now() - start })));
+      } });
+      document.addEventListener('change', event => {
+        if (!event.target.matches('#quiz-questions input[type=radio]')) return;
+        const start = performance.now();
+        requestAnimationFrame(() => requestAnimationFrame(() => window.__uiMetrics.quizSelections.push(performance.now() - start)));
+      }, true);
       new PerformanceObserver(list => { for (const entry of list.getEntries()) window.__uiMetrics.lcp = entry.startTime; }).observe({ type: 'largest-contentful-paint', buffered: true });
       new PerformanceObserver(list => { for (const entry of list.getEntries()) if (!entry.hadRecentInput) {
         window.__uiMetrics.cls += entry.value;
         window.__uiMetrics.shifts.push({ time: entry.startTime, value: entry.value, sources: entry.sources.map(source => ({ node: source.node?.id || source.node?.className || source.node?.tagName || 'detached', previous: source.previousRect.toJSON(), current: source.currentRect.toJSON() })) });
       } }).observe({ type: 'layout-shift', buffered: true });
       document.addEventListener('click', event => {
+        if (event.target.closest('#check-quiz')) {
+          const start = performance.now();
+          requestAnimationFrame(() => requestAnimationFrame(() => window.__uiMetrics.quizCorrections.push(performance.now() - start)));
+        }
         const reading = event.target.closest('.reading-toc a, #mark-done');
         if (reading) {
           const start = performance.now();
@@ -71,7 +98,7 @@ try {
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
-    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article').first().waitFor();
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions').first().waitFor();
     const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
@@ -80,6 +107,24 @@ try {
       const bytes = extension => resources.filter(item => new URL(item.name).pathname.endsWith(extension)).reduce((sum, item) => sum + item.decodedBodySize, 0);
       return { ...window.__uiMetrics, tocInitMs: performance.getEntriesByName('course-reading-init')[0]?.duration ?? null, cssBytes: bytes('.css'), jsBytes: bytes('.js'), imageBytes: resources.filter(item => /\.(svg|avif|webp|png|jpe?g)$/.test(new URL(item.name).pathname)).reduce((sum, item) => sum + item.decodedBodySize, 0), decodedBytes: navigation.decodedBodySize + resources.reduce((sum, item) => sum + item.decodedBodySize, 0), transferBytes: navigation.transferSize + resources.reduce((sum, item) => sum + item.transferSize, 0), requests: resources.length + 1, loadMs: navigation.loadEventEnd };
     });
+    if (quizPage) {
+      const initialShifts = await page.evaluate(() => window.__uiMetrics.allShifts);
+      if (run === 0) await quizShot(page, phase, 'blank', 1440);
+      for (const [i, question] of lessons[0].quiz.entries()) {
+        await page.locator(`input[name="q${i}"][value="${i < 2 ? question.answer : (question.answer + 1) % question.options.length}"]`).check();
+        if (run === 0 && i === 0) await quizShot(page, phase, 'selected', 1440);
+      }
+      await page.waitForFunction(() => window.__uiMetrics.quizSelections.length === 3);
+      if (run === 0) await quizShot(page, phase, 'ready', 1440);
+      await page.locator('#check-quiz').click();
+      await page.waitForFunction(() => document.querySelector('#quiz-result').textContent.includes('Progression enregistrée sur cet appareil.'));
+      await page.waitForFunction(() => window.__uiMetrics.quizCorrections.length === 1 && window.__uiMetrics.quizHistory.length >= 2);
+      metrics.quizSelections = await page.evaluate(() => window.__uiMetrics.quizSelections);
+      metrics.quizCorrections = await page.evaluate(() => window.__uiMetrics.quizCorrections);
+      metrics.quizHistory = await page.evaluate(() => window.__uiMetrics.quizHistory);
+      metrics.correctionLayoutShift = await page.evaluate(before => window.__uiMetrics.allShifts - before, initialShifts);
+      if (run === 0) await quizShot(page, phase, 'corrected', 1440);
+    }
     await page.locator('#theme-toggle').click();
     await page.locator('[data-navigation-toggle="courses"]').click();
     await page.waitForFunction(() => window.__uiMetrics.interactions.length === 2);
@@ -100,7 +145,33 @@ try {
     await context.close();
   }
   const median = values => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
-  results.medians = Object.fromEntries(['before', 'after'].map(phase => [phase, Object.fromEntries(['cssBytes', 'jsBytes', 'imageBytes', 'decodedBytes', 'transferBytes', 'requests', 'lcp', 'cls', 'loadMs', 'usefulMs', 'cardsReadyMs', 'tocInitMs', 'completionSavedMs'].map(key => [key, median(results[phase].map(run => run[key] ?? null))]).concat([['interactionMs', median(results[phase].flatMap(run => run.interactions))]]))]));
+  results.medians = Object.fromEntries(['before', 'after'].map(phase => [phase, Object.fromEntries(['cssBytes', 'jsBytes', 'imageBytes', 'decodedBytes', 'transferBytes', 'requests', 'lcp', 'cls', 'loadMs', 'usefulMs', 'cardsReadyMs', 'tocInitMs', 'completionSavedMs', 'correctionLayoutShift'].map(key => [key, median(results[phase].map(run => run[key] ?? null))]).concat([['interactionMs', median(results[phase].flatMap(run => run.interactions))]]))]));
+  if (quizPage) {
+    for (const phase of ['before', 'after']) {
+      results.medians[phase].quizSelectionMs = median(results[phase].flatMap(r => r.quizSelections));
+      results.medians[phase].quizCorrectionMs = median(results[phase].flatMap(r => r.quizCorrections));
+      results.medians[phase].quizHistoryDOMMs = median(results[phase].flatMap(r => r.quizHistory.slice(1).map(h => h.domMs)));
+      results.medians[phase].quizHistoryPresentationMs = median(results[phase].flatMap(r => r.quizHistory.slice(1).map(h => h.presentationMs)));
+      const context = await browser.newContext({ viewport: { width: 390, height: 1000 }, timezoneId: 'Europe/Paris', locale: 'fr-FR', reducedMotion: 'reduce' });
+      await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+      const page = await context.newPage();
+      await page.clock.install({ time: new Date('2026-11-16T15:00:00Z') });
+      await page.addInitScript(() => localStorage.setItem('bprea-demo-appearance-device-v1', JSON.stringify({ version: 1, season: 'autumn', brightness: 'light' })));
+      await page.goto(`${origin}/${phase}/${pageFile}`); await page.locator('#quiz-questions').waitFor(); await page.evaluate(() => document.fonts.ready);
+      await quizShot(page, phase, 'blank', 390);
+      for (const [i, question] of lessons[0].quiz.entries()) {
+        await page.locator(`input[name="q${i}"][value="${i < 2 ? question.answer : (question.answer + 1) % question.options.length}"]`).check();
+        if (i === 0) await quizShot(page, phase, 'selected', 390);
+      }
+      await quizShot(page, phase, 'ready', 390); await page.locator('#check-quiz').click();
+      await page.waitForFunction(() => document.querySelector('#quiz-result').textContent.includes('Progression enregistrée sur cet appareil.'));
+      await quizShot(page, phase, 'corrected', 390); await context.close();
+    }
+    const pairs = [1440,390].flatMap(width => ['blank','selected','ready','corrected'].map(state => `<h2>${state} · ${width} px</h2><div class="pair">${['before','after'].map(phase => { const name = `${phase}-${state}-${width}.png`; return `<figure><figcaption>${phase}</figcaption><a href="${name}"><img src="${name}" alt="${phase} ${state} ${width}" loading="lazy"></a></figure>`; }).join('')}</div>`)).join('');
+    await writeFile(resolve(reviewDirectory, 'comparaison-qcm.html'), `<!doctype html><html lang="fr"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QCM · avant/après</title><style>body{font:16px/1.6 system-ui;margin:24px;background:#faf7f0;color:#342f28}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}figure{margin:0}img{width:100%;height:auto}@media(max-width:700px){.pair{grid-template-columns:1fr}}</style><h1>QCM classiques · main → PR3 lot 2</h1><p>Gauche : main intégrant #64 (base locale 456e844 ; en CI base effective de la PR). Droite : branche QCM. Viewports et données identiques ; automne clair, visiteur isolé, polices chargées, mouvement réduit. Pièces de revue humaine, aucune référence approuvée automatiquement.</p>${pairs}</html>`);
+    results.methodology.baselineRef = baselineRef;
+    results.methodology.quiz = 'selection/correction: event to second animation frame; history: innerHTML setter duration and second-frame presentation, excluding initial empty history; correction shifts include recent-input shifts during selection and expansion of corrections, diagnostic only';
+  }
   const before = results.medians.before, after = results.medians.after;
   // Broad diagnostic budgets account for ordinary local-laboratory variability.
   // They flag a targeted investigation, without grading the site with a global score.
@@ -111,6 +182,7 @@ try {
     after.requests > before.requests + results.budgets.additionalRequests && 'request budget',
     after.lcp > before.lcp + results.budgets.lcpAdditionalMs && 'LCP regression',
     after.cls > .1 && 'CLS budget', after.interactionMs > 200 && 'laboratory interaction budget',
+    quizPage && (after.quizSelectionMs > 200 || after.quizCorrectionMs > 200 || after.quizHistoryPresentationMs > 200) && 'quiz laboratory interaction budget',
     results.after.some(run => run.errors.length || run.failedResponses.length) && 'runtime/network errors',
   ].filter(Boolean);
   await mkdir(dirname(output), { recursive: true });

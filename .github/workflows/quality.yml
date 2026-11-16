@@ -107,11 +107,14 @@ jobs:
           for id in matiere-organique rapport-cn; do
             node scripts/measure-ui-foundations.mjs --page "cours.html?id=$id" --output ".tmp/ui-2027-foundations/performance-$id.json"
           done
+          node scripts/measure-ui-foundations.mjs --page 'exercices.html?id=matiere-organique' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-quiz.json
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: ui-performance-lab-${{ github.run_id }}
-          path: .tmp/ui-2027-foundations/performance*.json
+          path: |
+            .tmp/ui-2027-foundations/performance*.json
+            .tmp/ui-2027-foundations/quiz-review/
           retention-days: 14
           if-no-files-found: ignore

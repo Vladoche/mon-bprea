@@ -13,7 +13,7 @@ Le client consomme exclusivement `course_states`, `quiz_attempts`, `personal_sav
 | `course-quiz-transport.js` | Session vérifiée, JWT fixé, RPC et scans paginés |
 | `course-quiz-service.js` | Identité active, choix de source, abonnements, reprise et erreurs |
 | `sync-runtime.js` | Classification d’erreurs et backoff partagés avec le Drill |
-| `course-quiz-ui.js`, `app.js`, `section-hubs.js`, `learning-pages.js`, `exam-preparation.js` | Messages accessibles, import, conflits et parcours pédagogiques ; présentation UC/lecture distincte, sans nouveau contrat de stockage |
+| `course-quiz-ui.js`, `course-quiz-page.js`, `app.js`, `section-hubs.js`, `learning-pages.js`, `exam-preparation.js` | Messages accessibles, import, conflits et parcours pédagogiques ; présentation UC/lecture distincte, sans nouveau contrat de stockage |
 
 Le visiteur conserve la clé `bprea-demo-progress-v1`, son format, ses archives et ses fonctionnalités. Un compte utilise uniquement son espace personnel. Aucune lecture visiteur ne remplit implicitement un espace personnel. L’identité incertaine masque les données privées ; une identité locale reconnue par le service Auth permet la consultation et l’écriture du cache fiable pendant une panne, sans autorisation d’envoyer.
 
@@ -80,3 +80,19 @@ Le défaut `assets/auth-config.json` reste désactivé. Aucune migration/RLS/RPC
 ## Emplacement des commandes depuis PR2
 
 Les commandes détaillées cours/QCM sont regroupées dans `profil.html#parametres`, section `#donnees-synchronisation` : actualisation, import confirmé et conflits réutilisent le panneau existant. Les pages pédagogiques gardent leurs abonnements, sauvegardes automatiques et une notice lorsque l’état exige une attention. Aucun changement des clés, calculs ou contrats de persistance. Voir la [validation PR2](../validations/VALIDATION-UI-2027-PR2.md).
+
+## Présentation QCM 2027 — PR3 lot 2
+
+`course-quiz-page.js` rend uniquement les cartes et libellés ; `app.js` garde la
+notation, `validAttempt()`, l’ordre de l’historique, les abonnements et les
+protections `progressEpoch`. `course-quiz-page.css` est chargé par la seule page
+`exercices.html`. Aucun nouveau stockage ou service n’est introduit.
+
+Le compteur mesure les questions renseignées, sans annoncer de réussite. La
+correction seule révèle les bonnes réponses et `q.why`. Le panneau du résultat
+reçoit le focus et garde son DOM pendant l’écriture/retry ; sa région de statut
+annonce le suivi, sans répéter le score ni doubler les annonces de la notice
+partagée. Un retry réutilise le même objet tentative et sa date. L’état local
+confirmé reste distinct de l’état distant `synced` sans opération en attente.
+Un score parfait n’est plus présenté comme une terminaison distante du cours.
+Voir la [validation et ses limites](../validations/VALIDATION-UI-2027-PR3-LOT2.md).
