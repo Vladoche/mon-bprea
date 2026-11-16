@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `ae1d66f8c98360928d64a395a155c52f8eb972f4` |
 | Dernière PR fusionnée | [#62](https://github.com/Vladoche/mon-bprea/pull/62), 16/11/2026 à 13:53:25 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62) |
-| Livraison en cours | PR3 lot 1 : UC et lecture, branche `feat/ui-2027-learning-experience`, non fusionnée |
+| PR ouverte | [#63](https://github.com/Vladoche/mon-bprea/pull/63), PR3 lot 1 UC/lecture ; `feat/ui-2027-learning-experience`, non fusionnée |
 | Prochain chantier | Revue de PR3 lot 1 ; lots QCM/Drill/statistiques suivants sur la même branche selon autorisation |
 
 Le lot 1 modernise uniquement les pages UC et la lecture. La branche a été
@@ -42,7 +42,9 @@ créée depuis #61 puis avancée vers #62 avant réapplication des travaux prés
 Les contenus pédagogiques, données et contrats de synchronisation restent
 identiques. Les preuves locales et limites sont dans la
 [validation PR3 lot 1](../validations/VALIDATION-UI-2027-PR3-LOT1.md).
-Ce lot n’est ni fusionné ni publié ; la CI doit être lue sur sa tête finale.
+Ce lot n’est ni fusionné ni publié ; consulter les
+[checks de la PR](https://github.com/Vladoche/mon-bprea/pull/63/checks) sur sa tête
+finale et ses artefacts de captures/mesures avant la décision humaine.
 
 ## C — Fusion, validation et publication
 

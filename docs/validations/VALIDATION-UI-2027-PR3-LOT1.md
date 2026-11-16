@@ -2,7 +2,10 @@
 
 Base : PR #61 fusionnée, `fe2f7e318d7ca3fa447a6b8807c78b4197c1964a`.
 Branche : `feat/ui-2027-learning-experience`. Validation du 16 novembre 2026.
-Ce lot prépare une PR ouverte ; aucune publication Pages ou mutation PROD.
+[PR #63 ouverte](https://github.com/Vladoche/mon-bprea/pull/63), sans fusion ;
+aucune publication Pages ou mutation PROD. Les
+[checks](https://github.com/Vladoche/mon-bprea/pull/63/checks) et artefacts finaux
+sont liés dans la description de la PR.
 
 La finalisation reprend les travaux locaux préservés après interruption de la
 première session avant commit. `origin/main` a depuis intégré la maintenance

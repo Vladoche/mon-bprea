@@ -9,7 +9,8 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
 1. Lire `git status`, les consignes et les faits datés de l’état du projet ;
    refaire `git fetch origin` et vérifier les PR pertinentes avant toute modification.
 2. Créer une branche dédiée depuis la référence autorisée, préserver les travaux
-   existants et consulter seulement les contrats utiles. PR3 lot 1 (UC et lecture)
+   existants et consulter seulement les contrats utiles. [PR #63, lot 1 UC et
+   lecture](https://github.com/Vladoche/mon-bprea/pull/63)
    est suivi sur `feat/ui-2027-learning-experience`, mise à jour après la fusion
    documentaire #62 ; consulter sa validation et l’état central avant de continuer.
 3. Prochain chantier fonctionnel : revue de **PR3 lot 1**, puis suites QCM/Drill/

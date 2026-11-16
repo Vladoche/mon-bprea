@@ -12,8 +12,9 @@ La version de l’application Windows reste propre à cet outil.
 - PR3 lot 1 — UC et lecture : chapitres et cours délimités, unités vides,
   typographie de lecture, sommaire interne, tableaux défilants et fin de cours.
   Contenus, ressources, progression et synchronisation conservés ; QCM/Drill/
-  statistiques hors refonte. Branche `feat/ui-2027-learning-experience`, en cours
-  de livraison, non fusionnée. [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT1.md).
+  statistiques hors refonte. [PR #63](https://github.com/Vladoche/mon-bprea/pull/63)
+  ouverte sur `feat/ui-2027-learning-experience`, non fusionnée.
+  [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT1.md).
 - Maintenance documentaire #62 fusionnée ; voir l’entrée datée ci-dessous.
 - Frontend fusionné après le dernier commit publié : refonte 2027 #59–#61
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
