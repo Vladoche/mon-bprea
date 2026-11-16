@@ -1,8 +1,10 @@
-# Navigation et pages de rubrique — Lot 4.5
+# Navigation et pages de rubrique
 
 ## Hiérarchie commune
 
-Le site conserve exactement **trois entrées principales** : Accueil, Mes cours et Outils. S’exercer est une sous-rubrique de Mes cours. Outils reste indépendant des cours et des activités de révision.
+Le header présente **Accueil**, **Mes cours**, **Outils** et une destination de compte : **Mon profil** pour une identité authentifiée ou reconnue hors ligne, **Connexion** en contexte visiteur. Pendant la résolution Auth, le compte affiche « Vérification… ». Une identité hors ligne reste à vérifier ; ce menu ne constitue pas une autorisation d’accès aux données.
+
+Accueil est un lien simple, **sans sous-menu**. Mes cours et Outils ont chacun un lien vers leur hub et un bouton chevron distinct pour ouvrir leurs destinations. Mon profil suit le même principe quand le compte est reconnu. S’exercer reste une sous-rubrique de Mes cours.
 
 ```text
 Accueil — index.html
@@ -17,9 +19,15 @@ Mes cours — mes-cours.html
 Outils — outils.html
   Générateur ITK — itk.html
   Ressources documentaires — ressources.html
+  Reconnaissance des plantes — reconnaissance-plantes.html
+Mon profil — profil.html (compte reconnu)
+  Informations du compte — profil.html#informations-compte
+  Paramètres — profil.html#parametres
+  Déconnexion — bouton, via le service Auth
+Connexion — connexion.html (visiteur, à la place de Mon profil)
 ```
 
-Cette hiérarchie organise les accès. Elle n’oblige pas à repasser par le menu : les liens directs entre cours et exercices, les ressources associées, les liens du Tableau de bord et le calendrier depuis le bandeau d’examens restent disponibles.
+Cette hiérarchie organise les accès. Elle n’oblige pas à repasser par le menu : les liens directs entre cours et exercices, les ressources associées et les liens du Tableau de bord restent disponibles. Le calendrier (`calendrier.html`) est accessible depuis le sous-menu Mes cours → S’exercer → Calendrier, la carte Calendrier du hub S’exercer et le lien Calendrier du footer.
 
 ## Fichiers responsables
 
@@ -27,6 +35,7 @@ Cette hiérarchie organise les accès. Elle n’oblige pas à repasser par le me
 | --- | --- |
 | `assets/navigation.json` | Configuration centrale de la hiérarchie, des libellés et des destinations du menu. |
 | `assets/navigation.js` | Chargement du menu commun et interactions au clavier, à la souris et sur écran tactile. |
+| `assets/auth-header.js` | Destination de compte dynamique, menu Profil et déconnexion ; identité fournie par le service Auth. |
 | `assets/navigation.css` | Présentation commune des menus, états actifs et adaptation aux écrans. |
 | `assets/breadcrumbs.js` | Construction des fils d’Ariane selon la hiérarchie. |
 | `assets/section-hubs.js` | Rendu des pages Mes cours, S’exercer et Outils ; lecture de la synthèse hebdomadaire existante. |
@@ -37,7 +46,7 @@ Les nouveaux points d’entrée sont `mes-cours.html` (`data-page="courses"`), `
 
 ## Maintenir le menu
 
-Modifie `assets/navigation.json` pour changer un libellé ou une destination commune. Le menu est généré depuis cette configuration ; il n’est pas recopié dans chaque page HTML. Conserve les trois rubriques de premier niveau et les identifiants utilisés pour déterminer la section active.
+Modifie `assets/navigation.json` pour changer un libellé ou une destination commune. Le menu est généré depuis cette configuration ; il n’est pas recopié dans chaque page HTML. Conserve les identifiants et les destinations existantes. La destination de compte est ajoutée par `auth-header.js`, pas par une quatrième entrée JSON.
 
 Le document porte `version: 1` et une liste `items` contenant les trois entrées `home`, `courses` et `tools`. Chaque entrée utilise les propriétés suivantes :
 
@@ -53,7 +62,7 @@ Le document porte `version: 1` et une liste `items` contenant les trois entrées
 
 L’entrée `courses` contient `groups` : `course-units`, avec `source: "units"`, et `practice`, avec ses trois `children`. L’entrée `tools` possède ses trois `children`. Le lien `href` d’un groupe reste distinct du bouton qui le déplie.
 
-`initNavigation(root, page)`, exporté par `assets/navigation.js`, charge cette configuration et utilise par défaut `document.body.dataset.page`. Si le JSON est inaccessible ou invalide, les trois liens principaux restent proposés pour accéder aux pages de rubrique. Le menu ne lit ni n’écrit la progression locale.
+`initNavigation(root, page)`, exporté par `assets/navigation.js`, charge cette configuration et utilise par défaut `document.body.dataset.page`. Si le JSON est inaccessible ou invalide, les liens Accueil, Mes cours et Outils restent proposés par la configuration de repli ; le compte est ensuite rendu par Auth. Le menu ne lit ni n’écrit la progression locale.
 
 Dans Mes cours, le groupe Cours par UC donne accès aux unités. Le groupe S’exercer comporte son propre lien de rubrique et les trois destinations de révision. Le groupe Outils est une autre entrée principale, avec son lien vers `outils.html`, le générateur ITK et la bibliothèque documentaire. Ajouter une destination ne doit pas transformer S’exercer en entrée principale ou placer Outils dans Mes cours.
 
@@ -63,7 +72,7 @@ Après une modification, vérifie les liens, les états actifs et les fils d’A
 
 ## Pages de rubrique
 
-**Mes cours** présente les sept UC issues de `units`, avec le nombre réel de cours de `lessons` et un accès à `uc.html?id=…`. Une unité sans cours affiche « Cours à venir ». La page offre un accès à S’exercer sans y imbriquer les outils techniques.
+**Mes cours** présente les sept UC issues de `units`, avec le nombre réel de cours de `lessons` et un accès à `uc.html?id=…`. Une unité sans cours affiche « À venir ». La progression des cours disponibles est issue de la source vérifiée ; inconnue, elle reste indisponible. L’anecdote est placée après les UC et la page offre un accès à S’exercer sans y imbriquer les outils techniques.
 
 **S’exercer** porte la description « Retrouve tes exercices, tes résultats et ton calendrier de révision. ». La carte principale ouvre les exercices hebdomadaires. Deux cartes secondaires ouvrent le Tableau de bord et le Calendrier. Le fonctionnement interne de ces trois activités reste celui des lots précédents.
 
@@ -96,16 +105,27 @@ Exemples :
 
 Les ancêtres sont des liens ; la page courante est identifiée avec `aria-current="page"`. Les chapitres pointent vers une ancre de la page UC existante, construite par `chapterAnchor(chapter)`. Aucun fichier de chapitre supplémentaire ni nouvel identifiant de cours n’est créé pour le fil d’Ariane. Pour un QCM classique, le parcours ajoute « Exercices du cours » après le cours associé.
 
-## Utilisation et accessibilité
+## Menus, clavier et responsive
 
-Les liens de titre ouvrent les pages de rubrique ; les boutons distincts servent à déplier les menus et exposent leur état avec `aria-expanded`. Les états actifs montrent la rubrique d’appartenance et la destination courante. Le menu est utilisable au clavier, avec focus visible et fermeture par Échap. Les sous-menus sont organisés en groupes pour éviter un déroulement imbriqué complexe sur ordinateur.
+Les liens de titre ouvrent les pages de rubrique ; seuls les boutons chevrons déplient les panneaux. Ils exposent `aria-expanded` et `aria-controls`. Les contrôles restent des liens et boutons natifs, sans rôle `menu`/`menubar` ni navigation spéciale par flèches. Le survol ne commande pas l’ouverture.
 
-Sur mobile, les trois rubriques principales restent Accueil, Mes cours et Outils. Les destinations se déplient dans le menu, avec accès direct aux pages de rubrique et sans barre de navigation horizontale à parcourir. Les cartes des hubs et la synthèse s’adaptent à la largeur disponible. Le choix clair/sombre existant est conservé. Les thèmes horaires et saisonniers ne sont pas développés dans ce lot.
+- Clic, toucher ou activation native du bouton par Entrée/Espace : ouverture, avec focus sur la première destination ; second clic : fermeture. Un seul panneau est ouvert.
+- Tab et Maj+Tab parcourent les contrôles. Depuis le bouton ouvert, Tab entre dans son panneau ; depuis la première destination, Maj+Tab revient au bouton.
+- Échap ferme le panneau et rend le focus au bouton. Clic extérieur, focus quittant la navigation ou activation d’un lien ferment les panneaux.
+- Une déconnexion utilise `auth-service.js` ; une erreur est affichée. Elle n’efface ni progression ni opérations non synchronisées.
 
-## Compatibilité et limites
+Les rubriques actives suivent `pages` dans le JSON ; la destination exacte porte `aria-current="page"`. Profil est actif pour `data-page="profile"`, Connexion pour `auth-login`. L’état ouvert (`is-open`) reste distinct de l’état actif. Les liens Informations du compte et Paramètres sont des ancres réelles, suivies après le rendu asynchrone du profil ; le panneau n’ajoute pas d’autre destination.
 
-Toutes les URL précédentes restent utilisables, dont `drill.html`, `tableau-de-bord.html`, `calendrier.html`, `uc.html?id=…`, `cours.html?id=…` et les paramètres de filtres documentaires. Le Mode Drill porte désormais le libellé visible **Exercices hebdomadaires** ; ses modules, questions, identifiants, statistiques et historique ne changent pas. Les clés locales des cours, QCM, Drill, ITK et du thème ne sont pas migrées.
+À partir de **601 px**, Mes cours et Outils sont centrés sous leur pilule ; Profil est aligné sur son bord droit. Les panneaux sont bornés par la largeur du conteneur de navigation et la hauteur disponible dans la fenêtre. Le placement est mesuré à l’ouverture et recalculé après redimensionnement ou changement de disposition/identité, regroupé dans une frame ; aucune surveillance continue des coordonnées.
 
-Le site reste statique, sans backend ni dépendance supplémentaire. Le chargement des modules et du JSON nécessite un serveur HTTP en local. La synthèse décrit seulement les réponses enregistrées dans ce navigateur ; aucune synchronisation entre appareils n’est ajoutée. Il n’existe ni gamification ni récompense.
+Jusqu’à **600 px**, les panneaux sont dans le flux, avec défilement intérieur pour garder les destinations accessibles. Le changement de breakpoint ferme le panneau et rend le focus au contrôle si nécessaire. Les cartes se replient selon la largeur disponible. Fermés, les panneaux deviennent immédiatement `hidden`, `inert` et `aria-hidden` ; leurs liens ne sont pas focusables.
 
-Les parcours réellement vérifiés et les limites du lot 4.5 sont consignés dans [VALIDATION-LOT4-5.md](../archives/validations/VALIDATION-LOT4-5.md). Ce lot n’ajoutait pas de suite automatisée ; le lot 5.1 introduit les contrôles décrits dans [../TESTS.md](../TESTS.md). Les observations historiques correspondent à la branche `feature/navigation-4-5`. Fusion et déploiement en production nécessitent l’accord de l’utilisateur.
+L’icône clair/sombre du header est indépendante des menus. Elle reste accessible en contexte visiteur ou personnel ; les réglages complets sont dans Profil → Paramètres, également accessible aux visiteurs par le footer. Les saisons, ambiances, mouvement réduit, contraste forcé et repli sans filtre sont décrits dans [THEMES.md](THEMES.md).
+
+## Compatibilité et validation
+
+Les URL existantes, paramètres de cours/UC et filtres documentaires sont conservés. Le libellé **Exercices hebdomadaires** désigne `drill.html` sans changer les séries, calculs, identifiants ou clés. Les cours/QCM gardent leurs sauvegardes automatiques et abonnements ; leurs commandes détaillées se trouvent dans `profil.html#parametres`, section `#donnees-synchronisation`. Les autres domaines conservent leurs contrôles sur leurs pages.
+
+Le frontend reste statique ; le mode personnel utilise le backend configuré et les services de synchronisation existants. Le menu ne lit ni n’écrit la progression. Les cartes et la synthèse utilisent les sources visiteur/personnelles vérifiées par leurs services, avec les limites et confirmations distantes décrites dans les contrats.
+
+Sources actuelles : `navigation.json`, `navigation.js`, `auth-header.js`, `navigation.css`, `auth-pages.js` et `section-hubs.js`. Les [preuves PR1](../validations/VALIDATION-UI-2027-PR1.md), [PR2](../validations/VALIDATION-UI-2027-PR2.md) et [PR2b/PR2c](../validations/VALIDATION-UI-2027-PR2B.md) décrivent les contrôles et leurs limites. Les [preuves du lot 4.5](../archives/validations/VALIDATION-LOT4-5.md) restent historiques. Pour publication et prochaine action, consulter l’[état du projet](../developpement/ETAT-DU-PROJET.md).

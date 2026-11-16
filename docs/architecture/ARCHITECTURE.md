@@ -2,9 +2,9 @@
 
 ## Organisation et points d’entrée
 
-Le frontend est statique : les dix-huit pages HTML publiques restent à la racine, avec leurs URL, paramètres et identifiants. Elles couvrent l’accueil, les rubriques, les cours et exercices, les outils, le calendrier, le Tableau de bord, les pages Auth/profil et le contact public. Les modules ES sont chargés directement par le navigateur, sans framework ni compilation applicative. Le SDK Supabase est préparé et versionné dans `assets/vendor/supabase.js`.
+Le frontend est statique : les **19 pages HTML publiques** restent à la racine, avec leurs URL, paramètres et identifiants. Elles couvrent l’accueil, les rubriques, les cours et exercices, les outils, le calendrier, le Tableau de bord, les pages Auth/profil, le contact public et la confidentialité. Les modules ES sont chargés directement par le navigateur, sans framework ni compilation applicative. Le SDK Supabase est préparé et versionné dans `assets/vendor/supabase.js`.
 
-Supabase Auth/PostgreSQL fournit le backend des espaces personnels lorsque l’environnement est explicitement configuré. Le défaut `assets/auth-config.json` reste désactivé. Le [contrat Auth](AUTHENTIFICATION.md) et les contrats de synchronisation décrivent les comportements du compte ; la [fiche de reprise](../developpement/REPRISE-CODEX.md) porte l’état actuel de la livraison et ses prochaines actions.
+Supabase Auth/PostgreSQL fournit le backend des espaces personnels lorsque l’environnement est explicitement configuré. Le défaut `assets/auth-config.json` reste désactivé. Le [contrat Auth](AUTHENTIFICATION.md) et les contrats de synchronisation décrivent les comportements du compte ; l’[état du projet](../developpement/ETAT-DU-PROJET.md) porte les jalons, la publication et les prochaines actions.
 
 `assets/` regroupe déjà les domaines par préfixes (`drill-`, `dashboard-`, `calendar-`, `daily-`, etc.). Préserver les imports, liens HTML et chemins JSON limite le risque sur le préfixe GitHub Pages et le versionnement des ressources. Les PDF publics restent dans `documents/` avec leurs adresses existantes.
 
@@ -21,12 +21,14 @@ Les sources éditables de navigation, événements, ressources, questions Drill,
 | Botanique | Banque, moteur et store visiteur ; synchronisation personnelle | `botanical.js` · [Reconnaissance](RECONNAISSANCE-PLANTES.md), [client](BOTANICAL-SYNCHRONISATION-CLIENT.md) |
 | ITK et apparence | `content.js`, `settings-service.js`, `theme-init.js` | `app.js`, `appearance.js` · [Synchronisation](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md), [thèmes](THEMES.md) |
 | Calendrier et examens | `calendar-data.js`, statistiques QCM et Drill distinctes | `calendar.js`, `exam-preparation.js` ; détails ci-dessous |
-| Navigation | `navigation.json`, UC de `content.js` | `navigation.js`, `breadcrumbs.js`, `section-hubs.js` · [Navigation](NAVIGATION.md) |
+| Accueil et hubs 2027 | `learning-overview.js`, progression vérifiée issue du service cours/QCM | `section-hubs.js`, `section-hubs.css`, visuel local responsive ; reprise seulement depuis un QCM valide daté |
+| Design system et apparence | Tokens sémantiques, saisons, luminosité et ambiance locale | `style.css`, `theme-init.js`, `appearance.js`, `footer.js` ; paramètres dans Profil, icône clair/sombre dans le header |
+| Navigation | `navigation.json`, UC de `content.js` | `navigation.js`, `auth-header.js`, `navigation.css`, `breadcrumbs.js`, `section-hubs.js` · [Navigation](NAVIGATION.md) |
 | Ressources | `resources.json`, PDF publics ; `resources.js` | `resource-library.js` · [Ressources](RESSOURCES.md) |
 | Anecdote | `daily-facts.json`, date Paris, rotation et masquage en mémoire de page | `daily-fact.js` · [Anecdotes](ANECDOTES.md) |
 | Données personnelles | Services d’export, restauration et effacement local | [Export](EXPORT-DONNEES-PERSONNELLES.md), [restauration](RESTAURATION-DONNEES-PERSONNELLES.md), [suppression](SUPPRESSION-DONNEES-PERSONNELLES.md) |
 
-`app.js` orchestre le rendu selon `data-page` et délègue aux modules de domaine. Il conserve aussi les rendus et calculs historiques des cours, QCM et ITK. Extraire seulement la logique utile au comportement modifié et la réutiliser dans le site ; ne pas importer un module d’interface uniquement pour calculer.
+`app.js` orchestre le rendu selon `data-page` et délègue aux modules de domaine. Il conserve aussi les rendus et calculs historiques des cours, QCM et ITK. L’accueil et les hubs sont délégués à `section-hubs.js` ; `learning-overview.js` calcule une synthèse de cours et une reprise datée depuis la source vérifiée, sans nouvelle clé de suivi. Le hero utilise des WebP locaux ; l’anecdote est chargée uniquement après les UC dans Mes cours. Les commandes détaillées cours/QCM sont dans `profil.html#parametres` (`#donnees-synchronisation`), tandis que les pages pédagogiques conservent sauvegardes automatiques, abonnements et notices d’attention. Extraire seulement la logique utile au comportement modifié et la réutiliser dans le site ; ne pas importer un module d’interface uniquement pour calculer.
 
 Les statistiques du Tableau de bord et la synthèse de S’exercer partagent les premières réponses Drill validées. Le taux global est pondéré par le nombre d’exercices réalisés. Les questions non réalisées, les tentatives QCM et les entraînements Drill ne doivent pas être mélangés. Les contrats de domaine précisent les dates et les limites d’interprétation.
 
@@ -51,7 +53,7 @@ Les semaines Drill et l’anecdote suivent Europe/Paris ; les saisons et ambianc
 
 Les liens publics sont relatifs, sans `/` initial ni nom de dépôt codé en dur. Les JSON chargés par `new URL('./fichier.json', import.meta.url)` conservent leur relation au module. `scripts/prepare-pages.py` copie les HTML racine, les types publics autorisés dans `assets/` et les PDF de `documents/`, puis ajoute `.nojekyll`. Les versions CSS/JS/JSON s’appliquent à cette copie ; voir [CACHE.md](CACHE.md).
 
-Le workflow `.github/workflows/deploy.yml` publie uniquement l’artefact `site-public/` via GitHub Actions après une poussée sur `main` ou un déclenchement manuel. Les outils npm, configurations de tests, documentation, caches et rapports sont exclus de cette liste publique. La publication et les opérations PROD restent soumises à autorisation explicite.
+Le [workflow Pages](../../.github/workflows/deploy.yml) est déclenché uniquement par `workflow_dispatch` sur `main`. Il exige `publish_auth_production=true` et le SHA-256 LF de la notice approuvée. Après contrôle décision/branche, il vérifie le rendu de notice, valide les paramètres publics et Auth PROD en lecture seule via `pages_release.py`, génère une configuration publique éphémère, puis prépare `site-public/` en mode production, versionne ses ressources au SHA, dépose l’artefact et le publie via `actions/deploy-pages`. Un push ou une fusion ne publie pas. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages) sépare succès du workflow et recette hébergée. Les outils npm, configurations de tests, documentation, caches et rapports sont exclus de cette liste publique. La publication et les opérations PROD restent soumises à autorisation explicite.
 
 Les configurations des outils sont dans `tests/`, les scripts locaux dans `scripts/`, et la structure attendue par Supabase CLI reste dans `supabase/`. Les migrations historiques ne sont ni renommées ni réécrites. Consulter les [commandes de test](../TESTS.md), la [politique de maintenance](../developpement/MAINTENANCE-DOSSIER-TMP.md) et le [guide des PDF](../../documents/README.md).
 
@@ -59,7 +61,7 @@ Les contrats de domaine sont dans ce dossier ; les preuves 6.6 restent dans [les
 
 ## Modifier les événements et les examens
 
-Le fichier **`assets/calendar-events.json`** est la seule source des dates du calendrier et du bandeau d’accueil. Il est livré vide :
+Le fichier **`assets/calendar-events.json`** est la seule source des dates du calendrier et du moteur de préparation aux examens conservé. Il est livré vide :
 
 ```json
 {
@@ -110,7 +112,7 @@ Les chemins sont relatifs et fonctionnent sous le sous-dossier GitHub Pages. Le 
 
 ## Comprendre le bandeau de préparation
 
-Le bandeau, directement sous l’en-tête de l’accueil, choisit l’examen non fictif en cours ou à venir dont le début est le plus ancien. Une période en cours est donc prioritaire ; après sa date de fin, elle disparaît de la sélection. Si plusieurs périodes commencent ensemble ou sont en cours, un message renvoie au calendrier pour consulter toutes les UC. Le lien du bandeau ouvre le mois du début. Le compte à rebours se met à jour au retour sur l’onglet et au changement de jour (vérification chaque minute).
+Depuis PR2, le bandeau et son initialisation sont **retirés de l’accueil** ; aucune autre page ne l’initialise actuellement. Le module `exam-preparation.js` et ses calculs restent conservés et testables ; les paragraphes suivants décrivent son contrat technique en cas d’intégration, sans annoncer un affichage actuel. Le moteur choisit l’examen non fictif en cours ou à venir dont le début est le plus ancien. Une période en cours est donc prioritaire ; après sa date de fin, elle disparaît de la sélection. Si plusieurs périodes commencent ensemble ou sont en cours, un message renvoie au calendrier pour consulter toutes les UC. Le lien du bandeau ouvre le mois du début. Le compte à rebours se met à jour au retour sur l’onglet et au changement de jour (vérification chaque minute).
 
 Les statistiques concernent **les questions des QCM disponibles de l’UC**, et non les cours cochés comme terminés :
 

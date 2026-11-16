@@ -2,7 +2,17 @@
 
 **6 novembre 2026 · lot 6.5.5.G.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu du 5 novembre](../rgpd/RECU-ARBITRAGES-2026-11-05.md). D12 est approuvée dans le périmètre recetté par D, E et F. La capacité reste de sept comptes, exploitant et six autres adultes. [Reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md).
 
-| Décision ou preuve restante | Action |
+## Actions actuelles
+
+Au 16 novembre, les portes préparatoires ont des preuves du 8 novembre : notice V1.1 publiée, rattachement fournisseur, premier compte, sauvegarde applicative et circuit de clôture qualifiés dans leurs périmètres. Ne pas les redemander comme s’ils n’avaient jamais été réalisés. L’[état du projet](../developpement/ETAT-DU-PROJET.md) centralise le code, la publication et les limites ; la [matrice](PLAN-PREOUVERTURE-PRIVEE.md) conserve les décisions.
+
+Restent à traiter selon mandat : fraîcheur actuelle de sauvegarde à contrôler par l’opérateur, décisions d’ouverture/invitations individuelles, publication du code fusionné si autorisée et recettes résiduelles (récupération réelle, réseau contrôlé, isolation A/B hébergée non qualifiées). Les limites de reprise Auth/hébergée et de suppression PROD dans Admin V1.2 ne sont pas levées.
+
+## Liste historique du 6 novembre
+
+Les étapes ci-dessous décrivent la préparation d’alors, sans réouvrir les portes résolues ni donner une nouvelle autorisation.
+
+| Décision ou preuve alors restante | Action prévue |
 | --- | --- |
 | Information préalable | Valider le circuit final et la preuve minimale de remise de la notice avant collecte. Appliquer la règle D12 approuvée sur les résidus locaux et son suivi du volume. [D12](../rgpd/ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) |
 | Conditions des prestataires et transferts | Rattacher conditions et DPA à l’organisation cible, confirmer l’offre et la région, puis vérifier la chaîne de services et le circuit manuel. Les durées exhaustives des journaux et le datacenter précis du webmail sont des limites documentées. [Preuves PF-01 à PF-03](../rgpd/FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes) |
@@ -10,7 +20,7 @@
 | Limites de reprise et clôture | Accepter la reprise applicative partielle. Vérifier copie actuelle, fraîcheur, restauration isolée et journal d’effacements, chaîne opérateur de clôture et suivi des copies. [Procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md) |
 | Cible et autorisations techniques | Choisir la cible, vérifier accès/roles/MFA et réglages, traiter les réserves C2 et prévoir exécuteur de liens et retour arrière. Activation et invitations relèvent de décisions distinctes. [Plan](PLAN-PREOUVERTURE-PRIVEE.md) |
 
-## Interventions à délimiter par mandat
+## Interventions à délimiter par mandat (historique du 6 novembre)
 
 1. **Lecture fournisseur ciblée.** Relever uniquement les pièces nécessaires à PF-01 à PF-03 selon le projet de mandat ci-dessous. Les vérifications de sécurité et de préparation à l’activation restent des opérations distinctes.
 2. **Copie actuelle et restauration isolée.** Couvrir les dix tables et la correspondance Auth utile sans exporter de secret. Vérifier couverture, reprise et réconciliation avant tout retour en service. La copie du 29 octobre reste séparée. Utiliser les preuves de clôture native acquises en CI #35 et compléter la chaîne opérateur sur la cible.

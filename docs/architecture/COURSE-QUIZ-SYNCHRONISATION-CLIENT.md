@@ -19,7 +19,7 @@ Le visiteur conserve la clé `bprea-demo-progress-v1`, son format, ses archives 
 
 Le service expose une vue `{progress,error,warnings}` ; l’adaptateur reconstruit les champs `done`, `score`, `legacyQuizScore` et `quizAttempts` attendus par `exam-stats.js`. Les tentatives distantes et locales sont réunies par UUID, jamais par score/date. Les pages ne lisent pas directement un record IndexedDB arbitraire.
 
-L’accueil, les UC, les cours, les QCM et leurs résultats utilisent cette source. Le bandeau de préparation utilise la vue Drill personnelle existante pour le compte ; s’il ne peut vérifier cette source, il indique son indisponibilité. Les QCM personnels ne sont jamais associés au Drill visiteur. Le Tableau de bord reste consacré aux premières réponses du Drill ; ses formules et son périmètre ne sont pas changés.
+L’accueil, les UC, les cours, les QCM et leurs résultats utilisent cette source. Le moteur de préparation conservé utilise la vue Drill personnelle existante pour le compte ; s’il ne peut vérifier cette source, il indique son indisponibilité. Depuis PR2, son bandeau et son initialisation sont retirés de l’accueil ; cela ne change pas le contrat de calcul du moteur. Les QCM personnels ne sont jamais associés au Drill visiteur. Le Tableau de bord reste consacré aux premières réponses du Drill ; ses formules et son périmètre ne sont pas changés.
 
 ## Persistance atomique
 
@@ -69,10 +69,14 @@ Le backoff partagé est borné à 60 secondes (1, 2, 4, 8, 16, 32, 60). Une erre
 
 Les messages distinguent stockage local, en attente, en cours, synchronisé, panne, conflit et erreur de sauvegarde. Une simple écriture IndexedDB n’est jamais annoncée comme une réussite Supabase. Sans cache fiable et sans réseau, la vue indique son indisponibilité au lieu d’afficher des statistiques nulles.
 
-## Limites et lot 6.4
+## Limites et suivi actuel
 
 Le cache n’est pas chiffré et reste accessible à une personne contrôlant le profil navigateur, à une extension ou à un XSS. La déconnexion masque les vues et conserve l’historique/outbox. Aucun service worker n’est ajouté : les modules et pages doivent être disponibles pour travailler pendant une panne API. Les résultats déclarés par le navigateur ne sont pas des examens certifiés.
 
-Le lot 6.4 devra couvrir explicitement export, suppression autorisée, durée de conservation et diagnostic des caches, outboxes, conflits et instantanés importés, en plus d’Auth/profils/Drill/backend/sauvegardes. Les scopes par UUID donnent les racines techniques, sans constituer une procédure RGPD validée. Aucune purge automatique n’est introduite.
+Les parcours d’[export](EXPORT-DONNEES-PERSONNELLES.md), de [restauration](RESTAURATION-DONNEES-PERSONNELLES.md) et de [retrait local](SUPPRESSION-DONNEES-PERSONNELLES.md) disposent désormais de leurs contrats. Le [guide d’exploitation](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md) porte les preuves datées de sauvegarde et de clôture assistée, ainsi que leurs limites. Les scopes par UUID ne constituent pas à eux seuls une procédure d’effacement ; aucune purge automatique n’est introduite.
 
-Le défaut `assets/auth-config.json` reste désactivé. Aucune migration/RLS/RPC ni configuration hébergée n’est modifiée. Les essais réels utilisent exclusivement la stack locale éphémère et les comptes fictifs gardés par `tests/helpers/auth-local.js`. DEV et PROD ne sont pas des cibles de recette de ce lot. L’ouverture aux étudiants attend les lots 6.4 et 6.5.
+Le défaut `assets/auth-config.json` reste désactivé. Aucune migration/RLS/RPC ni configuration hébergée n’est modifiée. Les essais réels utilisent exclusivement la stack locale éphémère et les comptes fictifs gardés par `tests/helpers/auth-local.js`. DEV et PROD ne sont pas des cibles de recette de ce lot. Les prérequis et décisions d’ouverture sont suivis dans l’[état du projet](../developpement/ETAT-DU-PROJET.md), sans autorisation déduite des anciens numéros de lots.
+
+## Emplacement des commandes depuis PR2
+
+Les commandes détaillées cours/QCM sont regroupées dans `profil.html#parametres`, section `#donnees-synchronisation` : actualisation, import confirmé et conflits réutilisent le panneau existant. Les pages pédagogiques gardent leurs abonnements, sauvegardes automatiques et une notice lorsque l’état exige une attention. Aucun changement des clés, calculs ou contrats de persistance. Voir la [validation PR2](../validations/VALIDATION-UI-2027-PR2.md).
