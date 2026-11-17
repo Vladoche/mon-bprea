@@ -16,7 +16,7 @@ La version de l’application Windows reste propre à cet outil.
   sans preuve de consentement inventée. Exécutable autonome et recette locale
   réelle avec conservation des UUID/données, suppression d’A, témoin B préservé
   et restauration réconciliée. Suppression PROD toujours bloquée, aucun changement
-  PROD ni publication Pages. Branche `codex/mon-bprea-admin-v2`, PR dédiée à créer.
+  PROD ni publication Pages. [PR #67](https://github.com/Vladoche/mon-bprea/pull/67).
   [Guide](tools/mon-bprea-admin/README.md),
   [architecture et limites](tools/mon-bprea-admin/DEVELOPPEMENT.md),
   [validation](docs/validations/VALIDATION-ADMIN-V2.md).

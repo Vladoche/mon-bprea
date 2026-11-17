@@ -34,8 +34,8 @@ pas une preuve opérationnelle.
 | Dernier commit | `7115b722352ba5e951a1ae29bdc4e69f07938c02` |
 | Dernière PR fusionnée | [#66](https://github.com/Vladoche/mon-bprea/pull/66), 16/11/2026 à 20:39:05 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **Admin V2**, `codex/mon-bprea-admin-v2`, depuis ce main ; PR dédiée à créer. [Guide](../../tools/mon-bprea-admin/README.md), [architecture](../../tools/mon-bprea-admin/DEVELOPPEMENT.md), [validation locale](../validations/VALIDATION-ADMIN-V2.md) |
-| Prochaine action | Terminer la livraison de la PR Admin V2 et examiner ses contrôles ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
+| Chantier courant, non fusionné | **Admin V2**, `codex/mon-bprea-admin-v2`, depuis ce main ; [PR #67](https://github.com/Vladoche/mon-bprea/pull/67) ouverte. [Guide](../../tools/mon-bprea-admin/README.md), [architecture](../../tools/mon-bprea-admin/DEVELOPPEMENT.md), [validation locale](../validations/VALIDATION-ADMIN-V2.md) |
+| Prochaine action | Examiner la PR Admin V2 #67 et ses contrôles avant toute décision de fusion ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -153,7 +153,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Terminer la livraison et examiner la PR **Admin V2** depuis `7115b72`, ses
+1. Examiner la [PR **Admin V2 #67**](https://github.com/Vladoche/mon-bprea/pull/67) depuis `7115b72`, ses
    contrôles finaux et ses limites PROD, sans fusion automatique. #63–#66 sont
    fusionnées ; le lot 4 tableau de bord/statistiques reste distinct et attend
    son autorisation.

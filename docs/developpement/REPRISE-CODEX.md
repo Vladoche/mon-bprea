@@ -18,8 +18,8 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    Le chantier courant **Admin V2**, branche `codex/mon-bprea-admin-v2`, dispose
    d’un [guide utilisateur](../../tools/mon-bprea-admin/README.md), de
    [limites techniques](../../tools/mon-bprea-admin/DEVELOPPEMENT.md) et d’une
-   [validation locale](../validations/VALIDATION-ADMIN-V2.md). Sa PR dédiée reste
-   à créer ; ne pas confondre recette locale et capacité de suppression PROD,
+   [validation locale](../validations/VALIDATION-ADMIN-V2.md). Sa [PR #67](https://github.com/Vladoche/mon-bprea/pull/67)
+   est ouverte ; ne pas confondre recette locale et capacité de suppression PROD,
    toujours bloquée. Le lot 4 tableau de bord, PR4 outils et PR5 profil restent
    distincts et exigent leur autorisation. La cible du 13 novembre est passée.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le

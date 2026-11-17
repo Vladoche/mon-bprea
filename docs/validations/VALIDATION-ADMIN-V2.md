@@ -1,6 +1,6 @@
 # Validation — Mon BPREA Admin V2
 
-Date : **17 novembre 2026**. Branche `codex/mon-bprea-admin-v2`, issue de
+Date : **17 novembre 2026**. [PR #67](https://github.com/Vladoche/mon-bprea/pull/67), branche `codex/mon-bprea-admin-v2`, issue de
 `origin/main` `7115b722352ba5e951a1ae29bdc4e69f07938c02` (fusion #66).
 Le [guide utilisateur](../../tools/mon-bprea-admin/README.md) décrit les gestes
 courants ; l’[architecture et les limites](../../tools/mon-bprea-admin/DEVELOPPEMENT.md)
@@ -230,8 +230,13 @@ PROD ou un navigateur personnel.
 
 Le collecteur final a été arrêté, puis la stack finale arrêtée avec conservation
 de ses données et volumes (`stop-preserved.private.log`). Les preuves des deux
-campagnes sont conservées. `npm run delivery:complete` reste **à consigner après
-son exécution** ; la tête finale et les conclusions CI sont **à vérifier dans la
-PR**. Les sauvegardes historiques, dont celle du 29 octobre, sont hors périmètre
+campagnes sont conservées. `npm run delivery:complete` a réussi après arrêt des
+processus : contrôle Windows **idle**, aucun candidat éligible, **0 Mo libéré**,
+**5 898,36 Mo conservés**, aucun échec de nettoyage. Le plafond de 500 Mo reste
+dépassé ; les groupes protégés, inconnus ou non qualifiés ne sont pas purgés.
+La première tentative avait été refusée faute de visibilité CIM ; la reprise
+avec visibilité des processus a conservé toutes les gardes du nettoyeur.
+La tête finale et les conclusions CI sont **à vérifier dans la PR**.
+Les sauvegardes historiques, dont celle du 29 octobre, sont hors périmètre
 de nettoyage. Une CI sur une stack éphémère ne
 renouvelle aucune preuve hébergée DEV ou PROD.
