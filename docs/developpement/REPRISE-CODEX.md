@@ -13,12 +13,15 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    lecture](https://github.com/Vladoche/mon-bprea/pull/63) est fusionnée sur main
    depuis le 16/11. Le [correctif d’apparence #64](https://github.com/Vladoche/mon-bprea/pull/64)
    est fusionné depuis le 16/11 à 15:04:49 UTC (`456e844`).
-3. Les [QCM PR3 lot 2, #65](https://github.com/Vladoche/mon-bprea/pull/65) sont
-   fusionnés depuis le 16/11 à 18:52:04 UTC (`2322aab`). Revoir les captures du
-   [Drill PR3 lot 3](../validations/VALIDATION-UI-2027-PR3-LOT3.md), branche
-   `feat/ui-2027-weekly-drill`, [PR #66 ouverte](https://github.com/Vladoche/mon-bprea/pull/66), avant décision de fusion. Le lot 4 tableau de bord
-   reste distinct et exige son autorisation. PR4 outils spécialisés et PR5 profil/harmonisation suivent. La cible initiale du
-   13 novembre 2026 est passée.
+3. Le [Drill PR3 lot 3, #66](https://github.com/Vladoche/mon-bprea/pull/66) est
+   fusionné depuis le 16/11 à 20:39:05 UTC (`7115b72`), après les QCM #65.
+   Le chantier courant **Admin V2**, branche `codex/mon-bprea-admin-v2`, dispose
+   d’un [guide utilisateur](../../tools/mon-bprea-admin/README.md), de
+   [limites techniques](../../tools/mon-bprea-admin/DEVELOPPEMENT.md) et d’une
+   [validation locale](../validations/VALIDATION-ADMIN-V2.md). Sa [PR #67](https://github.com/Vladoche/mon-bprea/pull/67)
+   est ouverte ; ne pas confondre recette locale et capacité de suppression PROD,
+   toujours bloquée. Le lot 4 tableau de bord, PR4 outils et PR5 profil restent
+   distincts et exigent leur autorisation. La cible du 13 novembre est passée.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le
    [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
    avant d’affirmer une publication. L’écart de publication et la fraîcheur de
@@ -43,7 +46,7 @@ fictive. Aucun nettoyage des sauvegardes ou preuves protégées.
 | Auth et persistance | [Auth](../architecture/AUTHENTIFICATION.md), contrats de domaine liés depuis l’architecture |
 | Exploitation, sauvegarde et clôture | [Procédures et registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md), [matrice préparatoire](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md) |
 | Installation PROD et reprise SQL | [Runbook et preuves](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md) |
-| Application Windows V1.2 et blocage de suppression PROD | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
+| Application Windows V2 et blocage de suppression PROD | [Guide utilisateur](../../tools/mon-bprea-admin/README.md), [architecture](../../tools/mon-bprea-admin/DEVELOPPEMENT.md) |
 | Entretien du poste | [Maintenance de `.tmp`](MAINTENANCE-DOSSIER-TMP.md) |
 | Refonte UX/UI 2027 — Drill, PR3 lot 3 | [Validation et revue](../validations/VALIDATION-UI-2027-PR3-LOT3.md) |
 | Refonte UX/UI 2027 — QCM de cours, PR3 lot 2 | [Validation et revue](../validations/VALIDATION-UI-2027-PR3-LOT2.md) |

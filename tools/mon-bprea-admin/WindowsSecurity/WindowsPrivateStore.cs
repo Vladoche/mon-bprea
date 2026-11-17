@@ -48,6 +48,7 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
     public Task<bool> HasUncertainOperationAsync() => Safe(() =>
     {
         VerifyPrivateDirectory();
+        if (AutomaticPrivateStore.BlocksLegacy(DirectoryPath)) return true;
         var lockPath = Path.Combine(DirectoryPath, "operation.lock");
         if (Volatile.Read(ref lockHeld) == 0 && (File.Exists(lockPath) || Directory.Exists(lockPath))) return true;
         foreach (var file in Directory.EnumerateFiles(DirectoryPath, "reservation-*.json", SearchOption.TopDirectoryOnly))
@@ -58,6 +59,7 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
     public Task<bool> HasTargetReservationAsync(string email) => Safe(() =>
     {
         VerifyPrivateDirectory();
+        if (AutomaticPrivateStore.BlocksLegacy(DirectoryPath, email)) return true;
         if (ReadClosures().Count != 0) return true;
         var path = ReservationPath(email);
         if (!File.Exists(path)) return false;

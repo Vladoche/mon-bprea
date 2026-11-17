@@ -16,6 +16,23 @@ Les deux pages HTTPS ont répondu 200 sans redirection. Les deux tests négatifs
 
 L’[exécuteur PROD distinct](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md#exécuteur-prod-séparé) est préparé pour une utilisation ultérieure individuellement autorisée ; les outils locaux gardent leurs verrous. La configuration publique PROD préparée dans `.tmp/prod-auth-20261108/auth-config.production.json` a été reconnue par `/auth/v1/settings` en lecture le 8 novembre ; aucun compte ni jeton créé. La copie locale de publication active Auth avec ces cinq paramètres, sans changer le défaut `assets/auth-config.json` désactivé. Le workflow proposé exige une publication manuelle, la cible PROD exacte et l’approbation de la notice ; [paramètres et procédure](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#publication-pages-avec-auth-prod). La publication, la recette invitée hébergée et l’ouverture restent à autoriser et qualifier selon la [matrice](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md).
 
+**Admin V2, 17 novembre 2026, non fusionné :** l’application Windows propose
+création, récupération et suppression avec configuration du poste intégrée et
+clé mémorisée automatiquement dans le coffre Windows. Les liens et résultats
+sensibles sont protégés par DPAPI ; les journaux durables restent partagés avec
+les outils Node de la même livraison. Les attestations graphiques répétitives
+sont retirées, sans fabriquer de consentement ni modifier les bases légales.
+Le changement d’adresse du même UUID utilise la confirmation administrative
+officielle après une décision humaine sur un canal connu, avec état partiel
+explicite si la récupération suivante échoue. Il ne désactive pas le réglage
+de changement sécurisé d’e-mail du parcours étudiant. La durée des liens PROD
+n’est pas publiée par `/auth/v1/settings` : le relevé daté de 3 600 secondes
+ci-dessus ne devient pas une mesure courante de l’application. **Suppression
+PROD bloquée**, sans rôle, grant, migration ou service hébergé ajouté.
+[Guide](../../tools/mon-bprea-admin/README.md),
+[contrat et architecture](../../tools/mon-bprea-admin/DEVELOPPEMENT.md),
+[validation locale](../validations/VALIDATION-ADMIN-V2.md).
+
 **Suivi 6.5.4.C, 4 novembre 2026 :** [bilan C2](../archives/validations/VALIDATION-LOT6-5-4C.md), [reprise ciblée restante](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). C2 exécutée avec les deux comptes fictifs existants ; correctif JSON et T03/T08/T10/T12 réussis dans leur périmètre documenté. **T11 expiration JWT NON EXÉCUTÉE**, report choisi par l'exploitant ; les 3600 s configurées ne prouvent pas son expiration réelle. Budgets cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives**, A/B et **36 lignes** conservés. D non autorisée et non exécutée ; sessions distantes possibles après fermeture du banc. Aucun réglage Auth/RLS, accès PROD, déploiement Pages ou invitation réelle. Les constats du 31 octobre ci-dessous restent historiques ; les négatifs Auth non exécutés ne deviennent pas acquis.
 
 **Suivi 6.5.4.C, 31 octobre 2026 :** [preuves DEV](../archives/validations/VALIDATION-LOT6-5-4C.md), [reprise](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). Sous R, invitation B puis récupération du même A ont chacune produit un PUT Auth 200 et une reconnexion réussie après déconnexion : garde PKCE revérifié sur DEV. Trois générations consommées, aucun lien rejoué ; ancien mot de passe A inconnu, négatifs de liens non exécutés sur DEV. Aucune session historique importée, configuration modifiée ou ouverture publique. C/C1 approuvées, **C2 non autorisée, recette partielle conservée au choix de l'exploitant** ; D absent, sessions résiduelles possibles.
@@ -45,6 +62,7 @@ La configuration publique versionnée est **désactivée**. Aucun secret adminis
 | `profil.html` | E-mail Auth, date du compte et pseudo facultatif. |
 | `scripts/admin-generate-auth-link.mjs`, `scripts/auth-link-local.mjs` | Administration Node locale : confirmation, contrôle de compte, generateLink et remise unique ; exclus de Pages. |
 | `scripts/admin-generate-prod-auth-link.mjs`, `scripts/prod-auth/` | Exécuteur Node PROD séparé : cible fixe, contrôles et confirmation individuelle, capacité, réservation durable et remise par fichier privé ; exclus de Pages, aucune utilisation réelle dans cette intervention. |
+| `tools/mon-bprea-admin/` | Application Windows V2 autonome : trois actions, coffre automatique, résultats DPAPI, contrôles et journaux compatibles ; suppression PROD bloquée, qualification réelle sur stack locale distincte uniquement. |
 | `supabase/migrations/` | Définition versionnée du modèle, des contraintes et des droits. |
 
 `@supabase/supabase-js` **2.118.0** est verrouillé dans les dépendances de développement ; `esbuild` **0.28.2** prépare `assets/vendor/supabase.js`. Le navigateur charge ce fichier local, sans CDN, import npm ni serveur Node.js. Après une mise à jour volontaire du SDK, conserver manifeste et verrou ensemble, reconstruire puis tester :

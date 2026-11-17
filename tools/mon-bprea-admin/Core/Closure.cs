@@ -74,7 +74,7 @@ internal sealed record ClosureEvidence(string Project, string TargetId, string O
     DateTimeOffset ObservedAt, IReadOnlyDictionary<string, long> Rows, IReadOnlyList<string> ForeignKeys,
     bool PermissionsVerified, bool ParticipantVerified, long StorageObjects, long Orphans,
     long Sessions, long RefreshTokens, string WitnessDigest, bool BackupVerified, DateTimeOffset SnapshotStartedAt,
-    string BackupReference, string BackupLedgerHash);
+    string BackupReference, string BackupLedgerHash, bool BackupsReconciled = false);
 
 public static class ClosureContract
 {

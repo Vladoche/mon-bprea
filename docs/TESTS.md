@@ -106,6 +106,27 @@ La clôture locale est préparée par `node --env-file-if-exists=.env.supabase-t
 
 ## CI et protection de `main`
 
+### Application Windows Admin V2
+
+La [chaîne de développement Windows](../tools/mon-bprea-admin/DEVELOPPEMENT.md#reproduire-les-vérifications-de-développement)
+est distincte des E2E du site. `tools/mon-bprea-admin/publish.ps1` utilise le SDK
+.NET épinglé, exécute les vecteurs Node, les tests C#/coffre/DPAPI et les contrôles
+WinForms, puis compile et inspecte le binaire x64 autonome et son ZIP. Son smoke
+test utilise un namespace local aléatoire sans clé : aucune lecture du coffre
+PROD ni requête hébergée. Le workflow `admin-windows` ne déploie pas Pages.
+
+La recette intégrale utilise le **binaire distribué** en mode de qualification
+explicitement local, la stack distincte `mon-bprea-admin-v2-local`, des comptes
+fictifs et des navigateurs participants jetables. Elle vérifie les effets réels
+sur Auth, UUID, dix tables, sessions/refresh, sauvegarde/restauration et témoin B ;
+les transports simulés ne remplacent pas ces preuves. Les sorties privées de la
+campagne restent ignorées, les captures publiables excluent clés et liens.
+La [validation Admin V2](validations/VALIDATION-ADMIN-V2.md) porte les résultats
+réellement exécutés et les limites. Cette qualification n’active aucune capacité
+PROD et ne qualifie pas un futur rôle PostgreSQL hébergé.
+
+### Workflows du site
+
 Le workflow [Qualité](../.github/workflows/quality.yml) exécute `unit-integration` et `e2e` sur les PR vers `main`, ainsi que le job `ui-performance-lab` (identifiant YAML `ui-performance`) pour les mesures comparatives de laboratoire. Les captures visuelles attendent une revue humaine ; elles ne deviennent pas des références approuvées automatiquement. Le workflow distinct [Sécurité Auth et RLS](../.github/workflows/auth-security.yml) exécute `supabase-security`, y compris pour les PR documentaires : stack Docker éphémère, pgTAP, runners réels et parcours navigateur, puis arrêt de la stack. Ils utilisent Node.js 24 LTS et `npm ci`, sans secret de production ni déploiement.
 
 Conserver les noms des trois checks. Vérifier leur résultat sur le dernier commit de la PR ; une réussite historique ne valide pas la tête courante. Le [registre des Actions](architecture/ACTIONS-NODE24.md) décrit les versions utilisées. Ne modifier ni protection de `main` ni fusion automatique sans autorisation.

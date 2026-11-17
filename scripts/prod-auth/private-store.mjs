@@ -7,6 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { fail, ProdAuthLinkError, PROD_PROJECT, validateProdCallback } from './environment.mjs';
 
 import { inspectRecoveryJournal, parseRecoveryJson } from './recovery-journal.mjs';
+import { inspectSimpleJournal } from './simple-journal.mjs';
 
 const repository = fileURLToPath(new URL('../../', import.meta.url));
 const inside = (parent, child) => { const path = relative(parent, child); return path === '' || (!path.startsWith('..') && !isAbsolute(path)); };
@@ -116,6 +117,12 @@ export function createPrivateStore(value) {
   };
   const recoveryBlocked = email => {
     try {
+      const simple = readdirSync(directory).filter(name => name.startsWith('admin-v2-')).map(name => {
+        const path = join(directory, name); privateFile(path);
+        if (lstatSync(path).size > 65536) fail('private');
+        return { name, text: name.endsWith('.bin') ? null : readFileSync(path, 'utf8') };
+      });
+      if (inspectSimpleJournal(simple, id => createHash('sha256').update(readFileSync(join(directory, `admin-v2-${id}-payload.bin`))).digest('hex'), email)) return true;
       // V1.2 keeps all closure intentions blocking until separate residual and
       // backup reconciliation review. Missing/ambiguous results never retry.
       if (readdirSync(directory).some(name => name.startsWith('closure-') && name.endsWith('.json') && !name.startsWith('closure-request-'))) return true;
@@ -125,7 +132,9 @@ export function createPrivateStore(value) {
         if (lstatSync(ledger).size > 1_000_000) fail('private');
         const entries = parseRecoveryJson(readFileSync(ledger, 'utf8'));
         if (!Array.isArray(entries) || entries.some(r => !r || typeof r !== 'object' || Array.isArray(r))) fail('private');
-        if (entries.some(r => r.version === 3 && r.type === 'closure')) return true;
+        // A tombstone survives even if its per-operation events were lost in
+        // a partial restore. Unknown/new versions must not release the guard.
+        if (entries.some(r => r.type === 'closure')) return true;
       }
       const entries = readdirSync(directory).filter(name => name.startsWith('recovery-') && name.endsWith('.json')).map(name => {
         const path = join(directory, name); privateFile(path);

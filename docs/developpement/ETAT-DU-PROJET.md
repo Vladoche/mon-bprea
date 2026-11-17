@@ -11,8 +11,8 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification Git/PR et livraison locale : **16 novembre 2026**.
-  Les relevés Pages/HTTP ci-dessous restent ceux de **13:10 UTC** ; aucun
+- Dernière vérification Git/PR et chantier local : **17 novembre 2026**.
+  Les relevés Pages/HTTP ci-dessous restent ceux du **16 novembre à 13:10 UTC** ; aucun
   nouveau contrôle hébergé ou de sauvegarde privée dans cette livraison.
 - Sources : `git fetch origin`, code de `origin/main`, [PR GitHub](https://github.com/Vladoche/mon-bprea/pulls?q=is%3Apr),
   [historique Pages](https://github.com/Vladoche/mon-bprea/actions/workflows/deploy.yml),
@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `2322aab6424961f2afdc78a4bfe49e608262c0ef` |
-| Dernière PR fusionnée | [#65](https://github.com/Vladoche/mon-bprea/pull/65), 16/11/2026 à 18:52:04 UTC |
-| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65) |
-| PR ouverte | [#66](https://github.com/Vladoche/mon-bprea/pull/66), Drill PR3 lot 3, `feat/ui-2027-weekly-drill` ; [validation et captures](../validations/VALIDATION-UI-2027-PR3-LOT3.md), revue humaine avant fusion, sans publication |
-| Prochain chantier | Revue humaine du Drill PR3 lot 3, puis décision de fusion ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
+| Dernier commit | `7115b722352ba5e951a1ae29bdc4e69f07938c02` |
+| Dernière PR fusionnée | [#66](https://github.com/Vladoche/mon-bprea/pull/66), 16/11/2026 à 20:39:05 UTC |
+| Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
+| Chantier courant, non fusionné | **Admin V2**, `codex/mon-bprea-admin-v2`, depuis ce main ; [PR #67](https://github.com/Vladoche/mon-bprea/pull/67) ouverte. [Guide](../../tools/mon-bprea-admin/README.md), [architecture](../../tools/mon-bprea-admin/DEVELOPPEMENT.md), [validation locale](../validations/VALIDATION-ADMIN-V2.md) |
+| Prochaine action | Examiner la PR Admin V2 #67 et ses contrôles avant toute décision de fusion ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -48,10 +48,14 @@ ne vaut pas une recette hébergée. Le correctif #64 est fusionné depuis le
 `6187c7d719c63765e47d3470da5fd6e580c59a40`. Les QCM #65 sont fusionnés le
 16/11 à 18:52:04 UTC ; leur tête finale est `2e626256ade23dd2cc5173f596e8a375647c85ae`.
 Voir leur [validation datée](../validations/VALIDATION-UI-2027-PR3-LOT2.md).
+Le Drill #66 est fusionné depuis le 16/11 à 20:39:05 UTC ; sa tête de PR est
+`9046ea6c54e4630d22747bd483b5f9c763df34a5`, sa fusion `7115b72`.
+Sa [validation et ses captures](../validations/VALIDATION-UI-2027-PR3-LOT3.md)
+restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#65. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#66. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -65,7 +69,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `2322aab6424961f2afdc78a4bfe49e608262c0ef` |
+| Dernier commit main | `7115b722352ba5e951a1ae29bdc4e69f07938c02` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -117,6 +121,18 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
   journal et mémorisation Auth Windows facultative. La distribution ne peut pas
   supprimer en PROD, faute de canal PostgreSQL de confiance et de liaison complète
   aux preuves de sauvegarde/journal ; aucun paramètre ne contourne ce blocage.
+- **Admin V2, non fusionné** : trois actions graphiques, clé mémorisée automatiquement
+  dans Windows, liens DPAPI et contrôles techniques intégrés, sans cases d’attestation
+  ni consentement inventé. Le changement d’adresse est une confirmation administrative
+  après vérification du titulaire par un canal connu ; il conserve l’UUID. La recette
+  du binaire autonome sur stack locale fictive couvre création/activation, récupération
+  combinée et suppression d’A, dix tables et sessions/refresh vides, B préservé et
+  restauration réconciliée. **Suppression PROD toujours bloquée** : l’architecture
+  proposée n’a créé aucun rôle, privilège ou service hébergé. La durée des liens PROD
+  reste inconnue dans l’application faute de canal de configuration qualifié.
+  [Validation et limites](../validations/VALIDATION-ADMIN-V2.md). Les 2 524 assertions
+  C#, 33 contrôles WinForms et 640 tests Node réussis (un ignoré) ne constituent pas
+  une CI finale ni une recette hébergée de cette branche.
 - **Sauvegarde** : dernier point applicatif documenté **08/11/2026 à 20:48:37 UTC**,
   restauré et vérifié en PostgreSQL isolé à 20:58 UTC. Objectif satisfait à cet
   instant seulement. Politique : intervalle entre points valides/restaurés ≤168 h,
@@ -137,9 +153,10 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir les captures comparatives et les contrôles du **Drill PR3 lot 3**,
-   puis décider séparément de sa fusion. #63–#65 sont fusionnées ; le lot 4
-   tableau de bord/statistiques reste distinct et attend son autorisation.
+1. Examiner la [PR **Admin V2 #67**](https://github.com/Vladoche/mon-bprea/pull/67) depuis `7115b72`, ses
+   contrôles finaux et ses limites PROD, sans fusion automatique. #63–#66 sont
+   fusionnées ; le lot 4 tableau de bord/statistiques reste distinct et attend
+   son autorisation.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
 3. Décider séparément d’une publication du code fusionné, puis appliquer le

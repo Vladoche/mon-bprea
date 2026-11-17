@@ -1,114 +1,55 @@
-# Mon BPREA Admin 1.2
+# Mon BPREA Admin 2.0 — guide utilisateur
 
-Application locale Windows x64 : consulter les comptes Auth, inviter individuellement et récupérer l’accès à un compte confirmé. La V1.2 ajoute la préparation graphique de clôture et la mémorisation facultative de la clé dans Windows. **Suppression PROD bloquée dans cette distribution** : aucun canal PostgreSQL de confiance n’est disponible pour vérifier les prérequis. Le circuit natif C# est testé uniquement sur stack locale fictive ; aucun réglage ou argument ne peut l’activer en PROD. Aucun accès aux contenus pédagogiques, envoi de courriel ou changement de rôle. Le plafond de sept comptes reste administratif.
+L’application Windows propose trois actions : **Créer un compte**, **Récupérer un compte** et **Supprimer un compte**. Elle gère au maximum sept comptes, exploitant compris. Aucun logiciel complémentaire n’est nécessaire pour la lancer.
 
-## Télécharger et lancer
+**Limite de cette version : la suppression sur le service réel reste bloquée.** Les contrôles des données et des sauvegardes doivent encore y être installés et qualifiés séparément. La suppression a un parcours de qualification locale distinct ; aucun bouton ne permet de lever le blocage réel.
 
-1. Ouvrir le [workflow Windows](https://github.com/Vladoche/mon-bprea/actions/workflows/admin-windows.yml), choisir une exécution réussie sur la version souhaitée, puis télécharger l’artefact **MonBPREAAdmin-1.2-win-x64-…** dans la rubrique *Artifacts*. Une connexion GitHub peut être nécessaire.
-2. Extraire l’archive dans un dossier local du poste de l’exploitant. Elle contient `MonBPREAAdmin.exe`, `LIRE-MOI.md` et l’empreinte `SHA256.txt`. Le nom de l’artefact identifie le commit compilé ; vérifier cette version avant utilisation.
-3. Lancer `MonBPREAAdmin.exe`. Aucun Node.js ni runtime .NET installé n’est nécessaire. L’exécutable n’est pas signé : Windows peut afficher l’avertissement habituel d’un programme provenant d’Internet. Vérifier sa provenance et son empreinte avant de décider de l’exécuter.
+## Télécharger et ouvrir
 
-## Déverrouiller la session
+Depuis une exécution réussie du [workflow Windows officiel](https://github.com/Vladoche/mon-bprea/actions/workflows/admin-windows.yml), télécharger l’artefact **MonBPREAAdmin-2.0-win-x64-…**, puis extraire son archive. Une connexion GitHub peut être nécessaire. Elle contient `MonBPREAAdmin.exe`, ce guide (`LIRE-MOI.md`) et l’empreinte `SHA256.txt`.
 
-Le déverrouillage demande la clé administrative moderne `sb_secret_…` et l’adresse vérifiée du compte exploitant. Les deux autres champs permettent de choisir le dossier privé des opérations et le fichier `operator.json` du préflight existant ; ils peuvent rester vides pour consulter uniquement les comptes. Par défaut, la clé masquée reste seulement en mémoire. Utiliser **Verrouiller** ou fermer la fenêtre pour retirer ses références de session ; les chaînes .NET ne garantissent pas l’effacement physique immédiat de toutes les copies.
+Ouvrir `MonBPREAAdmin.exe`. Le programme n’est pas signé : Windows peut afficher un avertissement de provenance. Vérifier qu’il vient bien du dépôt officiel avant de l’exécuter.
 
-### Mémorisation facultative de la clé Auth
+## Première ouverture
 
-Sur l’écran verrouillé, cocher **Autoriser l’enregistrement…**, puis choisir **Enregistrer / remplacer la clé**. Cela écrit uniquement une entrée chiffrée du Gestionnaire d’identifiants Windows, liée au SID Windows courant, à ce PC et au projet PROD `oqoqrxwfbkhtpksqimgd`. La case revient décochée et le champ est vidé. Aucun fichier de clé, variable persistante ou secret dans l’exécutable. La mémorisation n’est jamais automatique au déverrouillage.
+Saisir la **clé secrète** fournie pour Mon BPREA, commençant par `sb_secret_`, puis choisir **Continuer**. La saisie est masquée. L’application vérifie la connexion et enregistre automatiquement la clé dans le coffre chiffré Windows, pour votre compte sur cet ordinateur.
 
-**Relire la clé mémorisée** remplit seulement le champ masqué : choisir ensuite **Déverrouiller**. Pour remplacer la clé, saisir la nouvelle et renouveler l’autorisation d’enregistrement. **Supprimer la clé mémorisée** retire cette seule entrée et vide le champ ; cela ne révoque pas la clé chez Supabase. Les confirmations et préflights restent obligatoires pour chaque opération. Windows protège l’entrée au repos ; un programme exécuté sous votre compte Windows peut accéder à ce jeu d’identifiants. Ne mémoriser la clé que sur le poste opérateur protégé. Aucun mot de passe PostgreSQL n’est enregistré ou demandé.
+Aux ouvertures suivantes, les trois actions apparaissent directement. Aucun mot de passe supplémentaire, dossier ou fichier n’est demandé. Une clé enregistrée n’est jamais affichée. Une erreur de réseau ne signifie pas qu’il faut la saisir à nouveau.
 
-Choisir le **même dossier privé que l’exécuteur Node historique**, pour partager verrou et réservations. Ne pas créer un nouveau dossier pour contourner un incident. Le dossier doit être local, hors dépôt, hors cloud et partage, appartenir au compte Windows courant et n’accorder l’accès qu’à ce compte et SYSTEM. Les fichiers sensibles sont protégés par Windows ; un refus de protection bloque l’opération. Le fichier `operator.json` contient les attestations existantes du [préflight opérateur](https://github.com/Vladoche/mon-bprea/blob/main/docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#invitation-et-r%C3%A9cup%C3%A9ration-individuelles). Les contrôles opérationnels et leurs dates doivent correspondre à des faits réellement vérifiés, jamais à des valeurs recopiées pour débloquer un écran.
+## Créer un compte
 
-La cible est fixe : `oqoqrxwfbkhtpksqimgd`, API HTTPS Supabase de ce projet et callback `https://vladoche.github.io/mon-bprea/authentification.html`. Il n’existe aucun sélecteur d’environnement. L’application ne modifie jamais les réglages Auth.
+1. Choisir **Créer un compte**.
+2. Entrer l’adresse e-mail du camarade et choisir **Créer le lien d’activation**.
+3. Choisir **Copier le lien**, puis le transmettre personnellement au camarade.
 
-## Consulter les comptes
+Le camarade ouvre lui-même le lien et choisit son mot de passe. L’application n’envoie aucun message et n’ouvre aucun lien personnel automatiquement. Une invitation créée attend encore son activation.
 
-Choisir **Actualiser** dans la section **Comptes**. L’application relit les réglages Auth puis l’inventaire borné. Les invitations en attente comptent dans la capacité. Les dates de confirmation proviennent d’Auth : « Adresse confirmée » ne signifie pas que la personne est connectée. Un inventaire incomplet ou ambigu bloque toute génération. Sélectionner explicitement une ligne ; un compte non confirmé ou présentant un état Auth restreint ne permet pas la récupération.
+Si un lien déjà créé est retrouvé, il est affiché sans créer un second compte. Sa date reste celle de sa création. La durée est indiquée uniquement lorsqu’elle peut être vérifiée ; sinon l’application annonce qu’elle n’est pas communiquée par le service.
 
-## Inviter une personne
+## Récupérer un compte
 
-1. Vérifier les prérequis du poste et du préflight, notamment l’habilitation individuelle et la décision humaine d’ouverture. Les cases sont des attestations de l’opérateur ; le logiciel ne prouve ni la remise de la notice ni les échanges privés.
-2. Saisir l’adresse unique et confirmer les trois prérequis : notice V1.1 remise avant collecte/confirmation de l’adresse, demande ou acceptation personnelle avec adresse confirmée, canal privé convenu. Ces confirmations sont réinitialisées pour une nouvelle opération.
-3. Choisir **Préparer l’invitation**. Aucun compte n’est créé à ce stade. Vérifier le récapitulatif PROD, l’adresse, la capacité et l’heure de l’inventaire. Le préflight expire après cinq minutes.
-4. Saisir exactement la phrase de confirmation affichée pour cette adresse, puis confirmer la génération. Elle peut créer immédiatement le compte Auth et son profil. Le participant choisira seul son mot de passe.
-5. Après réussite, utiliser l’accès au dossier privé pour ouvrir privativement le fichier individuel `auth-link-IDENTIFIANT.txt`. Ne pas ouvrir le lien sur le poste administrateur. Le remettre manuellement au seul destinataire, sans capture, journal, transfert public ni presse-papiers automatique. Aucun courriel n’a été envoyé par l’application.
-6. Noter séparément la remise effective au participant avec la commande prévue dans l’écran de résultat. La création du fichier et celle du compte ne prouvent ni remise ni activation.
+Choisir **Récupérer un compte**, sélectionner la personne puis l’opération :
 
-La durée actuellement prévue du lien est d’une heure, **sous réserve du réglage PROD effectivement vérifié par l’opérateur** ; l’API publique des réglages Auth ne prouve pas cette durée. Retirer la copie du lien après usage/expiration selon la procédure privée approuvée, sans effacer les réservations ou preuves nécessaires.
+- **Réinitialiser le mot de passe** : créer le lien, le copier et le transmettre au titulaire. Lui seul choisit son nouveau mot de passe.
+- **Modifier l’adresse e-mail** : saisir la nouvelle adresse. Joindre le titulaire par un canal déjà connu avant de confirmer cette adresse. Son ancien mot de passe est conservé.
+- **Modifier l’adresse e-mail et le mot de passe** : vérifier le titulaire et la nouvelle adresse de la même manière, puis transmettre le lien créé pour cette nouvelle adresse.
 
-## Récupérer l’accès à un compte confirmé
+La connaissance de l’ancienne adresse ne suffit pas à vérifier une identité. En cas de doute, annuler. La confirmation de la nouvelle adresse est administrative, après cet échange ; elle ne demande aucun message à une ancienne boîte devenue inaccessible. Le compte garde le même identifiant et ses données.
 
-1. Après déverrouillage, choisir **Actualiser**, sélectionner l’adresse dans **Comptes**, puis **Récupérer l’accès**. L’adresse est reprise en lecture seule. Une invitation en attente ou un compte verrouillé demande un diagnostic ; aucune récupération automatique n’est proposée.
-2. Vérifier une nouvelle demande réelle du titulaire, son identité par un canal de confiance déjà établi, l’adresse sélectionnée, le canal privé de remise et le fait que le titulaire choisira seul son mot de passe. Les cinq cases sont décochées à chaque nouvelle opération. Elles consignent vos attestations, sans vérifier automatiquement l’identité. Une demande issue d’un canal inhabituel nécessite un contact complémentaire par le canal connu ; aucune pièce d’identité systématique. Ne demander ni mot de passe existant, JWT, code MFA ou lien de session.
-3. Confirmer également les prérequis du poste, l’autorisation individuelle et l’état des opérations précédentes. Si un ancien fichier privé est perdu, diagnostiquer son état avant de demander un autre lien. Choisir **Préparer la récupération** ; vérifier projet PROD, adresse, contrôle d’identité, canal, inventaire récent, stockage privé et identité du compte validée en interne. La récupération reste possible à sept comptes et ne crée aucune place ni nouveau profil.
-4. Saisir exactement `CONFIRMER PROD recovery adresse`, avec l’adresse affichée, puis **Générer ce lien de récupération**. L’application relit réglages et inventaire sous verrou et refuse toute dérive, tout changement d’UUID/adresse/confirmation, toute restriction Auth et tout inventaire de cinq minutes ou plus. Une réservation durable précède le seul POST administratif, sans retry.
-5. Le résultat indique **Lien de récupération généré et enregistré dans le dossier privé** et le nom du fichier individuel. Aucun email n’a été envoyé. Ouvrir seulement le dossier privé ; remettre le lien au titulaire vérifié, sans ouvrir ce lien sur le poste administrateur ni le copier automatiquement dans le presse-papiers. Sa validité est limitée, à vérifier dans les réglages PROD (valeur attendue : 3 600 secondes).
-6. Acquitter séparément la remise effective avec **Noter la remise au titulaire**. L’actualisation conserve ce reçu pendant la session. Le titulaire choisit personnellement son nouveau mot de passe sur le callback existant ; la génération du fichier ne prouve pas que ce changement a eu lieu. UUID, profil, rôle, adresse, préférences et données pédagogiques restent ceux du même compte.
+Un lien de récupération déjà créé peut être retrouvé. S’il a expiré ou a déjà été utilisé, **Créer un nouveau lien** permet de le remplacer pour une nouvelle demande vérifiée. Une erreur entre le changement d’adresse et la création du lien est signalée comme un changement partiel, jamais comme une récupération terminée.
 
-Un lien expiré peut nécessiter une **nouvelle demande individuelle**, avec contrôle d’identité et autorisation renouvelés, après qualification du compte et des opérations antérieures. Les liens précédents ne sont jamais rejoués automatiquement.
+## Supprimer un compte
 
-## Réservations V1 et journal V1.1
+Choisir **Supprimer un compte**, sélectionner la personne puis **Supprimer ce compte**. Un seul écran propose **Annuler** ou **Confirmer la suppression**.
 
-Utiliser ensemble les sources Node et l’exécutable V1.2 de cette livraison, dans le **même dossier privé** ; une ancienne copie Node ignore les intentions de clôture V1.2. Suspendre toute administration depuis un autre poste, dossier ou Dashboard. Le verrou `operation.lock` reste commun et exclusif.
+Sur le service réel, cette version explique le blocage et ne supprime rien. En qualification locale, elle contrôle le compte, ses données, le compte exploitant protégé et la sauvegarde avant l’action, puis vérifie le résultat. Des contrôles des données actives ne signifient pas que toutes les copies et tous les anciens accès ont disparu.
 
-Aucune migration ni réécriture des réservations V1 n’est nécessaire pour la récupération Windows. Une réservation V1 `reserved` bloque ; une opération V1 `delivered-private` avec date de livraison acquittée peut être suivie d’une récupération, même si son ancien lien a déjà été retiré selon la procédure de conservation. Cet état prouve la livraison locale, pas la remise ni le changement de mot de passe. Toute nouvelle demande exige la qualification des opérations précédentes ; fichier perdu ou état ambigu : diagnostic préalable, sans suppression ni remise à zéro.
+## Paramètres, aide et incidents
 
-Les récupérations Windows ajoutent des fichiers immuables `recovery-UUID-reserved.json`, `recovery-UUID-delivered-private.json` puis `recovery-UUID-handed-over.json`. Le premier conserve UUID Auth, empreinte de cible, date et cinq attestations ; aucun email en clair, clé, token ou lien dans ces événements. Le fichier secret `auth-link-UUID.txt` reste sous EFS et ACL du compte Windows courant/SYSTEM. Livraison locale et remise sont distinctes ; une nouvelle récupération exige la remise précédente acquittée et de nouvelles attestations. Une perte/altération du fichier avant remise bloque la reprise. Après remise, la copie du lien peut être retirée selon la procédure approuvée, sans retirer les événements.
+Le petit accès **Paramètres** permet de remplacer ou supprimer la clé enregistrée, de vérifier la connexion et d’ouvrir le diagnostic. Supprimer la clé du coffre ne la révoque pas sur le service et ne supprime aucun compte ni historique.
 
-Node reconnaît ce journal avant de réserver ; les anciens contrats d’invitation et de récupération restent valables. Quand Node remplace sa propre réservation V1 achevée, il en conserve d’abord les octets dans `history-reservation-UUID.json`, sans écraser une archive différente. Les fichiers V1 et les événements Windows sont conservés. Ne jamais enlever une réservation, un événement ou un verrou pour rendre une opération répétable.
+Si la clé est renouvelée, révoquée ou perdue par Windows, l’application l’explique. Si une opération est incertaine, **ne pas la répéter** : l’application conserve son historique et bloque les nouveaux essais concernés. Elle ne demande jamais de commande ni de modification manuelle de fichier.
 
-## Préparer une clôture et suivre son résultat
+La [notice de confidentialité](https://vladoche.github.io/mon-bprea/confidentialite.html) reste accessible sans compte, également depuis **Aide**. La participation volontaire ne constitue pas une preuve inventée de consentement à d’autres traitements.
 
-1. **Actualiser**, sélectionner explicitement le participant, puis **Clôturer un compte**. L’adresse et le statut viennent de l’inventaire Auth ; aucune saisie libre de cible. Le parcours est distinct des invitations/récupérations. L’identité immuable de l’exploitant doit être vérifiée par un canal technique indépendant avant toute autorisation : le texte de l’adresse fourni au déverrouillage ne suffit pas. La distribution bloque toutes les suppressions, donc aussi celle de l’exploitant, du dernier compte et d’une cible inconnue.
-2. Recevoir et qualifier une demande réelle ou une décision justifiée ; vérifier raisonnablement l’identité par un canal connu, l’exacte cible, le droit, les exceptions et l’habilitation individuelle. Renseigner une référence interne sans identité en clair et la date de réception. Garder échanges et détails d’identité dans le dossier de demande distinct ; aucune pièce d’identité systématique, aucun mot de passe/JWT/code MFA.
-3. Proposer un export. S’il a été demandé, vérifier sa couverture, son traitement et sa remise privée avant d’attester qu’aucun export ne reste à traiter. Les neuf attestations sont décochées pour chaque nouvelle préparation ; elles ne remplacent aucune preuve technique.
-4. **Vérifier la préparation** enregistre un dossier de demande minimal sous EFS/ACL. L’écran distingue les cinq étapes et affiche projet, adresse/statut, date d’inventaire et uniquement des comptages, quand ils ont réellement été collectés. **« Non collecté » n’est jamais zéro.** Un inventaire de cinq minutes ou plus, un changement d’identité, une opération antérieure incertaine ou des preuves absentes bloquent la suite.
-5. Sauvegardes : retrouver le contexte, le manifeste, l’archive applicative, la preuve de restauration isolée et le journal courant `deletions.json`. Le contrôle opérateur existant est `npm run preopening -- backup preopening-operator` ; il reste complémentaire à l’exécutable et nécessite les sources/outils Node. Intervalle maximal : 168 h ; avertissement dès 144 h. Copie ancienne, preuve liée à un autre journal, journal absent ou anomalie : suspendre l’opération. Ne créer aucune sauvegarde automatiquement et ne modifier aucune archive historique.
-6. **Dans cette V1.2, la confirmation finale reste désactivée sur PROD**, avec les capacités manquantes affichées. Ne pas remplir artificiellement `closure.json` ou une case pour contourner ce blocage. Le circuit opérateur complémentaire reste celui de [P0-13](https://github.com/Vladoche/mon-bprea/blob/main/docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#cl%C3%B4ture-assist%C3%A9e-native), avec mandat distinct sur le seul UUID. Le préflight hors ligne n’exécute ni lecture serveur ni suppression.
-7. Le circuit testé en environnement isolé ouvre **Confirmer la suppression définitive** uniquement après preuves complètes : UUID exploitant exclu, dix tables, onze signatures FK/cascades exactes, absence de dépendance inattendue/Storage, permissions/RLS, témoins, sauvegarde et journal. La fenêtre présente UUID/adresse, demande/export, sauvegardes et limites. Saisir exactement `SUPPRIMER DEFINITIVEMENT adresse`. Le bouton est désactivé tant que la phrase diffère ; Entrée n’est pas une confirmation par défaut. Annulation, modification de cible ou expiration imposent une nouvelle préparation.
-8. Sous `operation.lock`, le circuit relit identité/inventaire, preuves et journal, puis flush l’intention et le journal courant **avant** le seul `DELETE /auth/v1/admin/users/UUID`, corps `{"should_soft_delete":false}`. Contrat vérifié dans [auth-js](https://github.com/supabase/auth-js/blob/master/src/GoTrueAdminApi.ts) et [GoTrue 2.197.0](https://github.com/supabase/auth/blob/v2.197.0/internal/api/admin.go) : succès HTTP 200 avec objet JSON vide. Toute autre réponse/perte/timeout reste incertaine jusqu’aux postcontrôles, sans retry.
-9. Le résultat distingue **Résultat incertain**, **Compte Auth supprimé, contrôles incomplets** et **Données actives vérifiées supprimées — clôture en suivi**. L’absence Auth seule ne prouve ni dix tables vides ni sessions/refresh retirés. Le témoin et l’exploitant doivent rester présents. Utiliser **Inspection Auth en lecture seule** et **Consulter le dossier privé** après incident ; ne jamais supprimer le verrou ou un événement pour recommencer. Aucun ancien JWT n’est annoncé instantanément invalide.
-10. Suivre appareils présents/absents, anciens onglets, opérations non synchronisées, téléchargements, sauvegardes et exceptions. Ne pas vider globalement le navigateur. Le résultat fournit un modèle de réponse à compléter avec les seules couches réellement vérifiées, résidus, prochaines actions et échéances ; aucun envoi automatique. Toute restauration future reste isolée et doit réappliquer les effacements pertinents avant remise en service.
-
-### Journal V1.2 et réconciliation
-
-Les dossiers `closure-request-UUID.json` conservent référence/date, UUID, empreinte et attestations, sans email en clair. Ils ne sont pas des intentions destructives. L’exécuteur exige un `deletions.json` courant existant et cohérent ; il ne crée jamais silencieusement un journal vide. Les intentions `closure-UUID-intent.json` et résultats `closure-UUID-result.json` sont immuables et chiffrés EFS. Avant l’appel, les octets précédents du tableau courant sont archivés dans `history-deletions-UUID.json`, puis une nouvelle entrée minimale est ajoutée et remplacée atomiquement. Les fichiers/réservations historiques restent intacts.
-
-Une interruption entre intention et remplacement du tableau bloque la reprise. L’intention `pending/uncertain` reste dans le tableau ; les résultats vérifiés sont consignés séparément, sans réécriture de décision. L’empreinte du journal entier change dès l’intention : une ancienne preuve de restauration devient invalide. Ne jamais remplacer le journal courant par celui d’un snapshot. Référence de sauvegarde, portée, résidus, prochaine action et revue à un jour sont consignés, sans contenu pédagogique, score, token ou lien. Node et C# bloquent conservativement **toute nouvelle mutation** après une intention, même avec résultat serveur confirmé ; cette V1.2 ne fournit aucun bouton de levée ou de purge. La revue des résidus/réconciliation et une évolution qualifiée restent nécessaires pour reprendre l’administration.
-
-### Accès PostgreSQL de lecture seule : étude séparée
-
-L’API Auth ne prouve pas les catalogues, comptages, permissions ou Storage. Le modèle actuel retire à `service_role` l’accès direct aux tables applicatives : ne pas lui réaccorder ces droits pour débloquer l’outil. Un login PostgreSQL ordinaire soumis aux RLS ne peut pas compter correctement les données d’autrui ; voir zéro ligne ne constitue pas une preuve d’absence.
-
-Piste à qualifier après accord explicite : identité distincte de la clé Auth, connexion TLS bornée au projet PROD exact, aucun secret enregistré par défaut, `SELECT` limité à `profiles.id` et aux neuf colonnes `user_id`, ainsi qu’aux seules colonnes propriétaire Storage/sessions/refresh nécessaires, et lectures de catalogues. Ne jamais accorder la lecture des tokens ou contenus pédagogiques. L’accès aux lignes malgré RLS exigerait une capacité privilégiée séparément examinée (par exemple rôle de diagnostic étroitement restreint avec `BYPASSRLS`) : ce n’est pas une permission déjà accordée. Interdire écritures, DDL, création de rôles, héritages administratifs et rôles applicatifs ; `default_transaction_read_only` seul n’est pas une barrière d’autorisation. Identifier l’UUID exploitant de manière indépendante et durable, puis qualifier ce collecteur et sa liaison aux sauvegardes/journal.
-
-**Aucun rôle, GRANT, RLS, migration, mot de passe PostgreSQL administrateur ou configuration PROD n’est créé/modifié par la V1.2.** Aucun import de preuve JSON ni attestation ne peut activer le DELETE de la distribution. Cette étude ne vaut pas autorisation de provisionner le login ou de qualifier PROD. Références : [RLS PostgreSQL 17](https://www.postgresql.org/docs/17/ddl-rowsecurity.html), [privilèges par colonne et droits hérités de PUBLIC](https://www.postgresql.org/docs/17/sql-grant.html).
-
-### Reproduire la recette native C# isolée
-
-Sous Windows, avec les dépendances Node installées, le SDK épinglé et une **stack Supabase locale dédiée vide**, préparer les variables `SUPABASE_TEST_*` selon les tests existants, puis compiler `Tests/MonBprea.Admin.Tests.csproj`. Le script refuse les URL hébergées et exige les clés modernes locales. Il utilise `docker --context desktop-linux`, uniquement un conteneur nommé `supabase_db_mon-bprea-admin12-local` ou `supabase_db_mon-bprea-lot6-1-local` :
-
-```powershell
-node tools/mon-bprea-admin/local-closure-test.mjs CHEMIN_ABSOLU_DOTNET_EXE supabase_db_mon-bprea-admin12-local
-```
-
-Ce banc réservé aux tests appelle le véritable client C# via un transport interne de l’assembly de test, limité à un pont `127.0.0.1`. La distribution ne contient ni ce pont ni l’adaptateur injectable. Il crée les seules fixtures A/B, peuple les dix tables, lit métadonnées/comptages sans contenus dans le parcours administratif, contrôle la suppression native unitaire, sessions/refresh, ancien JWT et B. Il restaure le snapshot applicatif dans une base isolée, compare données synthétiques, schéma et privilèges applicatifs, refuse la preuve liée à l’ancien journal puis réconcilie A en préservant B. Les ACL par défaut `supabase_admin` de plateforme sont hors restauration applicative ; aucun contournement des contrôles des objets applicatifs. Le rôle de lecture utilisé par ce **banc local** est celui du conteneur fictif ; il ne qualifie aucun futur login PostgreSQL PROD.
-
-## Si une opération échoue
-
-Un résultat incertain conserve durablement sa réservation. Aucun nouvel essai automatique, aucune suppression et aucune invitation de remplacement ne sont proposés. Utiliser uniquement **Actualiser** pour une inspection non destructive, puis faire qualifier l’incident selon le [circuit manuel](https://github.com/Vladoche/mon-bprea/blob/main/docs/deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md). Ne pas effacer `operation.lock`, une réservation ou un journal pour recommencer. L’expiration du lien ne supprime pas le compte ; une récupération V1.1 exige le même compte confirmé et une nouvelle demande vérifiée. Une incertitude reste bloquante après redémarrage ; seule une actualisation non destructive est proposée.
-
-## Compiler et vérifier
-
-Sources : C# / .NET 10 LTS, WinForms, sans dépendance applicative NuGet externe. SDK fixé par `global.json`. Depuis la racine du dépôt, installer les outils de test Node 24 avec `npm ci`, puis, sous Windows avec le SDK .NET prévu :
-
-```powershell
-./tools/mon-bprea-admin/publish.ps1
-```
-
-La version **1.2** est visible dans la fenêtre et les métadonnées du programme. Le contrat administratif suit la [documentation Supabase `generateLink`](https://supabase.com/docs/reference/javascript/auth-admin-generatelink), avec `type: recovery` et le callback fixe, sans envoi automatique.
-
-La commande exige une sortie neuve ou vide, compare les contrats avec les vrais modules Node sur des cas synthétiques, exécute les tests C# et Windows, puis publie Release `win-x64`, self-contained, single-file, sans trimming. Elle inspecte les fichiers distribués et les motifs connus de clés/jetons, vérifie la version et produit aussi `MonBPREAAdmin-1.2-win-x64.zip` (trois fichiers, empreinte exécutable contrôlée dans l’archive). Ce contrôle borné ne remplace pas la revue des sources et ne prouve pas l’absence de toute forme possible de secret.
-
-Le workflow utilise le même script sans secret PROD. Il publie uniquement l’exécutable, ce guide et son empreinte pendant quatorze jours. Il n’appelle aucun administrateur hébergé et ne déploie rien sur GitHub Pages. Les tests simulés vérifient le client administratif et ses échecs ; ils ne constituent pas une preuve RLS ni une recette d’invitation ou de récupération réelle sur PROD. Aucun test de cette livraison ne contacte Supabase PROD. Le callback existant est vérifié avec le SDK réel et des réponses HTTP synthétiques ; la récupération hébergée réelle reste non exécutée.
+Les [détails développeur et capacités restant à qualifier](https://github.com/Vladoche/mon-bprea/blob/main/tools/mon-bprea-admin/DEVELOPPEMENT.md) sont séparés de ce guide.

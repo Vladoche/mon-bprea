@@ -2,24 +2,30 @@
 
 Historique synthétique du code et de sa documentation, sans versionnement SemVer
 du frontend. Les dates ci-dessous sont les **dates de fusion UTC**, vérifiées sur
-GitHub le 16 novembre 2026. Une fusion ne prouve pas une publication : consulter
+GitHub le 17 novembre 2026. Une fusion ne prouve pas une publication : consulter
 l’[état actuel](docs/developpement/ETAT-DU-PROJET.md) et le
 [registre Pages](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages).
 La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
-- Drill hebdomadaire PR3 lot 3 : sélection UC et semaines, cartes de questions,
-  progression des premières réponses, corrections, entraînements supplémentaires
-  et historique modernisés. Brouillons, snapshots et synchronisation conservés ;
-  mises à jour ciblées pour préserver focus et lecture. Branche
-  `feat/ui-2027-weekly-drill`, [PR #66 ouverte](https://github.com/Vladoche/mon-bprea/pull/66), sans publication.
-  [Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT3.md).
+- **Mon BPREA Admin V2 — administration simplifiée** : trois actions principales,
+  configuration Windows intégrée et mémorisation automatique chiffrée de la clé,
+  liens protégés par DPAPI, récupération du mot de passe, de l’adresse ou des deux
+  sans cases d’attestation. Journaux et barrières de non-répétition conservés,
+  sans preuve de consentement inventée. Exécutable autonome et recette locale
+  réelle avec conservation des UUID/données, suppression d’A, témoin B préservé
+  et restauration réconciliée. Suppression PROD toujours bloquée, aucun changement
+  PROD ni publication Pages. [PR #67](https://github.com/Vladoche/mon-bprea/pull/67).
+  [Guide](tools/mon-bprea-admin/README.md),
+  [architecture et limites](tools/mon-bprea-admin/DEVELOPPEMENT.md),
+  [validation](docs/validations/VALIDATION-ADMIN-V2.md).
+- Drill hebdomadaire PR3 lot 3 #66 fusionné ; voir l’entrée datée ci-dessous.
 - QCM de cours PR3 lot 2 #65 fusionné ; voir l’entrée datée ci-dessous.
 - Correctif clair/sombre #64 fusionné ; voir l’entrée datée ci-dessous.
 - PR3 lot 1 UC/lecture #63 fusionnée ; voir l’entrée datée ci-dessous.
 - Maintenance documentaire #62 fusionnée ; voir l’entrée datée ci-dessous.
-- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#65
+- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#66
   détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
   propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
 
@@ -29,6 +35,15 @@ et conserver le statut de publication séparément ; ne jamais exiger le futur S
 de merge dans la PR elle-même. Une correction de ponctuation n’impose pas d’entrée.
 
 ## 2026-11-16
+
+### Modifié — [#66](https://github.com/Vladoche/mon-bprea/pull/66), Drill hebdomadaire PR3 lot 3
+
+Sélection UC et semaines, cartes de questions, progression des premières réponses,
+corrections, entraînements et historique modernisés. Brouillons, snapshots et
+synchronisation conservés ; mises à jour ciblées pour préserver focus et lecture.
+Fusion le 16/11 à 20:39:05 UTC,
+`7115b722352ba5e951a1ae29bdc4e69f07938c02`, sans publication Pages.
+[Validation](docs/validations/VALIDATION-UI-2027-PR3-LOT3.md).
 
 ### Modifié — [#65](https://github.com/Vladoche/mon-bprea/pull/65), QCM de cours PR3 lot 2
 

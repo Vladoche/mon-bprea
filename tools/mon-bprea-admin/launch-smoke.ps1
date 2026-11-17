@@ -4,7 +4,7 @@ $path = (Resolve-Path -LiteralPath $Executable).Path
 if ([System.IO.Path]::GetFileName($path) -cne 'MonBPREAAdmin.exe') { throw 'Exécutable inattendu.' }
 # This is the requested test of the actual visible WinForms application,
 # not a background helper. A hidden window has no Process.MainWindowHandle.
-$process = Start-Process -FilePath $path -PassThru -WindowStyle Normal
+$process = Start-Process -FilePath $path -ArgumentList "--qualification-locale=$([Guid]::NewGuid().ToString('D'))" -PassThru -WindowStyle Normal
 try {
     $deadline = [DateTime]::UtcNow.AddSeconds(15)
     do {

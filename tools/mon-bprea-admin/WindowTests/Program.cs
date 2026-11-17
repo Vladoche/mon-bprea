@@ -2,192 +2,121 @@ using MonBprea.Admin.App;
 using MonBprea.Admin.Core;
 using MonBprea.Admin.WindowsSecurity;
 
-internal static partial class Program
+internal static class Program
 {
     private static int passed;
+    private static string copied = "";
     [STAThread]
-    private static int Main(string[] args)
+    private static int Main()
     {
         Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        var fake = new FakeWorkflow();
-        var vault = new FakeVault();
-        using var form = new MainForm(_ => fake, () => true, vault);
-        form.Text = "Mon BPREA Admin — TEST SYNTHÉTIQUE SANS RÉSEAU";
-        if (args.Length == 1 && args[0] == "--interactive") { Application.Run(form); return 0; }
-        Exception? failure = null;
+        var vault = new FakeVault(); var fake = new FakeWorkflow(); var configured = 0; var reopened = 0;
+        SimpleMainForm Form() => new(AdminTarget.LocalQualification(Guid.Parse("11111111-1111-4111-8111-111111111111")), vault,
+            (key, configure) => {
+                if (configure) { configured++; vault.Save(key); } else reopened++;
+                return Task.FromResult<ISimpleWorkflow>(fake);
+            }, (_, _) => true, text => copied = text);
+        using var form = Form(); Exception? failure = null;
         form.Shown += async (_, _) => {
-            try { await ExerciseCredentials(form, vault); await Exercise(form, fake); }
-            catch (Exception error) { failure = error; }
+            try { await Exercise(form, fake); }
+            catch (Exception e) { failure = e; }
             finally { form.Close(); }
         };
         Application.Run(form);
-        if (failure is not null) { Console.Error.WriteLine("FAIL Windows UI: " + failure.Message); return 1; }
-        Console.WriteLine($"PASS {passed} Windows UI checks; real form/message loop, synthetic workflow, zero network.");
-        return 0;
+        if (failure is null)
+        {
+            using var second = Form();
+            second.Shown += async (_, _) => {
+                try { await Pump(); Check(FindAll<TextBox>(second).Count == 0, "reopen directly on home without key"); Check(reopened == 1 && configured == 1, "one entry, automatic vault reload"); }
+                catch (Exception e) { failure = e; }
+                finally { second.Close(); }
+            };
+            Application.Run(second);
+        }
+        if (failure is null)
+        {
+            foreach (var code in new[] { "legacy_conflict", "private", "credential" })
+            {
+                using var refused = new SimpleMainForm(AdminTarget.LocalQualification(Guid.NewGuid()), vault,
+                    (_, _) => Task.FromException<ISimpleWorkflow>(new AdminException(code)));
+                refused.Shown += async (_, _) => {
+                    try {
+                        await Pump();
+                        Check(Find<TextBox>(refused, "AdminKey").Visible, "recovery screen after saved-key startup failure " + code);
+                        var status = Find<Label>(refused, "Status");
+                        Check(status.Visible && status.Text == AdminMessages.For(code), "startup failure has visible explanation " + code);
+                    }
+                    catch (Exception e) { failure = e; }
+                    finally { refused.Close(); }
+                };
+                Application.Run(refused);
+                if (failure is not null) break;
+            }
+        }
+        if (failure is not null) { Console.Error.WriteLine("FAIL Windows V2: " + failure.Message); return 1; }
+        Console.WriteLine($"PASS {passed} Windows V2 checks, real message loop, synthetic workflow only."); return 0;
     }
-
-    private static async Task Exercise(MainForm form, FakeWorkflow fake)
+    private static async Task Exercise(SimpleMainForm form, FakeWorkflow fake)
     {
-        Check(form.Visible && form.IsHandleCreated, "real Windows form shown");
-        var key = Find<TextBox>(form, "AdminKey");
-        Check(key.UseSystemPasswordChar && key.ShortcutsEnabled, "key masked, manual paste allowed");
-        foreach (var name in Checks) Check(!Find<CheckBox>(form, name).Checked, "unchecked prerequisite " + name);
-        Find<TextBox>(form, "OperatorEmail").Text = "operator@example.test";
-        key.Text = "synthetic-session-input";
-        Find<Button>(form, "Unlock").PerformClick(); await Pump();
-        Check(key.Text == "", "key control cleared after unlock");
-        Check(Find<DataGridView>(form, "Accounts").Rows.Count == 2, "confirmed and pending accounts displayed");
-        Check(Find<DataGridView>(form, "Accounts").Rows[1].Cells[1].Value?.ToString() == "Invitation en attente", "pending from Auth timestamp");
-        Find<TabControl>(form, "Sections").SelectedIndex = 1;
-        Find<TextBox>(form, "RecipientEmail").Text = "recipient@example.test";
-        foreach (var name in Checks) Find<CheckBox>(form, name).Checked = true;
-        Find<TextBox>(form, "RecipientEmail").Text = "other@example.test";
-        foreach (var name in Checks) Check(!Find<CheckBox>(form, name).Checked, "recipient change resets " + name);
-        Find<TextBox>(form, "RecipientEmail").Text = "recipient@example.test";
-        foreach (var name in Checks) Find<CheckBox>(form, name).Checked = true;
-        Find<Button>(form, "Prepare").PerformClick(); await Pump();
-        Check(fake.Posts == 0 && Find<Button>(form, "Generate").Enabled, "preparation never generates");
-        Find<Button>(form, "CancelPreparation").PerformClick(); await Pump();
-        Check(fake.Posts == 0 && !Find<Button>(form, "Generate").Enabled, "cancel never generates");
-        foreach (var name in Checks) Check(!Find<CheckBox>(form, name).Checked, "cancel resets " + name);
-        foreach (var name in Checks) Find<CheckBox>(form, name).Checked = true;
-        Find<Button>(form, "Prepare").PerformClick(); await Pump();
-        Find<TextBox>(form, "ExactConfirmation").Text = "CONFIRMER PROD invite recipient@example.test";
-        fake.HoldGeneration = new TaskCompletionSource();
-        Find<Button>(form, "Generate").PerformClick();
-        Find<Button>(form, "Generate").PerformClick();
-        Check(fake.Posts == 1 && !Find<Button>(form, "Lock").Enabled, "double click and lock blocked during generation");
-        fake.HoldGeneration.SetResult(); await Pump();
-        Check(fake.Posts == 1 && Find<Button>(form, "OpenPrivateFolder").Enabled, "one generation, private folder accessible");
-        foreach (var name in Checks) Check(!Find<CheckBox>(form, name).Checked, "success resets " + name);
-        Check(Find<TextBox>(form, "RecipientEmail").Text == "", "recipient reset");
-        Check(Find<Label>(form, "OperationStatus").Text.Contains("Aucun email envoyé"), "manual delivery result");
-        Find<Button>(form, "Handover").PerformClick(); await Pump();
-        Check(fake.Handovers == 1, "invitation handover separately acknowledged through button");
-        var grid = Find<DataGridView>(form, "Accounts");
-        Find<TabControl>(form, "Sections").SelectedIndex = 0;
-        grid.ClearSelection(); grid.Rows[1].Selected = true; await Pump();
-        Check(!Find<Button>(form, "RecoverAccess").Enabled, "pending account cannot recover");
-        grid.Rows[0].Selected = true; await Pump();
-        Check(Find<Button>(form, "RecoverAccess").Enabled, "confirmed selected account can recover");
-        var before = fake.Posts;
-        Find<Button>(form, "RecoverAccess").PerformClick(); await Pump();
-        Check(Find<TabControl>(form, "Sections").SelectedIndex == 2, "recovery preparation form shown");
-        Check(Find<TextBox>(form, "RecoveryEmail").ReadOnly && Find<TextBox>(form, "RecoveryEmail").Text == "operator@example.test", "address comes from selected verified row");
-        foreach (var name in RecoveryChecks) Check(!Find<CheckBox>(form, name).Checked, "fresh recovery unchecked " + name);
-        Find<Button>(form, "PrepareRecovery").PerformClick(); await Pump();
-        Check(fake.Posts == before && !Find<Button>(form, "GenerateRecovery").Enabled, "missing attestations never generate");
-        foreach (var name in RecoveryChecks) Find<CheckBox>(form, name).Checked = true;
-        Find<Button>(form, "PrepareRecovery").PerformClick(); await Pump();
-        Check(Find<Button>(form, "GenerateRecovery").Enabled && fake.Posts == before, "recovery preflight no generation");
-        Find<CheckBox>(form, "RecoveryIdentity").Checked = false; await Pump();
-        Check(!Find<Button>(form, "GenerateRecovery").Enabled, "revoked identity invalidates preparation");
-        Find<CheckBox>(form, "RecoveryIdentity").Checked = true;
-        Find<Button>(form, "PrepareRecovery").PerformClick(); await Pump();
-        Find<Button>(form, "CancelRecovery").PerformClick(); await Pump();
-        foreach (var name in RecoveryChecks) Check(!Find<CheckBox>(form, name).Checked, "cancel resets recovery " + name);
-        // A cancelled target must be selected again; no arbitrary address input.
-        Find<TabControl>(form, "Sections").SelectedIndex = 0;
-        Find<Button>(form, "RecoverAccess").PerformClick(); await Pump();
-        foreach (var name in RecoveryChecks) Find<CheckBox>(form, name).Checked = true;
-        Find<Button>(form, "PrepareRecovery").PerformClick(); await Pump();
-        Find<TextBox>(form, "RecoveryConfirmation").Text = "OK";
-        Find<Button>(form, "GenerateRecovery").PerformClick(); await Pump();
-        Check(fake.Posts == before && !Find<Button>(form, "GenerateRecovery").Enabled, "generic OK refused");
-        Find<Button>(form, "PrepareRecovery").PerformClick(); await Pump();
-        Find<TextBox>(form, "RecoveryConfirmation").Text = "CONFIRMER PROD recovery operator@example.test";
-        fake.HoldGeneration = new TaskCompletionSource();
-        Find<Button>(form, "GenerateRecovery").PerformClick(); Find<Button>(form, "GenerateRecovery").PerformClick();
-        form.Close(); // A real close request is refused while generation is in flight.
-        Check(form.Visible && fake.Posts == before + 1 && !Find<Button>(form, "Lock").Enabled, "one recovery, close and lock blocked during operation");
-        fake.HoldGeneration.SetResult(); await Pump();
-        Check(Find<Label>(form, "RecoveryResult").Text.Contains("Lien de récupération généré et enregistré") && Find<Button>(form, "RecoveryOpenFolder").Enabled, "recovery result without secret link");
-        foreach (var name in RecoveryChecks) Check(!Find<CheckBox>(form, name).Checked, "success resets recovery " + name);
-        Find<TabControl>(form, "Sections").SelectedIndex = 0;
-        Find<Button>(form, "Refresh").PerformClick(); await Pump();
-        Check(Find<Button>(form, "RecoveryHandover").Enabled, "refresh preserves recovery handover receipt");
-        Find<TabControl>(form, "Sections").SelectedIndex = 2;
-        Find<Button>(form, "RecoveryHandover").PerformClick(); await Pump();
-        Check(fake.Handovers == 2 && !Find<Button>(form, "RecoveryHandover").Enabled, "recovery handover recorded separately");
-        await ExerciseClosure(form, fake);
-        Find<TabControl>(form, "Sections").SelectedIndex = 0; grid.Rows[0].Selected = true; await Pump();
-        Find<Button>(form, "RecoverAccess").PerformClick(); await Pump();
-        foreach (var name in RecoveryChecks) Check(!Find<CheckBox>(form, name).Checked, "new request never inherits identity " + name);
-        foreach (var name in RecoveryChecks) Find<CheckBox>(form, name).Checked = true;
-        Find<Button>(form, "PrepareRecovery").PerformClick(); await Pump();
-        Find<TextBox>(form, "RecoveryConfirmation").Text = "CONFIRMER PROD recovery operator@example.test";
-        fake.FailRecovery = true;
-        Find<Button>(form, "GenerateRecovery").PerformClick(); await Pump();
-        Check(Find<Label>(form, "OperationStatus").Text.Contains("Résultat incertain") && !Find<Button>(form, "PrepareRecovery").Enabled, "uncertain recovery blocks retries");
-        form.Size = new Size(800, 700); await Pump();
-        Check(form.ClientSize.Width >= 760, "normal window resize supported");
-        Find<TabControl>(form, "Sections").SelectedIndex = 0;
-        fake.FailRefresh = true;
-        Find<Button>(form, "Refresh").PerformClick(); await Pump();
-        Check(Find<DataGridView>(form, "Accounts").Rows.Count == 0 && !Find<Button>(form, "RecoverAccess").Enabled && !Find<Button>(form, "Prepare").Enabled, "failed refresh blocks every generation");
-        fake.FailRefresh = false;
-        Find<Button>(form, "Lock").PerformClick(); await Pump();
-        Check(fake.Disposed && Find<TextBox>(form, "AdminKey").Visible, "lock disposes session and returns unlock");
+        await Pump(); Check(form.Visible && form.IsHandleCreated, "real window");
+        Check(FindAll<CheckBox>(form).Count == 0, "zero checkboxes first use");
+        Check(FindAll<TextBox>(form).Count == 1, "single setup field");
+        var key = Find<TextBox>(form, "AdminKey"); Check(key.UseSystemPasswordChar, "masked key");
+        key.Text = "synthetic-key-without-network"; Click(form, "Configure"); await Pump();
+        Check(FindAll<TextBox>(form).Count == 0, "no key on home");
+        foreach (var name in new[] { "CreateAccount", "RecoverAccount", "DeleteAccount" }) Check(Find<Button>(form, name).Visible, "home action " + name);
+        Click(form, "CreateAccount"); await Pump(); Check(FindAll<TextBox>(form).Count == 1, "invitation only email");
+        Find<TextBox>(form, "RecipientEmail").Text = "participant@example.test"; fake.Hold = new TaskCompletionSource();
+        Click(form, "GenerateInvite"); Click(form, "GenerateInvite"); form.Close();
+        Check(form.Visible && fake.Invites == 1, "double click and close blocked");
+        fake.Hold.SetResult(); await Pump(); Check(copied == "", "no automatic clipboard copy");
+        Check(Find<TextBox>(form, "PersonalLink").ReadOnly, "personal link shown read only");
+        Click(form, "CopyLink"); Check(copied == "synthetic-personal-link", "voluntary copy");
+        Click(form, "Done"); Click(form, "RecoverAccount"); await Pump();
+        Check(Find<ListBox>(form, "Accounts").SelectedIndex == -1, "explicit account selection");
+        Find<ListBox>(form, "Accounts").SelectedIndex = 1; Click(form, "SelectAccount"); Click(form, "ResetPassword"); await Pump();
+        Check(fake.Recoveries == 1, "password operation");
+        Click(form, "Done"); Click(form, "RecoverAccount"); await Pump();
+        Find<ListBox>(form, "Accounts").SelectedIndex = 1; Click(form, "SelectAccount"); Click(form, "ChangeEmail");
+        Check(FindAll<TextBox>(form).Count == 1, "email operation only new address");
+        Find<TextBox>(form, "NewEmail").Text = "new@example.test"; Click(form, "ConfirmEmailChange"); await Pump();
+        Check(fake.EmailChanges == 1 && fake.Decision is not null, "known channel decision bound to account and new address");
+        Click(form, "Done"); Click(form, "RecoverAccount"); await Pump();
+        Find<ListBox>(form, "Accounts").SelectedIndex = 1; Click(form, "SelectAccount"); Click(form, "ChangeBoth");
+        Find<TextBox>(form, "NewEmail").Text = "combined@example.test"; Click(form, "ConfirmEmailChange"); await Pump();
+        Check(fake.Combinations == 1, "combined workflow explicitly selected");
+        Click(form, "Done"); Click(form, "DeleteAccount"); await Pump();
+        Find<ListBox>(form, "Accounts").SelectedIndex = 1; Click(form, "SelectAccount"); await Pump();
+        Check(fake.Deletes == 1 && FindAll<CheckBox>(form).Count == 0, "one deletion confirmation, no attestations");
+        Click(form, "Done"); Click(form, "Settings"); Click(form, "CheckConnection"); await Pump();
+        Check(Find<Label>(form, "Status").Text.Contains("fonctionne"), "plain connection message"); Click(form, "Home");
+        foreach (var button in FindAll<Button>(form)) Check(!string.IsNullOrWhiteSpace(button.AccessibleName) && button.TabStop, "keyboard named action");
     }
-
-    private static readonly string[] RecoveryChecks = ["RecoveryRequested", "RecoveryIdentity", "RecoveryAddress", "RecoveryChannel", "RecoveryPassword", "RecoveryWorkstation", "RecoveryExclusive", "RecoveryStorage", "RecoveryAuthorized", "RecoveryPreflight", "RecoveryExpiry"];
-    private static readonly string[] Checks = ["Notice", "Voluntary", "PrivateChannel", "PrivateWorkstation", "ExclusiveAdministration", "NoSharedStorage", "OpeningAuthorized", "PreflightChecked", "ExpiryChecked"];
-    private static T Find<T>(Control root, string name) where T : Control => (T)root.Controls.Find(name, true).Single();
-    private static async Task Pump() { await Task.Delay(50); }
-    private static void Check(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); passed++; }
-
-    private sealed class FakeWorkflow : IAdminWorkflow
+    private static void Click(Control form, string name) => Find<Button>(form, name).PerformClick();
+    private static T Find<T>(Control form, string name) where T : Control => FindAll<T>(form).Single(c => c.Name == name);
+    private static List<T> FindAll<T>(Control parent) where T : Control => parent.Controls.Cast<Control>()
+        .SelectMany(c => (c is T t ? new[] { t } : Array.Empty<T>()).Concat(FindAll<T>(c))).ToList();
+    private static async Task Pump() { await Task.Delay(80); Application.DoEvents(); }
+    private static void Check(bool value, string label) { if (!value) throw new InvalidOperationException(label); passed++; }
+    private sealed class FakeVault : IAdminCredentialVault
     {
-        public int Posts, Handovers;
-        public int ClosureDeletes;
-        public bool AllowClosure;
-        public ClosureStatus ClosureOutcome = ClosureStatus.AuthAbsentChecksIncomplete;
-        public bool Disposed, FailRefresh, FailRecovery;
-        public TaskCompletionSource? HoldGeneration;
-        private readonly AccountInventory inventory = new([
-            new AuthAccount("11111111-1111-4111-8111-111111111111", "operator@example.test", DateTimeOffset.UtcNow, DateTimeOffset.UtcNow, null),
-            new AuthAccount("22222222-2222-4222-8222-222222222222", "pending@example.test", DateTimeOffset.UtcNow, null, DateTimeOffset.UtcNow)
-        ], DateTimeOffset.UtcNow, "synthetic", true);
-        public Task<AccountInventory> RefreshAsync() => FailRefresh ? Task.FromException<AccountInventory>(new AdminException("lookup")) : Task.FromResult(inventory);
-        public Task<PreparedInvitation> PrepareAsync(string email, HumanAttestations human, WorkstationAttestations workstation)
-            => human.Complete && workstation.Complete ? Task.FromResult(new PreparedInvitation(Guid.NewGuid(), email, inventory, human, workstation, DateTimeOffset.UtcNow))
-                : Task.FromException<PreparedInvitation>(new AdminException("attestations"));
-        public async Task<InvitationReceipt> GenerateAsync(PreparedInvitation prepared, string confirmation)
-        {
-            if (confirmation != prepared.ConfirmationText) throw new AdminException("confirmation");
-            Posts++; if (HoldGeneration is not null) await HoldGeneration.Task;
-            return new InvitationReceipt(Guid.NewGuid(), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DateTimeOffset.UtcNow);
-        }
-        public Task<PreparedRecovery> PrepareRecoveryAsync(AuthAccount selected, RecoveryAttestations human, WorkstationAttestations workstation)
-            => human.Complete && workstation.Complete && selected.ConfirmedAt.HasValue ? Task.FromResult(new PreparedRecovery(Guid.NewGuid(), selected, inventory, human, workstation, DateTimeOffset.UtcNow))
-                : Task.FromException<PreparedRecovery>(new AdminException("attestations"));
-        public async Task<RecoveryReceipt> GenerateRecoveryAsync(PreparedRecovery prepared, string confirmation)
-        {
-            if (confirmation != prepared.ConfirmationText) throw new AdminException("confirmation");
-            Posts++; if (HoldGeneration is not null) await HoldGeneration.Task;
-            if (FailRecovery) throw new AdminException("recovery_uncertain");
-            return new(Guid.NewGuid(), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), DateTimeOffset.UtcNow);
-        }
-        public Task MarkHandedOverAsync(Guid operationId) { Handovers++; return Task.CompletedTask; }
-        public Task<ClosurePreparation> PrepareClosureAsync(AuthAccount selected, ClosureRequest request)
-        {
-            if (!request.Attestations.Complete) throw new AdminException("closure_request");
-            if (selected.Id == inventory.Accounts[0].Id) throw new AdminException("closure_target");
-            var e = new ClosureEvidence(AdminContract.Project, selected.Id, inventory.Accounts[0].Id, inventory.Snapshot, DateTimeOffset.UtcNow,
-                ClosureContract.Tables.ToDictionary(t => t, _ => 1L), ClosureContract.ForeignKeys, true, true, 0, 0, 1, 1,
-                ClosureContract.Hash("witness"), true, DateTimeOffset.UtcNow.AddDays(-1), ClosureContract.Hash("manifest"), ClosureContract.Hash("[]"));
-            return Task.FromResult(new ClosurePreparation(selected, inventory, request, AllowClosure ? Array.Empty<string>() : new[] { "Canal PostgreSQL de confiance absent" },
-                AllowClosure ? e.Rows : new Dictionary<string,long>(), AllowClosure ? "Synthétique, moins de 168 h" : "NON VÉRIFIÉE", AllowClosure ? new PreparedClosure(Guid.NewGuid(), selected, inventory, request, e, e.BackupLedgerHash) : null));
-        }
-        public async Task<ClosureReceipt> ExecuteClosureAsync(PreparedClosure plan, string confirmation)
-        {
-            if (!AllowClosure || confirmation != plan.ConfirmationText) throw new AdminException("confirmation");
-            ClosureDeletes++; if (HoldGeneration is not null) await HoldGeneration.Task;
-            return new(Guid.NewGuid(), ClosureOutcome, "uncertain", ClosureOutcome != ClosureStatus.Uncertain, false, DateTimeOffset.UtcNow);
-        }
-        public void OpenPrivateFolder() { }
-        public void Dispose() => Disposed = true;
+        private string? value; public void Save(string secret) => value = secret;
+        public string? Read() => value; public void Delete() => value = null;
+    }
+    private sealed class FakeWorkflow : ISimpleWorkflow
+    {
+        public int Invites, Recoveries, EmailChanges, Combinations, Deletes;
+        public KnownChannelDecision? Decision; public TaskCompletionSource? Hold;
+        private readonly AuthAccount[] accounts = [new("11111111-1111-4111-8111-111111111111", "operator@example.test", null, DateTimeOffset.UtcNow, null),
+            new("22222222-2222-4222-8222-222222222222", "participant@example.test", null, DateTimeOffset.UtcNow, null)];
+        public Task<AccountInventory> RefreshAsync() => Task.FromResult(new AccountInventory(accounts, DateTimeOffset.UtcNow, "synthetic", true));
+        private static SimpleResult Result() => new(Guid.NewGuid(), "Lien créé", "Compte fictif", [new("participant@example.test", "synthetic-personal-link")], DateTimeOffset.UtcNow, 60);
+        public async Task<SimpleResult> CreateAsync(string email) { Invites++; if (Hold is not null) { await Hold.Task; Hold = null; } return Result(); }
+        public Task<SimpleResult> RecoverAsync(AuthAccount selected, SimpleOperationKind kind, string? next, KnownChannelDecision? decision, bool newLink = false)
+        { if (kind == SimpleOperationKind.Password) Recoveries++; else if (kind == SimpleOperationKind.Email) EmailChanges++; else Combinations++; Decision = decision; return Task.FromResult(Result()); }
+        public Task<SimpleResult> DeleteAsync(AuthAccount selected) { Deletes++; return Task.FromResult(Result()); }
+        public void Dispose() { }
     }
 }
