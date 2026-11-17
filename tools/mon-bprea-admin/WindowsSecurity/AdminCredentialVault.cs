@@ -20,6 +20,8 @@ public sealed class AdminCredentialVault : IAdminCredentialVault
     private readonly string target;
     private readonly string sid;
     public AdminCredentialVault() : this(null) { }
+    public static AdminCredentialVault ForQualification(Guid id) => id == Guid.Empty
+        ? throw new AdminException("credential") : new(id);
     // Random test namespace cannot touch the application's real credential.
     internal AdminCredentialVault(Guid? testNamespace)
     {

@@ -62,6 +62,18 @@ describe('stockage privé PROD : secrets hors dépôt et réservations durables'
     expect(readdirSync(path)).toHaveLength(0);
   });
 
+  it.each([4, 99, undefined])('un tombstone closure de version %s bloque sans aucun événement V2', async version => {
+    const path = directory();
+    const ledger = JSON.stringify([{ version, type: 'closure', operationId: '22222222-2222-4222-8222-222222222222', status: 'pending/uncertain' }]);
+    writeFileSync(join(path, 'deletions.json'), ledger, { mode: 0o600 });
+    const store = createPrivateStore(path);
+    expect(await store.read(email)).toBe(true);
+    await expect(store.withLock(() => store.reserve('other@example.test', 'invite'))).rejects.toMatchObject({ code: 'pending' });
+    expect(await createPrivateStore(path).read('another@example.test')).toBe(true);
+    expect(readFileSync(join(path, 'deletions.json'), 'utf8')).toBe(ledger);
+    expect(readdirSync(path)).toEqual(['deletions.json']);
+  });
+
   it('refuse une jonction ou un lien même vers un dossier privé', () => {
     const parent = directory(), target = directory(), link = join(parent, 'alias');
     symlinkSync(target, link, process.platform === 'win32' ? 'junction' : 'dir');

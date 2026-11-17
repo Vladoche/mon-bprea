@@ -98,6 +98,11 @@ public static class AdminMessages
 {
     public static string For(string code) => code switch
     {
+        "identity" => "Contacte le titulaire par son canal habituel avant de modifier son adresse. La connaissance de son ancienne adresse ne suffit pas.",
+        "email_partial" => "L’adresse a été modifiée, mais la suite n’est pas confirmée. Aucun nouvel essai automatique. Le compte et le journal sont conservés pour vérification.",
+        "key_revoked" => "La clé enregistrée est refusée. Elle a peut-être été renouvelée ou révoquée. Remplace-la dans les paramètres.",
+        "legacy_conflict" => "Un historique antérieur est introuvable ou plusieurs historiques sont présents. La reprise est bloquée pour éviter de perdre une opération. Les fichiers sont conservés.",
+        "deletion_unqualified" => "Opération bloquée. Cette version ne dispose pas encore des vérifications de données et de sauvegardes nécessaires sur le service réel. Aucun compte n’a été supprimé.",
         "credential" => "Gestionnaire d’identifiants Windows indisponible ou entrée non conforme. Aucune clé affichée ni enregistrée dans un fichier.",
         "closure_request" => "Clôture refusée : référence interne, date et neuf attestations nouvelles requises. Export demandé : traitement et remise vérifiés.",
         "closure_target" => "Clôture refusée : identité inconnue, restreinte ou hors périmètre participant. Le compte exploitant est protégé par UUID vérifié.",

@@ -31,6 +31,8 @@ internal static partial class Program
             await Invitations();
             _stage = "recovery-client";
             await Recoveries();
+            _stage = "simple-admin-v2";
+            await SimpleV2();
             _stage = "closure-client";
             await Closures();
             _stage = "windows-private-store";
