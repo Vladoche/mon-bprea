@@ -2,14 +2,20 @@
 
 Historique synthétique du code et de sa documentation, sans versionnement SemVer
 du frontend. Les dates ci-dessous sont les **dates de fusion UTC**, vérifiées sur
-GitHub le 17 novembre 2026. Une fusion ne prouve pas une publication : consulter
+GitHub le 18 novembre 2026. Une fusion ne prouve pas une publication : consulter
 l’[état actuel](docs/developpement/ETAT-DU-PROJET.md) et le
 [registre Pages](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages).
 La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
-- **Mon BPREA Admin 2.1**. Raccordement de l’historique protégé sur Windows,
+- **Tableau de bord 2027, clôture de PR3 (lot 4)**. Synthèse responsive,
+  graphiques hebdomadaires consultables au clavier et au toucher, comparaison
+  des UC et repères de révision par notion. Les mêmes données et calculs
+  alimentent les indicateurs. [PR #69](https://github.com/Vladoche/mon-bprea/pull/69)
+  et [validation](docs/validations/VALIDATION-UI-2027-PR3-LOT4.md).
+- **Mon BPREA Admin 2.1**, fusionné le 18/11 à 12:27:27 UTC sur `fc5fcad`.
+  Raccordement de l’historique protégé sur Windows,
   configuration et maintenance des sauvegardes depuis l’application. La création
   PROD dépend d’une archive récente restaurée et vérifiée, du journal et de
   l’inventaire courant. [PR #68](https://github.com/Vladoche/mon-bprea/pull/68)

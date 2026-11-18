@@ -31,10 +31,10 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `e5607415b6cc8409d7b7cd1c2957338a4fcacf7e` |
-| Dernière PR fusionnée | [#67](https://github.com/Vladoche/mon-bprea/pull/67), 17/11/2026 à 19:54:22 UTC |
+| Dernier commit | `fc5fcadfd9103f81fabdffee3025b3282fbb113c` |
+| Dernière PR fusionnée | [#68](https://github.com/Vladoche/mon-bprea/pull/68), 18/11/2026 à 12:27:27 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **Admin 2.1**, [PR #68](https://github.com/Vladoche/mon-bprea/pull/68). [Guide](../../tools/mon-bprea-admin/README.md), [qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md) |
+| Chantier courant, non fusionné | **Tableau de bord 2027, PR3 lot 4**, [PR #69](https://github.com/Vladoche/mon-bprea/pull/69). [Validation](../validations/VALIDATION-UI-2027-PR3-LOT4.md) |
 | Prochaine action | Décider la première invitation individuelle dans Admin 2.1, après relecture de l’état du système |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#67. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#68. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -69,7 +69,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `e5607415b6cc8409d7b7cd1c2957338a4fcacf7e` |
+| Dernier commit main | `fc5fcadfd9103f81fabdffee3025b3282fbb113c` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -96,7 +96,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Lecture des cours | Sommaire interne et mise en page de lecture ; #63 | Quatre cours illustratifs UC 03, complétion et persistance conservées | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 | QCM | Présentation 2027 PR3 lot 2 fusionnée #65, contrats historiques conservés | Refonte non publiée ; anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
-| Tableau de bord | Statistiques des premières réponses Drill, synthèse partagée | Réussite calculée sur les seuls exercices réalisés, sans gamification | [Dashboard](../architecture/DASHBOARD.md) |
+| Tableau de bord | Présentation 2027 proposée en PR3 lot 4, statistiques Drill et synthèse partagée | Les indicateurs portent sur les premières réponses validées. [Validation du lot 4](../validations/VALIDATION-UI-2027-PR3-LOT4.md) | [Dashboard](../architecture/DASHBOARD.md) |
 | Calendrier | Événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Événements](../architecture/ARCHITECTURE.md#modifier-les-événements-et-les-examens) |
 | Générateur ITK | Génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [ITK/apparence](../architecture/ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) |
 | Ressources | Catalogue filtrable et PDF publics | Références éditoriales à entretenir | [Ressources](../architecture/RESSOURCES.md) |
@@ -156,12 +156,13 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 1. Décider la première invitation individuelle dans **Admin 2.1** à la lumière
    de sa [qualification réelle](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
-   Le lot 4 tableau de bord/statistiques reste une décision distincte.
-2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
-   Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
-3. Décider séparément d’une publication du code fusionné, puis appliquer le
+2. Examiner les [captures et la qualification du tableau de bord](../validations/VALIDATION-UI-2027-PR3-LOT4.md)
+   et décider de la fusion du lot 4, clôture de PR3.
+3. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
+   Ces deux chantiers restent à réaliser.
+4. Décider séparément d’une publication du code fusionné, puis appliquer le
    workflow autorisé, consigner son SHA et effectuer une recette hébergée ciblée.
-4. Obtenir les décisions individuelles et d’ouverture nécessaires après la
+5. Obtenir les décisions individuelles et d’ouverture nécessaires après la
    qualification technique.
 
 La cible initiale du 13 novembre 2026 est passée. Elle ne devient ni une nouvelle
