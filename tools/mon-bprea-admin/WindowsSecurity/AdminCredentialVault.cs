@@ -19,20 +19,24 @@ public sealed class AdminCredentialVault : IAdminCredentialVault
     private const uint Generic = 1, LocalMachine = 2;
     private readonly string target;
     private readonly string sid;
+    private readonly bool postgres;
     public AdminCredentialVault() : this(null) { }
     public static AdminCredentialVault ForQualification(Guid id) => id == Guid.Empty
         ? throw new AdminException("credential") : new(id);
     // Random test namespace cannot touch the application's real credential.
-    internal AdminCredentialVault(Guid? testNamespace)
+    public static AdminCredentialVault ForPostgres() => new(null, postgres: true);
+
+    internal AdminCredentialVault(Guid? testNamespace, bool postgres = false)
     {
         if (!OperatingSystem.IsWindows()) throw new AdminException("credential");
+        this.postgres = postgres;
         sid = WindowsIdentity.GetCurrent().User?.Value ?? throw new AdminException("credential");
         target = (testNamespace is null ? "MonBPREAAdmin/PROD/" : $"MonBPREAAdmin/TEST/{testNamespace:D}/")
-            + AdminContract.Project + "/AuthAdmin/v1/" + sid;
+            + AdminContract.Project + (postgres ? "/PostgreSQLBackup/v1/" : "/AuthAdmin/v1/") + sid;
     }
     public void Save(string secret)
     {
-        AdminContract.ValidateSecret(secret);
+        Validate(secret);
         var bytes = Encoding.Unicode.GetBytes(secret);
         var blob = Marshal.AllocHGlobal(bytes.Length);
         try
@@ -63,7 +67,7 @@ public sealed class AdminCredentialVault : IAdminCredentialVault
             if (c.Type != Generic || c.TargetName != target || c.UserName != sid || c.Persist != LocalMachine
                 || c.CredentialBlobSize is < 2 or > 532 || c.CredentialBlobSize % 2 != 0 || c.CredentialBlob == IntPtr.Zero) throw new AdminException("credential");
             var secret = Marshal.PtrToStringUni(c.CredentialBlob, (int)c.CredentialBlobSize / 2);
-            AdminContract.ValidateSecret(secret); return secret;
+            Validate(secret); return secret;
         }
         catch { throw new AdminException("credential"); }
         finally
@@ -77,6 +81,15 @@ public sealed class AdminCredentialVault : IAdminCredentialVault
     public void Delete()
     {
         if (!CredDelete(target, Generic, 0) && Marshal.GetLastWin32Error() != 1168) throw new AdminException("credential");
+    }
+    private void Validate(string? secret)
+    {
+        if (postgres)
+        {
+            if (string.IsNullOrWhiteSpace(secret) || secret.Length > 266 || secret.Any(char.IsControl)
+                || secret.StartsWith("sb_secret_", StringComparison.Ordinal)) throw new AdminException("backup_access");
+        }
+        else AdminContract.ValidateSecret(secret);
     }
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct Credential

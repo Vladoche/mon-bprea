@@ -14,8 +14,12 @@ import { protectDirectory } from '../../../scripts/dev-recipe/private-files.mjs'
 
 const root = resolve('.');
 const finalCampaign = process.argv.includes('--final-campaign');
-const campaign = join(root, '.tmp/mon-bprea-admin-v2', ...(finalCampaign ? ['final-qualification'] : []));
-const localProject = finalCampaign ? 'mon-bprea-admin-v2-final-local' : 'mon-bprea-admin-v2-local';
+const invitationCampaign = process.argv.includes('--invitation-campaign');
+assert.ok(!(finalCampaign && invitationCampaign));
+const campaign = invitationCampaign ? join(root, '.tmp/premiere-invitation-prod/qualification')
+  : join(root, '.tmp/mon-bprea-admin-v2', ...(finalCampaign ? ['final-qualification'] : []));
+const localProject = invitationCampaign ? 'mon-bprea-admin-v2-invitation-local'
+  : finalCampaign ? 'mon-bprea-admin-v2-final-local' : 'mon-bprea-admin-v2-local';
 const container = 'supabase_db_' + localProject;
 const docker = 'docker.exe';
 assert.equal(process.platform, 'win32');
@@ -41,7 +45,7 @@ const q = id => { assert.match(id, /^[a-f0-9]{8}-[a-f0-9-]{27}$/); return `'${id
 const counts = (id, query = read) => Object.fromEntries(POLICY.tables.map(t => [t, Number(query(`select count(*) from public.${t} where ${t === 'profiles' ? 'id' : 'user_id'}=${q(id)}`))]));
 const allRows = query => Object.fromEntries(POLICY.tables.map(t => [t, JSON.parse(query(`select coalesce(jsonb_agg(to_jsonb(d) order by to_jsonb(d)::text),'[]') from public.${t} d`))]));
 const resume = process.argv.includes('--resume');
-assert.ok(process.argv.slice(2).every(arg => ['--resume', '--final-campaign'].includes(arg)));
+assert.ok(process.argv.slice(2).every(arg => ['--resume', '--final-campaign', '--invitation-campaign'].includes(arg)));
 const privateDirectory = join(campaign, 'private');
 if (!existsSync(privateDirectory)) { mkdirSync(privateDirectory); protectDirectory(privateDirectory); }
 const stateFile = join(privateDirectory, 'session.private.json');

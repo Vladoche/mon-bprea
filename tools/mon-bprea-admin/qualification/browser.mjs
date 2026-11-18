@@ -11,7 +11,8 @@ import { createClient } from '@supabase/supabase-js';
 const mode = process.argv[2];
 assert.ok(['activate', 'invite-final', 'password', 'email', 'combined'].includes(mode));
 const activation = mode === 'activate' || mode === 'invite-final';
-const campaign = resolve('.tmp/mon-bprea-admin-v2', ...(process.argv.includes('--final-campaign') ? ['final-qualification'] : []));
+const campaign = process.argv.includes('--invitation-campaign') ? resolve('.tmp/premiere-invitation-prod/qualification')
+  : resolve('.tmp/mon-bprea-admin-v2', ...(process.argv.includes('--final-campaign') ? ['final-qualification'] : []));
 const stateFile = join(campaign, 'private/session.private.json');
 const state = JSON.parse(readFileSync(stateFile, 'utf8'));
 assert.equal(state.api, 'http://127.0.0.1:54321');

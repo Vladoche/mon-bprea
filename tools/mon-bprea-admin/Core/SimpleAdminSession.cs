@@ -12,18 +12,21 @@ public sealed class SimpleAdminSession : IDisposable
     private readonly ISimplePrivateStore store;
     private readonly HttpClient http;
     private readonly TimeProvider clock;
+    private readonly Func<AccountInventory, Task>? invitationGuard;
     private readonly SemaphoreSlim mutation = new(1, 1);
     private AccountInventory? inventory;
     private LocalCapabilities? capabilities;
 
-    public SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store)
+    public SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store, Func<AccountInventory, Task>? invitationGuard = null)
         : this(key, target, store, TimeProvider.System, new SocketsHttpHandler {
             AllowAutoRedirect = false, UseProxy = false, UseCookies = false,
-            PooledConnectionLifetime = TimeSpan.Zero, ConnectTimeout = TimeSpan.FromSeconds(10) }) { }
-    internal SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store, TimeProvider time, HttpMessageHandler handler)
+            PooledConnectionLifetime = TimeSpan.Zero, ConnectTimeout = TimeSpan.FromSeconds(10) }, invitationGuard) { }
+    internal SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store, TimeProvider time,
+        HttpMessageHandler handler, Func<AccountInventory, Task>? invitationGuard = null)
     {
         AdminContract.ValidateSecret(key);
         secret = key; this.target = target; this.store = store; clock = time;
+        this.invitationGuard = invitationGuard;
         http = new(handler, true) { Timeout = TimeSpan.FromSeconds(15) };
     }
 
@@ -100,7 +103,13 @@ public sealed class SimpleAdminSession : IDisposable
             {
                 if (current.Accounts.Any(a => a.Email == email)) throw new AdminException("exists");
                 if (current.Count >= AdminContract.MaximumAccounts) throw new AdminException("capacity");
-                if (current.Accounts.Any(a => !a.ConfirmedAt.HasValue && !a.InvitedAt.HasValue)) throw new AdminException("lookup");
+                if (current.Accounts.Any(a => a.RecoveryRestricted || !a.ConfirmedAt.HasValue && !a.InvitedAt.HasValue))
+                    throw new AdminException("lookup");
+                if (!target.IsLocal)
+                {
+                    if (invitationGuard is null) throw new AdminException("backup_evidence");
+                    await invitationGuard(current);
+                }
             }
             if (next is not null && current.Accounts.Any(a => a.Email == next)) throw new AdminException("exists");
             if (store.HasLegacyTarget(email) || next is not null && store.HasLegacyTarget(next)) throw new AdminException("pending");

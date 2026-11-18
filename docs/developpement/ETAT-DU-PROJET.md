@@ -11,14 +11,14 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification Git/PR et chantier local : **17 novembre 2026**.
-  Les relevés Pages/HTTP ci-dessous restent ceux du **16 novembre à 13:10 UTC** ; aucun
-  nouveau contrôle hébergé ou de sauvegarde privée dans cette livraison.
+- Dernière vérification Git/PR et chantier local le **18 novembre 2026**.
+  Le registre Pages conserve le relevé du **16 novembre à 13:10 UTC**.
+  Les lectures PROD et contrôles Windows du 18 novembre figurent dans la
+  [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
 - Sources : `git fetch origin`, code de `origin/main`, [PR GitHub](https://github.com/Vladoche/mon-bprea/pulls?q=is%3Apr),
   [historique Pages](https://github.com/Vladoche/mon-bprea/actions/workflows/deploy.yml),
-  checks des têtes finales #58–#61, lectures HTTP publiques de l’accueil et de sa
-  configuration Auth ; rapports et contrats liés ci-dessous. Aucun accès aux
-  sauvegardes privées ni contrôle Supabase hébergé dans cette revue.
+  checks des têtes finales #58–#61, registre Pages, contrôles Auth/SQL en lecture
+  seule et qualification Windows datée.
 
 Ce fichier porte l’état actuel ; le [changelog](../../CHANGELOG.md) porte les
 changements fusionnés, les rapports gardent leurs preuves datées et le
@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `7115b722352ba5e951a1ae29bdc4e69f07938c02` |
-| Dernière PR fusionnée | [#66](https://github.com/Vladoche/mon-bprea/pull/66), 16/11/2026 à 20:39:05 UTC |
+| Dernier commit | `e5607415b6cc8409d7b7cd1c2957338a4fcacf7e` |
+| Dernière PR fusionnée | [#67](https://github.com/Vladoche/mon-bprea/pull/67), 17/11/2026 à 19:54:22 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **Admin V2**, `codex/mon-bprea-admin-v2`, depuis ce main ; [PR #67](https://github.com/Vladoche/mon-bprea/pull/67) ouverte. [Guide](../../tools/mon-bprea-admin/README.md), [architecture](../../tools/mon-bprea-admin/DEVELOPPEMENT.md), [validation locale](../validations/VALIDATION-ADMIN-V2.md) |
-| Prochaine action | Examiner la PR Admin V2 #67 et ses contrôles avant toute décision de fusion ; PR3 lot 4 tableau de bord/statistiques distinct, selon autorisation |
+| Chantier courant, non fusionné | **Admin 2.1**, [PR #68](https://github.com/Vladoche/mon-bprea/pull/68). [Guide](../../tools/mon-bprea-admin/README.md), [qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md) |
+| Prochaine action | Décider la première invitation individuelle dans Admin 2.1, après relecture de l’état du système |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#66. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#67. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -69,7 +69,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main | `7115b722352ba5e951a1ae29bdc4e69f07938c02` |
+| Dernier commit main | `e5607415b6cc8409d7b7cd1c2957338a4fcacf7e` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -109,10 +109,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## E — Sécurité et exploitation
 
-- **Accès** : invitation native depuis le circuit administratif de confiance ;
-  inscriptions publiques et connexions anonymes désactivées selon les preuves du
-  08/11. Sept comptes au plus par règle administrative, sans quota serveur.
-  Aucun nouveau relevé des réglages ou de la population PROD dans cette revue.
+- **Accès**. Le relevé PROD du 18 novembre confirme les inscriptions publiques et
+  anonymes fermées et un compte confirmé. La limite de sept comptes repose sur
+  le circuit administratif. [Contrôles et portée](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
 - **Backend PROD** : installation P puis M1–M5 documentée le 07/11 ; dix tables
   avec RLS et permissions contrôlées, premier compte et synchronisations vérifiés
   le 08/11. [Runbook et limites](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md).
@@ -121,7 +120,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
   journal et mémorisation Auth Windows facultative. La distribution ne peut pas
   supprimer en PROD, faute de canal PostgreSQL de confiance et de liaison complète
   aux preuves de sauvegarde/journal ; aucun paramètre ne contourne ce blocage.
-- **Admin V2, non fusionné** : trois actions graphiques, clé mémorisée automatiquement
+- **Admin V2, fusionné (#67)** : trois actions graphiques, clé mémorisée automatiquement
   dans Windows, liens DPAPI et contrôles techniques intégrés, sans cases d’attestation
   ni consentement inventé. Le changement d’adresse est une confirmation administrative
   après vérification du titulaire par un canal connu ; il conserve l’UUID. La recette
@@ -131,16 +130,18 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
   proposée n’a créé aucun rôle, privilège ou service hébergé. La durée des liens PROD
   reste inconnue dans l’application faute de canal de configuration qualifié.
   [Validation et limites](../validations/VALIDATION-ADMIN-V2.md). Les 2 524 assertions
-  C#, 33 contrôles WinForms et 640 tests Node réussis (un ignoré) ne constituent pas
-  une CI finale ni une recette hébergée de cette branche.
-- **Sauvegarde** : dernier point applicatif documenté **08/11/2026 à 20:48:37 UTC**,
-  restauré et vérifié en PostgreSQL isolé à 20:58 UTC. Objectif satisfait à cet
-  instant seulement. Politique : intervalle entre points valides/restaurés ≤168 h,
-  avertissement à 144 h, deux générations utiles, rétention ordinaire de 14 jours
-  selon les décisions approuvées. Le point documenté dépasse désormais 168 h.
-  **Fraîcheur actuelle non vérifiée — contrôle opérateur nécessaire.** Aucune
-  conclusion sur l’existence de nouvelles copies privées ; aucune archive privée
-  lue ici. [Routine et preuve](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo).
+  C#, 33 contrôles WinForms et 640 tests Node réussis (un ignoré) concernent la
+  qualification locale V2 du 17 novembre.
+- **Admin 2.1**. Historique opérateur raccordé en place et relu sur le poste
+  Windows. Coffre et préflight réel validés. Le garde de création exige un
+  point restauré frais. **GO technique pour la première invitation** au
+  préflight du 18 novembre. [Qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
+- **Sauvegarde**. Le point PROD applicatif du **18/11/2026 à 13:09:16 CET**
+  a été restauré et vérifié en PostgreSQL isolé à 13:09:41 CET. Échéance
+  **25 novembre à 13:09:16 CET**. Le dépassement a commencé le 15 novembre
+  à 21:48:37 CET, après le point du 8 novembre. L’alerte Admin 2.1 commence à
+  132 h et le renouvellement à 144 h. Deux générations utiles et revue de
+  rétention ordinaire à 14 jours. [Routine et preuve](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo).
 - **Reprise et clôture** : restauration applicative partielle qualifiée ; Auth,
   Storage, configuration et données non synchronisées exclus. Reprise Auth/service
   hébergé et RTO non démontrés. Circuit de clôture qualifié sur données fictives
@@ -153,16 +154,15 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Examiner la [PR **Admin V2 #67**](https://github.com/Vladoche/mon-bprea/pull/67) depuis `7115b72`, ses
-   contrôles finaux et ses limites PROD, sans fusion automatique. #63–#66 sont
-   fusionnées ; le lot 4 tableau de bord/statistiques reste distinct et attend
-   son autorisation.
+1. Décider la première invitation individuelle dans **Admin 2.1** à la lumière
+   de sa [qualification réelle](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
+   Le lot 4 tableau de bord/statistiques reste une décision distincte.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
 3. Décider séparément d’une publication du code fusionné, puis appliquer le
    workflow autorisé, consigner son SHA et effectuer une recette hébergée ciblée.
-4. Faire contrôler par l’opérateur la fraîcheur des sauvegardes et les prérequis
-   d’exploitation ; obtenir les décisions individuelles et d’ouverture nécessaires.
+4. Obtenir les décisions individuelles et d’ouverture nécessaires après la
+   qualification technique.
 
 La cible initiale du 13 novembre 2026 est passée. Elle ne devient ni une nouvelle
 échéance future ni une autorisation de publication ou d’ouverture.

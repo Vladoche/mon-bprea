@@ -1,4 +1,4 @@
-# Mon BPREA Admin 2.0 — guide utilisateur
+# Mon BPREA Admin 2.1 — guide utilisateur
 
 L’application Windows propose trois actions : **Créer un compte**, **Récupérer un compte** et **Supprimer un compte**. Elle gère au maximum sept comptes, exploitant compris. Aucun logiciel complémentaire n’est nécessaire pour la lancer.
 
@@ -6,7 +6,7 @@ L’application Windows propose trois actions : **Créer un compte**, **Récupé
 
 ## Télécharger et ouvrir
 
-Depuis une exécution réussie du [workflow Windows officiel](https://github.com/Vladoche/mon-bprea/actions/workflows/admin-windows.yml), télécharger l’artefact **MonBPREAAdmin-2.0-win-x64-…**, puis extraire son archive. Une connexion GitHub peut être nécessaire. Elle contient `MonBPREAAdmin.exe`, ce guide (`LIRE-MOI.md`) et l’empreinte `SHA256.txt`.
+Depuis une exécution réussie du [workflow Windows officiel](https://github.com/Vladoche/mon-bprea/actions/workflows/admin-windows.yml), télécharger l’artefact **MonBPREAAdmin-2.1-win-x64-…**, puis extraire son archive. Une connexion GitHub peut être nécessaire. Elle contient `MonBPREAAdmin.exe`, ce guide (`LIRE-MOI.md`) et l’empreinte `SHA256.txt`.
 
 Ouvrir `MonBPREAAdmin.exe`. Le programme n’est pas signé : Windows peut afficher un avertissement de provenance. Vérifier qu’il vient bien du dépôt officiel avant de l’exécuter.
 
@@ -14,7 +14,9 @@ Ouvrir `MonBPREAAdmin.exe`. Le programme n’est pas signé : Windows peut affic
 
 Saisir la **clé secrète** fournie pour Mon BPREA, commençant par `sb_secret_`, puis choisir **Continuer**. La saisie est masquée. L’application vérifie la connexion et enregistre automatiquement la clé dans le coffre chiffré Windows, pour votre compte sur cet ordinateur.
 
-Aux ouvertures suivantes, les trois actions apparaissent directement. Aucun mot de passe supplémentaire, dossier ou fichier n’est demandé. Une clé enregistrée n’est jamais affichée. Une erreur de réseau ne signifie pas qu’il faut la saisir à nouveau.
+L’assistant retrouve et vérifie l’historique administratif et le dossier de sauvegarde. Si l’accès distinct aux sauvegardes manque, **Finaliser la configuration** affiche un champ masqué pour le mot de passe PostgreSQL du projet. Une fois la connexion vérifiée, Windows mémorise cet accès séparément. Les outils compatibles sont retrouvés ou préparés automatiquement.
+
+Aux ouvertures suivantes, les trois actions apparaissent directement avec les accès mémorisés. **Paramètres → État du système** indique si la création de comptes est disponible et comment résoudre un blocage.
 
 ## Créer un compte
 
@@ -25,6 +27,8 @@ Aux ouvertures suivantes, les trois actions apparaissent directement. Aucun mot 
 Le camarade ouvre lui-même le lien et choisit son mot de passe. L’application n’envoie aucun message et n’ouvre aucun lien personnel automatiquement. Une invitation créée attend encore son activation.
 
 Si un lien déjà créé est retrouvé, il est affiché sans créer un second compte. Sa date reste celle de sa création. La durée est indiquée uniquement lorsqu’elle peut être vérifiée ; sinon l’application annonce qu’elle n’est pas communiquée par le service.
+
+La création sur le service réel exige une sauvegarde applicative restaurée et vérifiée depuis moins de sept jours. L’application vérifie aussi que l’historique est cohérent et qu’une place est disponible.
 
 ## Récupérer un compte
 
@@ -46,7 +50,9 @@ Sur le service réel, cette version explique le blocage et ne supprime rien. En 
 
 ## Paramètres, aide et incidents
 
-Le petit accès **Paramètres** permet de remplacer ou supprimer la clé enregistrée, de vérifier la connexion et d’ouvrir le diagnostic. Supprimer la clé du coffre ne la révoque pas sur le service et ne supprime aucun compte ni historique.
+Le petit accès **Paramètres** permet de remplacer ou supprimer la clé enregistrée, de vérifier la connexion et de consulter **État du système**. **Renouveler et vérifier maintenant** crée une nouvelle copie puis la restaure dans une base isolée sur le poste. La vérification se lance aussi à l’ouverture et pendant que l’application reste ouverte. La sauvegarde peut rattraper une échéance manquée lorsque le poste et la connexion sont disponibles.
+
+Si un contrôle échoue, **Copier le diagnostic** fournit l’état des vérifications sans données de compte. Les anciennes archives restent disponibles. La copie couvre les données applicatives. La reprise des comptes Auth, des sessions, de Storage et des réglages hébergés reste à qualifier.
 
 Si la clé est renouvelée, révoquée ou perdue par Windows, l’application l’explique. Si une opération est incertaine, **ne pas la répéter** : l’application conserve son historique et bloque les nouveaux essais concernés. Elle ne demande jamais de commande ni de modification manuelle de fichier.
 

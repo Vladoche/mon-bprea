@@ -4,7 +4,7 @@ using MonBprea.Admin.WindowsSecurity;
 
 namespace MonBprea.Admin.App;
 
-internal sealed class SimpleMainForm : Form
+internal sealed partial class SimpleMainForm : Form
 {
     private readonly AdminTarget target;
     private readonly IAdminCredentialVault vault;
@@ -18,13 +18,15 @@ internal sealed class SimpleMainForm : Form
     private bool startup;
 
     public SimpleMainForm(AdminTarget target, IAdminCredentialVault vault, Func<string, bool, Task<ISimpleWorkflow>> open,
-        Func<string, string, bool>? confirmation = null, Action<string>? clipboard = null)
+        Func<string, string, bool>? confirmation = null, Action<string>? clipboard = null,
+        Func<AutomaticPrivateStore>? productionHistory = null, Func<ProductionBackup>? productionBackup = null)
     {
         this.target = target; this.vault = vault; this.open = open;
+        this.productionHistory = productionHistory; this.productionBackup = productionBackup;
         confirm = confirmation ?? ((text, title) => ConfirmationForm.Ask(this, text, title,
             title == "Confirmer la suppression" ? "Confirmer la suppression" : "Confirmer cette action"));
         copy = clipboard ?? (text => Clipboard.SetText(text));
-        Text = "Mon BPREA Admin 2.0" + (target.IsLocal ? " — QUALIFICATION LOCALE · COMPTES FICTIFS" : "");
+        Text = "Mon BPREA Admin 2.1" + (target.IsLocal ? " — QUALIFICATION LOCALE · COMPTES FICTIFS" : "");
         Name = "MonBpreaAdminV2"; AccessibleName = Text;
         ClientSize = new Size(760, 650); MinimumSize = new Size(620, 560);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -35,7 +37,11 @@ internal sealed class SimpleMainForm : Form
         header.Controls.Add(Button("Aide", "Help", () => Help(), large: false));
         Controls.Add(content); Controls.Add(header);
         Shown += async (_, _) => { if (!startup) { startup = true; await Start(); } };
-        FormClosing += (_, e) => { if (busy) { e.Cancel = true; return; } workflow?.Dispose(); workflow = null; };
+        StartMaintenanceTimer();
+        FormClosing += (_, e) => {
+            if (busy) { e.Cancel = true; return; }
+            maintenanceTimer?.Dispose(); workflow?.Dispose(); workflow = null;
+        };
     }
 
     private async Task Start()
@@ -43,10 +49,21 @@ internal sealed class SimpleMainForm : Form
         try
         {
             var saved = vault.Read();
-            if (saved is null) { Setup(); return; }
+            if (saved is null)
+            {
+                Setup();
+                await MaintainOnOpen();
+                if (lastSystem?.HistoryProblem is not null) ShowSystem(lastSystem);
+                return;
+            }
             await Run(async () => {
-                try { workflow = await open(saved, false); Home(); }
-                catch { Setup(); throw; } // Attach the explanation before Run handles the error.
+                try { workflow = await open(saved, false); Home(); await MaintainOnOpen(inOperation: true); }
+                catch
+                {
+                    if (productionBackup is null) Setup();
+                    else ShowSystem(lastSystem = await ReadSystem(renew: false));
+                    throw; // Attach the explanation before Run handles the error.
+                }
             });
         }
         catch (Exception error) { Setup(); Error(error); }
@@ -89,6 +106,8 @@ internal sealed class SimpleMainForm : Form
             var value = key.Text; key.Clear();
             var next = await open(value, true);
             workflow?.Dispose(); workflow = next; Home();
+            await MaintainOnOpen(inOperation: true);
+            if (lastSystem is not null) ShowSystem(lastSystem);
         }));
         page.Controls.Add(validate); AttachMessage(page); AcceptButton = validate; key.Select();
     }
@@ -97,9 +116,22 @@ internal sealed class SimpleMainForm : Form
     {
         AcceptButton = null;
         var page = Page("Créer un compte");
+        if (lastSystem?.InvitationProblem is string problem && productionBackup is not null)
+        {
+            page.Controls.Add(Label(AdminMessages.For(problem)));
+            page.Controls.Add(Button("État du système", "CheckSystem", () => _ = OpenSystem(), false));
+            AttachMessage(page);
+            return;
+        }
         page.Controls.Add(Label("Adresse e-mail du camarade"));
         var email = Input("RecipientEmail"); email.AccessibleName = "Adresse e-mail du camarade"; page.Controls.Add(email);
-        var create = Button("Créer le lien d’activation", "GenerateInvite", () => _ = Run(async () => ShowResult(await workflow!.CreateAsync(email.Text))));
+        var create = Button("Créer le lien d’activation", "GenerateInvite", () => _ = Run(async () => {
+            try { ShowResult(await workflow!.CreateAsync(email.Text)); }
+            catch (AdminException error) when (productionBackup is not null && error.Code.StartsWith("backup_", StringComparison.Ordinal))
+            {
+                ShowSystem(lastSystem = await ReadSystem(renew: false));
+            }
+        }));
         page.Controls.Add(create); AttachMessage(page); AcceptButton = create; email.Select();
     }
 
@@ -200,7 +232,9 @@ internal sealed class SimpleMainForm : Form
             if (workflow is null) throw new AdminException("key");
             await workflow.RefreshAsync(); SetMessage("La connexion fonctionne. Les protections d’accès ont été vérifiées.");
         })));
-        page.Controls.Add(Button("Diagnostic", "Diagnostics", () => {
+        if (productionBackup is not null)
+            page.Controls.Add(Button("État du système", "SystemState", () => _ = OpenSystem(), false));
+        else page.Controls.Add(Button("Diagnostic", "Diagnostics", () => {
             var diagnostic = Page("Diagnostic");
             diagnostic.Controls.Add(Label(target.IsLocal ? "Cible : stack locale isolée. Coffre et historique séparés du service réel."
                 : "Cible : Mon BPREA, projet fixe. Aucune cible alternative. La suppression du service réel reste bloquée tant que les contrôles de données et sauvegardes ne sont pas qualifiés."));

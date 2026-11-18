@@ -1,9 +1,14 @@
-param([Parameter(Mandatory=$true)][string]$CliPath, [switch]$Resume, [switch]$FinalCampaign)
+param([Parameter(Mandatory=$true)][string]$CliPath, [switch]$Resume, [switch]$FinalCampaign, [switch]$InvitationCampaign)
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $campaign=Join-Path $repo '.tmp/mon-bprea-admin-v2'
 if($FinalCampaign){$campaign=Join-Path $campaign 'final-qualification'; New-Item -ItemType Directory -Path $campaign -Force | Out-Null}
 $localProject=if($FinalCampaign){'mon-bprea-admin-v2-final-local'}else{'mon-bprea-admin-v2-local'}
+if($InvitationCampaign){
+    if($FinalCampaign){throw 'Choose a single local campaign'}
+    $campaign=Join-Path $repo '.tmp/premiere-invitation-prod/qualification'
+    $localProject='mon-bprea-admin-v2-invitation-local'
+}
 $stage=Join-Path $campaign 'stack'
 $network='bprea-admin-v2-local'
 $docker=(Get-Command docker -ErrorAction Stop).Source
