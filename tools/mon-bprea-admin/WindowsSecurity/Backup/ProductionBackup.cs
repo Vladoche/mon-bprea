@@ -166,7 +166,7 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         var archived = manifest.GetProperty("files").GetProperty(Dump).GetProperty("sha256").GetString();
         var receipt = new {
             version = 1, manifestHash = Digest(manifest), archiveHash = archived, projectRef = project,
-            schemaHash = SchemaHash, testedAt = DateTimeOffset.UtcNow, isolated = true, restoreSucceeded = true, dataCompared = true,
+            schemaHash = SchemaHash, testedAt = Stamp(DateTimeOffset.UtcNow), isolated = true, restoreSucceeded = true, dataCompared = true,
             schemaAndPrivilegesCompared = true, dependenciesCompatible = true, deletionLedgerHash = ledger,
             deletionsReconciled = true, scope = "application-sql-only-with-minimal-local-auth-dependencies",
             detailsDirectory = "restoration", clusterStopped = true, localChecksumsVerified = true

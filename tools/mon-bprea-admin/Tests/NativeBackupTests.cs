@@ -74,6 +74,10 @@ internal static partial class Program
             _stage = "native-test-restore";
             var status = await ProductionBackup.RestoreAndValidate(native, good, identity, measurements, manifest, ledger, () => { });
             Check("new archive restored and compared", status.Ready && File.Exists(Path.Combine(good, BackupFiles.Evidence)));
+            var proof = Parse(Read(Path.Combine(good, BackupFiles.Evidence)));
+            Check("manifest and proof timestamps match the Node UTC millisecond contract",
+                new[] { manifest.GetProperty("snapshotStartedAt"), manifest.GetProperty("completedAt"), proof.GetProperty("testedAt") }
+                .All(x => System.Text.RegularExpressions.Regex.IsMatch(x.GetString()!, @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$")));
             Check("Windows reread valid proof and archive", Verify(good, ledger, DateTimeOffset.UtcNow, project).Ready);
             Check("at 144 h the point is due", Verify(good, ledger, point.AddHours(144), project) is { Ready: true, Due: true });
             Check("at 168 h invitation proof expires", Verify(good, ledger, point.AddHours(168), project) is { Ready: false, Problem: "backup_expired" });

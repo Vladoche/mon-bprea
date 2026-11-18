@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
@@ -46,6 +47,18 @@ internal static class BackupFiles
 
     internal static string Hash(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
     internal static string Digest(JsonElement value) => Hash(JsonSerializer.Serialize(value, Json));
+    // The existing preopening verifier accepts UTC with zero or three
+    // fractional digits. Offset timestamps emitted by .NET are not equivalent
+    // on disk even when they represent the same instant.
+    private const string MillisecondStamp = "yyyy-MM-dd'T'HH:mm:ss.fff'Z'";
+    internal static string Stamp(DateTimeOffset value) => value.ToUniversalTime().ToString(MillisecondStamp, CultureInfo.InvariantCulture);
+    private static DateTimeOffset ReadStamp(JsonElement value)
+    {
+        if (!DateTimeOffset.TryParseExact(value.GetString(), [MillisecondStamp, "yyyy-MM-dd'T'HH:mm:ss'Z'"],
+            CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp))
+            throw new AdminException("backup_evidence");
+        return stamp;
+    }
     internal static bool IsHash(string? value) => value is { Length: 64 } && value.All(char.IsAsciiHexDigitLower);
     internal static string[] Strings(JsonElement array) => array.EnumerateArray().Select(x => x.GetString()!).ToArray();
     internal static void Require(bool passed, string code = "backup_evidence")
@@ -117,8 +130,8 @@ internal static class BackupFiles
     {
         CheckToc(Read(Path.Combine(generation, Toc)));
         var body = JsonSerializer.SerializeToElement(new {
-            version = 1, projectRef = project, sourceKind = SourceKind(project), snapshotStartedAt = start,
-            completedAt = completed, sourceCommit, toolVersion, schemaHash = SchemaHash,
+            version = 1, projectRef = project, sourceKind = SourceKind(project), snapshotStartedAt = Stamp(start),
+            completedAt = Stamp(completed), sourceCommit, toolVersion, schemaHash = SchemaHash,
             method = "pg_dump-custom-single-snapshot", tables = Tables, exclusions = Exclusions, authIncluded = false,
             files = new Dictionary<string, Fingerprint> { [Dump] = Identify(Path.Combine(generation, Dump)), [Toc] = Identify(Path.Combine(generation, Toc)) }
         }, Json);
@@ -139,9 +152,9 @@ internal static class BackupFiles
             && manifest.GetProperty("method").GetString() == "pg_dump-custom-single-snapshot" && !manifest.GetProperty("authIncluded").GetBoolean()
             && Strings(manifest.GetProperty("tables")).Order().SequenceEqual(Tables.Order())
             && Strings(manifest.GetProperty("exclusions")).Order().SequenceEqual(Exclusions.Order()));
-        var point = manifest.GetProperty("snapshotStartedAt").GetDateTimeOffset();
-        var completed = manifest.GetProperty("completedAt").GetDateTimeOffset();
-        var tested = proof.GetProperty("testedAt").GetDateTimeOffset();
+        var point = ReadStamp(manifest.GetProperty("snapshotStartedAt"));
+        var completed = ReadStamp(manifest.GetProperty("completedAt"));
+        var tested = ReadStamp(proof.GetProperty("testedAt"));
         Require(point <= completed && completed <= tested && tested <= now);
         var files = manifest.GetProperty("files");
         Require(files.EnumerateObject().Count() == 2);
