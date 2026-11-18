@@ -9,6 +9,11 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Calendrier de formation 2027, PR4 lot 1**. Navigation mensuelle et grille
+  modernisées, accès à l’agenda du jour depuis les compteurs, fiches détaillées
+  adaptées au clavier et au mobile. Les dates de formation proviennent du même
+  fichier JSON. [PR #71](https://github.com/Vladoche/mon-bprea/pull/71) et
+  [validation](docs/validations/VALIDATION-UI-2027-PR4-LOT1.md).
 - **Mon BPREA Admin 2.2 — invitations expirées**. Renouvellement depuis **Récupérer un compte** sur le même UUID Auth. La copie vérifie l’invitation en cours, le journal garde les générations protégées et le réglage de 24 heures est relu auprès de Supabase. [PR #70](https://github.com/Vladoche/mon-bprea/pull/70) · [Validation](docs/validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
 - **Tableau de bord 2027, clôture de PR3 (lot 4)**. Synthèse responsive,
   graphiques hebdomadaires consultables au clavier et au toucher, comparaison
