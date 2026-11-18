@@ -70,6 +70,21 @@ public sealed partial class WindowsPrivateStore
 {
     internal sealed record LegacyHistory(IReadOnlyCollection<Guid> Ids, IReadOnlyCollection<string> Files, int Delivered, int AclOnlyLinks);
 
+    internal LegacyInvitation? FindLegacyInvitation(string email)
+    {
+        var hash = TargetHash(email);
+        var matches = Directory.EnumerateFiles(DirectoryPath).Where(path =>
+                Path.GetFileName(path) == $"reservation-{hash}.json"
+                || Path.GetFileName(path).StartsWith("history-reservation-", StringComparison.Ordinal) && path.EndsWith(".json", StringComparison.Ordinal))
+            .Select(path => ReadRecord(path, archived: Path.GetFileName(path).StartsWith("history-", StringComparison.Ordinal)))
+            .Where(r => r["targetHash"]!.GetValue<string>() == hash && r["type"]!.GetValue<string>() == "invite"
+                && r["status"]!.GetValue<string>() == "delivered-private")
+            .ToArray();
+        if (matches.Length > 1) throw new AdminException("invitation_history");
+        return matches.Length == 0 ? null : new LegacyInvitation(Guid.Parse(matches[0]["operationId"]!.GetValue<string>()),
+            RequireDate(matches[0], "reservedAt"), RequireDate(matches[0], "deliveredAt"));
+    }
+
     internal string SingleHistoricalInvite()
     {
         var invitations = Directory.EnumerateFiles(DirectoryPath, "reservation-*.json").Select(path => ReadRecord(path))

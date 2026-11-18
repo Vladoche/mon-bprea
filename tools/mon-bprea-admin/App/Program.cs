@@ -20,8 +20,11 @@ internal static class Program
                     throw new AdminException("configuration");
                 target = AdminTarget.LocalQualification(id);
             }
-            if (args.Length == 2 && args[1] != "--qualification-theme=dark") throw new AdminException("configuration");
-            Application.SetColorMode(args.Length == 2 ? SystemColorMode.Dark : SystemColorMode.System);
+            Application.SetColorMode(args.Length < 2 ? SystemColorMode.System : args[1] switch {
+                "--qualification-theme=dark" => SystemColorMode.Dark,
+                "--qualification-theme=light" => SystemColorMode.Classic,
+                _ => throw new AdminException("configuration")
+            });
             var vault = target.IsLocal ? AdminCredentialVault.ForQualification(target.Qualification!.Value) : new AdminCredentialVault();
             SimpleBootstrap? bootstrap = null;
             bool? preserveExistingHistory = null;

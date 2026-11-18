@@ -7,6 +7,12 @@ internal interface ISimpleWorkflow : IDisposable
 {
     Task<AccountInventory> RefreshAsync();
     Task<SimpleResult> CreateAsync(string email);
+    Task<InvitationReview> ReviewInvitationAsync(AuthAccount selected);
+    Task<SimpleResult> RenewInvitationAsync(InvitationReview selected);
+    Task<PersonalLink> ReadInvitationLinkAsync(AuthAccount selected, Guid operation);
+    Task<int> CheckInvitationDurationAsync(string token);
+    Task RequireProductionInvitationDurationAsync();
+    Task ReconcileInvitationAsync();
     Task<SimpleResult> RecoverAsync(AuthAccount selected, SimpleOperationKind kind, string? next, KnownChannelDecision? decision, bool newLink = false);
     Task<SimpleResult> DeleteAsync(AuthAccount selected);
 }
@@ -14,6 +20,12 @@ internal sealed class SimpleWorkflow(SimpleAdminSession session) : ISimpleWorkfl
 {
     public Task<AccountInventory> RefreshAsync() => session.RefreshAsync();
     public Task<SimpleResult> CreateAsync(string email) => session.CreateAsync(email);
+    public Task<InvitationReview> ReviewInvitationAsync(AuthAccount selected) => session.ReviewInvitationAsync(selected);
+    public Task<SimpleResult> RenewInvitationAsync(InvitationReview selected) => session.RenewInvitationAsync(selected);
+    public Task<PersonalLink> ReadInvitationLinkAsync(AuthAccount selected, Guid operation) => session.ReadInvitationLinkAsync(selected, operation);
+    public Task<int> CheckInvitationDurationAsync(string token) => session.CheckInvitationDurationAsync(token);
+    public Task RequireProductionInvitationDurationAsync() => session.RequireProductionInvitationDurationAsync();
+    public Task ReconcileInvitationAsync() => session.ReconcileInvitationAsync();
     public Task<SimpleResult> RecoverAsync(AuthAccount account, SimpleOperationKind kind, string? next, KnownChannelDecision? decision, bool newLink = false)
         => session.RecoverAsync(account, kind, next, decision, newLink);
     public Task<SimpleResult> DeleteAsync(AuthAccount account) => session.DeleteAsync(account);

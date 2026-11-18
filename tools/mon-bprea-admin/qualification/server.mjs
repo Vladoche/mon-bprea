@@ -15,10 +15,14 @@ import { protectDirectory } from '../../../scripts/dev-recipe/private-files.mjs'
 const root = resolve('.');
 const finalCampaign = process.argv.includes('--final-campaign');
 const invitationCampaign = process.argv.includes('--invitation-campaign');
-assert.ok(!(finalCampaign && invitationCampaign));
-const campaign = invitationCampaign ? join(root, '.tmp/premiere-invitation-prod/qualification')
+const renewal = process.argv.find(arg => /^--renewal-otp=(45|60|86400)$/.test(arg));
+const renewalExpiry = renewal?.split('=')[1];
+assert.ok([finalCampaign, invitationCampaign, Boolean(renewal)].filter(Boolean).length <= 1);
+const campaign = renewal ? join(root, '.tmp/admin-22', 'otp-' + renewalExpiry)
+  : invitationCampaign ? join(root, '.tmp/premiere-invitation-prod/qualification')
   : join(root, '.tmp/mon-bprea-admin-v2', ...(finalCampaign ? ['final-qualification'] : []));
-const localProject = invitationCampaign ? 'mon-bprea-admin-v2-invitation-local'
+const localProject = renewal ? 'mon-bprea-admin-22-otp-' + renewalExpiry
+  : invitationCampaign ? 'mon-bprea-admin-v2-invitation-local'
   : finalCampaign ? 'mon-bprea-admin-v2-final-local' : 'mon-bprea-admin-v2-local';
 const container = 'supabase_db_' + localProject;
 const docker = 'docker.exe';
@@ -45,7 +49,7 @@ const q = id => { assert.match(id, /^[a-f0-9]{8}-[a-f0-9-]{27}$/); return `'${id
 const counts = (id, query = read) => Object.fromEntries(POLICY.tables.map(t => [t, Number(query(`select count(*) from public.${t} where ${t === 'profiles' ? 'id' : 'user_id'}=${q(id)}`))]));
 const allRows = query => Object.fromEntries(POLICY.tables.map(t => [t, JSON.parse(query(`select coalesce(jsonb_agg(to_jsonb(d) order by to_jsonb(d)::text),'[]') from public.${t} d`))]));
 const resume = process.argv.includes('--resume');
-assert.ok(process.argv.slice(2).every(arg => ['--resume', '--final-campaign', '--invitation-campaign'].includes(arg)));
+assert.ok(process.argv.slice(2).every(arg => ['--resume', '--final-campaign', '--invitation-campaign', renewal].includes(arg)));
 const privateDirectory = join(campaign, 'private');
 if (!existsSync(privateDirectory)) { mkdirSync(privateDirectory); protectDirectory(privateDirectory); }
 const stateFile = join(privateDirectory, 'session.private.json');
@@ -74,8 +78,10 @@ if (!resume) writeFileSync(join(privateDirectory, 'baseline-witness.private.json
 assert.deepEqual(await readPersonalTables(witness), witnessBefore);
 const save = () => { writeFileSync(stateFile, JSON.stringify(state), { mode: 0o600 }); };
 save();
-let baselineA = resume ? JSON.parse(readFileSync(join(privateDirectory, 'baseline-a.private.json'), 'utf8')) : undefined;
+const baselinePath = join(privateDirectory, 'baseline-a.private.json');
+let baselineA = resume && (!renewal || existsSync(baselinePath)) ? JSON.parse(readFileSync(baselinePath, 'utf8')) : undefined;
 let snapshot, restoreDatabase, restoreEvidence, manifest, snapshotTime, originalRows;
+let renewalBaseline;
 const proofFolder = join(campaign, 'local-proof');
 if (!existsSync(proofFolder)) { mkdirSync(proofFolder); protectDirectory(proofFolder); }
 assert.ok(!existsSync(join(proofFolder, 'application.dump')), 'An existing snapshot requires explicit evidence recovery; never create a fresh one to ignore it');
@@ -144,13 +150,50 @@ const service = createServer(async (request, response) => {
       const inspect = spawnSync(docker, ['--context', 'desktop-linux', 'inspect', '--format', '{{range .Config.Env}}{{println .}}{{end}}', 'supabase_auth_' + localProject], { encoding: 'utf8', windowsHide: true });
       assert.equal(inspect.status, 0);
       const expiry = /^GOTRUE_MAILER_OTP_EXP=(\d+)$/m.exec(inspect.stdout); assert.ok(expiry);
+      if (renewal) assert.equal(expiry[1], renewalExpiry);
       reply(response, { Project: 'mon-bprea-admin-v2-local', OperatorId: state.operator.userId, OtpExpiry: Number(expiry[1]), ObservedAt: new Date().toISOString() }); return;
+    }
+    if (renewal && request.url === '/renewal-proof' && request.method === 'POST') {
+      const { phase } = JSON.parse(body);
+      const responseInventory = await admin.listUsers();
+      assert.equal(responseInventory.error, null);
+      const accounts = responseInventory.data.users;
+      const matches = accounts.filter(account => account.email === state.participant.email);
+      assert.equal(matches.length, 1);
+      const account = matches[0];
+      assert.equal(account.role, 'authenticated');
+      assert.ok(account.invited_at);
+      const profile = JSON.parse(read(`select row_to_json(p) from public.profiles p where id=${q(account.id)}`));
+      assert.equal(profile.id, account.id);
+      if (phase === 'before') {
+        assert.equal(renewalBaseline, undefined);
+        assert.equal(account.email_confirmed_at, undefined);
+        state.participant.userId = account.id;
+        save();
+        renewalBaseline = { accounts: accounts.length, invitedAt: account.invited_at, tables: allRows(read) };
+      } else {
+        assert.ok(renewalBaseline);
+        assert.equal(accounts.length, renewalBaseline.accounts);
+        assert.equal(account.id, state.participant.userId);
+        if (phase === 'renewed') {
+          assert.equal(account.email_confirmed_at, undefined);
+          assert.notEqual(account.invited_at, renewalBaseline.invitedAt);
+          assert.deepEqual(allRows(read), renewalBaseline.tables);
+          record('renewal-proof.json', { sameUuid: true, sameAccountCount: true, unconfirmed: true, tenTablesUnchanged: true });
+        } else {
+          assert.equal(phase, 'activated');
+          assert.ok(account.email_confirmed_at);
+          assert.deepEqual(await readPersonalTables(witness), witnessBefore);
+          record('activation-proof.json', { sameUuid: true, sameAccountCount: true, authRole: 'authenticated', witnessUnchanged: true });
+        }
+      }
+      reply(response, { ok: true }); return;
     }
     if (request.url === '/seed-a' && request.method === 'POST') {
       Object.assign(state.participant, JSON.parse(readFileSync(stateFile, 'utf8')).participant);
       const a = await student(state.participant); state.participant.userId = a.userId;
       await seedPersonalTables(a, 1); baselineA = await readPersonalTables(a); save();
-      writeFileSync(join(privateDirectory, 'baseline-a.private.json'), JSON.stringify(baselineA), { flag: 'wx', mode: 0o600 });
+      writeFileSync(baselinePath, JSON.stringify(baselineA), { flag: 'wx', mode: 0o600 });
       record('participant-seeded.json', { syntheticOnly: true, tables: Object.keys(baselineA), allTenPopulated: Object.values(baselineA).every(rows => rows.length > 0) });
       reply(response, { ok: true, tables: Object.keys(baselineA).length }); return;
     }

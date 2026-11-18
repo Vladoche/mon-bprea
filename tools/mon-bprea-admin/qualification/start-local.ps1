@@ -1,4 +1,5 @@
-param([Parameter(Mandatory=$true)][string]$CliPath, [switch]$Resume, [switch]$FinalCampaign, [switch]$InvitationCampaign)
+param([Parameter(Mandatory=$true)][string]$CliPath, [switch]$Resume, [switch]$FinalCampaign, [switch]$InvitationCampaign,
+    [ValidateSet(0,45,60,86400)][int]$RenewalOtpSeconds = 0)
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $campaign=Join-Path $repo '.tmp/mon-bprea-admin-v2'
@@ -10,6 +11,12 @@ if($InvitationCampaign){
     $localProject='mon-bprea-admin-v2-invitation-local'
 }
 $stage=Join-Path $campaign 'stack'
+if($RenewalOtpSeconds){
+    if($FinalCampaign -or $InvitationCampaign){throw 'Choose a single local campaign'}
+    $campaign=Join-Path $repo ".tmp/admin-22/otp-$RenewalOtpSeconds"
+    $localProject="mon-bprea-admin-22-otp-$RenewalOtpSeconds"
+    $stage=Join-Path $campaign 'stack'
+}
 $network='bprea-admin-v2-local'
 $docker=(Get-Command docker -ErrorAction Stop).Source
 if((Test-Path -LiteralPath $stage) -and -not $Resume){throw 'A prior qualification stack exists; inspect it, never reset it.'}
@@ -18,7 +25,8 @@ if(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Obje
 Get-ChildItem Env: | Where-Object Name -Match '^(SUPABASE|PG|DATABASE|POSTGRES|MON_BPREA|BPREA|DOCKER_HOST|DOCKER_CONTEXT)' | Remove-Item
 if(-not $Resume){
 New-Item -ItemType Directory -Path (Join-Path $stage 'supabase'),(Join-Path $stage 'cli-home') | Out-Null
-$config=[IO.File]::ReadAllText((Join-Path $repo 'supabase/config.toml')).Replace('mon-bprea-lot6-1-local',$localProject).Replace('otp_expiry = 60','otp_expiry = 1800')
+$expiry=if($RenewalOtpSeconds){$RenewalOtpSeconds}else{1800}
+$config=[IO.File]::ReadAllText((Join-Path $repo 'supabase/config.toml')).Replace('mon-bprea-lot6-1-local',$localProject).Replace('otp_expiry = 60',"otp_expiry = $expiry")
 [IO.File]::WriteAllText((Join-Path $stage 'supabase/config.toml'),$config)
 Copy-Item -LiteralPath (Join-Path $repo 'supabase/templates'),(Join-Path $repo 'supabase/functions'),(Join-Path $repo 'supabase/migrations') -Destination (Join-Path $stage 'supabase') -Recurse
 } elseif(-not [IO.File]::ReadAllText((Join-Path $stage 'supabase/config.toml')).Contains('project_id = "'+$localProject+'"')){throw 'Wrong local project'}

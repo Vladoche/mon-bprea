@@ -56,6 +56,9 @@ internal static partial class Program
             Check("read-only inspection releases lock without changing originals", Fingerprints(legacy).SequenceEqual(originals));
             store.Initialize();
             Check("real V1 delivered-private recognized", store.InspectHistory() == new HistoryStatus(1, 1, 1));
+            Check("V1 invitation evidence read without rewriting bytes",
+                store.FindLegacyInvitation(Operator) == new LegacyInvitation(operation, Now, Now.AddMinutes(1))
+                && Fingerprints(legacy).SequenceEqual(originals));
             Check("completed V1 permits another account check", !store.HasUncertainOperation());
             using (var pointer = Registry.CurrentUser.OpenSubKey(registry + legacyKey.ToString("D"), writable: true)!)
             {
@@ -121,6 +124,24 @@ internal static partial class Program
             var fromV2 = new AutomaticPrivateStore(v2, v2Key);
             fromV2.Initialize();
             Check("already initialized V2 DPAPI intact", fromV2.InspectHistory().Operations == 1 && !fromV2.HasUncertainOperation());
+            var baseInvite = fromV2.InvitationHistory(Recipient).Single();
+            var anchoredV2 = Fingerprints(v2);
+            using (fromV2.AcquireLock())
+            {
+                var generated = Now.AddHours(24);
+                var renewal = fromV2.Reserve(Recipient, SimpleOperationKind.RenewInvitation, RecoveryId, null, generated,
+                    initialInvitation: baseInvite.Id);
+                fromV2.Complete(new(renewal, "Lien fictif renouvelé", "Archive de test",
+                    [new(Recipient, AdminContract.Callback + "?token_hash=synthetic_token_333333333333&type=invite")],
+                    generated, 86400, RecoveryId, InvitationGeneratedAt: generated));
+            }
+            var renewedStore = new AutomaticPrivateStore(v2, v2Key);
+            renewedStore.Initialize();
+            var history = renewedStore.InvitationHistory(Recipient);
+            Check("V2.2 protects and reopens old and new invitation receipts",
+                history.Count == 2 && history[0] == baseInvite && history[1].InitialInvitation == baseInvite.Id
+                && renewedStore.ReadResult(history[1].Id).ExpirySeconds == 86400
+                && anchoredV2.All(record => Fingerprints(v2)[record.Key] == record.Value));
 
             var (invalid, invalidKey) = Fixture("bad-acl");
             V1(invalid, Guid.NewGuid());

@@ -28,6 +28,9 @@ describe('journal V2 partagé avec les outils Node historiques', () => {
   it('une intention de suppression reste bloquante après ses contrôles actifs', () => {
     expect(inspectSimpleJournal(entries(4), () => 'a'.repeat(64), 'other@example.test')).toBe(true);
   });
+  it('l’exécuteur historique se ferme devant un renouvellement 2.2', () => {
+    expect(() => inspectSimpleJournal(entries(5), () => 'a'.repeat(64), 'other@example.test')).toThrow();
+  });
   it('un nouvel e-mail est lui aussi réservé', () => {
     const items = entries(2); const r = JSON.parse(items[0].text); r.Data.TargetHash = 'b'.repeat(64); r.Data.NextHash = hash;
     items[0].text = JSON.stringify(r); expect(inspectSimpleJournal(items, () => 'a'.repeat(64), email)).toBe(true);
