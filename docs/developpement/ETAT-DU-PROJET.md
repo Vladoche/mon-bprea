@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `d361184391ee4b70554a7eddaa620a1919893dae` |
 | Dernière PR fusionnée | [#71](https://github.com/Vladoche/mon-bprea/pull/71), 18/11/2026 à 17:33:30 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **PR4 lot 2**. Générateur ITK 2027. [Validation](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
+| Chantier courant, non fusionné | **PR4 lot 2**. Générateur ITK 2027. [PR #72](https://github.com/Vladoche/mon-bprea/pull/72) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
 | Prochaine action | Revoir le générateur ITK, la planche des boutons et la feuille imprimée. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais

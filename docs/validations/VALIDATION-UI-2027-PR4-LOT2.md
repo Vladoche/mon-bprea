@@ -2,7 +2,7 @@
 
 Base `origin/main` du 18 novembre 2026, `d361184391ee4b70554a7eddaa620a1919893dae`
 après fusion du [calendrier de formation #71](https://github.com/Vladoche/mon-bprea/pull/71).
-Branche `codex/ui-2027-itk`.
+Branche `codex/ui-2027-itk`, [PR #72](https://github.com/Vladoche/mon-bprea/pull/72).
 
 ## Audit et mise en œuvre
 
@@ -66,8 +66,9 @@ expirations dans des contrôles de sous-processus. Le SDK verrouillé et
 la notice publique ont été vérifiés. Le premier passage Chromium général
 a compté 212 réussites sur 216. Les quatre assertions en échec portaient
 sur la ponctuation du titre et la distinction entre une intention
-persistée et ses rejeux réseau. Le passage ciblé final a réussi les
-45 scénarios ITK, stockage, navigation et apparence, préfixe Pages compris.
+persistée et ses rejeux réseau. La suite générale relancée a réussi
+216 scénarios. Après l’ajustement du focus et de l’impression,
+18 parcours ITK et synchronisation ont réussi sur le code livré.
 
 ## Captures, accessibilité et impression
 
@@ -75,10 +76,19 @@ La galerie locale est dans `.tmp/ui-2027-pr4-lot2/itk-review/index.html` et
 la planche dans `.tmp/ui-2027-pr4-lot2/itk-review/boutons.html`.
 Le job `ui-performance-lab` produit les mêmes fichiers de revue et les
 deux impressions A4. Les captures utilisent des paramètres et comptes fictifs.
+[Checks et artefacts GitHub](https://github.com/Vladoche/mon-bprea/pull/72/checks).
 Les pages comparées utilisent 390, 768 et 1440 × 1000, avec contrôles à
 320 et 1024 px, un zoom natif Chromium à 200 % et les palettes des quatre
 saisons en clair et sombre. La planche montre le header et les actions
 principales, secondaires et d’import dans les mêmes conditions de thème.
+Les captures avant/après ont été inspectées pour le repli du formulaire,
+la synthèse, la chronologie, les messages de sauvegarde et les dialogues.
+Les planches incluent le repos, le survol, le focus clavier, l’appui,
+la désactivation, le contraste forcé et le mouvement réduit. Les mesures
+confirment les mêmes surfaces, bordures, reflets, ombres et proportions
+que le header en clair et sombre. Les minima calculés sur les huit palettes
+sont de 4,73:1 pour le texte du bouton principal, 10,56:1 pour le bouton
+secondaire, 6,36:1 pour les avertissements et 6,49:1 pour le contour de focus.
 
 Le test de l’action d’impression vérifie l’appel à `window.print()`.
 Chromium enregistre la feuille par son moteur d’impression, avec synthèse,
@@ -86,3 +96,48 @@ indicateurs, avertissements et jalons sur fond clair. Le PDF est une sortie
 du navigateur. Le PDF A4 du scénario carotte, généré depuis le mode sombre,
 tient sur une page après ajustement des espacements. Les sept points de
 vigilance et les six interventions ont été contrôlés sur le rendu Poppler.
+
+La recette couvre Chromium et l’émulation tactile. L’ouverture du dialogue
+est contrôlée par l’appel à `window.print()` et le rendu papier par
+l’enregistrement Chromium. Un essai interactif de la boîte système ainsi
+qu’un parcours avec un lecteur d’écran sur appareil physique restent hors
+de cette recette.
+
+## Performance en laboratoire
+
+Cinq passages alternés par version sur Chromium, 1440 × 1000, cache froid,
+CPU ×4, latence de 20 ms et débit de 1 250 000 octets/s. Le serveur local
+sert les mêmes données fictives et ne compresse pas les ressources. Le
+relevé porte sur le code `96ec662`. Le banc et ses données brutes sont
+accessibles depuis les artefacts du check `ui-performance-lab`.
+
+| Médiane | Référence | Refonte |
+| --- | ---: | ---: |
+| CSS chargé, octets | 58 479 | 67 797 |
+| JavaScript chargé, octets | 1 059 441 | 1 063 118 |
+| Requêtes, document inclus | 84 | 86 |
+| LCP, ms | 1 568 | 1 688 |
+| CLS au chargement | 0,00014 | 0,00014 |
+| Premier affichage du formulaire, ms | 1 738,6 | 1 856,7 |
+| Changement d’espèce jusqu’à la seconde image, ms | 20,3 | 22,1 |
+| Génération jusqu’à l’insertion de la chronologie, ms | 13,7 | 13,1 |
+| Chronologie jusqu’à la seconde image, ms | 310,3 | 263,5 |
+| Ouverture de l’aperçu d’import, ms | 260,0 | 288,8 |
+| Déplacements cumulés en interaction | 0,0156 | 0,0296 |
+
+La feuille ITK et le chargement du module dédié ajoutent deux requêtes à
+cette page. La génération et l’insertion restent autour de 13 ms. Le seuil
+diagnostique de 200 ms reste dépassé pour l’affichage de la chronologie
+et du dialogue dans les deux versions sous ralentissement. L’ouverture
+de l’aperçu, qui vérifie les paramètres du compte dans le banc HTTP,
+prend 28,8 ms de plus. Les déplacements en interaction incluent les
+changements déclenchés par l’utilisateur. Ces chiffres sont des mesures
+locales de laboratoire.
+
+## Verdict
+
+**GO — PR4 lot 2 validé.** La parité métier, les CSV, le rendu A4 et les
+contrôles de persistance et de cohérence avec le header permettent la revue
+de la PR. Le signal de performance au seuil de 200 ms relève du suivi P2.
+Le périmètre d’intervention couvre la branche de revue et les environnements
+de test isolés.

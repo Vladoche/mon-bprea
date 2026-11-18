@@ -318,6 +318,7 @@ async function captureNativeZoom(origin, directory) {
       try {
         const page = context.pages()[0];
         const worker = context.serviceWorkers()[0] || await context.waitForEvent('serviceworker');
+        const cdp = await context.newCDPSession(page);
         await seedItkLab(context, siteUrl, { personal: true });
         for (const width of [1440, 780]) {
           await page.setViewportSize({ width, height });
@@ -334,7 +335,12 @@ async function captureNativeZoom(origin, directory) {
           await anchorPage(page, '#itk-output');
           const info = await page.evaluate(() => ({ cssWidth: innerWidth, dpr: devicePixelRatio, scrollWidth: document.documentElement.scrollWidth }));
           if (phase === 'after') assert.ok(info.scrollWidth <= info.cssWidth && info.dpr === 2);
-          await page.screenshot({ path: resolve(directory, `${phase}-zoom-${width}.png`) });
+          await expect(page.locator('#itk-output h2')).toBeInViewport();
+          await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+          // Capture the viewport as painted by Chromium. Playwright's clip
+          // uses unzoomed coordinates and can return a blank image after scrolling.
+          const { data } = await cdp.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
+          await writeFile(resolve(directory, `${phase}-zoom-${width}.png`), Buffer.from(data, 'base64'));
           const trigger = page.locator('#itk-import');
           await trigger.click();
           await expect(page.locator('.itk-import-dialog')).toBeVisible();
