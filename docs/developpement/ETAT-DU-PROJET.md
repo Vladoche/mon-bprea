@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `b81a71a5c477d74bbb12919ecb4a5f9b7a72dc63` |
-| Dernière PR fusionnée | [#69](https://github.com/Vladoche/mon-bprea/pull/69), 18/11/2026 à 14:09:45 UTC |
+| Dernier commit | `a17d6aa9016da3bab195b99a36bc9a9f22f8f5cd` |
+| Dernière PR fusionnée | [#70](https://github.com/Vladoche/mon-bprea/pull/70), 18/11/2026 à 15:44:18 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **Admin 2.2**. Renouvellement des invitations expirées. [PR #70](https://github.com/Vladoche/mon-bprea/pull/70) · [Validation](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md) |
-| Prochaine action | Relire la PR Admin 2.2, puis décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
+| Chantier courant, non fusionné | **PR4 lot 1**. Calendrier de formation 2027. [PR #71](https://github.com/Vladoche/mon-bprea/pull/71) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
+| Prochaine action | Revoir le calendrier et sa galerie comparative. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#69. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#70. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -69,7 +69,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `b81a71a5c477d74bbb12919ecb4a5f9b7a72dc63` |
+| Dernier commit main relevé | `a17d6aa9016da3bab195b99a36bc9a9f22f8f5cd` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -105,7 +105,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Apparence | Icône clair/sombre, dialogue dans Profil → Paramètres ; #59 | Mémorisation appareil volontaire ; anciennes clés conservées | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
 | Authentification | Activation sur invitation, connexion et récupération assistée ; #49–#51 | Inscription publique/anonyme fermées ; pas de récupération réelle ni isolation A/B PROD recettées | [Auth](../architecture/AUTHENTIFICATION.md) |
-| Admin Windows | 2.1 fusionnée (#68) avec reprise de l’historique et sauvegarde restaurée. Correctif 2.2 en revue (#70) | Exécutable non signé. Suppression PROD bloquée | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
+| Admin Windows | 2.1 fusionnée (#68) avec reprise de l’historique et sauvegarde restaurée. Renouvellement des invitations expirées fusionné en 2.2 (#70) | Exécutable non signé. Suppression PROD bloquée | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
 
 ## E — Sécurité et exploitation
 
@@ -158,12 +158,12 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Relire la [PR #70](https://github.com/Vladoche/mon-bprea/pull/70) et son
-   [rapport](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md). Ensuite,
-   autoriser et vérifier séparément le réglage Auth PROD, puis décider du
-   renouvellement de l’invitation bloquée.
-2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
-   Ces deux chantiers restent à réaliser.
+1. Revoir la [refonte du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md).
+   Les autres outils spécialisés de PR4 et PR5 (profil et harmonisation finale)
+   restent à réaliser.
+2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
+   réel de l’invitation bloquée dans le cadre de la
+   [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
 3. Décider séparément d’une publication du code fusionné, puis appliquer le
    workflow autorisé, consigner son SHA et effectuer une recette hébergée ciblée.
 4. Obtenir les décisions individuelles et d’ouverture nécessaires après la

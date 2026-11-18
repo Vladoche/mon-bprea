@@ -110,6 +110,7 @@ jobs:
           node scripts/measure-ui-foundations.mjs --page 'exercices.html?id=matiere-organique' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-quiz.json
           node scripts/measure-ui-foundations.mjs --page 'drill.html?unit=uc3&week=2026-W47' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-drill.json
           node scripts/measure-ui-foundations.mjs --page 'tableau-de-bord.html?period=all' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-dashboard.json
+          node scripts/measure-ui-foundations.mjs --page 'calendrier.html?month=2027-06' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-calendar.json
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()
         uses: actions/upload-artifact@v7
@@ -120,5 +121,6 @@ jobs:
             .tmp/ui-2027-foundations/quiz-review/
             .tmp/ui-2027-foundations/drill-review/
             .tmp/ui-2027-foundations/dashboard-review/
+            .tmp/ui-2027-foundations/calendar-review/
           retention-days: 14
           if-no-files-found: ignore

@@ -75,3 +75,37 @@ describe('Journées civiles et examens', () => {
     expect(data.events[0].end).toBe('2026-10-26');
   });
 });
+
+describe('Chargement et validation de la source du calendrier', () => {
+  it('retourne un calendrier valide et vide lorsqu’aucune date n’est fournie', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ version: 1, events: [] })));
+    expect(await loadCalendar()).toEqual({ events: [], warnings: [], error: null });
+  });
+
+  it('conserve les événements valides avec les avertissements et filtre les exemples pour les examens', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(Response.json({ events: [
+      exam('premier', '2027-01-01', '2027-01-03', { unit: 'inconnue', location: 42 }),
+      exam('premier', '2027-01-01'),
+      exam('', '2027-01-02'),
+      exam('categorie', '2027-02-28', undefined, { type: 'inconnue' }),
+      exam('fictif', '2026-12-30', '2027-01-02', { example: true }),
+      exam('chevauchement', '2026-12-31', '2027-01-04', { unit: 'uc3' }),
+    ] })));
+    const data = await loadCalendar();
+    expect(data.error).toBeNull();
+    expect(data.warnings).toHaveLength(5);
+    expect(data.events.map(event => event.id)).toEqual(['fictif', 'chevauchement', 'premier']);
+    expect(data.events[2]).toMatchObject({ unit: null, location: '' });
+    expect(selectUpcomingExams(data.events, '2027-01-01').map(event => event.id)).toEqual(['chevauchement', 'premier']);
+  });
+
+  it.each([
+    ['JSON illisible', () => new Response('{')],
+    ['format incorrect', () => Response.json({ version: 1, events: {} })],
+    ['HTTP indisponible', () => new Response(null, { status: 503 })],
+    ['réseau indisponible', () => { throw new TypeError('réseau'); }],
+  ])('signale un échec plutôt qu’une source vide (%s)', async (_, response) => {
+    vi.stubGlobal('fetch', vi.fn(async () => response()));
+    expect(await loadCalendar()).toMatchObject({ events: [], warnings: [], error: expect.any(String) });
+  });
+});
