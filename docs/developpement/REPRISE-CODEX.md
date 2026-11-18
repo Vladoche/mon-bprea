@@ -15,13 +15,12 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    est fusionné depuis le 16/11 à 15:04:49 UTC (`456e844`).
 3. Le [Drill PR3 lot 3, #66](https://github.com/Vladoche/mon-bprea/pull/66) est
    fusionné depuis le 16/11 à 20:39:05 UTC (`7115b72`), après les QCM #65.
-   Le chantier courant **Admin V2**, branche `codex/mon-bprea-admin-v2`, dispose
-   d’un [guide utilisateur](../../tools/mon-bprea-admin/README.md), de
-   [limites techniques](../../tools/mon-bprea-admin/DEVELOPPEMENT.md) et d’une
-   [validation locale](../validations/VALIDATION-ADMIN-V2.md). Sa [PR #67](https://github.com/Vladoche/mon-bprea/pull/67)
-   est ouverte ; ne pas confondre recette locale et capacité de suppression PROD,
-   toujours bloquée. Le lot 4 tableau de bord, PR4 outils et PR5 profil restent
-   distincts et exigent leur autorisation. La cible du 13 novembre est passée.
+   [Admin V2 #67](https://github.com/Vladoche/mon-bprea/pull/67) a fusionné le
+   17/11 sur `e560741`. **Admin 2.1**, branche `codex/premiere-invitation-prod`,
+   poursuit la [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
+   Le [guide](../../tools/mon-bprea-admin/README.md) décrit l’assistant.
+   La suppression PROD attend sa qualification distincte. Le lot 4 tableau de
+   bord, PR4 outils et PR5 profil restent des chantiers distincts.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le
    [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
    avant d’affirmer une publication. L’écart de publication et la fraîcheur de
