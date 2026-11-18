@@ -120,3 +120,34 @@ test('un cache vide hors ligne et un cache inaccessible ne sont pas présentés 
   await expect(completed(page)).toHaveText('0');
   await expect(page.locator('.dashboard-metrics')).toContainText('Aucune donnée');
 });
+
+test('un statut seul garde les graphiques en place, une réponse conserve la semaine et le défilement', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mount(page, personal('synced', { history: true }), '?unit=uc3&period=all');
+  const weekly = page.locator('[data-dashboard-details="weekly"]');
+  await weekly.locator('summary').click();
+  const plot = page.locator('.dashboard-chart-scroll').first();
+  const table = weekly.locator('.dashboard-table-scroll');
+  const currentWeek = plot.locator('[data-chart-week="2026-W43"]');
+  await currentWeek.evaluate(element => element.focus({ preventScroll: true }));
+  await plot.evaluate(element => { element.scrollLeft = 95; window.originalDashboardPlot = element; });
+  await table.evaluate(element => { element.scrollLeft = 60; element.scrollTop = 120; });
+  const positions = async () => [
+    await plot.evaluate(el => el.scrollLeft),
+    ...await table.evaluate(el => [el.scrollLeft, el.scrollTop]),
+  ];
+  const original = await positions();
+  expect(original.every(value => value > 0)).toBe(true);
+
+  await emit(page, personal('offline', { history: true }));
+  expect(await plot.evaluate(el => el === window.originalDashboardPlot)).toBe(true);
+  expect(await positions()).toEqual(original);
+  await expect(currentWeek).toBeFocused();
+  await expect(page.locator('#volume-detail')).toContainText('2 exercices réalisés');
+  await emit(page, personal('synced', { count: 3, history: true }));
+  expect(await plot.evaluate(el => el === window.originalDashboardPlot)).toBe(false);
+  await expect(weekly).toHaveAttribute('open', '');
+  await expect(currentWeek).toBeFocused();
+  await expect(page.locator('#volume-detail')).toContainText('3 exercices réalisés');
+  expect(await positions()).toEqual(original);
+});

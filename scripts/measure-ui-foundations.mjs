@@ -6,6 +6,7 @@ import { readFile, mkdir, stat, writeFile } from 'node:fs/promises';
 import { resolve, extname, sep, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { installDrillObserver, measureDrill, writeDrillReview } from './ui-drill-lab.mjs';
+import { installDashboardObserver, measureDashboard, seedDashboard, writeDashboardReview } from './ui-dashboard-lab.mjs';
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -14,10 +15,11 @@ const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
 const baselineRef = option('--baseline-ref', 'baseline directory supplied by caller');
 const pageFile = option('--page', 'index.html');
-const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47'];
+const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all'];
 if (!allowedPages.includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
 const quizPage = pageFile.startsWith('exercices.html');
 const drillPage = pageFile.startsWith('drill.html');
+const dashboardPage = pageFile.startsWith('tableau-de-bord.html');
 const drillReviewDirectory = resolve(dirname(output), 'drill-review');
 const reviewDirectory = resolve(dirname(output), 'quiz-review');
 async function quizShot(page, phase, state, width) {
@@ -54,6 +56,10 @@ try {
     await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
     const page = await context.newPage();
     if (drillPage) await page.addInitScript(installDrillObserver);
+    if (dashboardPage) {
+      await seedDashboard(page);
+      await page.addInitScript(installDashboardObserver);
+    }
     const client = await context.newCDPSession(page);
     await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await client.send('Network.enable');
@@ -102,7 +108,7 @@ try {
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
-    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview').first().waitFor();
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics').first().waitFor();
     const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
@@ -112,6 +118,7 @@ try {
       return { ...window.__uiMetrics, tocInitMs: performance.getEntriesByName('course-reading-init')[0]?.duration ?? null, cssBytes: bytes('.css'), jsBytes: bytes('.js'), imageBytes: resources.filter(item => /\.(svg|avif|webp|png|jpe?g)$/.test(new URL(item.name).pathname)).reduce((sum, item) => sum + item.decodedBodySize, 0), decodedBytes: navigation.decodedBodySize + resources.reduce((sum, item) => sum + item.decodedBodySize, 0), transferBytes: navigation.transferSize + resources.reduce((sum, item) => sum + item.transferSize, 0), requests: resources.length + 1, loadMs: navigation.loadEventEnd };
     });
     if (drillPage) Object.assign(metrics, await measureDrill(page, { phase, width: 1440, directory: drillReviewDirectory, screenshots: run === 0 }));
+    if (dashboardPage) Object.assign(metrics, await measureDashboard(page));
     if (quizPage) {
       const initialShifts = await page.evaluate(() => window.__uiMetrics.allShifts);
       if (run === 0) await quizShot(page, phase, 'blank', 1440);
@@ -185,6 +192,19 @@ try {
     results.methodology.drill = 'Fixed Date only; real performance clock. Trusted events to second frame after DOM updates. Per-action scroll delta, focused element and layout shifts including recent input are separate diagnostics, not load CLS or field INP. Stats/history latency is measured when their text changes.';
     await writeDrillReview(browser, { origin, pageFile, baselineRef, directory: drillReviewDirectory });
   }
+  if (dashboardPage) {
+    for (const phase of ['before', 'after']) {
+      results.medians[phase].dashboardReadyMs = median(results[phase].map(run => run.dashboardReadyMs));
+      results.medians[phase].dashboardActions = Object.fromEntries(['filter', 'page', 'week', 'refresh'].map(name =>
+        [name, Object.fromEntries(['durationMs', 'scrollDelta', 'layoutShift'].map(key =>
+          [key, median(results[phase].map(run => run.dashboardActions[name][key]))]))]));
+    }
+    results.methodology.baselineRef = baselineRef;
+    results.methodology.dashboard = 'Fixed civil date and local synthetic data, real performance clock. First metric DOM; actions measured from change, click or focus to the second animation frame. Post-interaction layout shifts include recent input. Refresh reads a newly updated visitor history.';
+    results.dashboardParity = await writeDashboardReview(browser, {
+      origin, baselineRef, directory: resolve(dirname(output), 'dashboard-review'),
+    });
+  }
   // Broad diagnostic budgets account for ordinary local-laboratory variability.
   // They flag a targeted investigation, without grading the site with a global score.
   results.budgets = { cssAdditionalBytes: 16384, jsAdditionalBytes: 16384, additionalRequests: 2, lcpAdditionalMs: Math.max(500, before.lcp * .5), clsMaximum: .1, interactionMaximumMs: 200 };
@@ -196,6 +216,7 @@ try {
     after.cls > .1 && 'CLS budget', after.interactionMs > 200 && 'laboratory interaction budget',
     quizPage && (after.quizSelectionMs > 200 || after.quizCorrectionMs > 200 || after.quizHistoryPresentationMs > 200) && 'quiz laboratory interaction budget',
     drillPage && (after.drillSelectionMs > 200 || after.drillValidationMs > 200 || after.drillHistoryMs > 200) && 'drill laboratory interaction budget',
+    dashboardPage && Object.values(after.dashboardActions).some(action => action.durationMs > 200) && 'dashboard laboratory interaction budget',
     results.after.some(run => run.errors.length || run.failedResponses.length) && 'runtime/network errors',
   ].filter(Boolean);
   await mkdir(dirname(output), { recursive: true });
