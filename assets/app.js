@@ -1,4 +1,4 @@
-import { units, lessons, crops } from './content.js';
+import { units, lessons } from './content.js';
 import { initResources, initCourseResources, initUnitResources } from './resource-library.js';
 import { initCalendar } from './calendar.js';
 import { getCourseQuizService } from './course-quiz-service.js';
@@ -16,7 +16,6 @@ import { initAppearance } from './appearance.js';
 import { initBotanical } from './botanical.js';
 import { initFooter } from './footer.js';
 import { initAuthPage } from './auth-pages.js';
-import { bindItkPersonal } from './itk-personal-ui.js';
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
@@ -213,56 +212,6 @@ function quizzes() {
   });
   retry.addEventListener('click', () => { if (!saving) { reset(); refreshProgressUI(); $('input',form)?.focus({ preventScroll: true }); } });
 }
-function selectOptions(options,selected){return options.map(x=>`<option value="${clean(x)}" ${selected===x?'selected':''}>${clean(x)}</option>`).join('');}
-function dateForMonth(month,year){return new Date(year,month-1,15,12);}
-function moveWeeks(date,w){const d=new Date(date.getTime());d.setDate(d.getDate()+w*7);return d;}
-const fmt = new Intl.DateTimeFormat('fr-FR',{month:'long',year:'numeric'});
-function monthLabel(date){return fmt.format(date);}
-function itkResult(data){
-  const crop=crops[data.crop];const month=Number(data.month);const date=dateForMonth(month,Number(data.year));const area=Number(data.area);const cover=data.cover;const soil=data.soil;const water=data.water;const within=crop.window[cover].includes(month);
-  let density=crop.baseDensity*(cover==='plein'&&data.crop==='tomate'?.85:1);
-  const plants=Math.round(area*density);
-  const rows=crop.tasks.map(([name,detail],i)=>({name,detail,date:monthLabel(moveWeeks(date,crop.weeks[i])),offset:crop.weeks[i]}));
-  const flags=[];
-  const varietyTips={
-    tomate:{'Marmande':'Marmande : confirmer le port, la précocité et les besoins de tuteurage à partir de la fiche semencier.','Roma':'Roma : vérifier le caractère déterminé ou non du cultivar précis, qui conditionne le palissage et le calendrier de récolte.','Cœur de bœuf':'Cœur de bœuf : anticiper le poids des fruits dans le choix du tuteurage et vérifier la précocité du cultivar.'},
-    laitue:{'Batavia':'Batavia : contrôler le type de pomme et la sensibilité à la montaison selon la saison.','Feuille de chêne':'Feuille de chêne : adapter le stade de récolte au format commercial choisi.','Laitue pommée':'Laitue pommée : suivre la formation de la pomme et les risques de montaison.'},
-    carotte:{'Nantaise':'Nantaise : contrôler le calibre et la longueur commerciale ciblés.','Touchon':'Touchon : vérifier la précocité annoncée par le fournisseur ; la date de récolte peut être plus courte.','Carotte de conservation':'Carotte de conservation : prévoir un contrôle de maturité et des conditions de stockage, le cycle pouvant être plus long.'},
-    courgette:{'Black Beauty':'Black Beauty : surveiller fréquemment le calibre des fruits allongés.','Ronde de Nice':'Ronde de Nice : définir le calibre de récolte des fruits ronds avec le débouché.','Courgette verte (type)':'Courgette verte : confirmer port de la plante et conditions de récolte selon la variété exacte.'}
-  };
-  flags.push(varietyTips[data.crop]?.[data.variety] || 'Variété non caractérisée : obtenir une fiche technique du fournisseur avant de fixer dates, densités et conduite.');
-  if(!within)flags.push(`Le mois de départ (${monthLabel(date)}) est hors de la fenêtre indicative retenue pour ${crop.name.toLowerCase()} en ${cover==='serre'?'culture sous abri':'plein champ'}. Revoir le calendrier selon météo, variété et protection.`);
-  if(water==='limitee')flags.push('Accès à l’eau limité : la réussite de cette culture dépend d’une stratégie d’irrigation fiable. Ne pas considérer l’ITK comme réalisable sans vérification.');
-  if(soil==='lourd')flags.push('Sol lourd : attendre un ressuyage suffisant et adapter le travail du sol pour limiter tassement et battance.');
-  if(data.crop==='carotte')flags.push('Pour la carotte, la densité estimée représente des plants visés après levée, pas un nombre garanti de graines ni une quantité exacte de semences.');
-  const values=[`Espèce : ${crop.name}`,`Variété / type : ${data.variety}`,`Mode : ${cover==='serre'?'Sous abri':'Plein champ'}`,`Surface : ${area} m²`,`Mois de départ : ${monthLabel(date)}`];
-  return `<div class="result-header"><div><span class="eyebrow">ITINÉRAIRE GÉNÉRÉ</span><h2>${clean(crop.name)} · ${clean(data.variety)}</h2><p>${clean(values.slice(2).join(' · '))}</p></div><span class="pill status-ready">Scénario pédagogique</span></div><div class="metric-grid"><div class="metric"><small>DENSITÉ DE RÉFÉRENCE</small><strong>${density.toLocaleString('fr-FR',{maximumFractionDigits:1})}</strong><span>plants/m² (estimation)</span></div><div class="metric"><small>NOMBRE THÉORIQUE</small><strong>${plants.toLocaleString('fr-FR')}</strong><span>plants pour ${area} m² cultivés</span></div><div class="metric"><small>OPÉRATIONS</small><strong>${rows.length}</strong><span>jalons à adapter</span></div></div><p class="subtle-explainer"><strong>Plage de référence :</strong> ${clean(crop.densityRange)}. La surface saisie correspond à une surface <em>réellement cultivée</em>, hors allées et espaces techniques.</p><div class="warning-block">${icon('warning',20)}<div><strong>Points de vigilance</strong><ul>${[...flags,crop.warning,'Vérifier analyses de sol, fertilisation, disponibilité en eau, pression sanitaire et références techniques locales avant application.'].map(t=>`<li>${clean(t)}</li>`).join('')}</ul></div></div><h3 class="table-heading">Calendrier indicatif des interventions</h3><div class="timeline">${rows.map((r,i)=>`<div class="timeline-entry"><div class="timeline-date">${clean(r.date)}<span>${r.offset===0?'Départ':(r.offset>0?`S +${r.offset}`:`S ${r.offset}`)}</span></div><div class="timeline-dot"></div><div class="timeline-content"><strong>${clean(r.name)}</strong><p>${clean(r.detail)}</p></div></div>`).join('')}</div><div class="export-row"><button class="btn btn-primary" id="csv-export" type="button">Exporter le calendrier CSV ↓</button><button class="btn btn-outline" id="print-itk" type="button">Imprimer / PDF</button></div><p class="result-disclaimer">Données synthétiques construites pour une démonstration du logiciel. Aucune prescription agronomique individualisée. Les échéances sont arrondies au mois, non au jour.</p>`;
-}
-function itk(){
-  const data={crop:'tomate',cover:'serre',variety:'Marmande',area:'100',month:'5',year:'2028',soil:'limoneux',water:'standard'};
-  $('#app-main').innerHTML=`<section class="page-top wrap itk-top">${renderBreadcrumbs('itk')}<div class="page-eyebrow">LABORATOIRE AGRONOMIQUE · PROTOTYPE</div><h1>Construire un itinéraire technique.</h1><p>Choisis une culture et ses contraintes pour obtenir un calendrier d’opérations. Les résultats sont des hypothèses de travail, pas une fiche technique validée.</p></section><section class="wrap itk-layout"><div class="itk-form-panel"><div class="panel-heading"><div><span class="eyebrow">PARAMÈTRES</span><h2>Ta culture</h2></div>${icon('leaf',25)}</div><form id="itk-form"><label for="crop">Espèce cultivée</label><select name="crop" id="crop">${Object.entries(crops).map(([key,c])=>`<option value="${key}" ${data.crop===key?'selected':''}>${clean(c.name)}</option>`).join('')}</select><label for="variety">Variété ou type</label><select name="variety" id="variety"></select><div class="form-columns"><div><label for="cover">Conduite</label><select name="cover" id="cover"><option value="serre" ${data.cover==='serre'?'selected':''}>Sous abri</option><option value="plein" ${data.cover==='plein'?'selected':''}>Plein champ</option></select></div><div><label for="area">Surface cultivée (m²)</label><input name="area" id="area" type="number" min="1" max="100000" step="1" required value="${clean(data.area)}"></div></div><div class="form-columns"><div><label for="month">Mois de départ</label><select name="month" id="month">${Array.from({length:12},(_,i)=>`<option value="${i+1}" ${data.month===String(i+1)?'selected':''}>${new Intl.DateTimeFormat('fr-FR',{month:'long'}).format(new Date(2027,i,1))}</option>`).join('')}</select></div><div><label for="soil">Texture dominante</label><select name="soil" id="soil"><option value="leger" ${data.soil==='leger'?'selected':''}>Légère / sableuse</option><option value="limoneux" ${data.soil==='limoneux'?'selected':''}>Intermédiaire / limoneuse</option><option value="lourd" ${data.soil==='lourd'?'selected':''}>Lourde / argileuse</option></select></div></div><label for="year">Année de culture</label><select name="year" id="year">${Array.from({length:8},(_,i)=>2026+i).map(y=>`<option value="${y}" ${data.year===String(y)?'selected':''}>${y}</option>`).join('')}</select><label for="water">Accès à l’eau</label><select name="water" id="water"><option value="standard" ${data.water==='standard'?'selected':''}>Irrigation à dimensionner</option><option value="limitee" ${data.water==='limitee'?'selected':''}>Ressource limitée / incertaine</option></select><button type="submit" class="btn btn-primary full">Générer mon itinéraire ${icon('arrow',18)}</button><p class="form-caption">Le calendrier est calculé sur cet appareil.</p></form></div><div class="itk-result-panel" id="itk-output"><div class="placeholder-result"><span class="placeholder-icon">${icon('calendar',38)}</span><h2>Ton calendrier apparaîtra ici.</h2><p>Sélectionne une espèce, une variété, une surface et un mois de départ, puis génère l’itinéraire.</p><div class="placeholder-lines"><span></span><span></span><span></span></div></div></div></section>`;
-  const form=$('#itk-form'),varSelect=$('#variety');let selectedCrop=data.crop;
-  function updateVariety(prefer){const options=crops[selectedCrop].varieties;varSelect.innerHTML=selectOptions(options,options.includes(prefer)?prefer:options[0]);}
-  updateVariety(data.variety);
-  const syncPanel = document.createElement('section');
-  syncPanel.id = 'itk-sync-panel'; syncPanel.className = 'itk-sync-panel';
-  syncPanel.setAttribute('aria-label', 'Sauvegarde des paramètres ITK');
-  form.after(syncPanel);
-  const placeholder = $('#itk-output').innerHTML;
-  const binding = bindItkPersonal(form, syncPanel, {
-    applyValues(value) {
-      selectedCrop = value.crop;
-      $('#crop').value = value.crop;
-      updateVariety(value.variety);
-      for (const key of ['cover', 'area', 'month', 'year', 'soil', 'water']) form.elements.namedItem(key).value = value[key];
-      form.elements.area.setCustomValidity('');
-    },
-    clearResult() { $('#itk-output').innerHTML = placeholder; $('#itk-output').classList.remove('has-result'); }
-  });
-  $('#crop').addEventListener('change',e=>{selectedCrop=e.target.value;updateVariety(null);});
-  $('#area').addEventListener('input',e=>e.target.setCustomValidity(''));
-  form.addEventListener('submit',event=>{event.preventDefault();const raw=Object.fromEntries(new FormData(form));const area=Number(raw.area);if(!Number.isFinite(area)||area<1||area>100000){$('#area').setCustomValidity('Saisis une surface entre 1 et 100 000 m².');$('#area').reportValidity();return;}$('#area').setCustomValidity('');binding.save(raw);const result=$('#itk-output');result.innerHTML=itkResult(raw);result.classList.add('has-result');const crop=crops[raw.crop],date=dateForMonth(Number(raw.month),Number(raw.year));const rows=crop.tasks.map(([name,detail],i)=>[monthLabel(moveWeeks(date,crop.weeks[i])),name,detail]);$('#csv-export').addEventListener('click',()=>{const dataCSV=[['Période','Opération','Description'],...rows].map(row=>row.map(cell=>'"'+String(cell).replaceAll('"','""')+'"').join(';')).join('\r\n');const blob=new Blob(['\uFEFF'+dataCSV],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`itk-${raw.crop}.csv`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});$('#print-itk').addEventListener('click',()=>window.print());});
-}
 function dashboard(){
   const root=$('#app-main');
   return initDashboard(root).catch(()=>{
@@ -299,7 +248,7 @@ async function init(){
     catch { progressState.view.error = 'La source de progression est indisponible. Les données enregistrées sont conservées.'; }
     progress = progressAvailable() ? progressState.view.progress : {};
   }
-  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk,resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
+  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk:()=>import('./itk.js').then(({ initItk }) => initItk($('#app-main'), icon)),resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
   // Render the expanded footer after the initial page content. Hydrating it
   // before the course source resolves briefly filled the viewport with footer
   // links, then displaced the whole surface when the page became available.

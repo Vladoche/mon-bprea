@@ -9,6 +9,11 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Générateur ITK 2027, PR4 lot 2**. Paramètres de culture regroupés,
+  synthèse et chronologie adaptées au mobile, boutons assortis au header,
+  feuille imprimée allégée et actions de sauvegarde explicites. Les calculs,
+  exports CSV et décisions de synchronisation suivent les contrats existants.
+  [Validation](docs/validations/VALIDATION-UI-2027-PR4-LOT2.md).
 - **Calendrier de formation 2027, PR4 lot 1**. Navigation mensuelle et grille
   modernisées, accès à l’agenda du jour depuis les compteurs, fiches détaillées
   adaptées au clavier et au mobile. Les dates de formation proviennent du même

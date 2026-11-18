@@ -112,6 +112,12 @@ test('imports : examen volontaire distinct par domaine, source changée et ancie
   await page.goto(itkPath); await settingsSynced(page); expect(api.rows.itk.size).toBe(0); expect(api.rows.appearance.size).toBe(0);
   await page.getByRole('button', { name: 'Examiner les paramètres locaux', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Importer les paramètres ITK' })).toContainText('321'); await captureMatrix(page, 'import');
+  await expect(page.locator('#itk-import-cancel')).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#itk-import')).toBeFocused();
+  await expect(page.locator('#itk-import-title')).toBeHidden();
+  expect(api.sent).toHaveLength(0);
+  await page.locator('#itk-import').click();
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.rows.itk.size).toBe(0);
   await page.getByRole('button', { name: 'Examiner les paramètres locaux', exact: true }).click(); await page.getByRole('button', { name: 'Confirmer l’import ITK', exact: true }).click(); await settingsSynced(page);
   expect(api.rows.itk.get(accounts.A.id).parameters.area).toBe('321'); expect(api.rows.appearance.size).toBe(0);
@@ -120,7 +126,35 @@ test('imports : examen volontaire distinct par domaine, source changée et ancie
   expect((await settingsAction(page, 'confirmImport', preview)).error).toBeTruthy();
   await page.evaluate(() => localStorage.setItem('bprea-demo-itk-v1', '{"crop":"tomate","variety":"Nantaise","cover":"serre","area":"10","month":"5","year":"2028","soil":"limoneux","water":"standard"}'));
   const refused = await settingsAction(page, 'previewImport', 'itk'); expect(refused.error).toBeTruthy(); expect(refused.available).toBe(false);
+  await page.locator('#itk-import').click();
+  await expect(page.locator('#itk-import-message')).toContainText('invalides');
+  await expect(page.locator('#itk-import-confirm')).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#itk-import')).toBeFocused();
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-appearance-v1'))).toBe(appearanceRaw);
+});
+
+test('deux onglets du même compte : une intention idempotente, résultat généré dans le premier onglet', async ({ page, context }) => {
+  const api = createSettingsAPI();
+  await api.install(context);
+  const second = await context.newPage();
+  try {
+    await page.goto(itkPath);
+    await second.goto(itkPath);
+    await settingsSynced(page);
+    await settingsSynced(second);
+    await expect(page.locator('#itk-sync-status')).toContainText('Aucun paramètre ITK');
+    expect(api.sent).toHaveLength(0);
+    await generateItk(page, { ...itkParameters, area: '435' });
+    await settingsSynced(page);
+    await expectItk(second, { ...itkParameters, area: '435' });
+    await settingsSynced(second);
+    await expect(second.locator('#csv-export')).toHaveCount(0);
+    const requests = api.sent.filter(item => item.domain === 'itk');
+    expect(requests.length).toBeGreaterThan(0);
+    expect(requests.every(item => JSON.stringify(item.body) === JSON.stringify(requests[0].body))).toBe(true);
+    expect(api.rows.itk.get(accounts.A.id)).toMatchObject({ revision: 1, operation_id: requests[0].body.p_operation_id });
+  } finally { await second.close(); }
 });
 
 test('comptes : réponse ITK tardive de A ignorée sous B et caches récupérés au retour A', async ({ page }) => {

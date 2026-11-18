@@ -1,0 +1,331 @@
+{
+  "reference": "d361184391ee4b70554a7eddaa620a1919893dae",
+  "results": {
+    "marmande": {
+      "culture": "Tomate · Marmande",
+      "conditions": [
+        "Sous abri",
+        "100 m²",
+        "mai 2028"
+      ],
+      "metrics": [
+        "2,3",
+        "230",
+        "7"
+      ],
+      "warnings": [
+        "Marmande : confirmer le port, la précocité et les besoins de tuteurage à partir de la fiche semencier.",
+        "Le groupe variétal (précoce/tardif, déterminé/indéterminé) change fortement le palissage et la durée du cycle.",
+        "Vérifier analyses de sol, fertilisation, disponibilité en eau, pression sanitaire et références techniques locales avant application."
+      ],
+      "timeline": [
+        {
+          "period": "mars 2028",
+          "offset": "S -7",
+          "operation": "Semis de plants",
+          "description": "Préparer les plants en pépinière protégée ; vérifier la température de germination."
+        },
+        {
+          "period": "mai 2028",
+          "offset": "S -2",
+          "operation": "Préparation du sol",
+          "description": "Vérifier structure, amendements et disponibilité en eau ; éviter le travail en sol trop humide."
+        },
+        {
+          "period": "mai 2028",
+          "offset": "Départ",
+          "operation": "Plantation",
+          "description": "Mettre en place seulement si le risque de froid est maîtrisé. Arroser à la plantation."
+        },
+        {
+          "period": "mai 2028",
+          "offset": "S +2",
+          "operation": "Palissage et surveillance",
+          "description": "Installer ou ajuster le tuteurage et suivre l’état sanitaire."
+        },
+        {
+          "period": "juin 2028",
+          "offset": "S +5",
+          "operation": "Suivi nutrition et irrigation",
+          "description": "Observer la croissance ; ajuster les apports aux observations et analyses."
+        },
+        {
+          "period": "juillet 2028",
+          "offset": "S +9",
+          "operation": "Début de récolte indicatif",
+          "description": "Observer la maturité, commencer les passages de récolte."
+        },
+        {
+          "period": "août 2028",
+          "offset": "S +15",
+          "operation": "Récoltes successives",
+          "description": "Poursuivre récoltes et tri ; date de fin variable selon climat et conduite."
+        }
+      ],
+      "reference": "Plage de référence : 2 à 3 plants/m² sous abri ; à adapter au système. La surface saisie correspond à une surface réellement cultivée, hors allées et espaces techniques.",
+      "notice": "Données synthétiques construites pour une démonstration du logiciel. Aucune prescription agronomique individualisée. Les échéances sont arrondies au mois, non au jour.",
+      "csv": {
+        "name": "itk-tomate.csv",
+        "sha256": "5a7604bb1ab0c73168880f0d454fcb4ffd11cdd489d900e764722083d7997c48"
+      }
+    },
+    "tomate-plein-champ": {
+      "culture": "Tomate · Cœur de bœuf",
+      "conditions": [
+        "Plein champ",
+        "1 m²",
+        "mai 2026"
+      ],
+      "metrics": [
+        "2",
+        "2",
+        "7"
+      ],
+      "warnings": [
+        "Cœur de bœuf : anticiper le poids des fruits dans le choix du tuteurage et vérifier la précocité du cultivar.",
+        "Le groupe variétal (précoce/tardif, déterminé/indéterminé) change fortement le palissage et la durée du cycle.",
+        "Vérifier analyses de sol, fertilisation, disponibilité en eau, pression sanitaire et références techniques locales avant application."
+      ],
+      "timeline": [
+        {
+          "period": "mars 2026",
+          "offset": "S -7",
+          "operation": "Semis de plants",
+          "description": "Préparer les plants en pépinière protégée ; vérifier la température de germination."
+        },
+        {
+          "period": "mai 2026",
+          "offset": "S -2",
+          "operation": "Préparation du sol",
+          "description": "Vérifier structure, amendements et disponibilité en eau ; éviter le travail en sol trop humide."
+        },
+        {
+          "period": "mai 2026",
+          "offset": "Départ",
+          "operation": "Plantation",
+          "description": "Mettre en place seulement si le risque de froid est maîtrisé. Arroser à la plantation."
+        },
+        {
+          "period": "mai 2026",
+          "offset": "S +2",
+          "operation": "Palissage et surveillance",
+          "description": "Installer ou ajuster le tuteurage et suivre l’état sanitaire."
+        },
+        {
+          "period": "juin 2026",
+          "offset": "S +5",
+          "operation": "Suivi nutrition et irrigation",
+          "description": "Observer la croissance ; ajuster les apports aux observations et analyses."
+        },
+        {
+          "period": "juillet 2026",
+          "offset": "S +9",
+          "operation": "Début de récolte indicatif",
+          "description": "Observer la maturité, commencer les passages de récolte."
+        },
+        {
+          "period": "août 2026",
+          "offset": "S +15",
+          "operation": "Récoltes successives",
+          "description": "Poursuivre récoltes et tri ; date de fin variable selon climat et conduite."
+        }
+      ],
+      "reference": "Plage de référence : 2 à 3 plants/m² sous abri ; à adapter au système. La surface saisie correspond à une surface réellement cultivée, hors allées et espaces techniques.",
+      "notice": "Données synthétiques construites pour une démonstration du logiciel. Aucune prescription agronomique individualisée. Les échéances sont arrondies au mois, non au jour.",
+      "csv": {
+        "name": "itk-tomate.csv",
+        "sha256": "98daa5d38898355bce034b2dbb03bc31b9745cc6a1be084d71bec153ddd557d5"
+      }
+    },
+    "laitue": {
+      "culture": "Laitue · Feuille de chêne",
+      "conditions": [
+        "Sous abri",
+        "100 m²",
+        "novembre 2028"
+      ],
+      "metrics": [
+        "9",
+        "900",
+        "6"
+      ],
+      "warnings": [
+        "Feuille de chêne : adapter le stade de récolte au format commercial choisi.",
+        "La sensibilité à la montaison et les résistances aux maladies dépendent de la variété et de la saison.",
+        "Vérifier analyses de sol, fertilisation, disponibilité en eau, pression sanitaire et références techniques locales avant application."
+      ],
+      "timeline": [
+        {
+          "period": "octobre 2028",
+          "offset": "S -4",
+          "operation": "Semis en mottes",
+          "description": "Planifier une pépinière courte, vérifier températures et qualité de germination."
+        },
+        {
+          "period": "novembre 2028",
+          "offset": "S -1",
+          "operation": "Préparer la planche",
+          "description": "Lit de plantation fin, sol ressuyé et irrigation prête."
+        },
+        {
+          "period": "novembre 2028",
+          "offset": "Départ",
+          "operation": "Plantation",
+          "description": "Planter sans enterrer le collet et arroser pour assurer la reprise."
+        },
+        {
+          "period": "novembre 2028",
+          "offset": "S +2",
+          "operation": "Surveillance",
+          "description": "Suivre humidité, limaces et maladies foliaires selon la météo."
+        },
+        {
+          "period": "décembre 2028",
+          "offset": "S +5",
+          "operation": "Contrôle maturité",
+          "description": "Observer volume, qualité et homogénéité avant récolte."
+        },
+        {
+          "period": "janvier 2029",
+          "offset": "S +8",
+          "operation": "Récolte indicative",
+          "description": "Récolter au stade commercial souhaité ; cycle variable selon saison."
+        }
+      ],
+      "reference": "Plage de référence : 8 à 12 plants/m² selon calibre et saison. La surface saisie correspond à une surface réellement cultivée, hors allées et espaces techniques.",
+      "notice": "Données synthétiques construites pour une démonstration du logiciel. Aucune prescription agronomique individualisée. Les échéances sont arrondies au mois, non au jour.",
+      "csv": {
+        "name": "itk-laitue.csv",
+        "sha256": "cd5f57fb197cdc4338ee806951b423fae3c6eb33069a30019afc1c7f27b07e7a"
+      }
+    },
+    "carotte": {
+      "culture": "Carotte · Carotte de conservation",
+      "conditions": [
+        "Plein champ",
+        "100000 m²",
+        "janvier 2033"
+      ],
+      "metrics": [
+        "90",
+        "9 000 000",
+        "6"
+      ],
+      "warnings": [
+        "Carotte de conservation : prévoir un contrôle de maturité et des conditions de stockage, le cycle pouvant être plus long.",
+        "Le mois de départ (janvier 2033) est hors de la fenêtre indicative retenue pour carotte en plein champ. Revoir le calendrier selon météo, variété et protection.",
+        "Accès à l’eau limité : la réussite de cette culture dépend d’une stratégie d’irrigation fiable. Ne pas considérer l’ITK comme réalisable sans vérification.",
+        "Sol lourd : attendre un ressuyage suffisant et adapter le travail du sol pour limiter tassement et battance.",
+        "Pour la carotte, la densité estimée représente des plants visés après levée, pas un nombre garanti de graines ni une quantité exacte de semences.",
+        "La catégorie précoce ou de conservation modifie la durée prévisionnelle et les choix de récolte.",
+        "Vérifier analyses de sol, fertilisation, disponibilité en eau, pression sanitaire et références techniques locales avant application."
+      ],
+      "timeline": [
+        {
+          "period": "janvier 2033",
+          "offset": "S -2",
+          "operation": "Préparation fine",
+          "description": "Éviter les mottes et les obstacles ; viser une levée homogène."
+        },
+        {
+          "period": "janvier 2033",
+          "offset": "Départ",
+          "operation": "Semis direct",
+          "description": "Semer en lignes, à profondeur adaptée au sol ; maintenir l’humidité de surface."
+        },
+        {
+          "period": "janvier 2033",
+          "offset": "S +2",
+          "operation": "Contrôle de levée",
+          "description": "Observer levée et croûte de battance ; intervenir sans dégrader les plantules."
+        },
+        {
+          "period": "février 2033",
+          "offset": "S +5",
+          "operation": "Désherbage et éclaircissage",
+          "description": "Désherber précocement et ajuster la densité si nécessaire."
+        },
+        {
+          "period": "mars 2033",
+          "offset": "S +10",
+          "operation": "Contrôle du calibre",
+          "description": "Évaluer croissance, état sanitaire et humidité du sol."
+        },
+        {
+          "period": "avril 2033",
+          "offset": "S +15",
+          "operation": "Récolte indicative",
+          "description": "Récolter selon calibre, débouché et état du sol."
+        }
+      ],
+      "reference": "Plage de référence : 70 à 120 plants/m² en ordre de grandeur, à ajuster au calibre. La surface saisie correspond à une surface réellement cultivée, hors allées et espaces techniques.",
+      "notice": "Données synthétiques construites pour une démonstration du logiciel. Aucune prescription agronomique individualisée. Les échéances sont arrondies au mois, non au jour.",
+      "csv": {
+        "name": "itk-carotte.csv",
+        "sha256": "79d14fc6697895a9ad73b9d11ea6cdd60a05bbd3e6deb21a28732ece22f877bb"
+      }
+    },
+    "courgette": {
+      "culture": "Courgette · Ronde de Nice",
+      "conditions": [
+        "Sous abri",
+        "375 m²",
+        "avril 2028"
+      ],
+      "metrics": [
+        "1",
+        "375",
+        "6"
+      ],
+      "warnings": [
+        "Ronde de Nice : définir le calibre de récolte des fruits ronds avec le débouché.",
+        "Le port de la plante et la forme du fruit conditionnent les écarts de plantation et la fréquence de récolte.",
+        "Vérifier analyses de sol, fertilisation, disponibilité en eau, pression sanitaire et références techniques locales avant application."
+      ],
+      "timeline": [
+        {
+          "period": "mars 2028",
+          "offset": "S -4",
+          "operation": "Semis de plants",
+          "description": "Démarrer en godets sans anticiper excessivement la plantation."
+        },
+        {
+          "period": "avril 2028",
+          "offset": "S -1",
+          "operation": "Préparer la planche",
+          "description": "Vérifier fertilité, accès à l’eau et espace de développement."
+        },
+        {
+          "period": "avril 2028",
+          "offset": "Départ",
+          "operation": "Plantation",
+          "description": "Planter après maîtrise du risque de gel, avec arrosage de reprise."
+        },
+        {
+          "period": "avril 2028",
+          "offset": "S +2",
+          "operation": "Observation sanitaire",
+          "description": "Surveiller ravageurs, croissance et pollinisation."
+        },
+        {
+          "period": "mai 2028",
+          "offset": "S +6",
+          "operation": "Début de récolte indicatif",
+          "description": "Passages fréquents selon calibre commercial recherché."
+        },
+        {
+          "period": "juillet 2028",
+          "offset": "S +11",
+          "operation": "Récoltes régulières",
+          "description": "Récolter régulièrement et surveiller qualité et état du feuillage."
+        }
+      ],
+      "reference": "Plage de référence : 0,8 à 1,2 plant/m² selon port et conduite. La surface saisie correspond à une surface réellement cultivée, hors allées et espaces techniques.",
+      "notice": "Données synthétiques construites pour une démonstration du logiciel. Aucune prescription agronomique individualisée. Les échéances sont arrondies au mois, non au jour.",
+      "csv": {
+        "name": "itk-courgette.csv",
+        "sha256": "22b9782b7733bee50da628802695966ff136925c2f8b85d5e139b5de39473847"
+      }
+    }
+  }
+}

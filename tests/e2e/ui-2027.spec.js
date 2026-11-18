@@ -111,7 +111,7 @@ test('navigation tactile : ouverture explicite et destination réelle sur smartp
     await disclosure(page, 'Outils').tap();
     await nav(page).getByRole('link', { name: 'Générateur ITK', exact: true }).tap();
     await expect(page).toHaveURL(/\/mon-bprea\/itk\.html$/);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique.');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique');
   } finally { await context.close(); }
 });
 

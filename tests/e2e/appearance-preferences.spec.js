@@ -47,7 +47,7 @@ test('thème mémorisé disponible avant les CSS et avant toute vérification r�
     expect(early).toEqual({ season: 'winter', theme: 'dark', source: 'device', loadedStyleSheets: 0 });
     expect(privateRequests).toEqual([]);
   } finally { releaseStyles(); }
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const configuration = await (await page.request.get('/mon-bprea/assets/auth-config.json')).json();
   expect(configuration.enabled).toBe(false);

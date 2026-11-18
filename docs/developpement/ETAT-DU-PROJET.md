@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `a17d6aa9016da3bab195b99a36bc9a9f22f8f5cd` |
-| Dernière PR fusionnée | [#70](https://github.com/Vladoche/mon-bprea/pull/70), 18/11/2026 à 15:44:18 UTC |
+| Dernier commit | `d361184391ee4b70554a7eddaa620a1919893dae` |
+| Dernière PR fusionnée | [#71](https://github.com/Vladoche/mon-bprea/pull/71), 18/11/2026 à 17:33:30 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **PR4 lot 1**. Calendrier de formation 2027. [PR #71](https://github.com/Vladoche/mon-bprea/pull/71) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
-| Prochaine action | Revoir le calendrier et sa galerie comparative. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
+| Chantier courant, non fusionné | **PR4 lot 2**. Générateur ITK 2027. [Validation](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
+| Prochaine action | Revoir le générateur ITK, la planche des boutons et la feuille imprimée. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#70. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#71. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -69,7 +69,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `a17d6aa9016da3bab195b99a36bc9a9f22f8f5cd` |
+| Dernier commit main relevé | `d361184391ee4b70554a7eddaa620a1919893dae` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -97,7 +97,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | QCM | Présentation 2027 PR3 lot 2 fusionnée #65, contrats historiques conservés | Refonte non publiée ; anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
 | Tableau de bord | Présentation 2027 fusionnée en PR3 lot 4 (#69), statistiques Drill et synthèse partagée | Les indicateurs portent sur les premières réponses validées. [Validation du lot 4](../validations/VALIDATION-UI-2027-PR3-LOT4.md) | [Dashboard](../architecture/DASHBOARD.md) |
-| Calendrier | Événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Événements](../architecture/ARCHITECTURE.md#modifier-les-événements-et-les-examens) |
+| Calendrier | Interface 2027 fusionnée dans #71, événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Validation du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
 | Générateur ITK | Génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [ITK/apparence](../architecture/ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) |
 | Ressources | Catalogue filtrable et PDF publics | Références éditoriales à entretenir | [Ressources](../architecture/RESSOURCES.md) |
 | Reconnaissance botanique | Jeu et historique personnel/visiteur | Douze espèces ; entraînement illustratif | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |

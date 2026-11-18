@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { installDrillObserver, measureDrill, writeDrillReview } from './ui-drill-lab.mjs';
 import { installDashboardObserver, measureDashboard, seedDashboard, writeDashboardReview } from './ui-dashboard-lab.mjs';
 import { installCalendarObserver, measureCalendar, seedCalendar, writeCalendarReview } from './ui-calendar-lab.mjs';
+import { installItkObserver, measureItk, seedItkLab, writeItkReview } from './ui-itk-lab.mjs';
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -16,12 +17,13 @@ const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
 const baselineRef = option('--baseline-ref', 'baseline directory supplied by caller');
 const pageFile = option('--page', 'index.html');
-const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all', 'calendrier.html?month=2027-06'];
+const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all', 'calendrier.html?month=2027-06', 'itk.html'];
 if (!allowedPages.includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
 const quizPage = pageFile.startsWith('exercices.html');
 const drillPage = pageFile.startsWith('drill.html');
 const dashboardPage = pageFile.startsWith('tableau-de-bord.html');
 const calendarPage = pageFile.startsWith('calendrier.html');
+const itkPage = pageFile === 'itk.html';
 const drillReviewDirectory = resolve(dirname(output), 'drill-review');
 const reviewDirectory = resolve(dirname(output), 'quiz-review');
 async function quizShot(page, phase, state, width) {
@@ -65,6 +67,10 @@ try {
     if (calendarPage) {
       await seedCalendar(page);
       await page.addInitScript(installCalendarObserver);
+    }
+    if (itkPage) {
+      await seedItkLab(context, `${origin}/${phase}/`, { personal: true });
+      await page.addInitScript(installItkObserver);
     }
     const client = await context.newCDPSession(page);
     await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
@@ -114,7 +120,7 @@ try {
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
-    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics, .calendar-agenda-list > li').first().waitFor();
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics, .calendar-agenda-list > li, #itk-form').first().waitFor();
     const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
@@ -125,6 +131,7 @@ try {
     });
     if (drillPage) Object.assign(metrics, await measureDrill(page, { phase, width: 1440, directory: drillReviewDirectory, screenshots: run === 0 }));
     if (dashboardPage) Object.assign(metrics, await measureDashboard(page));
+    if (itkPage) Object.assign(metrics, await measureItk(page));
     if (calendarPage) {
       Object.assign(metrics, await measureCalendar(page));
       await page.keyboard.press('Escape');
@@ -196,6 +203,15 @@ try {
     results.methodology.quiz = 'selection/correction: event to second animation frame; history: innerHTML setter duration and second-frame presentation, excluding initial empty history; correction shifts include recent-input shifts during selection and expansion of corrections, diagnostic only';
   }
   const before = results.medians.before, after = results.medians.after;
+  if (itkPage) {
+    const keys = ['parameterMs', 'generationMs', 'timelineMs', 'dialogMs', 'interactionShift'];
+    for (const phase of ['before', 'after']) for (const key of keys) {
+      results.medians[phase][key] = median(results[phase].map(run => run[key]));
+    }
+    results.methodology.baselineRef = baselineRef;
+    results.methodology.itk = 'Same synthetic personal account and HTTP fixtures. Form first displayed, crop change to second frame, submit to timeline DOM and second frame, import click to second frame after dialog opens. Interaction shifts include recent input.';
+    await writeItkReview(browser, { origin, baselineRef, directory: resolve(dirname(output), 'itk-review') });
+  }
   if (drillPage) {
     for (const phase of ['before','after']) for (const [key, source] of Object.entries({ drillSelectionMs: 'selection', drillValidationMs: 'validation', drillStatsMs: 'stats', drillHistoryMs: 'history', drillStartMs: 'start' }))
       results.medians[phase][key] = median(results[phase].flatMap(run => run.drillLab[source]));
@@ -240,6 +256,7 @@ try {
     drillPage && (after.drillSelectionMs > 200 || after.drillValidationMs > 200 || after.drillHistoryMs > 200) && 'drill laboratory interaction budget',
     dashboardPage && Object.values(after.dashboardActions).some(action => action.durationMs > 200) && 'dashboard laboratory interaction budget',
     calendarPage && (after.monthChangeMs > 200 || after.detailOpenMs > 200 || after.calendarRequests !== 1) && 'calendar laboratory interaction budget',
+    itkPage && Math.max(after.parameterMs, after.timelineMs, after.dialogMs) > 200 && 'ITK laboratory interaction budget',
     calendarPage && results.calendarContrast.some(({ season, brightness, focus, ...text }) =>
       focus < 3 || Object.values(text).some(ratio => ratio < 4.5)) && 'calendar contrast budget',
     results.after.some(run => run.errors.length || run.failedResponses.length) && 'runtime/network errors',
