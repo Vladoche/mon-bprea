@@ -35,7 +35,7 @@ pas une preuve opérationnelle.
 | Dernière PR fusionnée | [#67](https://github.com/Vladoche/mon-bprea/pull/67), 17/11/2026 à 19:54:22 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
 | Chantier courant, non fusionné | **Admin 2.1**, [PR #68](https://github.com/Vladoche/mon-bprea/pull/68). [Guide](../../tools/mon-bprea-admin/README.md), [qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md) |
-| Prochaine action | Finaliser les accès de sauvegarde dans Admin 2.1 et obtenir un point PROD restauré vérifié |
+| Prochaine action | Décider la première invitation individuelle dans Admin 2.1, après relecture de l’état du système |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -132,16 +132,16 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
   [Validation et limites](../validations/VALIDATION-ADMIN-V2.md). Les 2 524 assertions
   C#, 33 contrôles WinForms et 640 tests Node réussis (un ignoré) concernent la
   qualification locale V2 du 17 novembre.
-- **Admin 2.1**. Historique opérateur raccordé en place et relu sur le poste Windows.
-  Le garde de création exige un point restauré frais. La saisie initiale des accès
-  PROD et la qualification de la nouvelle sauvegarde restent nécessaires.
-- **Sauvegarde** : dernier point applicatif documenté **08/11/2026 à 20:48:37 UTC**,
-  restauré et vérifié en PostgreSQL isolé à 20:58 UTC. Objectif satisfait à cet
-  instant seulement. Politique : intervalle entre points valides/restaurés ≤168 h,
-  avertissement à 144 h, deux générations utiles, rétention ordinaire de 14 jours
-  selon les décisions approuvées. Le point documenté dépasse désormais 168 h.
-  La relecture du 18 novembre confirme son intégrité et l’échéance dépassée
-  le 15 novembre à 21:48 CET. [Routine et preuve](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo).
+- **Admin 2.1**. Historique opérateur raccordé en place et relu sur le poste
+  Windows. Coffre et préflight réel validés. Le garde de création exige un
+  point restauré frais. **GO technique pour la première invitation** au
+  préflight du 18 novembre. [Qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
+- **Sauvegarde**. Le point PROD applicatif du **18/11/2026 à 13:09:16 CET**
+  a été restauré et vérifié en PostgreSQL isolé à 13:09:41 CET. Échéance
+  **25 novembre à 13:09:16 CET**. Le dépassement a commencé le 15 novembre
+  à 21:48:37 CET, après le point du 8 novembre. L’alerte Admin 2.1 commence à
+  132 h et le renouvellement à 144 h. Deux générations utiles et revue de
+  rétention ordinaire à 14 jours. [Routine et preuve](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo).
 - **Reprise et clôture** : restauration applicative partielle qualifiée ; Auth,
   Storage, configuration et données non synchronisées exclus. Reprise Auth/service
   hébergé et RTO non démontrés. Circuit de clôture qualifié sur données fictives
@@ -154,8 +154,8 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Finaliser la [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md)
-   dans **Admin 2.1**, puis revoir le verdict sur la preuve réelle.
+1. Décider la première invitation individuelle dans **Admin 2.1** à la lumière
+   de sa [qualification réelle](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
    Le lot 4 tableau de bord/statistiques reste une décision distincte.
 2. Prévoir **PR4, outils spécialisés**, puis **PR5, profil et harmonisation finale**.
    Ce sont des chantiers prévus, sans fusion ni livraison anticipée.
