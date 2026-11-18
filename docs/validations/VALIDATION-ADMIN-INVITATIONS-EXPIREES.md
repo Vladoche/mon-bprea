@@ -2,6 +2,8 @@
 
 **18 novembre 2026 · GO en environnement isolé.** La finalisation PROD reste conditionnée à l’autorisation du changement Auth et à la relecture de la valeur de **86 400 secondes**. Le compte participant réel a été exclu de la recette.
 
+[PR #70](https://github.com/Vladoche/mon-bprea/pull/70) · [Vérifications de la PR](https://github.com/Vladoche/mon-bprea/pull/70/checks)
+
 ## Défaut et correctif
 
 Après expiration, Supabase garde l’utilisateur invité dans Auth. Admin 2.1 refusait une nouvelle invitation vers une adresse existante et réservait la récupération aux comptes confirmés. Le journal pouvait en outre ressortir le lien d’origine sans contrôler son état.
