@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace MonBprea.Admin.Core;
 
-public sealed class SimpleAdminSession : IDisposable
+public sealed partial class SimpleAdminSession : IDisposable
 {
     private string? secret;
     private readonly AdminTarget target;
@@ -54,7 +54,7 @@ public sealed class SimpleAdminSession : IDisposable
     public async Task<SimpleResult> CreateAsync(string address)
     {
         var email = AdminContract.NormalizeEmail(address);
-        return await Mutate(email, SimpleOperationKind.Invite, null, null, null);
+        return await IssueInvitation(email, null);
     }
 
     public Task<SimpleResult> RecoverAsync(AuthAccount selected, SimpleOperationKind kind, string? newAddress = null,
@@ -96,20 +96,8 @@ public sealed class SimpleAdminSession : IDisposable
                 var boundId = saved.AccountId ?? prior.AccountId;
                 if (boundId is null || current.Accounts.All(a => a.Id != boundId || a.Email != (next ?? email)))
                     throw new AdminException("drift");
-                if (!newLink && kind is SimpleOperationKind.Invite or SimpleOperationKind.Password)
-                    return saved with { Reused = true, Title = kind == SimpleOperationKind.Invite ? "Lien d’activation déjà créé" : "Lien de récupération déjà créé" };
-            }
-            if (kind == SimpleOperationKind.Invite)
-            {
-                if (current.Accounts.Any(a => a.Email == email)) throw new AdminException("exists");
-                if (current.Count >= AdminContract.MaximumAccounts) throw new AdminException("capacity");
-                if (current.Accounts.Any(a => a.RecoveryRestricted || !a.ConfirmedAt.HasValue && !a.InvitedAt.HasValue))
-                    throw new AdminException("lookup");
-                if (!target.IsLocal)
-                {
-                    if (invitationGuard is null) throw new AdminException("backup_evidence");
-                    await invitationGuard(current);
-                }
+                if (!newLink && kind == SimpleOperationKind.Password)
+                    return saved with { Reused = true, Title = "Lien de récupération déjà créé" };
             }
             if (next is not null && current.Accounts.Any(a => a.Email == next)) throw new AdminException("exists");
             if (store.HasLegacyTarget(email) || next is not null && store.HasLegacyTarget(next)) throw new AdminException("pending");
@@ -137,31 +125,22 @@ public sealed class SimpleAdminSession : IDisposable
                 var resultAccountId = selected?.Id;
                 if (kind != SimpleOperationKind.Email)
                 {
-                    var type = kind == SimpleOperationKind.Invite ? "invite" : "recovery";
                     var destination = next ?? email;
                     using var generated = await Send(HttpMethod.Post,
                         "/auth/v1/admin/generate_link?redirect_to=" + Uri.EscapeDataString(target.Callback),
-                        new { type, email = destination, redirectTo = target.Callback });
-                    var link = ValidateLink(generated.RootElement, destination, type, selected?.Id);
+                        new { type = "recovery", email = destination, redirectTo = target.Callback });
+                    var link = ValidateLink(generated.RootElement, destination, "recovery", selected?.Id);
                     resultAccountId = generated.RootElement.GetProperty("id").GetString();
                     links.Add(new(destination, link));
                     var check = await RefreshAsync();
-                    if (kind == SimpleOperationKind.Invite)
-                    {
-                        if (check.Count != current.Count + 1 || check.Accounts.Count(a => a.Email == email && a.Id == resultAccountId) != 1
-                            || !Witness(check, check.Accounts.Single(a => a.Email == email).Id).SequenceEqual(Witness(current, "")))
-                            throw new AdminException("uncertain");
-                    }
-                    else if (check.Count != current.Count || check.Accounts.All(a => a.Id != selected!.Id || a.Email != destination))
+                    if (check.Count != current.Count || check.Accounts.All(a => a.Id != selected!.Id || a.Email != destination))
                         throw new AdminException("uncertain");
                 }
                 var result = new SimpleResult(id, kind switch {
-                    SimpleOperationKind.Invite => "Lien d’activation créé",
                     SimpleOperationKind.Email => "Adresse modifiée",
                     SimpleOperationKind.EmailAndPassword => "Adresse modifiée · récupération disponible",
                     _ => "Lien de récupération créé" },
-                    kind == SimpleOperationKind.Invite ? "Envoie ce lien à ton camarade. Il choisira lui-même son mot de passe. Le compte attend son activation."
-                    : kind == SimpleOperationKind.Email ? "Le compte garde son identité et ses données. La nouvelle adresse a été validée administrativement après ton échange avec le titulaire."
+                    kind == SimpleOperationKind.Email ? "Le compte garde son identité et ses données. La nouvelle adresse a été validée administrativement après ton échange avec le titulaire."
                     : "Transmets ce lien au titulaire par le canal connu. Il choisira lui-même son mot de passe. Le changement du mot de passe n’est pas encore confirmé.",
                     links, now, capabilities?.OtpExpiry, resultAccountId);
                 store.Complete(result);
@@ -245,15 +224,19 @@ public sealed class SimpleAdminSession : IDisposable
             .Replace(AdminContract.Callback, target.Callback, StringComparison.Ordinal);
     }
 
-    private async Task<JsonDocument> Send(HttpMethod method, string path, object? body = null, bool inventoryResponse = false, bool capability = false)
+    private async Task<JsonDocument> Send(HttpMethod method, string path, object? body = null, bool inventoryResponse = false, bool capability = false,
+        string? authConfigToken = null)
     {
         if (secret is null) throw new AdminException("locked");
         if (!path.StartsWith('/') || path.Contains('#') || capability && !target.IsLocal) throw new AdminException("configuration");
-        var url = (capability ? "http://127.0.0.1:54329" : target.Api) + path;
+        if (authConfigToken is not null && (target.IsLocal || method != HttpMethod.Get || path != AuthConfigPath))
+            throw new AdminException("configuration");
+        var url = (authConfigToken is not null ? "https://api.supabase.com" : capability ? "http://127.0.0.1:54329" : target.Api) + path;
         try
         {
             using var request = new HttpRequestMessage(method, url);
-            if (capability) request.Headers.Add("X-Qualification-ID", target.Qualification!.Value.ToString("D"));
+            if (authConfigToken is not null) request.Headers.Authorization = new("Bearer", authConfigToken);
+            else if (capability) request.Headers.Add("X-Qualification-ID", target.Qualification!.Value.ToString("D"));
             else { request.Headers.Add("apikey", secret); request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + secret); }
             if (body is not null) request.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
@@ -283,5 +266,5 @@ public sealed class SimpleAdminSession : IDisposable
         catch (AdminException) { throw; }
         catch { throw new AdminException("transport"); }
     }
-    public void Dispose() { Interlocked.Exchange(ref secret, null); http.Dispose(); }
+    public void Dispose() { Interlocked.Exchange(ref secret, null); authConfigToken = null; http.Dispose(); }
 }

@@ -26,7 +26,7 @@ internal sealed partial class SimpleMainForm : Form
         confirm = confirmation ?? ((text, title) => ConfirmationForm.Ask(this, text, title,
             title == "Confirmer la suppression" ? "Confirmer la suppression" : "Confirmer cette action"));
         copy = clipboard ?? (text => Clipboard.SetText(text));
-        Text = "Mon BPREA Admin 2.1" + (target.IsLocal ? " — QUALIFICATION LOCALE · COMPTES FICTIFS" : "");
+        Text = "Mon BPREA Admin 2.2" + (target.IsLocal ? " — QUALIFICATION LOCALE · COMPTES FICTIFS" : "");
         Name = "MonBpreaAdminV2"; AccessibleName = Text;
         ClientSize = new Size(760, 650); MinimumSize = new Size(620, 560);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -116,17 +116,25 @@ internal sealed partial class SimpleMainForm : Form
     {
         AcceptButton = null;
         var page = Page("Créer un compte");
-        if (lastSystem?.InvitationProblem is string problem && productionBackup is not null)
-        {
-            page.Controls.Add(Label(AdminMessages.For(problem)));
-            page.Controls.Add(Button("État du système", "CheckSystem", () => _ = OpenSystem(), false));
-            AttachMessage(page);
-            return;
-        }
         page.Controls.Add(Label("Adresse e-mail du camarade"));
         var email = Input("RecipientEmail"); email.AccessibleName = "Adresse e-mail du camarade"; page.Controls.Add(email);
         var create = Button("Créer le lien d’activation", "GenerateInvite", () => _ = Run(async () => {
-            try { ShowResult(await workflow!.CreateAsync(email.Text)); }
+            try { ShowInvitationResult(await workflow!.CreateAsync(email.Text)); }
+            catch (AdminException error) when (error.Code == "invitation_existing")
+            {
+                var address = AdminContract.NormalizeEmail(email.Text);
+                var accounts = await workflow!.RefreshAsync();
+                var existing = accounts.Accounts.SingleOrDefault(a => a.Email == address) ?? throw new AdminException("invitation_changed");
+                await Recovery(existing, fromCreate: true);
+            }
+            catch (AdminException error) when (error.Code == "exists")
+            {
+                SetMessage("Ce compte existe déjà. Utilise la récupération de compte.");
+            }
+            catch (AdminException error) when (error.Code is "otp_unverified" or "otp_duration")
+            {
+                InvitationSettings(error.Message);
+            }
             catch (AdminException error) when (productionBackup is not null && error.Code.StartsWith("backup_", StringComparison.Ordinal))
             {
                 ShowSystem(lastSystem = await ReadSystem(renew: false));
@@ -152,13 +160,30 @@ internal sealed partial class SimpleMainForm : Form
                     if (confirm($"Confirmer la suppression du compte de {selected.Email} et le traitement de ses données associées ?", "Confirmer la suppression"))
                         _ = Run(async () => ShowResult(await workflow!.DeleteAsync(selected)));
                 }
-                else Recovery(selected);
+                else _ = Run(() => Recovery(selected));
             });
             page.Controls.Add(next); AttachMessage(page); AcceptButton = next; list.Select();
         });
     }
 
-    private void Recovery(AuthAccount selected)
+    private async Task Recovery(AuthAccount selected, bool fromCreate = false)
+    {
+        if (!selected.ConfirmedAt.HasValue)
+        {
+            try { ShowInvitation(await workflow!.ReviewInvitationAsync(selected), fromCreate); }
+            catch (AdminException error) when (error.Code == "invitation_activated")
+            {
+                var inventory = await workflow!.RefreshAsync();
+                var current = inventory.Accounts.Single(a => a.Id == selected.Id && a.Email == selected.Email);
+                ShowRecovery(current);
+                SetMessage(error.Message);
+            }
+            return;
+        }
+        ShowRecovery(selected);
+    }
+
+    private void ShowRecovery(AuthAccount selected)
     {
         var page = Page("Récupérer un compte");
         page.Controls.Add(Label(selected.Email, "SelectedEmail"));
@@ -172,6 +197,65 @@ internal sealed partial class SimpleMainForm : Form
         page.Controls.Add(Button("Modifier l’adresse e-mail", "ChangeEmail", () => ChangeEmail(selected, false)));
         page.Controls.Add(Button("Modifier l’adresse e-mail et le mot de passe", "ChangeBoth", () => ChangeEmail(selected, true)));
         AttachMessage(page); AcceptButton = null;
+    }
+
+    private void ShowInvitation(InvitationReview review, bool fromCreate)
+    {
+        var page = Page(fromCreate ? "Compte déjà invité" : "Récupérer un compte");
+        page.Controls.Add(Label(review.Account.Email, "SelectedEmail"));
+        if (fromCreate) page.Controls.Add(Label("Ce camarade possède déjà une invitation en attente."));
+        page.Controls.Add(Label(review.State == InvitationState.Expired ? "Invitation expirée" : "Invitation en attente d’activation", "InvitationState"));
+        if (review.State == InvitationState.DurationUnknown) page.Controls.Add(Label("Durée du lien non vérifiée"));
+        if (review.State == InvitationState.Expired)
+            page.Controls.Add(Label("Le lien précédent a expiré. Tu peux en créer un nouveau sans supprimer le compte."));
+        if (review.State == InvitationState.Pending)
+            AddInvitationCopy(page, review.Account, review.LatestOperation);
+        var renew = Button("Créer un nouveau lien d’activation", "RenewInvitation", () => {
+            if (!confirm($"Créer un nouveau lien pour {review.Account.Email} ? Le lien précédent sera remplacé. Le compte et ses données sont conservés.",
+                "Confirmer le renouvellement")) return;
+            _ = Run(async () => {
+                try { ShowInvitationResult(await workflow!.RenewInvitationAsync(review)); }
+                catch (AdminException error) when (error.Code is "otp_unverified" or "otp_duration") { InvitationSettings(error.Message); }
+                catch (AdminException error) when (error.Code == "invitation_activated") { await Recovery(review.Account); }
+                catch (AdminException error) when (productionBackup is not null && error.Code.StartsWith("backup_", StringComparison.Ordinal))
+                { ShowSystem(lastSystem = await ReadSystem(renew: false)); }
+            });
+        });
+        page.Controls.Add(renew);
+        AttachMessage(page); AcceptButton = null;
+        renew.Select();
+    }
+
+    private void ShowInvitationResult(SimpleResult result)
+    {
+        var page = Page(result.Title);
+        var link = result.Links.Single();
+        var account = new AuthAccount(result.AccountId!, link.Address, null, null, null);
+        page.Controls.Add(Label(result.Detail, "ResultDetail"));
+        page.Controls.Add(Label(link.Address, "LinkRecipient"));
+        page.Controls.Add(Label(result.ExpirySeconds switch {
+            AdminContract.InvitationExpirySeconds => "Lien d’activation valable 24 heures",
+            int seconds => $"Lien d’activation valable {seconds} secondes",
+            _ => "Durée du lien non vérifiée"
+        }, "LinkExpiry"));
+        if (result.ExpirySeconds is not null) AddInvitationCopy(page, account, result.Operation);
+        page.Controls.Add(Button("Terminer", "Done", Home, false)); AttachMessage(page); AcceptButton = null;
+    }
+
+    private void AddInvitationCopy(Control page, AuthAccount account, Guid operation)
+    {
+        page.Controls.Add(Button("Copier le lien", "CopyLink", () => _ = Run(async () => {
+            PersonalLink link;
+            try { link = await workflow!.ReadInvitationLinkAsync(account, operation); }
+            catch (AdminException error) when (error.Code is "invitation_unusable" or "invitation_changed" or "invitation_activated")
+            {
+                await Recovery(account);
+                SetMessage(error.Message);
+                return;
+            }
+            try { copy(link.Value); SetMessage("Lien copié. Transmets-le uniquement à ton camarade."); }
+            catch { SetMessage("La copie a échoué. Réessaie avec le bouton Copier le lien."); }
+        }), false));
     }
 
     private void ChangeEmail(AuthAccount selected, bool password)
@@ -240,7 +324,36 @@ internal sealed partial class SimpleMainForm : Form
                 : "Cible : Mon BPREA, projet fixe. Aucune cible alternative. La suppression du service réel reste bloquée tant que les contrôles de données et sauvegardes ne sont pas qualifiés."));
             diagnostic.Controls.Add(Label("Le stockage utilise les protections Windows du compte courant. Les opérations sans résultat certain restent conservées et bloquent les nouveaux essais. Aucun secret n’est inclus dans ce diagnostic."));
         }, false));
+        if (!target.IsLocal && workflow is not null)
+            page.Controls.Add(Button("Durée des liens d’activation", "InvitationSettings", () => InvitationSettings(), false));
+        if (workflow is not null)
+            page.Controls.Add(Button("Vérifier un renouvellement interrompu", "ReconcileInvitation", () => _ = Run(async () => {
+                await workflow.ReconcileInvitationAsync();
+                SetMessage("Le résultat enregistré correspond à l’invitation du compte. Tu peux retourner dans Récupérer un compte.");
+            }), false));
         AttachMessage(page); AcceptButton = null;
+    }
+
+    private void InvitationSettings(string? status = null)
+    {
+        var page = Page("Durée des liens d’activation");
+        page.Controls.Add(Label("Durée requise : 86 400 secondes (24 heures). Ce réglage affecte aussi les confirmations, récupérations, changements d’adresse et connexions par e-mail."));
+        page.Controls.Add(Button("Ouvrir les réglages Auth de Mon BPREA", "OpenAuthSettings", () => {
+            try { Process.Start(new ProcessStartInfo(AdminContract.AuthSettingsDashboard) { UseShellExecute = true }); }
+            catch { SetMessage("L’ouverture du tableau de bord Supabase a échoué."); }
+        }, false));
+        page.Controls.Add(Label("Après autorisation, ouvre le fournisseur Email, règle Email OTP Expiration à 86400 et enregistre. Pour vérifier le réglage, utilise un jeton de gestion limité à la lecture de la configuration Auth. Il reste en mémoire jusqu’à la fermeture."));
+        var token = Input("AuthConfigToken"); token.UseSystemPasswordChar = true; token.AccessibleName = "Jeton de lecture de la configuration Auth";
+        page.Controls.Add(token);
+        var verify = Button("Vérifier la durée", "VerifyOtpDuration", () => _ = Run(async () => {
+            var value = token.Text.Trim(); token.Clear();
+            var seconds = await workflow!.CheckInvitationDurationAsync(value);
+            SetMessage(seconds == AdminContract.InvitationExpirySeconds
+                ? "Durée vérifiée sur Supabase : 24 heures. Tu peux reprendre ton opération."
+                : $"Durée lue sur Supabase : {seconds} secondes. Règle-la à 86 400 secondes avant de reprendre.");
+        }), false);
+        page.Controls.Add(verify); AttachMessage(page); AcceptButton = verify; token.Select();
+        if (status is not null) SetMessage(status);
     }
 
     private void Help()

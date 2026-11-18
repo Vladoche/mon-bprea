@@ -74,7 +74,7 @@ public sealed partial class AutomaticPrivateStore : ISimplePrivateStore
         }
         VerifySelectedDirectory();
         using var inspection = bindProductionHistory ? AcquireInspection() : null;
-        if (bindProductionHistory && HasUncertainOperation()) throw new AdminException("pending");
+        if (bindProductionHistory && HasUncertainOperation() && PendingInvitationRenewal() is null) throw new AdminException("pending");
         var history = bindProductionHistory ? ReadHistory() : null;
         Validate();
         var probe = Path.Combine(directory, $"dpapi-probe-{Guid.NewGuid():D}.bin");
@@ -167,14 +167,31 @@ public sealed partial class AutomaticPrivateStore : ISimplePrivateStore
     public SimpleReservation? Latest(string email, SimpleOperationKind kind) => ReadReservations()
         .Where(r => r.TargetHash == ClosureContract.TargetHash(email) && r.Kind == kind).OrderByDescending(r => r.CreatedAt).FirstOrDefault();
 
-    public Guid Reserve(string email, SimpleOperationKind kind, string? accountId, string? newEmail, DateTimeOffset now, string? backupReference = null)
+    public IReadOnlyList<SimpleReservation> InvitationHistory(string email) => ReadReservations()
+        .Where(r => r.TargetHash == ClosureContract.TargetHash(email) && r.Kind is SimpleOperationKind.Invite or SimpleOperationKind.RenewInvitation)
+        .OrderBy(r => r.CreatedAt).ToArray();
+
+    public LegacyInvitation? FindLegacyInvitation(string email) => target.IsLocal ? null
+        : new WindowsPrivateStore(directory, "").FindLegacyInvitation(email);
+
+    public SimpleReservation? PendingInvitationRenewal()
+    {
+        if (WindowsPrivateStore.LegacyUncertaintyV2(directory) || AdditionalClosureLedgerBlocks(directory)) return null;
+        var unfinished = ReadReservations().Where(r => r.Kind == SimpleOperationKind.Delete || r.Status != "complete").ToArray();
+        return unfinished.Length == 1 && unfinished[0].Kind == SimpleOperationKind.RenewInvitation ? unfinished[0] : null;
+    }
+
+    public Guid Reserve(string email, SimpleOperationKind kind, string? accountId, string? newEmail, DateTimeOffset now,
+        string? backupReference = null, Guid? initialInvitation = null)
     {
         RequireLock(); Validate();
         if (kind == SimpleOperationKind.Delete && (backupReference is null || !Hash(backupReference) || accountId is null)) throw new AdminException("closure_backup");
+        if (kind == SimpleOperationKind.RenewInvitation && (initialInvitation is null || initialInvitation == Guid.Empty
+            || accountId is null || !ClosureContract.Uuid(accountId) || newEmail is not null)) throw new AdminException("private");
         if (AdditionalClosureLedgerBlocks(directory) || ReadReservations().Any(r => r.Status != "complete")) throw new AdminException("pending");
         var id = Guid.NewGuid();
         var record = new SimpleReservation(id, kind, ClosureContract.TargetHash(email), accountId, now, "reserved",
-            newEmail is null ? null : ClosureContract.TargetHash(newEmail));
+            newEmail is null ? null : ClosureContract.TargetHash(newEmail), initialInvitation);
         Write(RecordPath(id, "reserved.json"), Envelope(record));
         if (kind == SimpleOperationKind.Delete)
         {
@@ -205,17 +222,28 @@ public sealed partial class AutomaticPrivateStore : ISimplePrivateStore
     public void Complete(SimpleResult result)
     {
         RequireLock();
-        var reserved = ReadReservations().Single(r => r.Id == result.Operation);
+        if (ReadReservations().Single(r => r.Id == result.Operation).Status != "reserved") throw new AdminException("private");
         var plain = JsonSerializer.SerializeToUtf8Bytes(result, Json);
         try { Write(RecordPath(result.Operation, "payload.bin"), Protect(plain, decrypt: false)); }
         finally { CryptographicOperations.ZeroMemory(plain); }
         // The encrypted payload is reread and authenticated before completion.
-        var saved = ReadResult(result.Operation);
-        if (saved.Operation != result.Operation) throw new AdminException("private");
-        Write(RecordPath(result.Operation, "complete.json"), Envelope(new {
-            Id = result.Operation, Status = "complete", RecordedAt = DateTimeOffset.UtcNow,
-            PayloadHash = Convert.ToHexStringLower(SHA256.HashData(Read(RecordPath(result.Operation, "payload.bin"), 65536))) }));
+        _ = ReadResult(result.Operation);
+        WriteCompletion(result.Operation);
     }
+
+    public void ReconcileInvitation(SimpleResult verified)
+    {
+        RequireLock();
+        if (PendingInvitationRenewal()?.Id != verified.Operation) throw new AdminException("pending");
+        var saved = ReadResult(verified.Operation);
+        if (saved.AccountId != verified.AccountId || saved.InvitationGeneratedAt != verified.InvitationGeneratedAt
+            || !saved.Links.SequenceEqual(verified.Links)) throw new AdminException("pending");
+        WriteCompletion(verified.Operation);
+    }
+
+    private void WriteCompletion(Guid id) => Write(RecordPath(id, "complete.json"), Envelope(new {
+        Id = id, Status = "complete", RecordedAt = DateTimeOffset.UtcNow,
+        PayloadHash = Convert.ToHexStringLower(SHA256.HashData(Read(RecordPath(id, "payload.bin"), 65536))) }));
 
     public SimpleResult ReadResult(Guid id)
     {
@@ -247,6 +275,9 @@ public sealed partial class AutomaticPrivateStore : ISimplePrivateStore
             var r = item.Deserialize<SimpleReservation>() ?? throw new AdminException("private");
             if (r.Id == Guid.Empty || !Enum.IsDefined(r.Kind) || r.Status != "reserved" || !Hash(r.TargetHash)
                 || r.NextHash is not null && !Hash(r.NextHash) || r.AccountId is not null && !ClosureContract.Uuid(r.AccountId)
+                || (r.Kind == SimpleOperationKind.RenewInvitation
+                    ? r.InitialInvitation is null || r.InitialInvitation == Guid.Empty || r.InitialInvitation == r.Id || r.AccountId is null || r.NextHash is not null
+                    : r.InitialInvitation is not null)
                 || path != RecordPath(r.Id, "reserved.json") || results.Any(x => x.Id == r.Id)) throw new AdminException("private");
             var complete = RecordPath(r.Id, "complete.json");
             if (File.Exists(complete))

@@ -12,6 +12,8 @@ public static partial class AdminContract
     public const string Site = "https://vladoche.github.io/mon-bprea/";
     public const string Callback = Site + "authentification.html";
     public const int MaximumAccounts = 7;
+    public const int InvitationExpirySeconds = 86400;
+    public const string AuthSettingsDashboard = "https://supabase.com/dashboard/project/" + Project + "/auth/providers";
     public static readonly TimeSpan MaximumInventoryAge = TimeSpan.FromMinutes(5);
 
     [GeneratedRegex("^[a-z0-9!#$%&'*+/=?^_`{|}~.-]+@[a-z0-9.-]+\\z", RegexOptions.CultureInvariant)]
@@ -100,7 +102,15 @@ public static partial class AdminContract
                 if (!user.TryGetProperty("app_metadata", out var metadata) || metadata.ValueKind != JsonValueKind.Object)
                     closureRestricted = true;
                 else closureRestricted |= metadata.EnumerateObject().Any(p => p.Name is not ("provider" or "providers"));
-                accounts.Add(new(id, email, OptionalDate(user, "created_at"), confirmed, invited, restricted, closureRestricted));
+                accounts.Add(new(id, email, OptionalDate(user, "created_at"), confirmed, invited, restricted, closureRestricted)
+                {
+                    ConfirmationSentAt = OptionalDate(user, "confirmation_sent_at"),
+                    InvitationRestricted = OptionalDate(user, "last_sign_in_at").HasValue
+                        || OptionalDate(user, "phone_confirmed_at").HasValue
+                        || OptionalDate(user, "recovery_sent_at").HasValue
+                        || !string.IsNullOrEmpty(user.TryGetProperty("new_email", out var newEmail) ? newEmail.GetString() : null)
+                        || !string.IsNullOrEmpty(user.TryGetProperty("new_phone", out var newPhone) ? newPhone.GetString() : null)
+                });
                 snapshotRows.Add((id, email, confirmed.HasValue ? RequiredString(user, "email_confirmed_at") : null));
             }
             // Same [id,email,email_confirmed_at|null] projection as the Node executor.

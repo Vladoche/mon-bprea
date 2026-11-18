@@ -89,6 +89,7 @@ internal sealed partial class SimpleMainForm
                             if (productionHistory!().HasUncertainOperation()) throw new AdminException("pending");
                             await maintenance.RequireReadyAsync(inventory);
                         });
+                        await workflow.RequireProductionInvitationDurationAsync();
                     }
                     catch (AdminException error) { invitationProblem = error.Code; }
                 }
@@ -128,6 +129,8 @@ internal sealed partial class SimpleMainForm
             page.Controls.Add(Button("Finaliser la configuration", "FinalizeAuth", () => Setup(workflow is not null), false));
         else if (state.BackupFailure == "backup_access" || state.InvitationProblem == "backup_access")
             page.Controls.Add(Button("Finaliser la configuration", "FinalizeBackup", PostgresAccess, false));
+        else if (state.InvitationProblem is "otp_unverified" or "otp_duration")
+            page.Controls.Add(Button("Vérifier la durée des liens", "CheckInvitationDuration", () => InvitationSettings(), false));
         else if (explanation is "backup_storage" or "backup_ledger")
         {
             page.Controls.Add(Label("Reconnecte le support de sauvegarde s’il est débranché. Si la vérification échoue à nouveau, transmets le diagnostic pour retrouver le dossier protégé."));

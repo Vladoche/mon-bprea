@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `fc5fcadfd9103f81fabdffee3025b3282fbb113c` |
-| Dernière PR fusionnée | [#68](https://github.com/Vladoche/mon-bprea/pull/68), 18/11/2026 à 12:27:27 UTC |
+| Dernier commit | `b81a71a5c477d74bbb12919ecb4a5f9b7a72dc63` |
+| Dernière PR fusionnée | [#69](https://github.com/Vladoche/mon-bprea/pull/69), 18/11/2026 à 14:09:45 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **Tableau de bord 2027, PR3 lot 4**, [PR #69](https://github.com/Vladoche/mon-bprea/pull/69). [Validation](../validations/VALIDATION-UI-2027-PR3-LOT4.md) |
-| Prochaine action | Décider la première invitation individuelle dans Admin 2.1, après relecture de l’état du système |
+| Chantier courant, non fusionné | **Admin 2.2**. Renouvellement des invitations expirées. [Validation](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md) |
+| Prochaine action | Relire la PR Admin 2.2, puis décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de

@@ -9,6 +9,7 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Mon BPREA Admin 2.2 — invitations expirées**. Renouvellement depuis **Récupérer un compte** sur le même UUID Auth. La copie vérifie l’invitation en cours, le journal garde les générations protégées et le réglage de 24 heures est relu auprès de Supabase. [Validation](docs/validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
 - **Tableau de bord 2027, clôture de PR3 (lot 4)**. Synthèse responsive,
   graphiques hebdomadaires consultables au clavier et au toucher, comparaison
   des UC et repères de révision par notion. Les mêmes données et calculs

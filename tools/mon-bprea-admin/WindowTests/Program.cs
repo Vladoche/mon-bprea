@@ -72,7 +72,7 @@ internal static class Program
         Click(form, "GenerateInvite"); Click(form, "GenerateInvite"); form.Close();
         Check(form.Visible && fake.Invites == 1, "double click and close blocked");
         fake.Hold.SetResult(); await Pump(); Check(copied == "", "no automatic clipboard copy");
-        Check(Find<TextBox>(form, "PersonalLink").ReadOnly, "personal link shown read only");
+        Check(FindAll<TextBox>(form).Count == 0 && Find<Button>(form, "CopyLink").Visible, "invitation available only by deliberate checked copy");
         Click(form, "CopyLink"); Check(copied == "synthetic-personal-link", "voluntary copy");
         Click(form, "Done"); Click(form, "RecoverAccount"); await Pump();
         Check(Find<ListBox>(form, "Accounts").SelectedIndex == -1, "explicit account selection");
@@ -90,6 +90,13 @@ internal static class Program
         Click(form, "Done"); Click(form, "DeleteAccount"); await Pump();
         Find<ListBox>(form, "Accounts").SelectedIndex = 1; Click(form, "SelectAccount"); await Pump();
         Check(fake.Deletes == 1 && FindAll<CheckBox>(form).Count == 0, "one deletion confirmation, no attestations");
+        Click(form, "Done"); Click(form, "RecoverAccount"); await Pump();
+        Find<ListBox>(form, "Accounts").SelectedIndex = 2; Click(form, "SelectAccount"); await Pump();
+        Check(Find<Label>(form, "InvitationState").Text == "Invitation expirée", "expired invitation has explicit state");
+        Check(FindAll<Button>(form).All(b => b.Name != "CopyLink" && b.Name != "ResetPassword"), "expired invitation cannot be copied or recovered as password");
+        Check(Find<Button>(form, "RenewInvitation").TabStop, "renewal is focusable by keyboard");
+        Click(form, "RenewInvitation"); await Pump();
+        Check(fake.Renewals == 1 && Find<Label>(form, "LinkExpiry").Text == "Lien d’activation valable 24 heures", "renewal duration is shown exactly");
         Click(form, "Done"); Click(form, "Settings"); Click(form, "CheckConnection"); await Pump();
         Check(Find<Label>(form, "Status").Text.Contains("fonctionne"), "plain connection message"); Click(form, "Home");
         foreach (var button in FindAll<Button>(form)) Check(!string.IsNullOrWhiteSpace(button.AccessibleName) && button.TabStop, "keyboard named action");
@@ -107,13 +114,21 @@ internal static class Program
     }
     private sealed class FakeWorkflow : ISimpleWorkflow
     {
-        public int Invites, Recoveries, EmailChanges, Combinations, Deletes;
+        public int Invites, Recoveries, EmailChanges, Combinations, Deletes, Renewals;
         public KnownChannelDecision? Decision; public TaskCompletionSource? Hold;
         private readonly AuthAccount[] accounts = [new("11111111-1111-4111-8111-111111111111", "operator@example.test", null, DateTimeOffset.UtcNow, null),
-            new("22222222-2222-4222-8222-222222222222", "participant@example.test", null, DateTimeOffset.UtcNow, null)];
+            new("22222222-2222-4222-8222-222222222222", "participant@example.test", null, DateTimeOffset.UtcNow, null),
+            new("33333333-3333-4333-8333-333333333333", "invited@example.test", null, null, DateTimeOffset.UtcNow.AddDays(-2))];
         public Task<AccountInventory> RefreshAsync() => Task.FromResult(new AccountInventory(accounts, DateTimeOffset.UtcNow, "synthetic", true));
         private static SimpleResult Result() => new(Guid.NewGuid(), "Lien créé", "Compte fictif", [new("participant@example.test", "synthetic-personal-link")], DateTimeOffset.UtcNow, 60);
         public async Task<SimpleResult> CreateAsync(string email) { Invites++; if (Hold is not null) { await Hold.Task; Hold = null; } return Result(); }
+        public Task<InvitationReview> ReviewInvitationAsync(AuthAccount selected) => Task.FromResult(new InvitationReview(selected, Guid.NewGuid(), Guid.NewGuid(), InvitationState.Expired));
+        public Task<SimpleResult> RenewInvitationAsync(InvitationReview selected)
+        { Renewals++; return Task.FromResult(Result() with { ExpirySeconds = 86400 }); }
+        public Task<PersonalLink> ReadInvitationLinkAsync(AuthAccount selected, Guid operation) => Task.FromResult(Result().Links[0]);
+        public Task<int> CheckInvitationDurationAsync(string token) => Task.FromResult(86400);
+        public Task RequireProductionInvitationDurationAsync() => Task.CompletedTask;
+        public Task ReconcileInvitationAsync() => Task.CompletedTask;
         public Task<SimpleResult> RecoverAsync(AuthAccount selected, SimpleOperationKind kind, string? next, KnownChannelDecision? decision, bool newLink = false)
         { if (kind == SimpleOperationKind.Password) Recoveries++; else if (kind == SimpleOperationKind.Email) EmailChanges++; else Combinations++; Decision = decision; return Task.FromResult(Result()); }
         public Task<SimpleResult> DeleteAsync(AuthAccount selected) { Deletes++; return Task.FromResult(Result()); }

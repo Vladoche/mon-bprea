@@ -43,6 +43,8 @@ public sealed record WorkstationAttestations(bool PrivateOperatorWorkstation, bo
 public sealed record AuthAccount(string Id, string Email, DateTimeOffset? CreatedAt,
     DateTimeOffset? ConfirmedAt, DateTimeOffset? InvitedAt, bool RecoveryRestricted = false, bool ClosureRestricted = false)
 {
+    public DateTimeOffset? ConfirmationSentAt { get; init; }
+    public bool InvitationRestricted { get; init; }
     public string State => RecoveryRestricted ? "État Auth à diagnostiquer" : ConfirmedAt.HasValue ? "Adresse confirmée" : InvitedAt.HasValue ? "Invitation en attente" : "Indéterminé";
 }
 
@@ -134,6 +136,15 @@ public static class AdminMessages
         "configuration" => "Réglages Auth absents ou divergents : inscriptions fermées, anonymat désactivé et e-mail avec confirmation requis.",
         "capacity" => "Capacité administrative de sept comptes atteinte ou dépassée, invitations en attente comprises.",
         "exists" => "Ce compte existe déjà, même si son invitation est en attente. Invitation refusée.",
+        "invitation_existing" => "Ce camarade possède déjà une invitation en attente.",
+        "invitation_history" => "L’historique ne permet pas de relier l’invitation à ce compte. Aucune nouvelle invitation ne peut être créée.",
+        "invitation_restricted" => "Ce compte est protégé ou soumis à une restriction. Le renouvellement est bloqué.",
+        "invitation_changed" => "Le compte ou l’invitation a changé. Rouvre Récupérer un compte pour vérifier son état.",
+        "invitation_activated" => "Le compte a été activé. Tu peux maintenant utiliser la récupération de compte.",
+        "invitation_unusable" => "Le lien ne peut plus être copié. Vérifie l’état de l’invitation avant de générer un nouveau lien.",
+        "invitation_no_receipt" => "Le résultat du renouvellement ne peut pas être prouvé. La réservation reste bloquée pour vérification.",
+        "otp_duration" => "Supabase indique une durée différente de 24 heures. Vérifie le réglage avant de créer un lien.",
+        "otp_unverified" => "Durée du lien non vérifiée. Vérifie la configuration Auth avant de créer un lien.",
         "pending" => "Une opération précédente reste réservée, incertaine ou non remise. Aucune nouvelle génération ; diagnostic en lecture seule requis. Les réservations sont conservées.",
         "confirmation" => "Confirmation exacte absente ou annulée. Aucun lien généré.",
         "attestations" => "Confirmez tous les prérequis individuels, du poste et du préflight. Les attestations ne vérifient pas automatiquement l’identité.",

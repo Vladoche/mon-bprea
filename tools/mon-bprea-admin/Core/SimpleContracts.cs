@@ -16,18 +16,23 @@ public sealed record AdminTarget
     public string Project => IsLocal ? "mon-bprea-admin-v2-local" : AdminContract.Project;
 }
 
-public enum SimpleOperationKind { Invite, Password, Email, EmailAndPassword, Delete }
+public enum SimpleOperationKind { Invite, Password, Email, EmailAndPassword, Delete, RenewInvitation }
 public sealed record PersonalLink(string Address, string Value)
 {
     public override string ToString() => "[lien personnel masqué]";
 }
 public sealed record SimpleResult(Guid Operation, string Title, string Detail, IReadOnlyList<PersonalLink> Links,
-    DateTimeOffset CreatedAt, int? ExpirySeconds = null, string? AccountId = null, bool Reused = false)
+    DateTimeOffset CreatedAt, int? ExpirySeconds = null, string? AccountId = null, bool Reused = false,
+    DateTimeOffset? InvitationGeneratedAt = null)
 {
     public override string ToString() => $"{Operation:D}: {Title}";
 }
 public sealed record SimpleReservation(Guid Id, SimpleOperationKind Kind, string TargetHash, string? AccountId,
-    DateTimeOffset CreatedAt, string Status, string? NextHash = null);
+    DateTimeOffset CreatedAt, string Status, string? NextHash = null, Guid? InitialInvitation = null);
+
+public sealed record LegacyInvitation(Guid Id, DateTimeOffset ReservedAt, DateTimeOffset DeliveredAt);
+public enum InvitationState { Pending, Expired, DurationUnknown }
+public sealed record InvitationReview(AuthAccount Account, Guid InitialOperation, Guid LatestOperation, InvitationState State);
 
 // This is an actual, short-lived operator decision, not proof of legal consent
 // or an automatically fabricated identity attestation.
@@ -41,9 +46,14 @@ public interface ISimplePrivateStore
     bool HasUncertainOperation();
     bool HasLegacyTarget(string email);
     SimpleReservation? Latest(string email, SimpleOperationKind kind);
-    Guid Reserve(string email, SimpleOperationKind kind, string? accountId, string? newEmail, DateTimeOffset now, string? backupReference = null);
+    IReadOnlyList<SimpleReservation> InvitationHistory(string email);
+    LegacyInvitation? FindLegacyInvitation(string email);
+    SimpleReservation? PendingInvitationRenewal();
+    Guid Reserve(string email, SimpleOperationKind kind, string? accountId, string? newEmail, DateTimeOffset now,
+        string? backupReference = null, Guid? initialInvitation = null);
     void RecordStep(Guid id, string step);
     void Complete(SimpleResult result);
+    void ReconcileInvitation(SimpleResult verified);
     SimpleResult ReadResult(Guid id);
     string DeletionLedgerHash();
 }
