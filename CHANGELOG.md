@@ -12,7 +12,8 @@ La version de l’application Windows reste propre à cet outil.
 - **Mon BPREA Admin 2.1**. Raccordement de l’historique protégé sur Windows,
   configuration et maintenance des sauvegardes depuis l’application. La création
   PROD dépend d’une archive récente restaurée et vérifiée, du journal et de
-  l’inventaire courant. [Qualification de la première invitation](docs/validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
+  l’inventaire courant. [PR #68](https://github.com/Vladoche/mon-bprea/pull/68)
+  et [qualification de la première invitation](docs/validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
 - **Mon BPREA Admin V2 — administration simplifiée** : trois actions principales,
   configuration Windows intégrée et mémorisation automatique chiffrée de la clé,
   liens protégés par DPAPI, récupération du mot de passe, de l’adresse ou des deux

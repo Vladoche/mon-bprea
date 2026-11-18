@@ -11,6 +11,7 @@ l’assistant et à une nouvelle archive PROD restaurée sur ce poste.
 | Élément | Résultat |
 | --- | --- |
 | Base du chantier | `e5607415b6cc8409d7b7cd1c2957338a4fcacf7e`, fusion [#67](https://github.com/Vladoche/mon-bprea/pull/67) |
+| Revue du changement | [PR #68](https://github.com/Vladoche/mon-bprea/pull/68), ouverte en brouillon |
 | Sources du binaire testé | `35b7375b87369c6ede90ca4362367bf95d4d92b5` |
 | Distribution | Mon BPREA Admin **2.1.0.0**, Windows x64 autonome, SDK .NET 10.0.404, exécutable de 116 576 602 octets, signature Authenticode absente |
 | SHA-256 exécutable | `c1dcd0d8d95b88e41da90a93ccca1aae27c13f9d52029c6037779ec53edf9c48` |
@@ -79,6 +80,10 @@ contrôle Windows ouvert. Le binaire corrigé sépare ce flux. La recette Postgr
 a ensuite réussi, y compris la lecture des empreintes et le refus des tentatives
 invalides. Les captures d’application concernent le binaire référencé ci-dessus.
 La stack fictive a été arrêtée après la recette, ses deux volumes sont conservés.
+Le contrôle de fin de livraison `npm run delivery:complete` a réussi après
+arrêt des tests. Il a libéré **0 Mo** et conservé **7 573,70 Mo** sous `.tmp`.
+Le plafond de 500 Mo reste dépassé. La liste blanche ne comportait aucun
+candidat.
 
 - [Première ouverture en qualification](illustrations/premiere-invitation-prod/01-premiere-ouverture.png)
 - [Trois actions après réouverture](illustrations/premiere-invitation-prod/03-reouverture-sombre.png)

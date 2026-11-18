@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `e5607415b6cc8409d7b7cd1c2957338a4fcacf7e` |
 | Dernière PR fusionnée | [#67](https://github.com/Vladoche/mon-bprea/pull/67), 17/11/2026 à 19:54:22 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **Admin 2.1**, `codex/premiere-invitation-prod`. [Guide](../../tools/mon-bprea-admin/README.md), [qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md) |
+| Chantier courant, non fusionné | **Admin 2.1**, [PR #68](https://github.com/Vladoche/mon-bprea/pull/68). [Guide](../../tools/mon-bprea-admin/README.md), [qualification](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md) |
 | Prochaine action | Finaliser les accès de sauvegarde dans Admin 2.1 et obtenir un point PROD restauré vérifié |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
