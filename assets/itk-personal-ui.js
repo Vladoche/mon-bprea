@@ -33,21 +33,45 @@ export function describeItk(value) {
 
 /** Keep the form and calculated output independent from background reconciliation. */
 export function bindItkPersonal(form, root, { servicePromise = getSettingsService(), applyValues, clearResult } = {}) {
-  root.innerHTML = `<p id="itk-sync-status" role="status" aria-live="polite"></p><p id="itk-sync-detail"></p><div class="itk-sync-actions"><button type="button" class="btn btn-outline" id="itk-refresh">Actualiser les paramètres</button><button type="button" class="btn btn-outline" id="itk-restore" hidden>Restaurer les paramètres du compte</button><button type="button" class="btn btn-outline" id="itk-import" hidden>Examiner les paramètres locaux</button></div><div id="itk-conflicts"></div><p id="itk-action-message" role="status"></p><dialog class="itk-import-dialog" aria-labelledby="itk-import-title"><h2 id="itk-import-title">Importer les paramètres ITK</h2><p>Ces paramètres proviennent du mode visiteur de cet appareil. Vérifie qu’ils t’appartiennent. La confirmation remplace volontairement les derniers paramètres du compte après vérification de sa version.</p><p id="itk-import-preview"></p><p id="itk-import-message" role="status"></p><button type="button" class="btn btn-primary" id="itk-import-confirm">Confirmer l’import ITK</button><button type="button" class="btn btn-outline" id="itk-import-cancel">Annuler</button></dialog>`;
-  const find = id => root.querySelector(`#${id}`);
-  find('itk-sync-detail').insertAdjacentHTML('afterend', `
+  root.innerHTML = `
+    <h3 id="itk-sync-title">Sauvegarde des paramètres</h3>
+    <p id="itk-sync-status" role="status" data-state="loading">${labels.loading}</p>
+    <p id="itk-sync-detail"></p>
     <div id="itk-device" hidden>
       <div class="itk-sync-actions" role="group" aria-label="Paramètres de cet appareil">
-        <button type="button" class="btn btn-outline" id="itk-remember" disabled>Mémoriser les paramètres du dernier calcul</button>
-        <button type="button" class="btn btn-outline" id="itk-recall">Charger les paramètres mémorisés</button>
-        <button type="button" class="btn btn-outline" id="itk-forget">Retirer les paramètres mémorisés</button>
+        <button type="button" class="btn btn-surface" id="itk-remember" disabled>Mémoriser les paramètres du dernier calcul</button>
+        <button type="button" class="btn btn-surface" id="itk-recall">Charger les paramètres mémorisés</button>
+        <button type="button" class="btn btn-surface btn-surface--danger" id="itk-forget">Retirer les paramètres mémorisés</button>
       </div>
       <details>
         <summary>Anciens paramètres sur cet appareil</summary>
         <p>Si tu avais déjà utilisé l’outil, tu peux charger ton ancien formulaire.</p>
-        <button type="button" class="btn btn-outline" id="itk-recall-archived">Charger les anciens paramètres</button>
+        <button type="button" class="btn btn-surface" id="itk-recall-archived">Charger les anciens paramètres</button>
       </details>
-    </div>`);
+    </div>
+    <div class="itk-sync-actions" role="group" aria-label="Paramètres du compte">
+      <button type="button" class="btn btn-surface" id="itk-refresh">Actualiser les paramètres</button>
+      <button type="button" class="btn btn-surface" id="itk-restore" hidden>Restaurer les paramètres du compte</button>
+      <button type="button" class="btn btn-surface" id="itk-import" hidden>Examiner les paramètres locaux</button>
+    </div>
+    <div id="itk-conflicts"></div>
+    <p id="itk-action-message" role="status"></p>
+    <dialog class="itk-import-dialog" aria-labelledby="itk-import-title" aria-describedby="itk-import-explanation">
+      <h2 id="itk-import-title">Importer les paramètres ITK</h2>
+      <p id="itk-import-explanation">Ces paramètres proviennent du mode visiteur de cet appareil. Vérifie qu’ils t’appartiennent. La confirmation remplace volontairement les derniers paramètres du compte après vérification de sa version.</p>
+      <p id="itk-import-preview"></p>
+      <p id="itk-import-message" role="status"></p>
+      <div class="itk-dialog-actions">
+        <button type="button" class="btn btn-surface btn-surface--accent" id="itk-import-confirm">Confirmer l’import ITK</button>
+        <button type="button" class="btn btn-surface" id="itk-import-cancel" autofocus>Annuler</button>
+      </div>
+    </dialog>`;
+  const find = id => root.querySelector(`#${id}`);
+  const status = find('itk-sync-status');
+  const showStatus = (state, text = labels[state] || labels.session) => {
+    status.dataset.state = state;
+    if (status.textContent !== text) status.textContent = text;
+  };
   const dialog = root.querySelector('dialog');
   let service, snapshot, source = null, epoch = 0, dirty = false, latest = null, loaded = '', preview = null, conflictMarkup = '', writing = 0;
   let lastCalculation = null;
@@ -151,14 +175,26 @@ export function bindItkPersonal(form, root, { servicePromise = getSettingsServic
       latest = usable ? state.view.itk : null;
       if (!dirty && !writing && latest && fingerprint(latest) !== loaded) apply(latest);
       const domain = state.sync.domains?.itk || state.sync;
-      find('itk-sync-status').textContent = state.mode === 'personal' && domain.state === 'synced' && !latest
-        ? 'Aucun paramètre ITK enregistré sur le compte.' : labels[state.mode === 'visitor' ? 'visitor' : domain.state] || labels.session;
+      if (state.mode === 'personal' && domain.state === 'synced' && !latest) {
+        showStatus('empty', 'Aucun paramètre ITK enregistré sur le compte.');
+      } else showStatus(state.mode === 'visitor' ? 'visitor' : domain.state);
       find('itk-sync-detail').textContent = state.view.error || domain.error || state.sync.error || (state.mode === 'personal' ? 'Générer l’itinéraire enregistre les huit paramètres dans le compte. Le calendrier et les exports sont calculés ici. Le cache personnel reste sur cet appareil après déconnexion et n’est pas chiffré.' : 'Tu peux mémoriser les huit paramètres du dernier calcul dans ce navigateur, puis les charger à la demande ou les retirer.');
       find('itk-device').hidden = state.mode !== 'visitor';
       find('itk-refresh').hidden = state.mode === 'visitor';
       find('itk-import').hidden = !usable || state.mode !== 'personal';
       const conflicts = (state.sync.conflicts || []).filter(item => item.domain === 'itk');
-      const markup = conflicts.map(item => `<details data-itk-conflict="${clean(item.id)}"><summary>${item.resolved ? 'Conflit ITK archivé' : 'Conflit ITK à résoudre'}</summary><p>Choix de cet appareil : ${clean(describeItk(item.local?.value || item.local))}</p><p>Version du compte : ${clean(describeItk(item.remote?.parameters || item.remote?.value || item.remote))}</p>${item.resolved ? '' : `<button type="button" class="btn btn-outline" data-itk-resolve="${clean(item.id)}" data-choice="remote">Garder la version du compte</button><button type="button" class="btn btn-outline" data-itk-resolve="${clean(item.id)}" data-choice="local">Utiliser mon choix enregistré sur cet appareil</button>`}</details>`).join('');
+      const markup = conflicts.map(item => `
+        <details data-itk-conflict="${clean(item.id)}">
+          <summary>${item.resolved ? 'Conflit ITK archivé' : 'Conflit ITK à résoudre'}</summary>
+          <dl class="itk-conflict-versions">
+            <div><dt>Choix de cet appareil</dt><dd>${clean(describeItk(item.local?.value || item.local))}</dd></div>
+            <div><dt>Version du compte</dt><dd>${clean(describeItk(item.remote?.parameters || item.remote?.value || item.remote))}</dd></div>
+          </dl>
+          ${item.resolved ? '' : `<div class="itk-sync-actions" role="group" aria-label="Choisir une version">
+            <button type="button" class="btn btn-surface" data-itk-resolve="${clean(item.id)}" data-choice="remote">Garder la version du compte</button>
+            <button type="button" class="btn btn-surface" data-itk-resolve="${clean(item.id)}" data-choice="local">Utiliser mon choix enregistré sur cet appareil</button>
+          </div>`}
+        </details>`).join('');
       if (markup !== conflictMarkup) {
         const container = find('itk-conflicts');
         const opened = [...container.querySelectorAll('details[open]')].map(node => node.dataset.itkConflict);
@@ -174,7 +210,7 @@ export function bindItkPersonal(form, root, { servicePromise = getSettingsServic
     });
     window.addEventListener('pagehide', unsubscribe, { once: true });
     return service;
-  }).catch(() => { find('itk-sync-status').textContent = labels['storage-error']; announce('La source des paramètres est indisponible. Le générateur reste utilisable sans sauvegarde.'); return null; });
+  }).catch(() => { showStatus('storage-error'); announce('La source des paramètres est indisponible. Le générateur reste utilisable sans sauvegarde.'); return null; });
   return {
     async save(parameters) {
       const current = epoch; writing++;

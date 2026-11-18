@@ -10,14 +10,15 @@ export function settingsRow(domain, value, userId, operationId, base = 0) {
 export function createSettingsAPI() {
   const rows = { itk: new Map(), appearance: new Map() }, sent = [];
   const api = { rows, sent, restOffline: false, authOffline: false, loseAck: null, holdRead: null };
-  api.install = async (context, account = 'A', sources = {}) => {
-    if (account || Object.keys(sources).length) await context.addInitScript(({ session, sources }) => {
+  api.install = async (context, account = 'A', sources = {}, siteUrl = 'http://127.0.0.1:4173/mon-bprea/') => {
+    const key = `bprea-auth-settings.invalid-${new URL(siteUrl).pathname}`;
+    if (account || Object.keys(sources).length) await context.addInitScript(({ session, sources, key }) => {
       if (localStorage.getItem('settings-fixture-seeded')) return;
       localStorage.setItem('settings-fixture-seeded', 'yes');
-      if (session) localStorage.setItem('bprea-auth-settings.invalid-/mon-bprea/', JSON.stringify(session));
+      if (session) localStorage.setItem(key, JSON.stringify(session));
       for (const [key, value] of Object.entries(sources)) localStorage.setItem(key, value);
-    }, { session: account ? sessionFor(account) : null, sources });
-    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: settingsOrigin, publishableKey: 'sb_publishable_syntheticSettings', siteUrl: 'http://127.0.0.1:4173/mon-bprea/' } }));
+    }, { session: account ? sessionFor(account) : null, sources, key });
+    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: settingsOrigin, publishableKey: 'sb_publishable_syntheticSettings', siteUrl } }));
     await context.route(`${settingsOrigin}/**`, async route => {
       const request = route.request(), url = new URL(request.url()), uid = owner(request);
       const respond = (data, status = 200) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data), headers: { 'access-control-allow-origin': '*' } });

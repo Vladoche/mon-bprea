@@ -45,6 +45,23 @@ L’API `window.BpreaAppearance` reste compatible avec ses consommateurs. Pour u
 
 ## Formulaires, messages et imports volontaires
 
+Dans **Outils → Générateur ITK**, renseigne les groupes **Culture**,
+**Conditions de production** et **Calendrier**, puis sélectionne **Générer mon
+itinéraire**. Le focus se place sur la synthèse, suivie des indicateurs,
+des points de vigilance et des jalons mensuels. **Modifier les paramètres**
+ramène à l’espèce cultivée. Les exports portent sur le dernier résultat
+généré. **Imprimer / PDF** ouvre la boîte d’impression du navigateur, qui
+permet d’enregistrer la feuille de résultats au format PDF.
+
+Sous le formulaire, **Sauvegarde des paramètres** indique l’état du dernier
+enregistrement. En visiteur, **Mémoriser les paramètres du dernier calcul**
+est disponible après génération. **Charger les paramètres mémorisés** restaure
+les champs à la demande. **Retirer les paramètres mémorisés** enlève cette
+copie de l’appareil. **Anciens paramètres sur cet appareil** permet de
+reprendre l’ancien formulaire. Dans un compte, la génération enregistre les
+paramètres localement avant confirmation distante. L’examen des paramètres
+locaux et le choix d’une version en conflit restent des actions explicites.
+
 `itk-personal-ui.js` suit séparément la valeur chargée, le formulaire modifié et la dernière valeur disponible du compte. Une récupération tardive ne touche pas une saisie active, son focus, le résultat calculé ni les exports. Le bouton de restauration charge explicitement les paramètres ; il ne génère aucun calendrier. Un changement de compte retire en revanche les valeurs et résultats privés du compte quitté.
 
 Le dialogue d’apparence conserve ses contrôles et le focus pendant les publications ordinaires. Ses messages distinguent choix temporaire, sauvegarde locale, attente, confirmation distante et erreur. « Synchronisé » exige une confirmation réelle. Le générateur peut calculer malgré un échec de persistance et annonce alors que ses paramètres ne sont pas sauvegardés.

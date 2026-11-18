@@ -35,7 +35,7 @@ test('navigation à quatre rubriques et artefact versionné sous préfixe Pages'
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Outils');
   await nav.getByRole('button', { name: 'Afficher les sous-rubriques de Outils' }).click();
   await nav.getByRole('link', { name: 'Générateur ITK', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Construire un itinéraire technique');
 
   // A dedicated page keeps late responses from the source-navigation checks out
   // of the prepared-artifact audit, without filtering away prefix regressions.

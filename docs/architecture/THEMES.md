@@ -34,6 +34,14 @@ Les limites horaires sont regroupées dans `timePeriods`, au début de `assets/t
 
 Éviter les transitions prolongées ; `prefers-reduced-motion` désactive les transitions et déplacements concernés. L’impression ITK conserve des surfaces claires.
 
+Pour une commande autonome assortie aux entrées du header, utiliser
+`.btn.btn-surface`. La variante `.btn-surface--accent` reprend la surface
+terracotta de l’entrée active. `.btn-surface--danger` garde la surface neutre
+avec les couleurs fonctionnelles du retrait. Le header et ces variantes
+résolvent les mêmes tokens `--control-pill-*` pour les dégradés, reflets,
+ombres et anneau de focus. Le bouton natif porte ses propres états
+de survol, appui et désactivation, avec adaptation au contraste forcé.
+
 ## Stockage et compatibilité
 
 Le script classique `assets/theme-init.js` s’exécute **avant les feuilles de style**, sur toutes les pages, pour appliquer les attributs HTML avant le premier rendu. Le navigateur doit naturellement avoir reçu la nouvelle page et le script pour bénéficier du nouveau thème.
