@@ -10,10 +10,11 @@ internal static partial class Program
     {
         var now = DateTimeOffset.UtcNow;
         var account = new AuthAccount("22222222-2222-4222-8222-222222222222", Recipient, null, now, null);
-        async Task Scenario(Func<SimpleAdminSession, SimpleRouter, SimpleStore, Task> action)
+        async Task Scenario(Func<SimpleAdminSession, SimpleRouter, SimpleStore, Task> action, Func<AccountInventory, Task>? invitationGuard = null)
         {
             var router = new SimpleRouter(now); var store = new SimpleStore();
-            using var session = new SimpleAdminSession(FakeSecret, AdminTarget.Production, store, TimeProvider.System, router);
+            using var session = new SimpleAdminSession(FakeSecret, AdminTarget.Production, store, TimeProvider.System, router,
+                invitationGuard ?? (_ => Task.CompletedTask));
             await action(session, router, store);
         }
         await Scenario(async (s, r, st) => {
@@ -85,6 +86,13 @@ internal static partial class Program
             await Reject("V2 PROD deletion cannot activate", "deletion_unqualified", () => s.DeleteAsync(selected));
             Check("V2 no PROD DELETE or reservation", r.Deletes == 0 && st.Reservations.Count == 0);
         });
+        foreach (var code in new[] { "backup_expired", "backup_comparison", "backup_ledger", "backup_inventory" })
+        {
+            await Scenario(async (s, r, st) => {
+                await Reject("V2 invitation guard " + code, code, () => s.CreateAsync("new@example.test"));
+                Check("V2 backup refusal avoids reservation and POST " + code, st.Reservations.Count == 0 && r.Posts == 0);
+            }, _ => Task.FromException(new AdminException(code)));
+        }
         await SimpleWindowsStore();
     }
 

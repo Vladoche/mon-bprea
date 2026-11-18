@@ -21,6 +21,7 @@ internal static partial class Program
         try
         {
             if (args.Length == 2 && args[0] == "--local-closure") return await LocalClosure(args[1]);
+            if (args.Length == 2 && args[0] == "--native-backup") return await NativeBackup(args[1]);
             if (args.Length != 1) throw new InvalidOperationException("Provide the synthetic Node contract vector file.");
             _stage = "node-contract-parity";
             NodeVectorsPath = args[0];
@@ -37,6 +38,8 @@ internal static partial class Program
             await Closures();
             _stage = "windows-private-store";
             await StoreTests.RunAsync(Check);
+            _stage = "historic-store-adoption";
+            await Adoption();
             Console.WriteLine($"PASS: {_passed} assertions, synthetic transports only; no hosted request.");
             return 0;
         }

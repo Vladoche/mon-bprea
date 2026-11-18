@@ -20,18 +20,19 @@ internal sealed class SimpleWorkflow(SimpleAdminSession session) : ISimpleWorkfl
     public void Dispose() => session.Dispose();
 }
 
-internal sealed class SimpleBootstrap(AdminTarget target, IAdminCredentialVault vault, ISimplePrivateStore store)
+internal sealed class SimpleBootstrap(AdminTarget target, IAdminCredentialVault vault, ISimplePrivateStore store, ProductionBackup? backup = null)
 {
+    private SimpleAdminSession Session(string key) => new(key, target, store, backup is null ? null : backup.RequireReadyAsync);
     public string? ReadSavedKey() => vault.Read();
     public ISimpleWorkflow OpenSaved(string key)
     {
         store.Initialize();
-        return new SimpleWorkflow(new SimpleAdminSession(key, target, store));
+        return new SimpleWorkflow(Session(key));
     }
     public async Task<ISimpleWorkflow> ConfigureAsync(string key)
     {
         store.Initialize();
-        var session = new SimpleAdminSession(key, target, store);
+        var session = Session(key);
         try
         {
             await session.RefreshAsync(); // Exact pinned target and valid admin rights.

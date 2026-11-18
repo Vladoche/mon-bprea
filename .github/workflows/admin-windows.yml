@@ -9,6 +9,9 @@ on:
       - 'scripts/prod-auth/**'
       - 'scripts/preopening/preflight.mjs'
       - 'scripts/preopening/policy.json'
+      - 'scripts/verification-dev/catalogue.sql'
+      - 'scripts/verification-dev/privileges.sql'
+      - 'supabase/migrations/**'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/admin-windows.yml'
@@ -48,7 +51,7 @@ jobs:
       - name: Déposer uniquement la distribution Windows
         uses: actions/upload-artifact@v7
         with:
-          name: MonBPREAAdmin-2.0-win-x64-${{ github.sha }}
+          name: MonBPREAAdmin-2.1-win-x64-${{ github.sha }}
           path: ${{ runner.temp }}/mon-bprea-admin-release/publish/
           if-no-files-found: error
           retention-days: 14

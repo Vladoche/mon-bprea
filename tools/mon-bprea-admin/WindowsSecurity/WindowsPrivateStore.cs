@@ -199,13 +199,15 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         catch { throw new AdminException("private"); }
     }
 
-    public static void VerifyProtectedFile(string path)
+    public static void VerifyProtectedFile(string path) => VerifyProtectedFile(path, allowLegacyAdministrators: false);
+
+    internal static void VerifyProtectedFile(string path, bool allowLegacyAdministrators)
     {
         var canonical = CanonicalPath(path);
         VerifyAncestors(Path.GetDirectoryName(canonical)!);
         VerifyLocalUnsharedPath(canonical);
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        VerifyPrivateFile(path, stream.SafeFileHandle);
+        VerifyPrivateFile(path, stream.SafeFileHandle, allowLegacyAdministrators);
     }
 
     private void VerifyPrivateDirectory()
@@ -237,18 +239,20 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         if (drive.DriveType != DriveType.Fixed || !drive.DriveFormat.Equals("NTFS", StringComparison.OrdinalIgnoreCase)) throw new AdminException("private");
     }
 
-    private JsonObject ReadRecord(string path, string? expectedHash = null)
+    private JsonObject ReadRecord(string path, string? expectedHash = null, bool archived = false)
     {
         VerifyProtectedFile(path);
         var info = new FileInfo(path);
         if (info.Length is <= 0 or > 65536) throw new AdminException("private");
-        var record = JsonNode.Parse(File.ReadAllText(path, Encoding.UTF8))?.AsObject() ?? throw new AdminException("private");
+        var text = File.ReadAllText(path, Encoding.UTF8);
+        using (var doc = JsonDocument.Parse(text)) CheckUnique(doc.RootElement);
+        var record = JsonNode.Parse(text)?.AsObject() ?? throw new AdminException("private");
         var hash = record["targetHash"]?.GetValue<string>() ?? "";
         if (record["version"]?.GetValue<int>() != 1 || record["project"]?.GetValue<string>() != Project
             || !Regex.IsMatch(hash, @"^[a-f0-9]{64}\z", RegexOptions.CultureInvariant)
             || expectedHash is not null && hash != expectedHash
-            || Path.GetFileName(path) != $"reservation-{hash}.json"
-            || !Guid.TryParseExact(record["operationId"]?.GetValue<string>(), "D", out _)
+            || !Guid.TryParseExact(record["operationId"]?.GetValue<string>(), "D", out var id)
+            || Path.GetFileName(path) != (archived ? $"history-reservation-{id:D}.json" : $"reservation-{hash}.json")
             || record["type"]?.GetValue<string>() is not ("invite" or "recovery")
             || record["status"]?.GetValue<string>() is not ("reserved" or "delivered-private")) throw new AdminException("private");
         return record;
@@ -263,7 +267,7 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         VerifyProtectedFile(path);
     }
 
-    private static FileStream NewFile(string path)
+    private static FileStream NewFile(string path, bool inspection = false)
     {
         // Elevated Windows tokens can otherwise assign Administrators as the
         // default owner even in a private parent. Supply owner and DACL atomically
@@ -274,8 +278,10 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         security.SetAccessRuleProtection(true, false);
         foreach (var identity in new[] { sid, new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null) })
             security.AddAccessRule(new FileSystemAccessRule(identity, FileSystemRights.FullControl, AccessControlType.Allow));
-        return FileSystemAclExtensions.Create(new FileInfo(path), FileMode.CreateNew,
-            FileSystemRights.Read | FileSystemRights.Write, FileShare.None, 4096, FileOptions.WriteThrough, security);
+        var access = FileSystemRights.Read | FileSystemRights.Write;
+        var options = FileOptions.WriteThrough;
+        if (inspection) { access |= FileSystemRights.Delete; options |= FileOptions.DeleteOnClose; }
+        return FileSystemAclExtensions.Create(new FileInfo(path), FileMode.CreateNew, access, FileShare.None, 4096, options, security);
     }
 
     private static void WriteExclusive(string path, string text, bool encrypted)
@@ -298,15 +304,15 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         finally { CryptographicOperations.ZeroMemory(bytes); }
     }
 
-    private static void VerifyPrivateFile(string path, SafeFileHandle handle)
+    private static void VerifyPrivateFile(string path, SafeFileHandle handle, bool allowLegacyAdministrators = false)
     {
         var attributes = File.GetAttributes(path);
         if ((attributes & (FileAttributes.Directory | FileAttributes.ReparsePoint | FileAttributes.Offline)) != 0
             || !GetFileInformationByHandle(handle, out var info) || info.NumberOfLinks != 1) throw new AdminException("private");
-        VerifyAcl(path, directory: false);
+        VerifyAcl(path, directory: false, allowLegacyAdministrators);
     }
 
-    private static void VerifyAcl(string path, bool directory)
+    private static void VerifyAcl(string path, bool directory, bool allowLegacyAdministrators = false)
     {
         var security = directory
             ? (FileSystemSecurity)new DirectoryInfo(path).GetAccessControl(AccessControlSections.Owner | AccessControlSections.Access)
@@ -315,7 +321,8 @@ public sealed partial class WindowsPrivateStore : IPrivateStore
         if (security.GetOwner(typeof(SecurityIdentifier))?.Value != sid) throw new AdminException("private");
         foreach (FileSystemAccessRule rule in security.GetAccessRules(true, true, typeof(SecurityIdentifier)))
             if (rule.AccessControlType == AccessControlType.Allow && rule.IdentityReference.Value != sid
-                && rule.IdentityReference.Value != "S-1-5-18") throw new AdminException("private");
+                && rule.IdentityReference.Value != "S-1-5-18"
+                && !(allowLegacyAdministrators && rule.IdentityReference.Value == "S-1-5-32-544")) throw new AdminException("private");
     }
 
     private static string CanonicalPath(string value)

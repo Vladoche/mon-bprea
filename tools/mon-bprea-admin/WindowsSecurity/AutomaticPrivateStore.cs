@@ -11,19 +11,30 @@ namespace MonBprea.Admin.WindowsSecurity;
 
 // Sensitive payloads use DPAPI CurrentUser, with project/environment entropy.
 // The minimal append-only journal deliberately contains neither links nor emails.
-public sealed class AutomaticPrivateStore : ISimplePrivateStore
+public sealed partial class AutomaticPrivateStore : ISimplePrivateStore
 {
     private readonly AdminTarget target;
     private readonly string directory;
     private readonly bool requireExisting;
+    private readonly bool bindProductionHistory;
+    private readonly string historyRegistry = @"Software\MonBPREAAdmin";
     private bool initialized;
     private int locked;
     private static readonly JsonSerializerOptions Json = new() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
     public string DirectoryPath => directory;
 
     public AutomaticPrivateStore(AdminTarget target, bool requireExisting = false) : this(target, Discover(target, requireExisting))
-        => this.requireExisting = requireExisting;
+    {
+        this.requireExisting = requireExisting || !target.IsLocal;
+        bindProductionHistory = !target.IsLocal;
+    }
     internal AutomaticPrivateStore(AdminTarget target, string path) { this.target = target; directory = path; }
+    internal AutomaticPrivateStore(string path, Guid testNamespace) : this(AdminTarget.Production, path)
+    {
+        if (testNamespace == Guid.Empty) throw new AdminException("configuration");
+        bindProductionHistory = requireExisting = true;
+        historyRegistry += @"\Qualification\" + testNamespace.ToString("D");
+    }
 
     private static string Discover(AdminTarget target, bool requireExisting)
     {
@@ -31,9 +42,16 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
         var root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MonBPREAAdmin");
         if (target.IsLocal) return Path.Combine(root, "Qualification", target.Qualification!.Value.ToString("D"), "Private");
         using var registry = Registry.CurrentUser.OpenSubKey(@"Software\MonBPREAAdmin");
-        var configured = new[] { Environment.GetEnvironmentVariable("SUPABASE_PROD_PRIVATE_DIR"), registry?.GetValue("PrivateDirectory") as string }
-            .Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => Path.GetFullPath(p!)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        return ResolveDirectory(Path.Combine(root, "Private"), configured, requireExisting, Directory.Exists, File.Exists);
+        var configured = new[] {
+            Environment.GetEnvironmentVariable("SUPABASE_PROD_PRIVATE_DIR"),
+            Environment.GetEnvironmentVariable("SUPABASE_PROD_PRIVATE_DIR", EnvironmentVariableTarget.User),
+            Environment.GetEnvironmentVariable("SUPABASE_PROD_PRIVATE_DIR", EnvironmentVariableTarget.Machine),
+            registry?.GetValue("PrivateDirectory") as string
+        }.Where(p => !string.IsNullOrWhiteSpace(p)).Select(p => Path.GetFullPath(p!)).ToArray();
+        var known = Directory.EnumerateFileSystemEntries(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            "mon-bprea-prod-private-*", SearchOption.TopDirectoryOnly);
+        return ResolveDirectory(Path.Combine(root, "Private"), configured.Concat(known).ToArray(),
+            requireExisting: true, Directory.Exists, File.Exists);
     }
 
     internal static string ResolveDirectory(string defaultDirectory, string[] configured, bool requireExisting,
@@ -54,6 +72,10 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
             if (requireExisting || initialized) throw new AdminException("legacy_conflict");
             WindowsPrivateStore.CreateV2Directory(directory);
         }
+        VerifySelectedDirectory();
+        using var inspection = bindProductionHistory ? AcquireInspection() : null;
+        if (bindProductionHistory && HasUncertainOperation()) throw new AdminException("pending");
+        var history = bindProductionHistory ? ReadHistory() : null;
         Validate();
         var probe = Path.Combine(directory, $"dpapi-probe-{Guid.NewGuid():D}.bin");
         var sample = RandomNumberGenerator.GetBytes(32);
@@ -68,9 +90,12 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
         }
         finally { CryptographicOperations.ZeroMemory(sample); }
         // Register only a validated existing directory, never a key or a link.
-        if (!target.IsLocal)
+        if (bindProductionHistory)
         {
-            using var registry = Registry.CurrentUser.CreateSubKey(@"Software\MonBPREAAdmin");
+            using var registry = Registry.CurrentUser.CreateSubKey(historyRegistry);
+            var anchor = registry.GetValue("HistoryAnchor") as byte[];
+            if (anchor is null)
+                registry.SetValue("HistoryAnchor", Protect(JsonSerializer.SerializeToUtf8Bytes(history!.Files), decrypt: false), RegistryValueKind.Binary);
             registry.SetValue("PrivateDirectory", directory, RegistryValueKind.String);
         }
         initialized = true;
@@ -79,6 +104,7 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
     public void Validate() => Safe(() =>
     {
         WindowsPrivateStore.VerifyV2Directory(directory);
+        VerifySelectedDirectory();
         foreach (var path in Directory.EnumerateFileSystemEntries(directory))
         {
             if ((File.GetAttributes(path) & (FileAttributes.ReparsePoint | FileAttributes.Directory | FileAttributes.Offline)) != 0)
@@ -88,9 +114,23 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
         }
         // Parse historical uncertainty without changing any old bytes/dates.
         _ = ReadReservations();
+        if (bindProductionHistory) ReadHistory();
     });
 
-    public IDisposable AcquireLock()
+    private void VerifySelectedDirectory()
+    {
+        if (!bindProductionHistory) return;
+        using var registry = Registry.CurrentUser.OpenSubKey(historyRegistry);
+        var pointer = registry?.GetValue("PrivateDirectory") as string;
+        if (pointer is not null && !directory.Equals(pointer, StringComparison.OrdinalIgnoreCase)
+            || historyRegistry == @"Software\MonBPREAAdmin" && !directory.Equals(Discover(target, true), StringComparison.OrdinalIgnoreCase))
+            throw new AdminException("legacy_conflict");
+    }
+
+    public IDisposable AcquireLock() => Acquire(inspection: false);
+    public IDisposable AcquireInspection() => Acquire(inspection: true);
+
+    private IDisposable Acquire(bool inspection)
     {
         if (File.Exists(Path.Combine(directory, "operation.lock"))) throw new AdminException("busy");
         Validate();
@@ -99,10 +139,10 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
         try
         {
             var path = Path.Combine(directory, "operation.lock");
-            stream = WindowsPrivateStore.NewV2File(path);
+            stream = WindowsPrivateStore.NewV2File(path, inspection);
             var bytes = Encoding.UTF8.GetBytes(Guid.NewGuid().ToString("D") + "\n");
             stream.Write(bytes); stream.Flush(true);
-            return new Lease(this, path, stream);
+            return new Lease(this, path, stream, inspection);
         }
         catch { stream?.Dispose(); Volatile.Write(ref locked, 0); throw new AdminException("busy"); }
     }
@@ -300,13 +340,13 @@ public sealed class AutomaticPrivateStore : ISimplePrivateStore
             if (output.Data != IntPtr.Zero) { for (var i = 0; i < output.Size; i++) Marshal.WriteByte(output.Data, i, 0); LocalFree(output.Data); }
         }
     }
-    private sealed class Lease(AutomaticPrivateStore owner, string path, FileStream stream) : IDisposable
+    private sealed class Lease(AutomaticPrivateStore owner, string path, FileStream stream, bool inspection) : IDisposable
     {
         private int done;
         public void Dispose()
         {
             if (Interlocked.Exchange(ref done, 1) != 0) return;
-            try { stream.Dispose(); File.Delete(path); } catch { /* A leftover lock remains blocking. */ }
+            try { stream.Dispose(); if (!inspection) File.Delete(path); } catch { /* A leftover lock remains blocking. */ }
             finally { Volatile.Write(ref owner.locked, 0); }
         }
     }
@@ -342,7 +382,7 @@ public sealed partial class WindowsPrivateStore
     }
     internal static void VerifyV2Directory(string directory) => new WindowsPrivateStore(directory, "").VerifyPrivateDirectory();
     internal static void VerifyV2Acl(string path) => VerifyAcl(path, false);
-    internal static FileStream NewV2File(string path) => NewFile(path);
+    internal static FileStream NewV2File(string path, bool inspection = false) => NewFile(path, inspection);
     internal static void CreateV2Directory(string path)
     {
         // Validate every existing ancestor before creating each missing segment.

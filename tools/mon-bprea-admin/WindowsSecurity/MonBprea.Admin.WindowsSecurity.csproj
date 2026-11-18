@@ -6,4 +6,11 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../Core/MonBprea.Admin.Core.csproj" /><InternalsVisibleTo Include="MonBprea.Admin.Tests" /></ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../../../scripts/preopening/policy.json" LogicalName="backup/policy.json" />
+    <EmbeddedResource Include="../../../supabase/migrations/*.sql" LogicalName="backup/migrations/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../../scripts/verification-dev/catalogue.sql;../../../scripts/verification-dev/privileges.sql"
+                      LogicalName="backup/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Backup/supabase-root-2021.crt" LogicalName="backup/supabase-root-2021.crt" />
+  </ItemGroup>
 </Project>
