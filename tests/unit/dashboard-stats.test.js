@@ -104,3 +104,20 @@ describe('statistiques du Dashboard', () => {
     expect(model.warnings.some(warning => warning.includes('UC connue'))).toBe(true);
   });
 });
+
+describe('frontières civiles dans les périodes du Dashboard', () => {
+  it.each([
+    ['2020-W53', '2021-W01', '2021-01-03T22:59:59Z', '2021-01-03T23:00:00Z', '2021-01-04T08:00:00Z'],
+    ['2026-W13', '2026-W14', '2026-03-29T21:59:59Z', '2026-03-29T22:00:00Z', '2026-03-30T08:00:00Z'],
+    ['2026-W43', '2026-W44', '2026-10-25T22:59:59Z', '2026-10-25T23:00:00Z', '2026-10-26T08:00:00Z'],
+  ])('sépare %s de %s à minuit le lundi à Paris', (previous, current, before, after, reference) => {
+    const series = makeSeries({ week: previous });
+    const [first, second] = series.questions;
+    series.answers[first.id] = answerFor(first, { answeredAt: before });
+    series.answers[second.id] = answerFor(second, { correct: false, answeredAt: after });
+    const model = createDashboardModel({ series: [series] }, { period: 'all', now: new Date(reference) });
+    expect(model.weeks.map(week => [week.id, week.completed, week.successRate])).toEqual([
+      [previous, 1, 100], [current, 1, 0],
+    ]);
+  });
+});

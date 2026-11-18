@@ -1,4 +1,4 @@
-# Tableau de bord pédagogique — Lots 3 et 6.2.3
+# Tableau de bord pédagogique
 
 ## Périmètre et architecture
 
@@ -9,7 +9,7 @@
 - `assets/dashboard-data.js` : `readDashboardData(snapshot)` sélectionne en lecture seule la source visiteur ou la vue personnelle déjà normalisée par le service Drill. Son descripteur `source` distingue disponibilité, identité, chargement, attente et conflits.
 - `assets/dashboard-stats.js` : calculs purs des agrégats et préparation des séries temporelles à partir de cet état, séparés du DOM et du stockage ; la validation et la normalisation restent celles du lecteur Drill.
 - `assets/dashboard.js` : initialisation asynchrone, abonnement au service Drill, filtres, rendu, interactions et alternatives tabulaires.
-- `assets/dashboard.css` : graphiques et mise en page responsive en modes clair et sombre.
+- `assets/dashboard.css` : synthèse, graphiques et sections de révision. Les couleurs, espacements et contrôles reprennent les tokens communs du design 2027.
 
 Le lot 6.2.3 raccorde cette frontière au service du [lot 6.2.2](DRILL-SYNCHRONISATION-CLIENT.md), en conservant `createDashboardModel()` et les règles de calcul du lot 3. Un seul service Drill est créé pour la page ; le Dashboard ne crée ni client Supabase, ni transport, ni lecteur IndexedDB supplémentaire. Aucune dépendance de production n’est ajoutée.
 
@@ -56,7 +56,16 @@ Le cache IndexedDB n’est pas chiffré. Le masquage de l’interface ne protèg
 
 Le service relit à l’ouverture, au retour réseau, au retry manuel et au retour sur la page lorsque le dernier scan date d’au moins une minute. Il n’ajoute pas de diffusion temps réel Supabase. L’activité d’un deuxième appareil devient visible après cette relecture. Les filtres et le recalcul statistique par minute ne déclenchent pas de scan supplémentaire.
 
-Dans la même identité, les mises à jour conservent les filtres et leurs paramètres d’URL, la fenêtre graphique consultée, les tableaux dépliés, le défilement horizontal et le focus encore applicable. Un changement de statut seul ne remplace pas les graphiques. Un changement d’identité retire les anciennes vues avant de calculer les nouvelles ; le retour par le cache de navigation recharge la page pour revérifier le compte.
+Dans la même identité, un changement de statut actualise le bandeau de source.
+La synthèse, les graphiques, les tableaux et les notions se mettent à jour
+par région lorsque leur contenu évolue. Les filtres, la semaine examinée,
+l’état des sections repliables, les positions de défilement et le focus
+sont conservés tant que leurs cibles existent. Le filtre UC conserve la
+fenêtre graphique, tandis qu’un changement de période revient aux semaines
+les plus récentes. Les paramètres `unit` et `period` restent dans l’URL.
+Un changement d’identité retire les anciennes vues avant de calculer les
+nouvelles. Le retour par le cache de navigation recharge la page pour
+revérifier le compte.
 
 ## Indicateurs et formules
 
@@ -85,9 +94,25 @@ Chaque semaine de la période est présente, même sans réponse. Son volume est
 
 ## Graphiques et lecture accessible
 
-Le Tableau de bord présente le volume hebdomadaire (réussites, erreurs, total), le taux de réussite hebdomadaire et la comparaison des UC. Les pourcentages sont accompagnés du nombre de réponses ; les légendes et textes permettent de comprendre les résultats sans dépendre des couleurs. Les graphiques donnent des détails au survol et au clavier. L’alternative tabulaire conserve toutes les semaines de la période, y compris celles hors de la fenêtre graphique visible, ainsi que les résultats de chaque UC.
+Le bilan présente les cinq indicateurs dans une grille responsive. La période
+réellement observée est indiquée près des filtres. Le graphique de volume
+combine une barre pleine, une partie hachurée et le total. Le taux utilise une
+ligne et des points, avec un tiret distinct des points à 0 % lorsque la semaine
+est vide. Les légendes et détails donnent les volumes et pourcentages.
 
-La page reprend le mode sombre existant et les styles communs. La navigation passe sur deux lignes lorsque la largeur manque, avec défilement horizontal sur petits écrans pour garder toutes les destinations accessibles.
+Le détail d’une semaine est accessible au survol, au toucher ou en plaçant le
+focus dans le graphique. Les flèches gauche et droite parcourent les semaines.
+Début et Fin rejoignent les bornes de la fenêtre. Le détail visuel se met à jour
+sur place et chaque point annonce son libellé complet à la prise de focus.
+La comparaison montre toutes les UC dans leur ordre pédagogique et chaque
+ligne applique le filtre correspondant. Une UC sans réponse affiche « Aucune
+donnée ». Son taux ne donne lieu à aucune barre.
+
+Les tableaux repliables couvrent l’ensemble des semaines, des UC ou des
+chapitres du périmètre indiqué. Leur défilement reste dans une région nommée.
+Les graphiques défilent dans leur propre région lorsque la largeur manque.
+Les thèmes saisonniers, le mode sombre, le contraste forcé et la préférence
+de mouvement réduit s’appliquent au rendu.
 
 ## Points forts et notions à retravailler
 
@@ -103,7 +128,15 @@ Les seuils sont réunis dans `DASHBOARD_THRESHOLDS`, dans `assets/dashboard-stat
 
 À 60 % et jusqu’à moins de 80 %, avec assez de réponses, le repère est « À consolider ». Ces catégories décrivent uniquement les réponses observées. Ce ne sont ni une évaluation scientifique des acquis réels ni une probabilité de réussite à l’examen. Elles ne produisent aucun niveau, badge, classement, trophée ou récompense.
 
-Lorsque les copies de questions comportent une association `sourceLesson` exploitable, la page peut proposer le cours ou ses exercices. Sans association fiable, elle propose le Mode Drill au lieu d’inventer une destination pédagogique.
+« Orienter tes révisions » regroupe les notions par observation. Les cartes
+affichent le chapitre, l’UC, les exercices réalisés, les volumes corrects et
+incorrects et le taux. Les observations par UC, la répartition par chapitre
+et les seuils sont accessibles dans des sections repliables. La méthode et
+les limites figurent en bas de page.
+
+La page reprend les ressources validées par le modèle à partir des copies de
+questions. Un lien vers les exercices de l’UC reste disponible en l’absence
+d’un cours associé exploitable.
 
 ## Limites et préservation des données
 
@@ -116,6 +149,11 @@ Lorsque les copies de questions comportent une association `sourceLesson` exploi
 - Aucun jeu de démonstration n’est injecté dans la progression réelle ou publié comme résultat utilisateur.
 
 ## Vérification et livraison
+
+La [validation PR3 lot 4](../validations/VALIDATION-UI-2027-PR3-LOT4.md)
+compare le rendu de référence et la version 2027. Elle réunit la parité chiffrée,
+les parcours, les captures et les mesures de laboratoire. Ce lot clôt la
+refonte de l’expérience pédagogique principale de PR3.
 
 Les parcours vérifiés, les données de vérification isolées et les limites historiques du lot 3 sont consignés dans [VALIDATION-LOT3.md](../archives/validations/VALIDATION-LOT3.md). Ce lot n’ajoutait pas de suite automatisée ; le lot 5.1 introduit les contrôles décrits dans [../TESTS.md](../TESTS.md). Les observations historiques correspondent à la branche `feature/dashboard-uc`.
 
