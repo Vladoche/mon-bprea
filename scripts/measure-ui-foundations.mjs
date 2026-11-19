@@ -12,6 +12,7 @@ import { installItkObserver, measureItk, seedItkLab, writeItkReview } from './ui
 import { installResourceObserver, largeResourceCatalog, measureResources, writeResourcesReview } from './ui-resources-lab.mjs';
 import { installBotanicalObserver, measureBotanical, seedBotanicalLab, writeBotanicalParity } from './ui-botanical-lab.mjs';
 import { writeBotanicalReview } from './ui-botanical-review.mjs';
+import { installProfileObserver, measureProfile, profileMetricKeys, seedProfileLab, writeProfileReview } from './ui-profile-lab.mjs';
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -20,7 +21,7 @@ const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
 const baselineRef = option('--baseline-ref', 'baseline directory supplied by caller');
 const pageFile = option('--page', 'index.html');
-const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all', 'calendrier.html?month=2027-06', 'itk.html', 'ressources.html', 'reconnaissance-plantes.html'];
+const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all', 'calendrier.html?month=2027-06', 'itk.html', 'ressources.html', 'reconnaissance-plantes.html', 'profil.html'];
 if (!allowedPages.includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
 const quizPage = pageFile.startsWith('exercices.html');
 const drillPage = pageFile.startsWith('drill.html');
@@ -29,6 +30,7 @@ const calendarPage = pageFile.startsWith('calendrier.html');
 const itkPage = pageFile === 'itk.html';
 const resourcesPage = pageFile === 'ressources.html';
 const botanicalPage = pageFile === 'reconnaissance-plantes.html';
+const profilePage = pageFile === 'profil.html';
 const largeCatalog = resourcesPage && args.includes('--large-catalog');
 const drillReviewDirectory = resolve(dirname(output), 'drill-review');
 const reviewDirectory = resolve(dirname(output), 'quiz-review');
@@ -86,6 +88,10 @@ try {
       await seedItkLab(context, `${origin}/${phase}/`, { personal: true });
       await page.addInitScript(installItkObserver);
     }
+    if (profilePage) {
+      await seedProfileLab(context, `${origin}/${phase}/`, { nickname: 'Élève démo' });
+      await page.addInitScript(installProfileObserver);
+    }
     const client = await context.newCDPSession(page);
     await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await client.send('Network.enable');
@@ -134,7 +140,7 @@ try {
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
-    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics, .calendar-agenda-list > li, #itk-form, #resource-grid article, #bot-content [data-start]').first().waitFor();
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics, .calendar-agenda-list > li, #itk-form, #resource-grid article, #bot-content [data-start], #auth-pseudo').first().waitFor();
     const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
@@ -148,6 +154,7 @@ try {
     if (itkPage) Object.assign(metrics, await measureItk(page));
     if (resourcesPage) Object.assign(metrics, await measureResources(page, largeCatalog));
     if (botanicalPage) metrics.botanical = await measureBotanical(page);
+    if (profilePage) Object.assign(metrics, await measureProfile(page));
     if (calendarPage) {
       Object.assign(metrics, await measureCalendar(page));
       await page.keyboard.press('Escape');
@@ -278,6 +285,15 @@ try {
       origin, baselineRef, directory: resolve(dirname(output), 'calendar-review'),
     });
   }
+  if (profilePage) {
+    for (const phase of ['before', 'after']) for (const key of profileMetricKeys)
+      results.medians[phase][key] = median(results[phase].map(run => run[key]));
+    results.methodology.baselineRef = baselineRef;
+    results.methodology.profile = 'Same synthetic student and HTTP fixture. Profile form and synced appearance status from navigation to second frame. Dialog and input from trusted events to second frame; saving measured through the acknowledged message.';
+    // Run the two-version gallery for the profile refactor even when subsequent
+    // PRs use a base that already contains the new profile.
+    await writeProfileReview(browser, { origin, baselineRef, directory: resolve(dirname(output), 'profile-review') });
+  }
   // Broad diagnostic budgets account for ordinary local-laboratory variability.
   // They flag a targeted investigation, without grading the site with a global score.
   results.budgets = { cssAdditionalBytes: 16384, jsAdditionalBytes: 16384, additionalRequests: 2, lcpAdditionalMs: Math.max(500, before.lcp * .5), clsMaximum: .1, interactionMaximumMs: 200 };
@@ -293,6 +309,7 @@ try {
     calendarPage && (after.monthChangeMs > 200 || after.detailOpenMs > 200 || after.calendarRequests !== 1) && 'calendar laboratory interaction budget',
     itkPage && Math.max(after.parameterMs, after.timelineMs, after.dialogMs) > 200 && 'ITK laboratory interaction budget',
     botanicalPage && Math.max(after.choiceMs, after.correctionMs, after.nextMs, after.resultsMs) > 200 && 'botanical laboratory interaction budget',
+    profilePage && Math.max(after.appearanceDialogMs, after.pseudoInputMs) > 200 && 'profile laboratory interaction budget',
     calendarPage && results.calendarContrast.some(({ season, brightness, focus, ...text }) =>
       focus < 3 || Object.values(text).some(ratio => ratio < 4.5)) && 'calendar contrast budget',
     results.after.some(run => run.errors.length || run.failedResponses.length) && 'runtime/network errors',

@@ -1,8 +1,8 @@
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/drill-local.js';
-import { LOCAL_SITE } from '../helpers/auth-local.js';
 import { seedPersonalTables, readPersonalTables } from '../helpers/personal-data-local.js';
 import { stopOrdinarySync } from '../helpers/export-browser.js';
 import { personalRecords } from '../helpers/personal-browser.js';
@@ -30,7 +30,7 @@ async function newDevice(browser, student) {
   // Auth/profile remain real; no PostgreSQL write or deletion is simulated.
   const routePattern = `${student.environment.url}/rest/v1/**`;
   await page.route(routePattern, route => route.request().url().includes('/profiles') ? route.continue() : route.abort('failed'));
-  await signInDrill(page, student); await page.goto(`${LOCAL_SITE}profil.html`); await stopOrdinarySync(page);
+  await signInDrill(page, student); await openMaintenanceFixture(page); await stopOrdinarySync(page);
   await page.unroute(routePattern); return { context, page };
 }
 async function addIntentions(page, scope, ids, { firstSettings = false, botanicalHistory = null } = {}) {
@@ -75,7 +75,7 @@ test('JSON réel : nouvel appareil A, historiques et intentions manquantes, conf
     const beforeB = await readPersonalTables(b), seededA = await readPersonalTables(a), scope = personalScope({ environment: 'development', url: a.environment.url, userId: a.userId });
     await configureDrillPage(page, a.environment); await signInDrill(page, a);
     await expect.poll(async () => (await personalRecords(page, CACHES.drill).catch(() => [])).some(doc => doc.remote.series.length === 1)).toBe(true);
-    await page.goto(`${LOCAL_SITE}profil.html`); await stopOrdinarySync(page);
+    await openMaintenanceFixture(page); await stopOrdinarySync(page);
     await page.route(`${a.environment.url}/rest/v1/rpc/**`, route => route.abort('failed'));
     const ids = Object.fromEntries(['quiz', 'course', 'answer', 'training', 'botanical'].map(key => [key, randomUUID()]));
     const parent = seededA.botanical_sessions[0];
@@ -114,7 +114,7 @@ test('JSON réel : nouvel appareil A, historiques et intentions manquantes, conf
     const foreign = await newDevice(browser, b); contexts.push(foreign.context); await preview(foreign.page, file);
     await expect(foreign.page.locator('[data-restore-detail]')).toContainText('autre compte');
     const visitorContext = await browser.newContext(); contexts.push(visitorContext); const visitor = await visitorContext.newPage();
-    await configureDrillPage(visitor, a.environment); await visitor.goto(`${LOCAL_SITE}profil.html`); await expect(visitor.locator('[data-restore-file]')).toBeDisabled();
+    await configureDrillPage(visitor, a.environment); await openMaintenanceFixture(visitor); await expect(visitor.locator('[data-restore-file]')).toBeDisabled();
     expect(JSON.stringify(await readPersonalTables(b)) === JSON.stringify(beforeB)).toBe(true);
     stage = 'changement d’identité pendant une lecture distante réelle';
     let release, entered; const held = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });

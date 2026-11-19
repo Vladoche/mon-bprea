@@ -1,5 +1,11 @@
 # Suppression des données personnelles — lot 6.4.3
 
+**Accès à partir de PR5 lot 1.** La sélection de caches, leur retrait et leur
+reprise, ainsi que le prototype de clôture, sont retirés du profil partagé.
+Les tests exercent ces fonctions sur leur page dédiée. Les demandes suivent
+la procédure de clôture assistée via le contact existant.
+[Contact](../../contact.html) · [Droits et clôture](../../confidentialite.html#vos-droits-et-la-cloture).
+
 **Préparation technique ; activation hébergée bloquée.** Base `7b0bc77fbc3c8c3b341386a5cd681763ecdbc29e`, fusion #22 vérifiée. [Validation exécutée](../archives/validations/VALIDATION-LOT6-4-3.md). Les décisions [D01–D14](../rgpd/DECISIONS-A-VALIDER.md) restent ouvertes. Cette architecture ne décide ni du bien-fondé d'une demande RGPD, ni des exceptions de conservation. Le prototype local ne doit pas être déployé tel quel : il refuse matériellement une URL Supabase hébergée.
 
 ## Périmètres indépendants

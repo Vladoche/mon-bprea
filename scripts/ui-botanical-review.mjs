@@ -249,7 +249,7 @@ async function styles(control) {
   });
 }
 
-async function captureButtonStates(page, directory, controls, brightness, name, title, target, { header = false, disabled = false } = {}) {
+export async function captureButtonStates(page, directory, controls, brightness, name, title, target, { header = false, disabled = false } = {}) {
   await page.mouse.move(0, 0);
   await page.evaluate(() => document.activeElement?.blur());
   const row = { brightness, name, title, states: {}, figures: [] };

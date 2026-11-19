@@ -79,7 +79,11 @@ Le défaut `assets/auth-config.json` reste désactivé. Aucune migration/RLS/RPC
 
 ## Emplacement des commandes depuis PR2
 
-Les commandes détaillées cours/QCM sont regroupées dans `profil.html#parametres`, section `#donnees-synchronisation` : actualisation, import confirmé et conflits réutilisent le panneau existant. Les pages pédagogiques gardent leurs abonnements, sauvegardes automatiques et une notice lorsque l’état exige une attention. Aucun changement des clés, calculs ou contrats de persistance. Voir la [validation PR2](../validations/VALIDATION-UI-2027-PR2.md).
+Le panneau `profil.html#donnees-synchronisation` regroupe l’actualisation,
+l’import confirmé de l’historique visiteur et la résolution des conflits. Les
+pages pédagogiques gèrent leurs abonnements, sauvegardes automatiques et
+notices d’attention. L’import visiteur utilise uniquement les cours et QCM
+locaux autorisés après confirmation. [Validation PR5 lot 1](../validations/VALIDATION-UI-2027-PR5-LOT1.md).
 
 ## Présentation QCM 2027 — PR3 lot 2
 

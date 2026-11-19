@@ -1,8 +1,17 @@
 # Consultation et copie des données personnelles — lot 6.4.2
 
+**Accès à partir de PR5 lot 1.** L’export JSON en libre-service est retiré du
+profil partagé. La préparation et le téléchargement sont exercés sur une page
+servie uniquement dans les tests. Le code, le format JSON v1 et les contrats
+d’accès documentés ici restent disponibles pour la maintenance technique.
+Les demandes de copie passent par le contact existant de Mon BPREA.
+[Contact](../../contact.html) · [Confidentialité](../../confidentialite.html).
+
 **Complément 6.5.4.A :** « Restaurer une sauvegarde » comprend les copies de compte v1 sans changer leur format ni leurs exclusions. [Architecture et matrice](RESTAURATION-DONNEES-PERSONNELLES.md), [preuves](../archives/validations/VALIDATION-LOT6-5-4A.md). Analyse sans écriture, Auth fraîche, même portée et confirmation obligatoires. Les sources absentes/exclues, séries Drill absentes, révisions historiques et manifestes incomplets ne sont pas récupérés intégralement. Une copie partielle ne devient pas une sauvegarde d'Auth ou un dump PostgreSQL restaurable.
 
-Le profil propose **Mes données personnelles** : préparation d'une copie du compte après vérification serveur et consultation/téléchargement d'une sélection locale distincte. Site statique, fichier JSON construit sur l'appareil, sans nouveau prestataire, bibliothèque, RPC, migration ou privilège. Auth publique reste désactivée ; aucune ouverture ou suppression dans ce lot.
+L’ancien panneau **Mes données personnelles** permet de préparer une copie du
+compte après vérification serveur et de choisir séparément une sélection
+locale. Le moteur construit le fichier JSON dans le navigateur.
 
 Cette fonctionnalité technique ne traite pas à elle seule toutes les demandes d'accès/copie (art. 12/15), et ne décide pas de l'applicabilité de la portabilité (art. 20). Celle-ci dépend notamment des bases et données concernées. **D01–D14 restent non validées.** Sources officielles consultées le **27/10/2026** : [CNIL, réponse au droit d'accès](https://www.cnil.fr/fr/repondre-une-demande-de-droit-dacces), [CNIL, portabilité](https://www.cnil.fr/fr/respecter-les-droits-des-personnes/professionnels-comment-repondre-une-demande-de-droit-la-portabilite), [RGPD, articles 12/15/20 sur CNIL](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3). Le projet de politique 6.4.1 n'est pas publié comme notice validée.
 
@@ -18,7 +27,9 @@ Cette fonctionnalité technique ne traite pas à elle seule toutes les demandes 
 | [export-ui.js](../../assets/export-ui.js), [export.css](../../assets/export.css) | Deux parcours, avertissement appareil partagé, choix explicites, états accessibles et téléchargement Blob temporaire. HTML fixe uniquement ; contenu local autorisé en `textContent`. |
 | [auth-service.js](../../assets/auth-service.js) | Service existant : `getExportIdentity()` ajoute une projection limitée après `requireUser/getUser` serveur. `getIdentityVersion()` expose uniquement le compteur non secret de changement d'identité. `verifiedSession` partagé reste la frontière des requêtes. |
 
-`auth-pages.js` monte la section une fois sur le profil, séparément du panneau de profil qui se recharge. Nettoyage sur pagehide et reconstruction lors du retour BFCache. Aucun export ne démarre au chargement. Aucun accès administratif dans le navigateur.
+`initExportUI()` monte le panneau sur la page de test réservée aux suites
+Playwright. La préparation reste une action explicite. Les pages étudiantes
+chargent leurs propres services directement.
 
 ### Identité et générations
 

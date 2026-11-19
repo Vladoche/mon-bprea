@@ -1,9 +1,9 @@
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { readFile } from 'node:fs/promises';
 import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/drill-local.js';
-import { LOCAL_SITE } from '../helpers/auth-local.js';
 import { personalScope } from '../../assets/drill-personal-store.js';
 import { emptyPersonalDocument, mutateCourse } from '../../assets/course-quiz-model.js';
 import { TABLES } from '../../assets/export-sources.js';
@@ -46,7 +46,7 @@ test('Export réel : dix tables, pagination, caches en attente, RLS A/B et sessi
     // Only writes are interrupted to keep an actual pending intention. Auth,
     // SQL reads, RLS and downloaded data still use the real ephemeral backend.
     await page.route(`${a.environment.url}/rest/v1/rpc/**`, route => route.abort('failed'));
-    await signInDrill(page, a); await page.goto(`${LOCAL_SITE}profil.html`);
+    await signInDrill(page, a); await openMaintenanceFixture(page);
     await stopOrdinarySync(page);
     const fileA = await copy(page);
     expect(fileA.data.identity.id === a.userId).toBe(true);
@@ -68,7 +68,7 @@ test('Export réel : dix tables, pagination, caches en attente, RLS A/B et sessi
     await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
     await expect(page.locator('[data-export-download]')).toBeDisabled();
-    await signInDrill(page, b); await page.goto(`${LOCAL_SITE}profil.html`); const fileB = await copy(page);
+    await signInDrill(page, b); await openMaintenanceFixture(page); const fileB = await copy(page);
     expect(fileB.sourceScope.userId === b.userId).toBe(true); expect(fileB.data.server.quiz_attempts.length === 2).toBe(true);
     expect(JSON.stringify(fileB).includes(a.userId)).toBe(false); expect(JSON.stringify(fileB).includes('export-local-uniquement')).toBe(false);
     expect(JSON.stringify(await sqlSnapshot(b)) === JSON.stringify(beforeB)).toBe(true);

@@ -9,6 +9,13 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Mon profil 2027, PR5 lot 1**. Compte, apparence et synchronisation des
+  cours et QCM dans trois sections avec accès direct. Le profil affiche le
+  pseudo confirmé et guide la sauvegarde. Export JSON, restauration JSON et
+  effacement sortent du profil partagé. Le contact reste accessible pour les
+  demandes de copie ou de suppression.
+  [Validation](docs/validations/VALIDATION-UI-2027-PR5-LOT1.md).
+
 - **Photothèque botanique enrichie**. 24 plantes à reconnaître, ouverture des
   Légumineuses et 11 comparaisons documentées qui favorisent les propositions
   proches. Les corrections distinguent bonnes et mauvaises réponses par une

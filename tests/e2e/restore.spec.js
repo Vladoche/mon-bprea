@@ -1,3 +1,4 @@
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { createExportAPI, accounts, exportOrigin } from './export-api.js';
@@ -5,7 +6,6 @@ import { archive, emptyServer, restoreRows, uuid } from '../fixtures/restore.js'
 import { stopOrdinarySync } from '../helpers/export-browser.js';
 import { personalRecords } from '../helpers/personal-browser.js';
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
-const path = '/mon-bprea/profil.html';
 function backup() {
   const rows = emptyServer(); rows.quiz_attempts = restoreRows().quiz_attempts.map((row, index) => ({ ...row, user_id: accounts.A.id, attempt_id: uuid(900 + index), lesson_id: 'restore-json' }));
   const file = archive(rows); file.sourceScope.userId = accounts.A.id; file.data.identity.id = accounts.A.id;
@@ -17,7 +17,7 @@ async function select(page, value = backup()) {
 }
 async function setup(page, account = 'A') {
   await page.clock.install({ time: new Date('2026-10-29T12:00:00Z') });
-  const api = createExportAPI(); await api.install(page.context(), account); await page.goto(path);
+  const api = createExportAPI(); await api.install(page.context(), account); await openMaintenanceFixture(page);
   if (account) { await expect(page.locator('[data-export-prepare]')).toBeEnabled(); await stopOrdinarySync(page); }
   return api;
 }

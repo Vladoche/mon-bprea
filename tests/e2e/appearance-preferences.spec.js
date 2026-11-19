@@ -4,7 +4,7 @@ const KEY = 'bprea-demo-appearance-device-v1';
 const ARCHIVED = 'bprea-demo-appearance-v1';
 const LEGACY = 'bprea-demo-theme-v1';
 const now = new Date('2026-10-20T08:00:00.000Z');
-const openAppearance = page => page.getByRole('button', { name: 'Paramètres d’apparence', exact: true });
+const openAppearance = page => page.getByRole('button', { name: 'Régler l’apparence', exact: true });
 const dialogFor = page => page.getByRole('dialog', { name: 'Ton apparence', exact: true });
 
 test.beforeEach(async ({ page }) => {

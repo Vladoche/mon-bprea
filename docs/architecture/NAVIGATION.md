@@ -144,7 +144,13 @@ L’icône clair/sombre du header est indépendante des menus. Elle reste access
 
 ## Compatibilité et validation
 
-Les URL existantes, paramètres de cours/UC et filtres documentaires sont conservés. Le libellé **Exercices hebdomadaires** désigne `drill.html` sans changer les séries, calculs, identifiants ou clés. Les cours/QCM gardent leurs sauvegardes automatiques et abonnements ; leurs commandes détaillées se trouvent dans `profil.html#parametres`, section `#donnees-synchronisation`. Les autres domaines conservent leurs contrôles sur leurs pages.
+Les URL existantes, paramètres de cours/UC et filtres documentaires sont conservés. Le libellé **Exercices hebdomadaires** désigne `drill.html` sans changer les séries, calculs, identifiants ou clés. Les commandes détaillées des cours et QCM se trouvent dans `profil.html#donnees-synchronisation`. Les autres domaines conservent leurs contrôles sur leurs pages.
+
+Les trois sections de Profil portent des ancres présentes dans le document.
+Le header relie **Informations du compte** et **Paramètres**. Les notices des
+cours et QCM mènent directement à **Données et synchronisation**. En bas du
+profil, **Contact et assistance** et **Confidentialité** donnent accès au
+canal de demande et aux informations sur les droits.
 
 Le frontend reste statique ; le mode personnel utilise le backend configuré et les services de synchronisation existants. Le menu ne lit ni n’écrit la progression. Les cartes et la synthèse utilisent les sources visiteur/personnelles vérifiées par leurs services, avec les limites et confirmations distantes décrites dans les contrats.
 

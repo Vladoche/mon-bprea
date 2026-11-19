@@ -135,16 +135,17 @@ test('profil : commandes cours/QCM et ancre Paramètres avec apparence conservé
   const api = createCourseQuizAPI(); await api.install(page.context(), 'A', null, prefix);
   await page.goto(prefix + 'profil.html#parametres'); await synced(page);
   const settings = page.locator('#parametres');
-  await expect(settings.getByRole('heading', { name: 'Données et synchronisation', exact: true })).toBeVisible();
-  await expect(settings.getByRole('button', { name: 'Actualiser la progression', exact: true })).toBeVisible();
-  await expect(settings.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true })).toBeVisible();
-  await settings.getByRole('button', { name: 'Actualiser la progression', exact: true }).click(); await synced(page);
-  await settings.getByRole('button', { name: 'Paramètres d’apparence' }).click();
+  const sync = page.locator('#donnees-synchronisation');
+  await expect(sync.getByRole('heading', { name: 'Données et synchronisation', exact: true })).toBeVisible();
+  await expect(sync.getByRole('button', { name: 'Actualiser la progression', exact: true })).toBeVisible();
+  await expect(sync.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true })).toBeVisible();
+  await sync.getByRole('button', { name: 'Actualiser la progression', exact: true }).click(); await synced(page);
+  await settings.getByRole('button', { name: 'Régler l’apparence' }).click();
   await expect(page.locator('#appearance-dialog')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(settings.getByRole('button', { name: 'Paramètres d’apparence' })).toBeFocused();
+  await expect(settings.getByRole('button', { name: 'Régler l’apparence' })).toBeFocused();
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await capture(settings, 'pr2-profile-data-sync.png', testInfo);
+  await capture(sync, 'pr2-profile-data-sync.png', testInfo);
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Profil ${width}px`).toBe(true);
@@ -153,7 +154,7 @@ test('profil : commandes cours/QCM et ancre Paramètres avec apparence conservé
   await page.setViewportSize({ width: 320, height: 1000 });
   const profileReflow = await page.evaluate(() => ({ width: innerWidth, total: document.documentElement.scrollWidth, overflow: [...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 1).map(node => ({ tag: node.tagName, class: node.className, text: node.textContent.slice(0, 80), width: node.getBoundingClientRect().width })).slice(0, 10) }));
   expect(profileReflow.total, JSON.stringify(profileReflow)).toBeLessThanOrEqual(profileReflow.width);
-  expect(await settings.locator('#course-quiz-refresh').evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(26);
+  expect(await sync.locator('#course-quiz-refresh').evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(26);
   for (const file of ['index.html', 'mes-cours.html', 'uc.html?id=uc3', 'cours.html?id=matiere-organique', 'exercices.html?id=matiere-organique']) {
     await page.goto(prefix + file); await synced(page);
     await expect(page.locator('.course-quiz-panel, .course-quiz-actions')).toHaveCount(0);

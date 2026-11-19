@@ -115,6 +115,7 @@ jobs:
           node scripts/measure-ui-foundations.mjs --page 'ressources.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-resources.json --runs 3
           node scripts/measure-ui-foundations.mjs --page 'ressources.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-resources-600.json --runs 3 --large-catalog
           node scripts/measure-ui-foundations.mjs --page 'reconnaissance-plantes.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-botanical.json --runs 3
+          node scripts/measure-ui-foundations.mjs --page 'profil.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-profile.json --runs 3
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()
         uses: actions/upload-artifact@v7
@@ -129,6 +130,7 @@ jobs:
             .tmp/ui-2027-foundations/itk-review/
             .tmp/ui-2027-foundations/review/
             .tmp/ui-2027-foundations/botanical-review/
+            .tmp/ui-2027-foundations/profile-review/
             .tmp/ui-2027-foundations/parite.json
           retention-days: 14
           if-no-files-found: ignore

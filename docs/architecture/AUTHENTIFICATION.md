@@ -59,11 +59,25 @@ La configuration publique versionnée est **désactivée**. Aucun secret adminis
 | `connexion.html` | E-mail et mot de passe, sans formulaire d’inscription. |
 | `mot-de-passe-oublie.html` | Information de récupération assistée sans collecte d’adresse ni envoi, également sans JavaScript. |
 | `authentification.html` | Retour unique d’invitation et de récupération, puis définition du mot de passe. |
-| `profil.html` | E-mail Auth, date du compte et pseudo facultatif. |
+| `profil.html`, `assets/profile.css` | Informations du compte, paramètres d’apparence et suivi de la sauvegarde des cours et QCM. |
 | `scripts/admin-generate-auth-link.mjs`, `scripts/auth-link-local.mjs` | Administration Node locale : confirmation, contrôle de compte, generateLink et remise unique ; exclus de Pages. |
 | `scripts/admin-generate-prod-auth-link.mjs`, `scripts/prod-auth/` | Exécuteur Node PROD séparé : cible fixe, contrôles et confirmation individuelle, capacité, réservation durable et remise par fichier privé ; exclus de Pages, aucune utilisation réelle dans cette intervention. |
 | `tools/mon-bprea-admin/` | Application Windows V2 autonome : trois actions, coffre automatique, résultats DPAPI, contrôles et journaux compatibles ; suppression PROD bloquée, qualification réelle sur stack locale distincte uniquement. |
 | `supabase/migrations/` | Définition versionnée du modèle, des contraintes et des droits. |
+
+Le profil affiche l’e-mail Auth, la date en français (Europe/Paris) et le
+pseudo confirmé. La saisie reste disponible si l’enregistrement échoue. Une
+identité reconnue localement hors ligne permet d’afficher l’état de connexion
+et de demander sa vérification. L’affichage du compte exige une identité
+confirmée par le serveur. Au départ de la page, les vues privées sont retirées.
+Lors d’un retour BFCache, le profil recharge le document pour recréer la
+vérification Auth et les abonnements de synchronisation.
+
+Le profil propose la récupération assistée et la déconnexion. Les opérations
+JSON et d’effacement sont retirées des parcours étudiants dans PR5 lot 1. Le
+contact existant traite les demandes individuelles de copie et de suppression.
+L’import confirmé des cours et QCM reste accessible dans sa propre section.
+[Contact](../../contact.html) · [Confidentialité](../../confidentialite.html) · [Synchronisation des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md).
 
 `@supabase/supabase-js` **2.118.0** est verrouillé dans les dépendances de développement ; `esbuild` **0.28.2** prépare `assets/vendor/supabase.js`. Le navigateur charge ce fichier local, sans CDN, import npm ni serveur Node.js. Après une mise à jour volontaire du SDK, conserver manifeste et verrou ensemble, reconstruire puis tester :
 
@@ -203,7 +217,7 @@ Le client filtre et vérifie aussi l’UUID pour limiter les erreurs d’interfa
 
 ## Sessions et limites du navigateur
 
-Le SDK conserve la session dans son stockage navigateur avec la clé dédiée `bprea-auth-<hôte Supabase>-<chemin du site>`. Il gère access token, refresh token, rotation et renouvellement automatique. `detectSessionInUrl` est désactivé ; aucun JWT artisanal n’est créé par l’application. Le service restaure via `getSession()`, confirme l’identité par `getUser()` puis publie `loading`, `anonymous`, `authenticated`, `unavailable` ou `error`. Avant de lire ou modifier un profil, il vérifie à nouveau l’utilisateur côté Auth. Des révisions d’état empêchent une réponse d’un ancien compte de réapparaître après changement de session.
+Le SDK conserve la session dans son stockage navigateur avec la clé dédiée `bprea-auth-<hôte Supabase>-<chemin du site>`. Il gère access token, refresh token, rotation et renouvellement automatique. `detectSessionInUrl` est désactivé ; aucun JWT artisanal n’est créé par l’application. Le service restaure via `getSession()`, confirme l’identité par `getUser()` puis publie `loading`, `anonymous`, `authenticated`, `offline`, `unavailable` ou `error`. Avant de lire ou modifier un profil, il vérifie à nouveau l’utilisateur côté Auth. Des révisions d’état empêchent une réponse d’un ancien compte de réapparaître après changement de session.
 
 La déconnexion appelle `signOut({ scope: 'local' })`, invalide la session concernée et met immédiatement à jour l’interface lorsque l’appel réussit. Elle ne déconnecte pas intentionnellement tous les appareils. **Un access token déjà émis peut rester utilisable jusqu’à son expiration**, même après révocation du refresh token. PostgREST applique en outre une tolérance d’horloge de 30 secondes sur `exp`, `iat` et `nbf` : le test réel attend cette marge avant d’exiger son refus. Aucune révocation instantanée des JWT n’est revendiquée. Voir [signOut](https://supabase.com/docs/reference/javascript/auth-signout), le [fonctionnement des sessions](https://supabase.com/docs/guides/auth/sessions) et la [validation temporelle PostgREST](https://docs.postgrest.org/en/stable/references/auth.html#jwt-claims-validation).
 
