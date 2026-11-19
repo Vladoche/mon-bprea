@@ -145,6 +145,64 @@ test('Découverte depuis Outils : session complète, corrections, historique et 
   for (const [key, value] of Object.entries(existing)) expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe(value);
 });
 
+test('les 24 photos sont jouables et les plantes proches figurent parmi les propositions', async ({ page }) => {
+  await page.goto(`${prefix}reconnaissance-plantes.html`);
+  const seen = new Set();
+  const categories = [['petits-fruits', 7], ['legumineuses', 4], ['fleurs', 7], ['legumes', 6]];
+  for (const [category, count] of categories) {
+    const card = page.locator(`[data-category="${category}"]`);
+    await expect(card).toContainText(`${count} espèces`);
+    await card.click();
+    await page.getByRole('button', { name: 'Commencer la session' }).click();
+    for (let index = 0; index < count; index++) {
+      await expect(page.locator('#bot-question-heading')).toHaveText(`Question ${index + 1} sur ${count}`);
+      const photo = await questionPhoto(page);
+      const image = page.locator('.bot-photo-frame img');
+      expect(await image.evaluate(node => [node.naturalWidth, node.naturalHeight])).toEqual([photo.width, photo.height]);
+      expect(seen.has(photo.id)).toBe(false);
+      seen.add(photo.id);
+      if (photo.speciesId === 'cassissier') {
+        const choices = page.getByRole('group', { name: 'Quatre propositions' });
+        for (const name of ['Groseillier à grappes', 'Myrtillier en corymbe', 'Ronce à feuilles d’orme']) {
+          await expect(choices.getByRole('button', { name, exact: true })).toBeVisible();
+        }
+      }
+      if (photo.speciesId === 'cosmos') {
+        await expect(page.getByRole('button', { name: 'Zinnia élégant', exact: true })).toBeVisible();
+      }
+      await answerQuestion(page);
+      await page.getByRole('button', { name: index + 1 === count ? 'Voir les résultats' : 'Question suivante' }).click();
+    }
+    await expect(metric(page.locator('#bot-content'), 'Questions réalisées')).toHaveText(String(count));
+    await page.getByRole('button', { name: 'Choisir une nouvelle session', exact: true }).click();
+  }
+  expect([...seen].sort()).toEqual(bank.photos.map(photo => photo.id).sort());
+  expect((await savedState(page)).answers).toHaveLength(24);
+});
+
+test('les corrections animent une fois le résultat et respectent la réduction des mouvements', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.goto(`${prefix}reconnaissance-plantes.html`);
+  await startSession(page);
+  await page.evaluate(() => {
+    window.botanicalAnimations = [];
+    document.addEventListener('animationstart', event => {
+      if (event.target.matches('.bot-outcome')) window.botanicalAnimations.push(event.animationName);
+    });
+  });
+  await answerQuestion(page);
+  await expect.poll(() => page.evaluate(() => window.botanicalAnimations)).toEqual(['bot-correct']);
+  await page.getByRole('button', { name: 'Question suivante' }).click();
+  await answerQuestion(page, { correct: false });
+  await expect.poll(() => page.evaluate(() => window.botanicalAnimations)).toEqual(['bot-correct', 'bot-incorrect']);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(page.locator('.bot-outcome')).toHaveCSS('animation-name', 'none');
+  await page.getByRole('button', { name: 'Question suivante' }).click();
+  await answerQuestion(page);
+  await expect(page.locator('.bot-outcome')).toHaveCSS('animation-name', 'none');
+  expect(await page.evaluate(() => window.botanicalAnimations)).toEqual(['bot-correct', 'bot-incorrect']);
+});
+
 test('les sources photographiques sont consultables au clavier dans le volet sous le jeu', async ({ page }) => {
   await page.goto(`${prefix}reconnaissance-plantes.html`);
   await startSession(page);
