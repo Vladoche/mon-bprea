@@ -244,6 +244,10 @@ test.describe('Écran tactile', () => {
     await page.setViewportSize({ width: 390, height: 1000 });
     await page.addStyleTag({ content: 'html { font-size: 200%; }' });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+    const toolbar = await page.locator('.calendar-toolbar').boundingBox();
+    const field = await page.getByLabel('Aller au mois').boundingBox();
+    expect(field.x).toBeGreaterThanOrEqual(toolbar.x);
+    expect(field.x + field.width).toBeLessThanOrEqual(toolbar.x + toolbar.width);
     await expect(button).toBeVisible();
   });
 });

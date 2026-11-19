@@ -40,6 +40,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   gap: var(--space-2);
 }
 
