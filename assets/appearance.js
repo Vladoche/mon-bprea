@@ -30,7 +30,7 @@ export function initAppearance() {
   dialog.innerHTML = `
     <form method="dialog" class="appearance-heading">
       <h2 id="appearance-title">Ton apparence</h2>
-      <button class="appearance-close" type="submit" aria-label="Fermer les paramètres d’apparence" autofocus>×</button>
+      <button class="btn btn-surface appearance-close" type="submit" aria-label="Fermer les paramètres d’apparence" autofocus>×</button>
     </form>
     <p id="appearance-description">Choisis la saison et la luminosité qui te conviennent. Ces deux réglages sont indépendants.</p>
     <div class="appearance-fields">
@@ -58,13 +58,13 @@ export function initAppearance() {
     <div id="appearance-device" hidden>
       <p id="appearance-device-help">Tu peux garder ta saison et ta luminosité pour les prochaines pages de ce navigateur. Le retrait laisse le rendu actuel sur cette page.</p>
       <div class="appearance-sync-actions" role="group" aria-label="Apparence de cet appareil" aria-describedby="appearance-device-help">
-        <button type="button" class="btn btn-outline" id="appearance-remember">Mémoriser mon apparence sur cet appareil</button>
-        <button type="button" class="btn btn-outline" id="appearance-forget" hidden>Retirer l’apparence mémorisée</button>
-        <button type="button" class="btn btn-outline" id="appearance-recall">Reprendre une ancienne apparence</button>
+        <button type="button" class="btn btn-surface" id="appearance-remember">Mémoriser mon apparence sur cet appareil</button>
+        <button type="button" class="btn btn-surface" id="appearance-forget" hidden>Retirer l’apparence mémorisée</button>
+        <button type="button" class="btn btn-surface" id="appearance-recall">Reprendre une ancienne apparence</button>
       </div>
     </div>
-    <div class="appearance-sync-actions"><button type="button" class="btn btn-outline" id="appearance-sync-refresh" hidden>Actualiser l’apparence</button><button type="button" class="btn btn-outline" id="appearance-restore" hidden>Utiliser la version du compte</button><button type="button" class="btn btn-outline" id="appearance-import" hidden>Examiner les choix locaux</button></div><div id="appearance-conflicts"></div><p id="appearance-action-message" role="status"></p>
-    <section id="appearance-import-preview" hidden aria-labelledby="appearance-import-title"><h3 id="appearance-import-title">Importer les choix d’apparence</h3><p>Ces choix viennent du mode visiteur de cet appareil. Confirme seulement s’ils t’appartiennent. La source et ses archives restent conservées.</p><p id="appearance-import-values"></p><p id="appearance-import-message" role="status"></p><button type="button" class="btn btn-primary" id="appearance-import-confirm">Confirmer l’import d’apparence</button><button type="button" class="btn btn-outline" id="appearance-import-cancel">Annuler l’import</button></section>`;
+    <div class="appearance-sync-actions"><button type="button" class="btn btn-surface" id="appearance-sync-refresh" hidden>Actualiser l’apparence</button><button type="button" class="btn btn-surface" id="appearance-restore" hidden>Utiliser la version du compte</button><button type="button" class="btn btn-surface" id="appearance-import" hidden>Examiner les choix locaux</button></div><div id="appearance-conflicts"></div><p id="appearance-action-message" role="status"></p>
+    <section id="appearance-import-preview" hidden aria-labelledby="appearance-import-title"><h3 id="appearance-import-title">Importer les choix d’apparence</h3><p>Ces choix viennent du mode visiteur de cet appareil. Confirme seulement s’ils t’appartiennent. La source et ses archives restent conservées.</p><p id="appearance-import-values"></p><p id="appearance-import-message" role="status"></p><div class="appearance-sync-actions"><button type="button" class="btn btn-surface btn-surface--accent" id="appearance-import-confirm">Confirmer l’import d’apparence</button><button type="button" class="btn btn-surface" id="appearance-import-cancel">Annuler l’import</button></div></section>`;
   document.body.append(dialog);
   const season = dialog.querySelector('#appearance-season');
   const brightness = dialog.querySelector('#appearance-brightness');
@@ -221,7 +221,7 @@ export function initAppearance() {
       renderStatus(state); available();
       find('appearance-sync-refresh').hidden = state.mode === 'visitor';
       find('appearance-import').hidden = !usable;
-      const nextMarkup = (state.sync.conflicts || []).filter(item => item.domain === 'appearance').map(item => `<details data-appearance-conflict="${clean(item.id)}"><summary>${item.resolved ? 'Conflit d’apparence archivé' : 'Conflit d’apparence à résoudre'}</summary><p>Choix de cet appareil : ${clean(describe(item.local?.value || item.local))}</p><p>Version du compte : ${clean(describe(item.remote?.value || item.remote))}</p>${item.resolved ? '' : `<button type="button" class="btn btn-outline" data-appearance-resolve="${clean(item.id)}" data-choice="remote">Garder la version du compte</button><button type="button" class="btn btn-outline" data-appearance-resolve="${clean(item.id)}" data-choice="local">Utiliser mon choix enregistré sur cet appareil</button>`}</details>`).join('');
+      const nextMarkup = (state.sync.conflicts || []).filter(item => item.domain === 'appearance').map(item => `<details data-appearance-conflict="${clean(item.id)}"><summary>${item.resolved ? 'Conflit d’apparence archivé' : 'Conflit d’apparence à résoudre'}</summary><p>Choix de cet appareil : ${clean(describe(item.local?.value || item.local))}</p><p>Version du compte : ${clean(describe(item.remote?.value || item.remote))}</p>${item.resolved ? '' : `<div class="appearance-sync-actions"><button type="button" class="btn btn-surface" data-appearance-resolve="${clean(item.id)}" data-choice="remote">Garder la version du compte</button><button type="button" class="btn btn-surface" data-appearance-resolve="${clean(item.id)}" data-choice="local">Utiliser mon choix enregistré sur cet appareil</button></div>`}</details>`).join('');
       if (markup !== nextMarkup) {
         const container = find('appearance-conflicts'); const opened = [...container.querySelectorAll('details[open]')].map(node => node.dataset.appearanceConflict);
         const focused = container.contains(document.activeElement) ? document.activeElement : null;

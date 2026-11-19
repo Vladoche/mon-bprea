@@ -354,7 +354,7 @@ test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${prefix}outils.html`);
   await page.locator('footer').getByRole('link', { name: 'Paramètres', exact: true }).click();
-  await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
+  await page.getByRole('button', { name: 'Régler l’apparence' }).click();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('winter');
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
   await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
@@ -375,7 +375,7 @@ test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au 
   await expect(page.locator('#bot-feedback').getByRole('heading', { level: 2 })).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.locator('footer').getByRole('link', { name: 'Paramètres', exact: true }).click();
-  await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
+  await page.getByRole('button', { name: 'Régler l’apparence' }).click();
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('light');
   await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
   await page.keyboard.press('Escape');

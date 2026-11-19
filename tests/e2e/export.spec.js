@@ -1,3 +1,4 @@
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 import { test, expect } from '@playwright/test';
 import { readFile, mkdir } from 'node:fs/promises';
 import { createExportAPI, accounts } from './export-api.js';
@@ -9,7 +10,6 @@ import { emptySettingsDocument, queueSettings } from '../../assets/settings-mode
 import { questions, stamp, uuid, parameters } from '../fixtures/export.js';
 import { botanicalSession, botanicalAnswer } from '../fixtures/personal-data.js';
 import { stopOrdinarySync } from '../helpers/export-browser.js';
-const path = '/mon-bprea/profil.html';
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 test.beforeEach(async ({ page }) => { await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') }); });
 async function parseDownload(download) { return JSON.parse(await readFile(await download.path(), 'utf8')); }
@@ -36,7 +36,7 @@ async function switchAccount(page, name) {
   }, accounts[name]);
 }
 test('copie réelle JSON téléchargée : dix tables, 205 tentatives, secrets exclus et clavier/mobile', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page);
   await prepare(page); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
   await captures(page, 'pret');
   const file = await download(page);
@@ -47,7 +47,7 @@ test('copie réelle JSON téléchargée : dix tables, 205 tentatives, secrets ex
   expect(api.writes).toEqual([]);
 });
 test('réponse A tardive, bascule B puis retour A : aucun ancien téléchargement autorisé', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page);
   let release, entered; const waiting = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });
   api.hold = async table => { if (table === 'drill_series') { entered(); await waiting; } };
   await prepare(page); await reached; await captures(page, 'preparation'); await switchAccount(page, 'B'); release(); api.hold = null;
@@ -58,7 +58,7 @@ test('réponse A tardive, bascule B puis retour A : aucun ancien téléchargemen
   expect((await download(page)).sourceScope.userId).toBe(accounts.A.id);
 });
 test('erreur de page tardive, nouvelle tentative, annulation et refus Auth au téléchargement', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path); api.failLast = true;
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page); api.failLast = true;
   await prepare(page); await expect(page.locator('[data-export-status]')).toContainText('Export incomplet'); await expect(page.locator('[data-export-download]')).toBeDisabled();
   await captures(page, 'incomplet');
   api.failLast = false; await prepare(page); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
@@ -71,7 +71,7 @@ test('erreur de page tardive, nouvelle tentative, annulation et refus Auth au t�
 });
 test('visiteur : sélection locale explicite, raw étranger exclu et sauvegarde intacte', async ({ page }) => {
   const raw = JSON.stringify({ lesson: { done: false, score: 0, quizScoreArchive: ['FOREIGN_PRIVATE'] } });
-  const api = createExportAPI(); await api.install(page.context(), null, { 'bprea-demo-progress-v1': raw }); await page.goto(path);
+  const api = createExportAPI(); await api.install(page.context(), null, { 'bprea-demo-progress-v1': raw }); await openMaintenanceFixture(page);
   await expect(page.locator('[data-export-prepare]')).toBeDisabled(); await expect(page.locator('[data-export-device]')).toBeDisabled();
   await expect(page.locator('[data-export-sources] input')).toHaveCount(0);
   await page.getByRole('button', { name: 'Rechercher les sauvegardes locales' }).click();
@@ -85,7 +85,7 @@ test('visiteur : sélection locale explicite, raw étranger exclu et sauvegarde 
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe(raw);
 });
 test('quatre caches personnels, opérations et archives : couverture limitée honnête, sources A/B intactes', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page);
   await expect(page.locator('[data-export-prepare]')).toBeEnabled();
   await stopOrdinarySync(page);
   const scope = JSON.stringify(['development', 'https://export.invalid', accounts.A.id]);
@@ -120,10 +120,10 @@ test('quatre caches personnels, opérations et archives : couverture limitée ho
   expect(after === before).toBe(true);
 });
 test('le message du pseudo reste indépendant des nouveaux statuts de copie', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page);
   await page.getByLabel('Pseudo (facultatif)', { exact: true }).fill('Pseudo fictif modifié');
   await page.getByRole('button', { name: 'Enregistrer le pseudo', exact: true }).click();
-  const account = page.getByRole('region', { name: 'Compte personnel', exact: true });
+  const account = page.getByRole('region', { name: 'Informations du compte', exact: true });
   await expect(account.getByRole('status')).toHaveText('Ton pseudo a été enregistré.');
   await expect(page.locator('[data-export-status]')).toHaveText('La préparation n’a pas commencé.');
   await expect(page.getByLabel('Pseudo (facultatif)', { exact: true })).toHaveValue('Pseudo fictif modifié');

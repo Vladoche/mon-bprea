@@ -1,8 +1,6 @@
 import { getAuthService } from './auth-service.js';
 import { validateCredentials, validatePassword, validatePseudo } from './auth-validation.js';
 import { renderBreadcrumbs } from './breadcrumbs.js';
-import { initExportUI } from './export-ui.js';
-import { initErasureUI } from './erasure-ui.js';
 import { getCourseQuizService } from './course-quiz-service.js';
 import { initCourseQuizPanel } from './course-quiz-ui.js';
 
@@ -12,7 +10,6 @@ const descriptions = {
   'auth-login': ['Connexion', 'Retrouve ton espace personnel avec ton compte invité.'],
   'auth-reset': ['Mot de passe oublié', 'Une récupération personnelle, avec la personne qui t’a invité.'],
   'auth-callback': ['Activation et mot de passe', 'Finalise ton invitation ou réinitialise ton mot de passe.'],
-  profile: ['Mon profil', 'Les informations de ton compte et ton pseudo.'],
 };
 const emailField = `<div class="auth-field"><label for="auth-email">Adresse e-mail</label><input id="auth-email" name="email" type="email" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="254" required></div>`;
 const passwordFields = `<div class="auth-field"><label for="auth-password">Nouveau mot de passe</label><input id="auth-password" name="password" type="password" autocomplete="new-password" aria-describedby="auth-password-help" required><small id="auth-password-help">De 12 à 128 caractères. Choisis un mot de passe unique pour ce compte.</small></div><div class="auth-field"><label for="auth-confirmation">Confirmer le mot de passe</label><input id="auth-confirmation" name="confirmation" type="password" autocomplete="new-password" required></div>`;
@@ -22,23 +19,21 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   if (!root) return;
   controllers.get(root)?.();
   const page = document.body.dataset.page;
+  if (page === 'profile') {
+    controllers.set(root, initProfilePage(root));
+    return;
+  }
   if (!descriptions[page]) return;
   const abort = new AbortController();
   let unsubscribe = () => {};
   let disposed = false;
-  let disposeExport = () => {};
-  let disposeErasure = () => {};
-  let disposeCourseQuiz = () => {};
   const dispose = () => {
     disposed = true;
     abort.abort();
     unsubscribe();
-    disposeExport();
-    disposeErasure();
-    disposeCourseQuiz();
     link = null;
     for (const input of root.querySelectorAll('input[type="password"]')) input.value = '';
-    if (page === 'profile' || page === 'auth-callback') root.textContent = 'Vérification de la session…';
+    if (page === 'auth-callback') root.textContent = 'Vérification de la session…';
   };
   controllers.set(root, dispose);
   window.addEventListener('pagehide', dispose, { once: true, signal: abort.signal });
@@ -49,41 +44,10 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   // The callback document captured and removed these values before loading modules.
   let link = page === 'auth-callback' ? window.__bpreaAuthLink : null;
   if (page === 'auth-callback') delete window.__bpreaAuthLink;
-  root.innerHTML = `<section class="page-top wrap auth-top">${renderBreadcrumbs(page)}<div class="page-eyebrow">TON ESPACE PERSONNEL</div><h1></h1><p></p><p class="auth-help"><a href="confidentialite.html#compte-et-invitation">Confidentialité du compte et des invitations</a></p>${page === 'profile' ? '<p class="auth-help"><a href="confidentialite.html#vos-droits-et-la-cloture">Vos droits et la clôture</a> · <a href="confidentialite.html#stockage-sur-votre-appareil">Données sur cet appareil</a></p>' : ''}</section><div class="wrap auth-layout"><section class="auth-panel" aria-label="Compte personnel"><p class="auth-message" role="status">Chargement du compte…</p></section><aside class="auth-aside"><h2>Un compte sur invitation</h2><p>La personne qui t’invite te transmet individuellement un lien personnel. Il n’y a pas d’inscription libre.</p><p>Les cours et les outils publics restent disponibles sans connexion.</p><p><a href="contact.html">Contact et assistance, même sans compte</a></p><p><a href="mes-cours.html">Parcourir mes cours</a></p><p class="auth-help">En visiteur, l’historique des exercices hebdomadaires reste sur cet appareil. Lorsque l’espace personnel est activé, les réponses du compte alimentent son tableau de bord et se synchronisent ; celles en attente ne sont pas encore confirmées sur les autres appareils.</p></aside></div>`;
+  root.innerHTML = `<section class="page-top wrap auth-top">${renderBreadcrumbs(page)}<div class="page-eyebrow">TON ESPACE PERSONNEL</div><h1></h1><p></p><p class="auth-help"><a href="confidentialite.html#compte-et-invitation">Confidentialité du compte et des invitations</a></p></section><div class="wrap auth-layout"><section class="auth-panel" aria-label="Compte personnel"><p class="auth-message" role="status">Chargement du compte…</p></section><aside class="auth-aside"><h2>Un compte sur invitation</h2><p>La personne qui t’invite te transmet individuellement un lien personnel. Il n’y a pas d’inscription libre.</p><p>Les cours et les outils publics restent disponibles sans connexion.</p><p><a href="contact.html">Contact et assistance, même sans compte</a></p><p><a href="mes-cours.html">Parcourir mes cours</a></p><p class="auth-help">En visiteur, l’historique des exercices hebdomadaires reste sur cet appareil. Lorsque l’espace personnel est activé, les réponses du compte alimentent son tableau de bord et se synchronisent ; celles en attente ne sont pas encore confirmées sur les autres appareils.</p></aside></div>`;
   root.querySelector('h1').textContent = descriptions[page][0];
   root.querySelector('.auth-top > p').textContent = descriptions[page][1];
   const panel = root.querySelector('.auth-panel');
-  function followProfileAnchor() {
-    if (page !== 'profile' || !['#informations-compte', '#parametres', '#donnees-synchronisation'].includes(location.hash)) return;
-    const target = root.querySelector(location.hash);
-    if (target) requestAnimationFrame(() => { if (target.isConnected) target.scrollIntoView({ block: 'start' }); });
-  }
-  if (page === 'profile') {
-    panel.id = 'informations-compte';
-    const settings = document.createElement('section');
-    settings.id = 'parametres';
-    settings.className = 'wrap auth-panel profile-settings';
-    settings.setAttribute('aria-labelledby', 'profile-settings-title');
-    settings.innerHTML = '<h2 id="profile-settings-title">Paramètres</h2><p>Adapte la saison et la luminosité de ton espace. Sans compte, tu peux choisir de mémoriser ton apparence sur cet appareil. Une fois connecté, les réglages du compte et leur synchronisation restent disponibles dans le même dialogue.</p><button id="appearance-open" class="btn btn-outline" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" aria-label="Paramètres d’apparence">Régler l’apparence</button>';
-    const data = document.createElement('section');
-    data.id = 'donnees-synchronisation';
-    data.className = 'profile-learning-sync';
-    data.setAttribute('aria-labelledby', 'profile-learning-sync-title');
-    data.innerHTML = '<h3 id="profile-learning-sync-title">Données et synchronisation</h3><p>Gère ici la sauvegarde de tes cours et QCM, l’import volontaire de l’historique de cet appareil et les conflits éventuels. Les exercices hebdomadaires, la botanique et les itinéraires techniques conservent leurs réglages sur leurs pages respectives.</p><div data-course-quiz-settings><p role="status">Vérification de la sauvegarde des cours et QCM…</p></div>';
-    settings.append(data);
-    root.append(settings);
-    const syncRoot = data.querySelector('[data-course-quiz-settings]');
-    getCourseQuizService().then(sync => {
-      if (disposed) { sync.stop(); return; }
-      const unsubscribeSync = initCourseQuizPanel(syncRoot, sync);
-      disposeCourseQuiz = () => { unsubscribeSync(); sync.stop(); };
-      followProfileAnchor();
-    }).catch(() => {
-      if (!disposed) syncRoot.innerHTML = '<p role="status">La sauvegarde des cours et QCM est indisponible. Recharge la page pour réessayer. Les données enregistrées sont conservées.</p>';
-    });
-    window.addEventListener('hashchange', followProfileAnchor, { signal: abort.signal });
-    followProfileAnchor();
-  }
   if (page === 'auth-reset') {
     panel.innerHTML = '<h2>Récupérer ton compte avec assistance</h2><p>Les comptes Mon BPREA sont gérés personnellement, sans service d’envoi automatique d’e-mails.</p><p>Pour récupérer ton compte, écris via le <a href="contact.html">contact officiel, accessible sans connexion</a>. Tu peux aussi joindre la personne qui t’a invité par votre moyen de communication habituel.</p><p>Après vérification de ton identité, elle pourra te transmettre un lien personnel pour choisir un nouveau mot de passe.</p><p>Ne communique jamais ton mot de passe ni ton lien personnel.</p><div class="auth-links"><a href="connexion.html">Retour à la connexion</a></div>';
     return;
@@ -92,15 +56,6 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   try { service = await getAuthService(); }
   catch { if (!disposed) panel.innerHTML = '<h2>Connexion indisponible</h2><p>Le service de compte ne peut pas être chargé. Recharge la page pour réessayer.</p>'; return; }
   if (disposed) return;
-  if (page === 'profile') {
-    const exportRoot = document.createElement('div'); root.append(exportRoot);
-    const cleanup = await initExportUI(exportRoot, { auth: service });
-    if (disposed) cleanup(); else disposeExport = cleanup;
-    const erasureRoot = document.createElement('div'); root.append(erasureRoot);
-    const eraseCleanup = await initErasureUI(erasureRoot, { auth: service });
-    if (disposed) eraseCleanup(); else disposeErasure = eraseCleanup;
-  }
-
   function message(text, kind = 'info', focus = false) {
     const output = panel.querySelector('[data-auth-message]');
     if (!output) return;
@@ -121,9 +76,6 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   function invalid(form, text, names) {
     for (const name of names) form.elements.namedItem(name)?.setAttribute('aria-invalid', 'true');
     message(text, 'error', true);
-  }
-  function signInPrompt() {
-    panel.innerHTML = '<h2>Connexion nécessaire</h2><p>Connecte-toi pour consulter ton profil personnel.</p><a class="btn btn-primary" href="connexion.html">Connexion</a>';
   }
   const safeError = error => error?.message || 'Le service est momentanément indisponible. Réessaie dans un instant.';
   const listen = (node, event, callback) => node.addEventListener(event, callback, { signal: abort.signal });
@@ -228,69 +180,186 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
     return;
   }
 
-  if (page === 'profile') {
-    let activeUserId = null;
-    let requestId = 0;
-    let pending = false;
-    async function loadProfile(user) {
-      const request = ++requestId;
-      panel.innerHTML = '<p class="auth-message" role="status">Chargement du profil…</p>';
-      try {
-        const profile = await service.getProfile();
-        if (disposed || request !== requestId || service.getState().status !== 'authenticated' || service.getState().user?.id !== user.id) return;
-        panel.innerHTML = `<h2>Informations du compte</h2>${messageMarkup()}<dl class="auth-details"><div><dt>Adresse e-mail</dt><dd data-email></dd></div><div><dt>Compte créé le</dt><dd data-created></dd></div></dl><form class="auth-form"><div class="auth-field"><label for="auth-pseudo">Pseudo (facultatif)</label><input id="auth-pseudo" name="pseudo" type="text" autocomplete="nickname" aria-describedby="auth-pseudo-help"><small id="auth-pseudo-help">De 2 à 40 caractères, ou laisse ce champ vide. Ne saisis pas d’information sensible.</small></div><button class="btn btn-primary" type="submit">Enregistrer le pseudo</button></form><hr class="auth-divider"><div class="auth-account-actions"><a href="mot-de-passe-oublie.html">Récupération assistée du mot de passe</a><button class="btn btn-outline" type="button" data-sign-out>Déconnexion</button></div>`;
-        panel.querySelector('[data-email]').textContent = user.email || 'Adresse indisponible';
-        const created = new Date(user.created_at);
-        panel.querySelector('[data-created]').textContent = user.created_at && Number.isFinite(created.getTime()) ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'Europe/Paris' }).format(created) : 'Date indisponible';
-        const form = panel.querySelector('form');
-        form.elements.pseudo.value = profile.pseudo || '';
-        followProfileAnchor();
-        listen(form, 'submit', async event => {
-          event.preventDefault();
-          if (pending) return;
-          clearValidation(form);
-          const pseudo = form.elements.pseudo.value.trim();
-          const error = validatePseudo(pseudo);
-          if (error) { invalid(form, error, ['pseudo']); return; }
-          pending = true; busy(form, true); message('Enregistrement du pseudo…');
-          try {
-            const updated = await service.updateProfile(pseudo);
-            if (!disposed && request === requestId && service.getState().user?.id === user.id) {
-              form.elements.pseudo.value = updated.pseudo || '';
-              message('Ton pseudo a été enregistré.', 'success', true);
-            }
-          } catch (error) { if (!disposed && request === requestId) message(safeError(error), 'error', true); }
-          finally { pending = false; if (!disposed) busy(form, false); }
-        });
-        listen(panel.querySelector('[data-sign-out]'), 'click', async event => {
-          const button = event.currentTarget;
-          button.disabled = true;
-          try { await service.signOut(); }
-          catch (error) { if (!disposed) { button.disabled = false; message(safeError(error), 'error', true); } }
-        });
-      } catch (error) {
-        if (disposed || request !== requestId) return;
-        panel.innerHTML = `<h2>Profil indisponible</h2>${messageMarkup()}<p>Le profil n’a pas pu être lu. Réessaie pour vérifier sa disponibilité.</p><button type="button" class="btn btn-outline" data-retry>Réessayer</button>`;
-        message(safeError(error), 'error');
-        listen(panel.querySelector('[data-retry]'), 'click', () => {
-          if (service.getState().status === 'authenticated' && service.getState().user?.id === user.id) loadProfile(service.getState().user);
-          else signInPrompt();
-        });
+}
+
+const profileChecking = '<p role="status">Vérification de la session…</p>';
+const courseQuizChecking = '<p role="status">Vérification de la sauvegarde des cours et QCM…</p>';
+const connectLink = '<a class="btn btn-surface" href="connexion.html">Connexion</a>';
+const profileAccountMarkup = `
+  <dl class="profile-details">
+    <div><dt>Adresse e-mail</dt><dd data-email></dd></div>
+    <div><dt>Compte créé le</dt><dd data-created></dd></div>
+    <div><dt>Pseudo actuel</dt><dd data-current-pseudo></dd></div>
+  </dl>
+  <form class="auth-form profile-pseudo-form">
+    <div class="auth-field">
+      <label for="auth-pseudo">Pseudo (facultatif)</label>
+      <input id="auth-pseudo" name="pseudo" type="text" autocomplete="nickname" aria-describedby="auth-pseudo-help profile-pseudo-message">
+      <small id="auth-pseudo-help">De 2 à 40 caractères, ou laisse ce champ vide.</small>
+    </div>
+    <button class="btn btn-surface btn-surface--accent" type="submit">Enregistrer le pseudo</button>
+  </form>
+  <p class="auth-message profile-pseudo-message" id="profile-pseudo-message" data-auth-message role="status" aria-atomic="true"></p>
+  <div class="profile-account-actions">
+    <a class="ui-link" href="mot-de-passe-oublie.html">Récupération assistée du mot de passe</a>
+    <button class="btn btn-surface" type="button" data-sign-out>Se déconnecter</button>
+  </div>`;
+
+function initProfilePage(root) {
+  const controller = new AbortController();
+  const { signal } = controller;
+  const account = root.querySelector('[data-profile-account]');
+  const syncRoot = root.querySelector('[data-course-quiz-settings]');
+  let disposeSync = () => {};
+  let unsubscribeAuth = () => {};
+  root.querySelector('[data-profile-breadcrumb]').innerHTML = renderBreadcrumbs('profile');
+  root.querySelector('#appearance-open').disabled = !document.getElementById('appearance-dialog');
+
+  const dispose = () => {
+    controller.abort();
+    unsubscribeAuth();
+    disposeSync();
+    document.getElementById('appearance-dialog')?.close();
+    account.innerHTML = profileChecking;
+    syncRoot.innerHTML = courseQuizChecking;
+  };
+  window.addEventListener('pagehide', dispose, { once: true, signal });
+  // Recreate the Auth and settings subscribers together on a cached return.
+  if (!restoreHandlers.has(root)) {
+    restoreHandlers.add(root);
+    window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); });
+  }
+
+  getAuthService().then(service => {
+    if (!signal.aborted) unsubscribeAuth = initProfileAccount(account, service, signal);
+  }).catch(() => {
+    if (!signal.aborted) account.innerHTML = '<h3>Connexion indisponible</h3><p role="alert">Le service de compte ne peut pas être chargé. Recharge la page pour réessayer.</p>';
+  });
+  getCourseQuizService().then(sync => {
+    if (signal.aborted) { sync.stop(); return; }
+    const disposePanel = initCourseQuizPanel(syncRoot, sync);
+    disposeSync = () => { disposePanel(); sync.stop(); };
+  }).catch(() => {
+    if (!signal.aborted) syncRoot.innerHTML = '<p role="status">La sauvegarde des cours et QCM est indisponible. Recharge la page pour réessayer.</p>';
+  });
+  return dispose;
+}
+
+function initProfileAccount(panel, service, signal) {
+  let identity;
+  let sequence = 0;
+  let signingOut = false;
+  const current = request => !signal.aborted && request === sequence;
+  function paint(markup) {
+    const focusWithin = panel.contains(document.activeElement);
+    panel.innerHTML = markup;
+    if (focusWithin) panel.closest('section').focus({ preventScroll: true });
+  }
+  function feedback(text, kind = 'info') {
+    const node = panel.querySelector('[data-auth-message]');
+    node.dataset.kind = kind;
+    node.textContent = text || '';
+  }
+  function showPseudo(pseudo) {
+    panel.querySelector('[data-current-pseudo]').textContent = pseudo || 'Aucun pseudo';
+    panel.querySelector('#auth-pseudo').value = pseudo || '';
+  }
+  async function loadProfile(user) {
+    const request = ++sequence;
+    paint('<p role="status">Chargement du profil…</p>');
+    try {
+      const profile = await service.getProfile();
+      if (!current(request)) return;
+      paint(profileAccountMarkup);
+      panel.querySelector('[data-email]').textContent = user.email || 'Adresse indisponible';
+      const created = new Date(user.created_at);
+      panel.querySelector('[data-created]').textContent = user.created_at && Number.isFinite(created.getTime())
+        ? new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'Europe/Paris' }).format(created)
+        : 'Date indisponible';
+      showPseudo(profile.pseudo);
+    } catch (error) {
+      if (!current(request)) return;
+      paint('<h3>Profil indisponible</h3><p class="auth-message" data-auth-message role="alert"></p><button class="btn btn-surface" type="button" data-retry-profile>Réessayer</button>');
+      feedback(error.message || 'Le profil n’a pas pu être lu. Réessaie dans un instant.', 'error');
+    }
+  }
+
+  panel.addEventListener('input', event => {
+    if (!event.target.matches('#auth-pseudo[aria-invalid="true"]')) return;
+    event.target.removeAttribute('aria-invalid');
+    feedback('');
+  }, { signal });
+  panel.addEventListener('submit', async event => {
+    event.preventDefault();
+    const form = event.target;
+    const input = form.elements.pseudo;
+    if (!input || input.readOnly || service.getState().status !== 'authenticated') return;
+    const pseudo = input.value.trim();
+    const problem = validatePseudo(pseudo);
+    if (problem) {
+      input.setAttribute('aria-invalid', 'true');
+      feedback(problem, 'error');
+      input.focus();
+      return;
+    }
+    input.removeAttribute('aria-invalid');
+    const request = sequence;
+    const submit = event.submitter || form.querySelector('[type="submit"]');
+    form.setAttribute('aria-busy', 'true');
+    submit.disabled = true;
+    input.readOnly = true;
+    feedback('Enregistrement du pseudo…');
+    try {
+      const updated = await service.updateProfile(pseudo);
+      if (current(request)) {
+        showPseudo(updated.pseudo);
+        feedback('Ton pseudo a été enregistré.', 'success');
+      }
+    } catch (error) {
+      if (current(request)) feedback(error.message || 'Le pseudo n’a pas pu être enregistré. Réessaie dans un instant.', 'error');
+    } finally {
+      if (current(request)) {
+        form.removeAttribute('aria-busy');
+        submit.disabled = false;
+        input.readOnly = false;
       }
     }
-    unsubscribe = service.subscribe(state => {
-      if (disposed) return;
-      if (state.status === 'authenticated' && state.user) {
-        if (activeUserId !== state.user.id) { activeUserId = state.user.id; loadProfile(state.user); }
-        return;
-      }
-      activeUserId = null;
-      ++requestId;
-      if (state.status === 'loading') panel.innerHTML = '<p class="auth-message" role="status">Vérification de la session…</p>';
-      else if (state.status === 'unavailable') {
-        panel.innerHTML = `<h2>Connexion indisponible</h2>${messageMarkup()}<p>Le compte personnel doit être configuré pour cet environnement.</p><a href="connexion.html" class="btn btn-outline">Connexion</a>`;
-        message(state.error || 'La connexion n’est pas encore configurée.', 'error');
-      } else signInPrompt();
-    });
-  }
+  }, { signal });
+  panel.addEventListener('click', async event => {
+    const button = event.target.closest('button');
+    if (!button || button.disabled) return;
+    if (button.matches('[data-retry-profile]')) {
+      const { status, user } = service.getState();
+      if (status === 'authenticated' && user) loadProfile(user);
+    } else if (button.matches('[data-retry-session]')) {
+      button.disabled = true;
+      try { await service.retry(); }
+      catch { /* Auth publishes the result and its error. */ }
+      finally { button.disabled = false; }
+    } else if (button.matches('[data-sign-out]')) {
+      signingOut = true;
+      try { await service.signOut(); }
+      catch { /* Auth publishes the result and its error. */ }
+      finally { signingOut = false; }
+    }
+  }, { signal });
+
+  return service.subscribe(state => {
+    const next = JSON.stringify([state.status, state.user?.id, service.getIdentityVersion(), state.error]);
+    if (signal.aborted || identity === next) return;
+    identity = next;
+    if (state.status === 'authenticated' && state.user) { loadProfile(state.user); return; }
+    ++sequence;
+    if (state.status === 'loading') paint(signingOut ? '<p role="status">Déconnexion en cours…</p>' : profileChecking);
+    else if (state.status === 'anonymous') {
+      paint(`<h3>Connexion nécessaire</h3><p>Connecte-toi pour consulter ton compte et modifier ton pseudo.</p>${connectLink}`);
+    } else if (state.status === 'unavailable') {
+      paint(`<h3>Connexion indisponible</h3><p class="auth-message" data-auth-message role="alert"></p>${connectLink}`);
+      feedback(state.error, 'error');
+    } else {
+      const title = state.status === 'offline' ? 'Session à vérifier' : 'Impossible de vérifier la session';
+      paint(`<h3>${title}</h3><p class="auth-message" data-auth-message role="alert"></p><div class="profile-actions"><button class="btn btn-surface" type="button" data-retry-session>Vérifier la session</button>${connectLink}</div>`);
+      feedback(signingOut && state.status === 'error' ? `La déconnexion a échoué. ${state.error}` : state.error, 'error');
+    }
+  });
 }

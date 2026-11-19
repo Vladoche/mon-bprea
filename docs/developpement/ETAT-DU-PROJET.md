@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `9991e54b69d60b788b007d523143b9915bebe52e` |
-| Dernière PR fusionnée sur main | [#74](https://github.com/Vladoche/mon-bprea/pull/74), 19/11/2026 à 13:13:33 UTC |
+| Dernier commit | `469ceebd44fee995eb5433e47e9d3f927d8044af` |
+| Dernière PR fusionnée sur main | [#76](https://github.com/Vladoche/mon-bprea/pull/76), 19/11/2026 à 13:43:05 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | **Photothèque botanique enrichie**, 24 plantes et animations des réponses. La [PR #75](https://github.com/Vladoche/mon-bprea/pull/75) a fusionné dans `codex/ui-2027-botanical` à 13:17:11 UTC, après la fusion de la #74 dans main. [Comparaison pour l’intégration à main](https://github.com/Vladoche/mon-bprea/compare/main...codex%2Fbotanical-variety-main) |
-| Prochaine action | Revoir l’intégration de la photothèque à main. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
+| Chantier en revue | **Mon profil 2027**, lot 1 de PR5. [PR #77](https://github.com/Vladoche/mon-bprea/pull/77) · [Validation](../validations/VALIDATION-UI-2027-PR5-LOT1.md) |
+| Prochaine action | Revoir le lot Profil et sa galerie. Côté exploitation, décider du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -71,7 +71,7 @@ ont réussi sur `daadf53`. La [validation du lot 4](../validations/VALIDATION-UI
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `9991e54b69d60b788b007d523143b9915bebe52e` |
+| Dernier commit main relevé | `469ceebd44fee995eb5433e47e9d3f927d8044af` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -102,7 +102,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Calendrier | Interface 2027 fusionnée dans #71, événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Validation du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
 | Générateur ITK | Interface 2027 fusionnée dans #72, génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [Validation du générateur](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
 | Ressources | Bibliothèque, filtres et aperçus de cours et d’UC harmonisés dans #73 | Références éditoriales à entretenir | [Validation de la bibliothèque](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
-| Reconnaissance botanique | Refonte 2027 fusionnée dans #74. Photothèque enrichie en revue | Douze taxons et trois catégories jouables sur main | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
+| Reconnaissance botanique | Refonte 2027 fusionnée dans #74. Photothèque enrichie intégrée dans #76 | 24 plantes et série Légumineuses sur main | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
 | Mon profil | Compte, paramètres, export/restauration et retrait local ; #59/#60 | Retrait local distinct d’une clôture serveur | [Auth](../architecture/AUTHENTIFICATION.md) |
 | Apparence | Icône clair/sombre, dialogue dans Profil → Paramètres ; #59 | Mémorisation appareil volontaire ; anciennes clés conservées | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
@@ -160,8 +160,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir l’[intégration de la photothèque enrichie à main](https://github.com/Vladoche/mon-bprea/compare/main...codex%2Fbotanical-variety-main).
-   Le lot 4 de la refonte botanique clôture PR4. PR5 (profil et harmonisation finale) reste à réaliser.
+1. Revoir [la refonte du profil PR5 lot 1](../validations/VALIDATION-UI-2027-PR5-LOT1.md) et les captures comparatives. La [photothèque enrichie](https://github.com/Vladoche/mon-bprea/pull/76) a clos PR4 côté code.
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).

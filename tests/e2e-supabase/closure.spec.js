@@ -1,3 +1,4 @@
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
@@ -61,11 +62,11 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     expect((await cachedCourse(second, 'write')).savedLocally).toBe(true);
     const scope = personalScope({ environment: 'development', url: a.environment.url, userId: a.userId });
     await expect.poll(async () => (await personalRecords(second, 'mon-bprea-course-quiz-personal-v1')).find(record => record.scope === scope)?.operations.some(op => op.state === 'pending')).toBe(true);
-    stage = 'réauthentification native et confirmation dans le profil';
+    stage = 'réauthentification native et confirmation sur la page de test';
     await configureDrillPage(page, a.environment);
     await page.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: a.environment.url,
       publishableKey: a.environment.publishableKey, siteUrl: LOCAL_SITE, accountClosureLocalTest: true } }));
-    await signInDrill(page, a); await page.goto(`${LOCAL_SITE}profil.html`);
+    await signInDrill(page, a); await openMaintenanceFixture(page);
     stage = 'copie sauvegardée avant clôture';
     await page.locator('[data-export-prepare]').click(); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
     const downloading = page.waitForEvent('download'); await page.locator('[data-export-download]').click();

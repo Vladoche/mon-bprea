@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <meta name="robots" content="noindex" />
-  <meta name="description" content="Consulte ton profil Mon BPREA et modifie ton pseudo." />
+  <meta name="description" content="Retrouve les informations de ton compte et personnalise ton espace de révision." />
   <meta name="theme-color" content="#184e39" />
   <title>Mon profil</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
@@ -13,15 +13,48 @@
   <link rel="stylesheet" href="assets/style.css" />
   <link rel="stylesheet" href="assets/navigation.css" />
   <link rel="stylesheet" href="assets/auth.css" />
-  <link rel="stylesheet" href="assets/erasure.css" />
-  <link rel="stylesheet" href="assets/export.css" />
-  <link rel="stylesheet" href="assets/restore.css" />
   <link rel="stylesheet" href="assets/appearance.css" />
+  <link rel="stylesheet" href="assets/profile.css" />
+  <noscript><style>.profile-layout{display:none}</style></noscript>
   <script type="module" src="assets/app.js"></script>
 </head>
 <body data-page="profile">
   <header id="app-header"></header>
-  <main id="app-main" tabindex="-1"><noscript>Active JavaScript et connecte-toi pour consulter ton profil.</noscript></main>
+  <main id="app-main" class="wrap profile-shell" tabindex="-1">
+    <div class="profile-intro">
+      <div class="profile-breadcrumb" data-profile-breadcrumb></div>
+      <h1>Mon profil</h1>
+      <p>Retrouve les informations de ton compte et personnalise ton espace de révision.</p>
+    </div>
+    <noscript><p>Active JavaScript pour consulter ton compte ou régler l’apparence.</p></noscript>
+    <div class="profile-layout">
+      <section class="profile-card" id="informations-compte" aria-labelledby="profile-account-title" tabindex="-1">
+        <h2 id="profile-account-title">Informations du compte</h2>
+        <div data-profile-account><p role="status">Vérification de la session…</p></div>
+      </section>
+      <div class="profile-settings-stack">
+        <section class="profile-card" id="parametres" aria-labelledby="profile-settings-title" tabindex="-1">
+          <h2 id="profile-settings-title">Paramètres</h2>
+          <p>Choisis la saison et la luminosité, chacune en mode automatique ou manuel.</p>
+          <p class="profile-note">Avec un compte, tes réglages se synchronisent. En visiteur, tu peux les mémoriser sur cet appareil.</p>
+          <button id="appearance-open" class="btn btn-surface" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" disabled>Régler l’apparence</button>
+        </section>
+        <section class="profile-card profile-learning-sync" id="donnees-synchronisation" aria-labelledby="profile-learning-sync-title" tabindex="-1">
+          <h2 id="profile-learning-sync-title">Données et synchronisation</h2>
+          <p>Consulte la sauvegarde de tes cours et QCM. Tu peux aussi importer l’historique visiteur de cet appareil.</p>
+          <div data-course-quiz-settings><p role="status">Vérification de la sauvegarde des cours et QCM…</p></div>
+        </section>
+      </div>
+    </div>
+    <aside class="profile-help" aria-labelledby="profile-help-title">
+      <h2 id="profile-help-title">Assistance et confidentialité</h2>
+      <p>Pour obtenir une copie de tes données personnelles ou demander leur suppression, contacte la personne responsable de Mon BPREA.</p>
+      <div class="profile-help-links">
+        <a class="ui-link" href="contact.html">Contact et assistance</a>
+        <a class="ui-link" href="confidentialite.html">Confidentialité</a>
+      </div>
+    </aside>
+  </main>
   <footer id="app-footer"><div class="wrap footer-in"><a href="contact.html">Contact et assistance</a><a href="confidentialite.html">Confidentialité</a></div></footer>
 </body>
 </html>

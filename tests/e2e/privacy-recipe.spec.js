@@ -9,10 +9,10 @@ import { emptySettingsDocument, queueSettings } from '../../assets/settings-mode
 import { questions, stamp, uuid, parameters } from '../fixtures/export.js';
 import { botanicalSession } from '../fixtures/personal-data.js';
 import { stopOrdinarySync } from '../helpers/export-browser.js';
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 
 // Synthetic HTTP only: these scenarios prove browser coordination, never RLS.
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
-const profile = '/mon-bprea/profil.html';
 const scope = name => JSON.stringify(['development', 'https://export.invalid', accounts[name].id]);
 test.beforeEach(async ({ page }) => { await page.clock.install({ time: new Date('2026-10-28T12:00:00Z') }); });
 
@@ -76,7 +76,7 @@ async function switchAccount(page, name) {
 
 test('Recette A : copie téléchargée puis effacement ciblé, B/autres domaines/serveur/fichier préservés', async ({ page }) => {
   const api = createExportAPI(); await api.install(page.context());
-  await page.goto(profile); await stopOrdinarySync(page); const before = await seed(page), server = structuredClone(api.rows);
+  await openMaintenanceFixture(page); await stopOrdinarySync(page); const before = await seed(page), server = structuredClone(api.rows);
   await page.locator('[data-export-prepare]').click(); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
   const pending = page.waitForEvent('download'); await page.locator('[data-export-download]').click();
   const download = await pending, filePath = await download.path(), fileText = await readFile(filePath, 'utf8'), file = JSON.parse(fileText);
@@ -104,7 +104,7 @@ test('Recette A : copie téléchargée puis effacement ciblé, B/autres domaines
 });
 
 test('Recette B : effacement pendant la réponse serveur retenue, aucun fichier périmé après libération', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(profile); await stopOrdinarySync(page);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page); await stopOrdinarySync(page);
   const before = await seed(page); let release, entered;
   const gate = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });
   api.hold = async table => { if (table === 'drill_series') { entered(); await gate; } };
@@ -120,7 +120,7 @@ test('Recette B : effacement pendant la réponse serveur retenue, aucun fichier 
 });
 
 test('Recette D : aperçu A, connexion B, ancienne confirmation refusée puis retour cohérent à A', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(profile); await stopOrdinarySync(page);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page); await stopOrdinarySync(page);
   const before = await seed(page);
   await page.locator('[data-export-prepare]').click(); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
   await preview(page); await switchAccount(page, 'B');
@@ -143,7 +143,7 @@ test('Recette D : aperçu A, connexion B, ancienne confirmation refusée puis re
 });
 
 test('Recette E : timeout HTTP natif puis réponse libérée, aucun fichier incomplet annoncé réussi', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(profile); await stopOrdinarySync(page);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page); await stopOrdinarySync(page);
   const before = await seed(page); let release, entered;
   const gate = new Promise(resolve => { release = resolve; }), reached = new Promise(resolve => { entered = resolve; });
   api.hold = async table => { if (table === 'drill_series') { entered(); await gate; } };

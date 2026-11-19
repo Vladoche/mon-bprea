@@ -1,3 +1,4 @@
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 import { test, expect } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { createExportAPI, accounts } from './export-api.js';
@@ -6,7 +7,6 @@ import { emptyPersonalDocument as courseDocument, mutateCourse } from '../../ass
 import { emptySettingsDocument, queueSettings } from '../../assets/settings-model.js';
 import { parameters } from '../fixtures/export.js';
 import { stopOrdinarySync } from '../helpers/export-browser.js';
-const path = '/mon-bprea/profil.html';
 test.use({ trace: 'off', screenshot: 'off', video: 'off' });
 test.beforeEach(async ({ page }) => { await page.clock.install({ time: new Date('2026-10-27T12:00:00Z') }); });
 const scope = (id, origin = 'https://export.invalid') => JSON.stringify(['development', origin, id]);
@@ -51,7 +51,7 @@ async function captures(page, name, dialog = false) {
 }
 test('sélection, outbox signalée, focus/annulation puis retrait A conservant B et visiteur', async ({ page }) => {
   const api = createExportAPI(); await api.install(page.context(), 'A', { 'bprea-demo-progress-v1': '{"visiteur":{"done":true}}' });
-  await page.goto(path); await stopOrdinarySync(page); const original = await seed(page);
+  await openMaintenanceFixture(page); await stopOrdinarySync(page); const original = await seed(page);
   expect(await page.locator('[data-erase-visitor] input:checked').count()).toBe(0);
   await preview(page); await expect(page.getByRole('dialog')).toContainText('1 opération(s) non confirmée(s)');
   await expect(page.locator('[data-erase-cancel]')).toBeFocused(); await captures(page, 'confirmation', true);
@@ -72,7 +72,7 @@ test('sélection, outbox signalée, focus/annulation puis retrait A conservant B
   await expect(page.locator('[data-closure-local]')).toBeHidden();
 });
 test('sélection ITK préserve apparence et visiteur, modification depuis aperçu donne un échec précis', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path); await stopOrdinarySync(page); const original = await seed(page);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page); await stopOrdinarySync(page); const original = await seed(page);
   await preview(page, 'Paramètres ITK'); await page.locator('[data-erase-confirm]').click();
   await expect(page.locator('[data-erase-status]')).toContainText('Effacement local confirmé');
   const saved = await read(page, CACHES.settings, scope(accounts.A.id));
@@ -91,7 +91,7 @@ test('sélection ITK préserve apparence et visiteur, modification depuis aperç
 });
 test('mode visiteur : choix séparé de provenance, export facultatif puis retrait ciblé', async ({ page }) => {
   await page.addInitScript(() => { localStorage.setItem('bprea-demo-progress-v1', '{"test":{"done":false}}'); localStorage.setItem('bprea-demo-progress-provenance-v1', 'origine-fictive'); });
-  await page.goto(path); await expect(page.locator('[data-erase-personal] input').first()).toBeDisabled();
+  await openMaintenanceFixture(page); await expect(page.locator('[data-erase-personal] input').first()).toBeDisabled();
   await page.getByRole('button', { name: 'Rechercher les sauvegardes locales' }).click();
   await page.locator('[data-export-sources] input[value="courses"]').check(); await page.locator('[data-export-confirm]').check();
   await page.getByRole('button', { name: 'Consulter la sélection locale', exact: true }).click();
@@ -105,11 +105,11 @@ test('mode visiteur : choix séparé de provenance, export facultatif puis retra
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-provenance-v1'))).toBe('origine-fictive'); await captures(page, 'visiteur');
 });
 test('deux onglets : barrière persistée, export invalidé et retour réseau tardif sans résurrection locale', async ({ page, context }) => {
-  const api = createExportAPI(); await api.install(context); await page.goto(path); await stopOrdinarySync(page); await seed(page);
+  const api = createExportAPI(); await api.install(context); await openMaintenanceFixture(page); await stopOrdinarySync(page); await seed(page);
   const second = await context.newPage(); await second.clock.install({ time: new Date('2026-10-27T12:00:00Z') });
   let entered, release; const reached = new Promise(resolve => { entered = resolve; }), gate = new Promise(resolve => { release = resolve; });
   api.hold = async name => { if (name === 'course_states') { entered(); await gate; } };
-  await second.goto(path);
+  await openMaintenanceFixture(second);
   await second.evaluate(async () => {
     const app = new URL(document.querySelector('script[type="module"][src]').src), url = new URL('./course-quiz-service.js', app); url.search = app.search;
     const service = await (await import(url)).getCourseQuizService(); window.erasurePendingSync = service.synchronize();
@@ -134,7 +134,7 @@ test('prototype de clôture HTTP simulé : réauthentification, confirmation, pe
     if (body.action === 'execute' && ++executions === 1) return route.abort('failed');
     return route.fulfill({ json: body.action === 'prepare' ? { status: 'identity_verified', receipt: 'opaque-synthetic-proof' } : { status: 'server_confirmed' }, headers: { 'access-control-allow-origin': '*' } });
   });
-  await page.goto(path); await expect(page.locator('[data-closure-local]')).toBeVisible();
+  await openMaintenanceFixture(page); await expect(page.locator('[data-closure-local]')).toBeVisible();
   await page.getByLabel('Mot de passe actuel', { exact: true }).fill('synthetic-password');
   await page.getByLabel('Écris SUPPRIMER pour confirmer', { exact: true }).fill('SUPPRIMER');
   await page.getByRole('button', { name: 'Vérifier mon identité pour clôturer', exact: true }).click();
@@ -146,7 +146,7 @@ test('prototype de clôture HTTP simulé : réauthentification, confirmation, pe
 });
 test('échec de stockage après une sélection mixte : résultat partiel et records personnels conservés', async ({ page }) => {
   const api = createExportAPI(); await api.install(page.context(), 'A', { 'bprea-demo-progress-v1': '{"visiteur":{"done":true}}' });
-  await page.goto(path); await stopOrdinarySync(page); const original = await seed(page);
+  await openMaintenanceFixture(page); await stopOrdinarySync(page); const original = await seed(page);
   await page.evaluate(() => { const original = IDBObjectStore.prototype.delete;
     IDBObjectStore.prototype.delete = function (key) { if (this.transaction.db.name === 'mon-bprea-course-quiz-personal-v1') throw new DOMException('fixture', 'UnknownError'); return original.call(this, key); }; });
   await page.locator('[data-erase-visitor]').getByLabel('Cours et QCM', { exact: true }).check();
@@ -159,7 +159,7 @@ test('échec de stockage après une sélection mixte : résultat partiel et reco
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBeNull(); await captures(page, 'partiel');
 });
 test('session refusée après aperçu : cache intact et aucun fichier personnel remis', async ({ page }) => {
-  const api = createExportAPI(); await api.install(page.context()); await page.goto(path); await stopOrdinarySync(page); const original = await seed(page);
+  const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page); await stopOrdinarySync(page); const original = await seed(page);
   await preview(page); api.authOffline = true; await page.locator('[data-erase-confirm]').click();
   await expect(page.locator('[data-erase-status]')).toContainText('L’identité doit être vérifiée');
   expect(await read(page, CACHES.courses, scope(accounts.A.id))).toEqual(original.a);

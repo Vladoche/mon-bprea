@@ -6,9 +6,10 @@ export const accounts = {
   B: { id: '63200000-0000-4000-8000-000000000002', email: 'course-b@example.invalid' },
 };
 const instant = '2026-10-25T10:00:00.000Z';
+export const accountCreatedAt = '2026-10-24T22:30:00.000Z';
 const json = value => JSON.stringify(value);
 const token = user => `${Buffer.from(json({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(json({ sub: user.id, session_id: `63200000-0000-4000-8000-00000000000${user === accounts.A ? '3' : '4'}`, aud: 'authenticated', role: 'authenticated', exp: 2000000000 })).toString('base64url')}.synthetic-signature`;
-const userFor = account => ({ ...account, aud: 'authenticated', role: 'authenticated', created_at: instant, app_metadata: { provider: 'email' }, user_metadata: {}, identities: [] });
+const userFor = account => ({ ...account, aud: 'authenticated', role: 'authenticated', created_at: accountCreatedAt, app_metadata: { provider: 'email' }, user_metadata: {}, identities: [] });
 export function sessionFor(name) {
   const account = accounts[name];
   return { access_token: token(account), refresh_token: `synthetic-refresh-${name}`, token_type: 'bearer', expires_in: 3600, expires_at: 2000000000, user: userFor(account) };
@@ -20,16 +21,20 @@ const owner = request => {
 const same = (a,b) => Object.entries(a).every(([key,value]) => b[key] === value);
 export function createCourseQuizAPI() {
   const courses = new Map(), attempts = new Map(), sent = [];
-  const fixture = { courses, attempts, sent, restOffline: false, authOffline: false, loseQuizAck: false };
+  const fixture = {
+    courses, attempts, sent, profiles: new Map(), profileRequests: [],
+    restOffline: false, authOffline: false, loseQuizAck: false,
+    holdUser: null, holdProfile: null, profileFailure: null, logoutFailure: false,
+  };
   fixture.install = async (context, account = 'A', visitorRaw = null, sitePath = '/') => {
-    const siteUrl = `http://127.0.0.1:4173${sitePath}`;
+    const site = new URL(sitePath, 'http://127.0.0.1:4173/');
     await context.addInitScript(({ session, key, visitorRaw }) => {
       if (localStorage.getItem('course-quiz-fixture-seeded')) return;
       localStorage.setItem('course-quiz-fixture-seeded', 'yes');
       if (session) localStorage.setItem(key, JSON.stringify(session));
       if (visitorRaw !== null) localStorage.setItem('bprea-demo-progress-v1', visitorRaw);
-    }, { session: account ? sessionFor(account) : null, key: `bprea-auth-course-quiz.invalid-${sitePath}`, visitorRaw });
-    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: apiOrigin, publishableKey: 'sb_publishable_syntheticCourseQuiz', siteUrl } }));
+    }, { session: account ? sessionFor(account) : null, key: `bprea-auth-course-quiz.invalid-${site.pathname}`, visitorRaw });
+    await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: { enabled: true, environment: 'development', url: apiOrigin, publishableKey: 'sb_publishable_syntheticCourseQuiz', siteUrl: site.href } }));
     await context.route(`${apiOrigin}/**`, async route => {
       const request = route.request(), url = new URL(request.url()), uid = owner(request);
       const respond = (value, status = 200) => route.fulfill({ status, contentType: 'application/json', body: json(value), headers: { 'access-control-allow-origin': '*' } });
@@ -37,6 +42,7 @@ export function createCourseQuizAPI() {
       if (url.pathname.startsWith('/auth/')) {
         if (fixture.authOffline) return route.abort('failed');
         if (url.pathname.endsWith('/user')) {
+          await fixture.holdUser?.(uid);
           const account = Object.values(accounts).find(item => item.id === uid);
           return respond(account ? userFor(account) : { code: 'bad_jwt', message: 'Synthetic invalid JWT' }, account ? 200 : 401);
         }
@@ -45,10 +51,23 @@ export function createCourseQuizAPI() {
           const name = body.email?.includes('course-b') || body.refresh_token?.endsWith('-B') ? 'B' : 'A';
           return respond(sessionFor(name));
         }
-        if (url.pathname.endsWith('/logout')) return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+        if (url.pathname.endsWith('/logout')) {
+          if (fixture.logoutFailure) return respond({ code: 'unexpected_failure', message: 'Synthetic logout failure' }, 500);
+          return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+        }
       }
       if (fixture.restOffline) return route.abort('failed');
       if (!uid) return respond({ code: 'PGRST303', message: 'Synthetic missing JWT' }, 401);
+      if (url.pathname.endsWith('/profiles')) {
+        if (url.searchParams.get('id') !== `eq.${uid}`) throw new Error('Profile requests require the verified owner');
+        const method = request.method();
+        const patch = method === 'PATCH' ? request.postDataJSON() : null;
+        fixture.profileRequests.push({ uid, method, patch });
+        await fixture.holdProfile?.({ uid, method });
+        if (fixture.profileFailure === method) return respond({ code: 'PGRST116' }, 406);
+        if (patch) fixture.profiles.set(uid, patch.pseudo);
+        return respond({ id: uid, pseudo: fixture.profiles.get(uid) ?? null, created_at: instant, updated_at: instant });
+      }
       if (request.method() === 'GET') {
         const table = url.pathname.split('/').at(-1);
         if (['course_states', 'quiz_attempts'].includes(table) && url.searchParams.get('user_id') !== `eq.${uid}`) throw new Error('A personal read must filter the current owner');
@@ -65,7 +84,6 @@ export function createCourseQuizAPI() {
           if (cursor) rows = rows.filter(row => row.attempt_id > cursor);
           return respond(rows.slice(0, Number(url.searchParams.get('limit')) || 100));
         }
-        if (table === 'profiles') return respond({ id: uid, pseudo: null, created_at: instant, updated_at: instant });
         return respond([]);
       }
       const body = request.postDataJSON(); sent.push({ uid, url: url.pathname, body });

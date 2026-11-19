@@ -4,6 +4,7 @@ import { accounts, createSettingsAPI, settingsOrigin } from './settings-api.js';
 import { chooseAppearance, closeAppearance, expectItk, generateItk, itkParameters, settingsCacheReady, settingsRecords } from '../helpers/settings-browser.js';
 import { waitForPersistedOperation } from '../helpers/personal-browser.js';
 import { CACHES } from '../../assets/export-sources.js';
+import { openMaintenanceFixture } from '../helpers/maintenance-fixture.js';
 
 const prefix = '/mon-bprea/';
 const siteOrigin = 'http://127.0.0.1:4173';
@@ -96,7 +97,7 @@ test('D12 ancien thème seul : Contact ignore la clé, reprise volontaire en mé
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
   expect(await accesses(page, [appearance, legacyTheme, rememberedAppearance])).toEqual([['getItem', rememberedAppearance]]);
   await page.goto(prefix + 'profil.html#parametres');
-  await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
+  await page.getByRole('button', { name: 'Régler l’apparence' }).click();
   const remember = page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' });
   await expect(remember).toBeDisabled();
   await page.evaluate(() => {
@@ -224,7 +225,7 @@ test('D12 stockage bloqué : thème, anecdote et calcul restent disponibles', as
   await expect(page.getByRole('region', { name: 'Tu savais que… ?' })).toBeVisible();
 });
 
-test('D12 profil : inventaire à la demande, export et retrait ciblé des nouvelles mémorisations', async ({ page }) => {
+test('D12 maintenance : inventaire à la demande, export et retrait ciblé des nouvelles mémorisations', async ({ page }) => {
   await observeStorage(page);
   await page.goto(prefix + 'contact.html');
   const theme = { version: 1, season: 'winter', brightness: 'dark' };
@@ -236,7 +237,7 @@ test('D12 profil : inventaire à la demande, export et retrait ciblé des nouvel
   await page.evaluate(values => {
     for (const [key, value] of Object.entries(values)) localStorage.setItem(key, value);
   }, { ...history, [rememberedAppearance]: JSON.stringify(theme), [rememberedItk]: JSON.stringify(itkParameters) });
-  await page.goto(prefix + 'profil.html');
+  await openMaintenanceFixture(page);
   const inspect = page.getByRole('button', { name: 'Rechercher les sauvegardes locales' });
   await expect(inspect).toBeVisible();
   const keys = [appearance, legacyTheme, dismissed, itk, rememberedItk];

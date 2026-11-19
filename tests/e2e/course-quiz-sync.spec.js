@@ -112,7 +112,7 @@ test('import volontaire : prévisualisation, annulation et manifeste réutilisé
   expect(await provenance()).toBeNull();
   const open = async () => { await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click(); };
   await open(); const dialog = page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' });
-  await expect(dialog).toContainText('pas nécessairement liée au compte');
+  await expect(dialog).toContainText('Elle peut appartenir à quelqu’un d’autre.');
   await expect(dialog).toContainText('Tentatives QCM exploitables');
   expect(await provenance()).toBeNull();
   await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.attempts.size).toBe(0);

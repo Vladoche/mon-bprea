@@ -76,11 +76,14 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
 
     stage = 'profil réel créé automatiquement et modification du pseudo';
     await main.getByRole('link', { name: 'Mon profil', exact: true }).click();
-    await expect(main).toContainText(fixture.email);
+    const account = main.getByRole('region', { name: 'Informations du compte', exact: true });
+    await expect(account.locator('[data-email]')).toHaveText(fixture.email);
+    await expect(account.locator('[data-created]')).toHaveText(/^\d{1,2} [a-zéû]+ \d{4}$/);
     await expect(page.getByLabel('Pseudo (facultatif)', { exact: true })).toHaveValue('');
     await page.getByLabel('Pseudo (facultatif)', { exact: true }).fill('Élève navigateur local');
     await page.getByRole('button', { name: 'Enregistrer le pseudo', exact: true }).click();
-    await expect(main.getByRole('region', { name: 'Compte personnel', exact: true }).getByRole('status')).toHaveText('Ton pseudo a été enregistré.');
+    await expect(account.getByRole('status')).toHaveText('Ton pseudo a été enregistré.');
+    await expect(account.locator('[data-current-pseudo]')).toHaveText('Élève navigateur local');
 
     stage = 'restauration de la session et du profil après rechargement';
     await page.reload();
@@ -88,10 +91,18 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
     await expect(header.getByRole('link', { name: 'Mon profil', exact: true })).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await page.getByRole('button', { name: 'Régler l’apparence', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('button', { name: 'Régler l’apparence', exact: true })).toBeFocused();
+    await expect(main.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
+    await expect(main.getByRole('link', { name: 'Confidentialité', exact: true })).toHaveAttribute('href', 'confidentialite.html');
+    await expect(main.locator('.data-export, .data-restore, .data-erasure, [data-closure-form], input[type="file"]')).toHaveCount(0);
 
     stage = 'déconnexion réelle et conservation des données locales';
-    await signOut();
+    await account.getByRole('button', { name: 'Se déconnecter' }).click();
     await expect(main.getByRole('heading', { name: 'Connexion nécessaire', exact: true })).toBeVisible();
+    await expect(account.locator('[data-email], #auth-pseudo')).toHaveCount(0);
     const preserved = await page.evaluate(keys => Object.fromEntries(keys.map(key => [key, localStorage.getItem(key)])), Object.keys(history));
     expect(preserved).toEqual(history);
 

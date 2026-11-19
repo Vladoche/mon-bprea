@@ -129,6 +129,11 @@ PROD et ne qualifie pas un futur rôle PostgreSQL hébergé.
 
 Le workflow [Qualité](../.github/workflows/quality.yml) exécute `unit-integration` et `e2e` sur les PR vers `main`, ainsi que le job `ui-performance-lab` (identifiant YAML `ui-performance`) pour les mesures comparatives de laboratoire. Les captures visuelles attendent une revue humaine ; elles ne deviennent pas des références approuvées automatiquement. Le workflow distinct [Sécurité Auth et RLS](../.github/workflows/auth-security.yml) exécute `supabase-security`, y compris pour les PR documentaires : stack Docker éphémère, pgTAP, runners réels et parcours navigateur, puis arrêt de la stack. Ils utilisent Node.js 24 LTS et `npm ci`, sans secret de production ni déploiement.
 
+Le profil partagé est exercé sous `profil.html`. Les suites d’export, de
+restauration, d’effacement et de clôture chargent sur une page réservée à
+Playwright les interfaces retirées du profil. Les moteurs et données de test
+sont ceux de leurs suites de référence. [Validation PR5 lot 1](validations/VALIDATION-UI-2027-PR5-LOT1.md).
+
 Conserver les noms des trois checks. Vérifier leur résultat sur le dernier commit de la PR ; une réussite historique ne valide pas la tête courante. Le [registre des Actions](architecture/ACTIONS-NODE24.md) décrit les versions utilisées. Ne modifier ni protection de `main` ni fusion automatique sans autorisation.
 
 Le workflow [Publier le site BPREA](../.github/workflows/deploy.yml) reste distinct : seul un `workflow_dispatch` autorisé sur `main`, avec `publish_auth_production=true` et l’empreinte LF de notice approuvée, peut publier après les validations prévues. Push et fusion ne le déclenchent pas. Les tests locaux, unités/intégration, E2E, Auth/RLS, captures et mesures de laboratoire ne prouvent pas une publication. Le [registre Pages](deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages) et l’[état du projet](developpement/ETAT-DU-PROJET.md) distinguent SHA publié et recette hébergée. Fusion et déploiement exigent l’accord applicable. La préparation Pages exclut documentation, outils, tests, rapports, caches et configurations locales.

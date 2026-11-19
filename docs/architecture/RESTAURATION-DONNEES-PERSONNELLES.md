@@ -1,5 +1,11 @@
 # Restauration personnelle JSON — lot 6.5.4.A
 
+**Accès à partir de PR5 lot 1.** Le sélecteur de fichier, l’aperçu et la
+confirmation de restauration JSON sont retirés du profil partagé. Les tests
+chargent l’interface historique sur leur page dédiée. Le profil propose
+l’import volontaire des cours et QCM depuis l’historique visiteur du
+navigateur. [Synchronisation des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md).
+
 **Suivi 6.5.4.C, 4 novembre 2026 :** [correctif validé contre DEV](../archives/validations/VALIDATION-LOT6-5-4C.md) au frontend servi localement **5c910b748fae0b7747c8192424e7ecd49c86a520**. Le JSON original intact est analysé/annulé sans écriture, puis ses deux intentions compatibles QCM/Drill sont confirmées serveur sous leurs UUID/corps d'origine ; double clic, reload et réimport sans doublon. Réponse botanique toujours bloquée par sa dépendance ; cours récent révision 6, séries et archives préservés. Refus A sous B, séparation A→B→A et barrière après retrait du seul cache ITK synthétique vérifiés. Contrats v1/SQL/privacy inchangés. T11 expiration JWT reportée et **NON EXÉCUTÉE** ; D non autorisée, aucune validation de restauration globale ou ouverture du service.
 
 **Suivi 6.5.4.C, 31 octobre 2026 :** [résultats DEV](../archives/validations/VALIDATION-LOT6-5-4C.md), [procédure corrective](../deploiement/RUNBOOK-REPRISE-DEV-6-5-4C.md). Deux exports privés et cinq premières créations restaurées sur DEV avec leurs UUID ; la seconde copie révèle un refus d'analyse après conflit résolu. Correctif local : références identiques hors état transitoire contrôlé, référence résolue possible à une archive resolved-operation ; archives toujours inactives. Sept régressions passent, fichier original accepté hors ligne, deux intentions compatibles et dépendance botanique toujours bloquée. **C2 non autorisée au choix de l'exploitant : recette partielle conservée**, correctif vérifié en CI sans revérification DEV. Aucun historique supprimé pour simuler une perte, format/SQL/privacy inchangés.

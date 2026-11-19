@@ -41,7 +41,7 @@ for (const width of [1440, 390]) test(`apparence : lune/soleil conservé entre p
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
     expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)), key)).toEqual({ version: 1, season: 'auto', brightness: 'light' });
     await page.goto(prefix + 'profil.html#parametres'); await source(page, 'device');
-    await page.getByRole('button', { name: 'Paramètres d’apparence', exact: true }).click();
+    await page.getByRole('button', { name: 'Régler l’apparence', exact: true }).click();
     await page.getByRole('button', { name: 'Retirer l’apparence mémorisée', exact: true }).click();
     expect(await page.evaluate(key => localStorage.getItem(key), key)).toBeNull();
   } finally { await second.close(); }
