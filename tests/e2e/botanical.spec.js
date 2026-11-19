@@ -74,10 +74,10 @@ async function answerQuestion(page, { correct = true } = {}) {
   await expect(correction.getByText(photo.identification, { exact: true })).toBeVisible();
   await expect(page.locator('#bot-correction-announcement')).toHaveAttribute('aria-live', 'polite');
   await expect(options.getByRole('button').first()).toBeDisabled();
-  const caption = page.locator('.bot-photo figcaption');
+  const credit = page.locator('.bot-photo figcaption');
   if (photo.id === 'groseillier-rouge-01') {
-    await expect(caption).toHaveText('Luc Viatour / https://Lucnix.be');
-  } else await expect(caption).toHaveCount(0);
+    await expect(credit).toHaveText('Luc Viatour / https://Lucnix.be');
+  } else await expect(credit).toHaveCount(0);
   return { photo, plant };
 }
 
@@ -145,9 +145,10 @@ test('Découverte depuis Outils : session complète, corrections, historique et 
   for (const [key, value] of Object.entries(existing)) expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe(value);
 });
 
-test('les crédits photographiques sont consultables dans le volet replié sous le jeu', async ({ page }) => {
+test('les sources photographiques sont consultables au clavier dans le volet sous le jeu', async ({ page }) => {
   await page.goto(`${prefix}reconnaissance-plantes.html`);
   await startSession(page);
+  await expect(page.locator('.bot-photo details')).toHaveCount(0);
   const credits = page.locator('#bot-photo-credits');
   const disclosure = credits.getByText('Sources et licences des photographies', { exact: true });
   await expect(credits.locator('ul')).toBeHidden();

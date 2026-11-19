@@ -119,7 +119,8 @@ async function captureVisitor(page, origin, phase, capture) {
   await nextBotanical(page);
   const wrong = await answerBotanical(page, false);
   assert.equal(wrong.plant.id, 'groseillier-rouge');
-  const creditSummary = page.locator(phase === 'before' ? '.bot-photo details summary' : '#bot-photo-credits summary');
+  const creditSummary = page.locator(await page.locator('#bot-photo-credits summary').count()
+    ? '#bot-photo-credits summary' : '.bot-photo details summary');
   await creditSummary.click();
   await expect(page.getByText(/Luc Viatour \/ https:\/\/Lucnix.be — Wikimedia Commons/)).toBeVisible();
   await capture('licences', 'Sources et licences photographiques');
@@ -249,30 +250,32 @@ async function styles(control) {
 }
 
 async function captureButtonStates(page, directory, controls, brightness, name, title, target, { header = false, disabled = false } = {}) {
-  await target.evaluate(node => node.scrollIntoView({ block: 'center', behavior: 'instant' }));
   await page.mouse.move(0, 0);
-  await target.evaluate(node => { if (node.contains(document.activeElement)) document.activeElement.blur(); });
+  await page.evaluate(() => document.activeElement?.blur());
   const row = { brightness, name, title, states: {}, figures: [] };
   const states = disabled ? ['désactivé'] : ['repos', 'survol', 'focus', 'actif'];
   for (const state of states) {
     const control = header ? target.locator('.primary-nav__top-link') : target;
-    if (state === 'survol' || state === 'actif') await control.hover();
     if (state === 'focus') {
       await page.mouse.move(0, 0);
       await page.keyboard.press('Tab');
-      await control.focus();
+      await control.evaluate(node => node.focus({ preventScroll: true }));
       assert.ok(await control.evaluate(node => node.matches(':focus-visible')), `${title}, focus visible`);
     }
+    await target.evaluate(node => node.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' }));
+    if (state === 'survol' || state === 'actif') await control.hover();
     if (state === 'actif') await page.mouse.down();
     const { x, y, width, height } = await target.boundingBox();
     const vp = page.viewportSize();
     const left = Math.max(0, Math.floor(x) - 8), top = Math.max(0, Math.floor(y) - 8);
     const clip = { x: left, y: top, width: Math.min(vp.width - left, Math.ceil(x + width) + 8 - left), height: Math.min(vp.height - top, Math.ceil(y + height) + 8 - top) };
+    assert.ok(clip.width > 0 && clip.height > 0, `${title}, ${state} : contrôle hors de la zone visible`);
     const file = `${brightness}-${name}-${row.figures.length + 1}.png`;
     await page.screenshot({ path: resolve(directory, file), clip, animations: 'disabled' });
     row.figures.push(figure(file, state));
     row.states[state] = await styles(target);
     if (header && state === 'focus') row.focus = await styles(control);
+    if (state === 'focus') await control.evaluate(node => node.blur());
     if (state === 'actif') { await page.mouse.move(0, 0); await page.mouse.up(); }
   }
   controls.push(row);

@@ -14,6 +14,13 @@ const action = 'btn btn-surface';
 const primaryAction = `${action} btn-surface--accent`;
 const controllers = new WeakMap();
 
+function photoCredit(photo) {
+  const address = creditAddress(photo);
+  return `<strong>${clean(photo.sourceTitle || photo.author)}</strong>
+    <div class="bot-photo-links"><span>${clean(photo.author)}${address ? ` / ${link(address, address)}` : ''}</span>${link(photo.licenseUrl, photo.license)}${link(photo.sourceUrl, 'Source de la photographie')}</div>
+    ${photo.attribution ? `<p>${clean(photo.attribution)}</p>` : ''}`;
+}
+
 function replaceStatistics(root, markup) {
   const active = document.activeElement;
   const focusedTable = root.contains(active) && active.matches('.bot-table-wrap') ? active : null;
@@ -75,14 +82,7 @@ export async function initBotanical(root) {
   credits.hidden = false;
   credits.addEventListener('toggle', () => {
     if (!credits.open || creditsList.childElementCount) return;
-    creditsList.innerHTML = bank.photos.map(photo => {
-      const address = creditAddress(photo);
-      return `<li data-photo-credit="${clean(photo.id)}">
-        <strong>${clean(photo.sourceTitle || photo.author)}</strong>
-        <div class="bot-photo-links"><span>${clean(photo.author)}${address ? ` / ${link(address, address)}` : ''}</span>${link(photo.licenseUrl, photo.license)}${link(photo.sourceUrl, 'Source de la photographie')}</div>
-        ${photo.attribution ? `<p>${clean(photo.attribution)}</p>` : ''}
-      </li>`;
-    }).join('');
+    creditsList.innerHTML = bank.photos.map(photo => `<li data-photo-credit="${clean(photo.id)}">${photoCredit(photo)}</li>`).join('');
   }, { signal });
   const service = await getBotanicalService();
   if (signal.aborted) return;
@@ -401,7 +401,7 @@ export async function initBotanical(root) {
       frame.replaceChildren(mount);
       if (photo.id === 'groseillier-rouge-01') {
         const address = creditAddress(photo);
-        frame.insertAdjacentHTML('afterend', `<figcaption class="bot-required-credit">${clean(photo.author)} / ${link(address, address)}</figcaption>`);
+        frame.insertAdjacentHTML('afterend', `<figcaption class="bot-photo-caption">${clean(photo.author)} / ${link(address, address)}</figcaption>`);
       }
       resumeTimer();
       updateChoices();

@@ -71,7 +71,7 @@ p.bot-panel { margin: 0; }
   scroll-margin-block: var(--space-4);
 }
 .bot-heading:focus, #bot-correction-title:focus { outline: 0; }
-.bot-layout :is(.bot-photo-credits, .bot-required-credit, .bot-correction, .bot-history) a {
+.bot-layout :is(.bot-photo-credits, .bot-photo-caption, .bot-correction, .bot-history) a {
   color: var(--green);
   text-decoration: underline;
   text-underline-offset: .2em;
@@ -293,7 +293,7 @@ p.bot-panel { margin: 0; }
   max-height: calc(var(--bot-photo-height) - 2 * (var(--space-1) + var(--space-2) + 2px));
   object-fit: contain;
 }
-.bot-required-credit {
+.bot-photo-caption {
   margin-top: var(--space-1);
   color: var(--muted);
   font-size: var(--font-size-meta);

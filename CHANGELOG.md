@@ -10,7 +10,7 @@ La version de l’application Windows reste propre à cet outil.
 ## Non publié
 
 - **Reconnaissance botanique 2027, PR4 lot 4**. Sélection des catégories et des
-  modes accessible au clavier, photographies non recadrées avec leurs crédits,
+  modes accessible au clavier, photographies non recadrées avec des crédits dépliables,
   corrections structurées et résultats lisibles sur mobile. La durée mesurée
   figure à côté du nombre d’expirations du chrono. Les commandes de jeu et
   d’import reprennent les surfaces du header. Le suivi est réservé aux comptes
