@@ -211,7 +211,9 @@ test('visiteur : icône de luminosité et paramètres avancés par le footer', a
   }
   await page.locator('footer a[href="profil.html#parametres"]').click();
   await expect(page.locator('#parametres')).toBeVisible();
-  await page.locator('#appearance-open').press('Enter');
+  const opener = page.locator('#appearance-open');
+  await expect(opener).toBeEnabled();
+  await opener.press('Enter');
   await expect(page.getByRole('dialog', { name: 'Ton apparence', exact: true })).toBeVisible();
 });
 

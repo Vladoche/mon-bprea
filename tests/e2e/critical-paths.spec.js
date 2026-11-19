@@ -192,7 +192,7 @@ test('apparence mobile : préférences conservées, données intactes et anecdot
   const progress = '{"matiere-organique":{"done":true,"score":2}}';
   await page.evaluate(raw => localStorage.setItem('bprea-demo-progress-v1', raw), progress);
   await page.locator('footer').getByRole('link', { name: 'Paramètres', exact: true }).click();
-  await page.getByRole('button', { name: 'Paramètres d’apparence' }).click();
+  await page.getByRole('button', { name: 'Régler l’apparence' }).click();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('winter');
   await page.getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
   await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();

@@ -2,6 +2,7 @@
 
 Recette du 19 novembre 2026. Base `469ceebd44fee995eb5433e47e9d3f927d8044af`, issue
 de [la fusion #76](https://github.com/Vladoche/mon-bprea/pull/76).
+[PR #77](https://github.com/Vladoche/mon-bprea/pull/77).
 
 ## Audit et décisions
 
@@ -48,10 +49,17 @@ assistée décrite dans la notice. [Contact](../../contact.html) ·
   reconstruit à l’identique. pgTAP a réussi avec 414 assertions et les suites
   Auth, Drill et données personnelles ont réussi leurs 12, 22 et 26 groupes
   sur la stack fictive.
-- Les réglages, les conflits et les opérations des cours et QCM sont aussi
-  vérifiés sur PostgreSQL et Auth réels en local. Les parcours synthétiques
-  permettent de retenir les réponses et d’observer l’interface avant
-  acquittement.
+- 46 cas Chromium ciblés ont réussi. Les neuf cas Profil ont ensuite réussi
+  avec Chromium complet, y compris un retour BFCache natif entre A et B. Le
+  test vérifie `pagehide.persisted` et `pageshow.persisted`, le retrait de la
+  vue de A et le rechargement des données et des réglages pour B.
+- 30 cas Chromium connectés ont réussi sur la stack dédiée du poste. Ils
+  couvrent notamment l’apparence personnelle, les imports et conflits des
+  cours et QCM, l’export, la restauration et la clôture historiques. Les
+  trois scénarios de liens Auth manuels requièrent le nom Docker standard,
+  réservé par des volumes existants sur ce poste. Le workflow
+  `supabase-security` dispose d’une stack éphémère à ce nom et exécute les
+  33 cas. [Vérifications GitHub](https://github.com/Vladoche/mon-bprea/pull/77/checks).
 
 ## Galerie et accessibilité
 
@@ -104,8 +112,9 @@ indique séparément le moment où le compte est utilisable. La campagne n’a
 levé aucun signal de dépassement des budgets du laboratoire. Les résultats
 bruts sont dans `performance-profile.json`.
 
-## Portée
+## Verdict
 
-La PR couvre le frontend de Profil et ses contrôles. La recette Supabase
-utilise des comptes fictifs sur une stack Docker dédiée. La revue humaine
-porte sur la galerie et les commandes en clair et sombre.
+**GO pour la revue de PR5 lot 1.** Les fonctions quotidiennes et les
+demandes via le contact restent accessibles. La recette Supabase utilise
+des comptes fictifs sur une stack Docker limitée à `127.0.0.1`. La prochaine
+étape est la revue humaine des écrans de la galerie.

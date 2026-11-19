@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
-import { accounts, createCourseQuizAPI } from './course-quiz-api.js';
+import { accounts, apiOrigin, createCourseQuizAPI, sessionFor } from './course-quiz-api.js';
 
-test.use({ launchOptions: { ignoreDefaultArgs: ['--disable-back-forward-cache'] } });
+test.use({ channel: 'chromium', launchOptions: { ignoreDefaultArgs: ['--disable-back-forward-cache'] } });
 
 const prefix = '/mon-bprea/';
 const profile = `${prefix}profil.html`;
@@ -82,7 +82,7 @@ test('Visiteur : apparence et cours publics, accès direct aux anciens fragments
   const opener = page.getByRole('button', { name: 'Régler l’apparence' });
   await opener.click();
   await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
-  await page.getByLabel('Saison', { exact: true }).selectOption('spring');
+  await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('spring');
   await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
   await expect(page.locator('#appearance-save')).toContainText('mémorisée sur cet appareil');
   await page.keyboard.press('Escape');
@@ -267,45 +267,39 @@ test('Une opération d’un autre onglet reste visible sans déplacer le focus d
   await expect(input(page)).toHaveValue('Saisie en cours');
 });
 
-test.describe('Retour navigateur et cycle de vie BFCache', () => {
-  test('Efface A à la sortie et revérifie le compte et les paramètres au retour', async ({ page, context }, testInfo) => {
-    const api = createCourseQuizAPI();
-    await api.install(context, 'A', null, prefix);
-    // Make the static profile cacheable for this browser history traversal.
-    await page.route('**/profil.html', async route => {
-      const response = await route.fetch();
-      await route.fulfill({ response, headers: { ...response.headers(), 'cache-control': 'private, max-age=60' } });
-    });
-    await page.goto(profile);
-    await expect(account(page).locator('[data-email]')).toHaveText(accounts.A.email);
-    await expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
-    await page.evaluate(() => {
-      addEventListener('pagehide', event => {
-        sessionStorage.setItem('test-profile-cleared', String(!document.querySelector('[data-email], #auth-pseudo')));
-        sessionStorage.setItem('test-profile-cached', String(event.persisted));
-      });
-    });
-    await page.goto(`${prefix}connexion.html`);
-    await switchAccount(page, accounts.B.email);
-    await page.goBack();
-    await expect(account(page).locator('[data-email]')).toHaveText(accounts.B.email);
-    expect(await page.evaluate(() => sessionStorage.getItem('test-profile-cleared'))).toBe('true');
-    const cached = await page.evaluate(() => sessionStorage.getItem('test-profile-cached') === 'true');
-    testInfo.annotations.push({ type: 'BFCache', description: cached ? 'Retour natif' : 'Événements persistés simulés après le retour natif' });
-    if (!cached) {
-      const reloaded = page.waitForEvent('load');
-      const cleared = await page.evaluate(() => {
-        window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: true }));
-        const removed = !document.querySelector('[data-email], #auth-pseudo');
-        setTimeout(() => window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })), 0);
-        return removed;
-      });
-      expect(cleared).toBe(true);
-      await reloaded;
-      await expect(account(page).locator('[data-email]')).toHaveText(accounts.B.email);
-    }
-    await page.getByRole('button', { name: 'Régler l’apparence' }).click();
-    await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
-    await expect(page.locator('#appearance-save')).toContainText('Aucun choix d’apparence enregistré sur le compte.');
+test('Retour BFCache natif : efface A à la sortie, revérifie B et recrée les paramètres', async ({ page, context }) => {
+  const api = createCourseQuizAPI();
+  await api.install(context, 'A', null, prefix);
+  // Allow the static test document into the cache; every profile read still uses the SDK.
+  await page.route('**/profil.html', async route => {
+    const response = await route.fetch();
+    await route.fulfill({ response, headers: { ...response.headers(), 'cache-control': 'private, max-age=60' } });
   });
+  await page.goto(profile);
+  await expect(account(page).locator('[data-email]')).toHaveText(accounts.A.email);
+  await expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
+  await page.waitForLoadState('networkidle');
+  await page.evaluate(() => {
+    addEventListener('pagehide', event => {
+      sessionStorage.setItem('test-profile-cleared', String(event.persisted && !document.querySelector('[data-email], #auth-pseudo')));
+    }, { once: true });
+    addEventListener('pageshow', event => {
+      if (event.persisted) sessionStorage.setItem('test-profile-restored', 'true');
+    });
+  });
+  await page.goto(`${prefix}contact.html`);
+  // Change the synthetic session without enabling another live Auth client on the contact page.
+  const key = `bprea-auth-${new URL(apiOrigin).hostname}-${prefix}`;
+  await page.evaluate(({ key, session }) => localStorage.setItem(key, JSON.stringify(session)), { key, session: sessionFor('B') });
+  try { await page.goBack({ waitUntil: 'commit' }); }
+  catch (error) {
+    // The pageshow handler can replace the restored document before goBack resolves.
+    if (!error.message.includes('net::ERR_ABORTED')) throw error;
+  }
+  await expect(account(page).locator('[data-email]')).toHaveText(accounts.B.email);
+  expect(await page.evaluate(() => sessionStorage.getItem('test-profile-cleared'))).toBe('true');
+  expect(await page.evaluate(() => sessionStorage.getItem('test-profile-restored'))).toBe('true');
+  await page.getByRole('button', { name: 'Régler l’apparence' }).click();
+  await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
+  await expect(page.locator('#appearance-save')).toContainText('Aucun choix d’apparence enregistré sur le compte.');
 });

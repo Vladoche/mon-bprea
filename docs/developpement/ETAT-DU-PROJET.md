@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `469ceebd44fee995eb5433e47e9d3f927d8044af` |
 | Dernière PR fusionnée sur main | [#76](https://github.com/Vladoche/mon-bprea/pull/76), 19/11/2026 à 13:43:05 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | **Mon profil 2027**, lot 1 de PR5, branche `codex/ui-2027-profile`. [Validation](../validations/VALIDATION-UI-2027-PR5-LOT1.md) |
+| Chantier en revue | **Mon profil 2027**, lot 1 de PR5. [PR #77](https://github.com/Vladoche/mon-bprea/pull/77) · [Validation](../validations/VALIDATION-UI-2027-PR5-LOT1.md) |
 | Prochaine action | Revoir le lot Profil et sa galerie. Côté exploitation, décider du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais

@@ -14,6 +14,7 @@ La version de l’application Windows reste propre à cet outil.
   pseudo confirmé et guide la sauvegarde. Export JSON, restauration JSON et
   effacement sortent du profil partagé. Le contact reste accessible pour les
   demandes de copie ou de suppression.
+  [PR #77](https://github.com/Vladoche/mon-bprea/pull/77) ·
   [Validation](docs/validations/VALIDATION-UI-2027-PR5-LOT1.md).
 
 - **Photothèque botanique enrichie**. 24 plantes à reconnaître, ouverture des
