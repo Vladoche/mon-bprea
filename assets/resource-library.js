@@ -8,12 +8,14 @@ const controllers = new WeakMap();
 const fileChecks = new Map();
 const fileStatuses = new Map();
 const emptyFilters = () => ({ query: '', unit: '', theme: '', type: '', lesson: '', chapter: '', organization: '', sort: 'title-asc' });
-const dateLabel = value => new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`));
+const dates = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+const dateLabel = value => dates.format(new Date(`${value}T12:00:00Z`));
 const libraryUrl = filters => {
   const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
   return `ressources.html${params.size ? `?${params}` : ''}`;
 };
 const paths = {
+  search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/>',
   website: '<path d="M3 8h18M3 16h18M12 3c5 5 5 13 0 18-5-5-5-13 0-18Z"/><circle cx="12" cy="12" r="9"/>',
   pdf: '<path d="M13 2H5v20h14V8l-6-6Zm0 0v6h6M8 13h8M8 17h6"/>',
   'technical-sheet': '<path d="M8 4H5v18h14V4h-3M8 3h8v4H8V3Zm0 10h8m-8 4h5"/>',
@@ -22,6 +24,10 @@ const paths = {
 };
 const icon = type => `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[type] || paths.website}</svg>`;
 const externalAttributes = 'target="_blank" rel="noopener noreferrer"';
+const newTab = '<span aria-hidden="true">↗</span><span class="sr-only"> (nouvel onglet)</span>';
+const action = 'btn btn-surface';
+const primaryAction = `${action} btn-surface--accent library-open`;
+const checkingFile = '<p class="library-file-state" role="status">Vérification du document…</p>';
 
 async function inspectLocalPdf(resource) {
   const controller = new AbortController();
@@ -40,12 +46,16 @@ async function inspectLocalPdf(resource) {
     if (sample.status === 404 || sample.status === 410) return { status: 'missing', message: 'Ce PDF est introuvable à l’adresse enregistrée.' };
     if (!sample.ok || !sample.body) return { status: 'unverified', message: 'Le document ne peut pas être vérifié pour le moment.' };
     const reader = sample.body.getReader();
+    const decoder = new TextDecoder();
+    let bytesRead = 0;
     let prefix = '';
     try {
-      while (prefix.length < 1024 && !prefix.includes('%PDF-')) {
+      while (bytesRead < 1024 && !prefix.includes('%PDF-')) {
         const { done, value } = await reader.read();
         if (done) break;
-        prefix += new TextDecoder().decode(value.subarray(0, 1024 - prefix.length));
+        const bytes = value.subarray(0, 1024 - bytesRead);
+        bytesRead += bytes.length;
+        prefix += decoder.decode(bytes, { stream: true });
       }
     } finally { await reader.cancel().catch(() => {}); }
     return prefix.includes('%PDF-') ? { status: 'available' } : { status: 'missing', message: 'Le fichier reçu ne correspond pas à un document PDF.' };
@@ -70,24 +80,35 @@ function resourceActions(resource) {
   if (!resource.href) return `<p class="library-file-state">${clean(resource.issue || 'Le lien de cette ressource n’est pas disponible.')}</p>`;
   if (!resource.isLocal) {
     const label = { website: 'Ouvrir le site', pdf: 'Consulter le PDF', 'technical-sheet': 'Consulter la fiche', video: 'Voir la vidéo', tool: 'Ouvrir l’outil' }[resource.type];
-    return `<a class="library-open" href="${clean(resource.href)}" ${externalAttributes}>${label || 'Consulter la ressource'} <span aria-hidden="true">↗</span><span class="sr-only"> (nouvel onglet)</span></a>`;
+    return `<a class="${primaryAction}" href="${clean(resource.href)}" ${externalAttributes}>${label} ${newTab}</a>`;
   }
   const state = fileStatuses.get(resource.href) || { status: 'checking' };
-  if (state.status === 'checking') return '<p class="library-file-state" role="status">Vérification du document…</p>';
-  const retry = `<button class="library-retry" type="button" data-library-check="${clean(resource.id)}">Réessayer la vérification<span class="sr-only"> de ${clean(resource.title)}</span></button>`;
-  if (state.status === 'missing') return `<p class="library-file-state library-file-warning" role="status">${clean(state.message)}</p>${retry}`;
+  if (state.status === 'checking') return checkingFile;
+  const retry = `<button class="${action}" type="button" data-library-check="${clean(resource.id)}">Réessayer la vérification<span class="sr-only"> de ${clean(resource.title)}</span></button>`;
+  const notice = state.message ? `<p class="library-file-state library-file-warning library-file-${state.status}" role="status">${clean(state.message)}</p>` : '';
+  if (state.status === 'missing') return notice + retry;
   const filename = decodeURIComponent(resource.href.split('/').at(-1));
-  return `${state.status === 'unverified' ? `<p class="library-file-state library-file-warning" role="status">${clean(state.message)}</p>` : ''}<div class="library-action-links"><a class="library-open" href="${clean(resource.href)}" ${externalAttributes}>${state.status === 'unverified' ? 'Essayer de consulter le PDF' : 'Consulter le PDF'} <span aria-hidden="true">↗</span><span class="sr-only"> (nouvel onglet)</span></a><a class="library-open library-download" href="${clean(resource.href)}" download="${clean(filename)}">Télécharger <span aria-hidden="true">↓</span><span class="sr-only"> le PDF ${clean(resource.title)}</span></a></div>${state.status === 'unverified' ? retry : ''}`;
+  const unverified = state.status === 'unverified';
+  return `${notice}<div class="library-action-links">
+    <a class="${primaryAction}" href="${clean(resource.href)}" ${externalAttributes}>${unverified ? 'Essayer de consulter le PDF' : 'Consulter le PDF'} ${newTab}</a>
+    <a class="${action} library-open library-download" href="${clean(resource.href)}" download="${clean(filename)}">Télécharger <span aria-hidden="true">↓</span><span class="sr-only"> le PDF ${clean(resource.title)}</span></a>
+  </div>${unverified ? retry : ''}`;
 }
 
-function hydrateFiles(root, resources, reload = false) {
-  for (const resource of resources.filter(item => item.isLocal && item.href)) {
-    checkFile(resource, reload).then(() => {
-      if (!root.isConnected) return;
-      root.querySelectorAll('[data-library-target]').forEach(target => {
-        if (target.dataset.libraryTarget === resource.id) target.innerHTML = resourceActions(resource);
-      });
-    });
+function updateFileActions(target, resource, check) {
+  check.then(() => {
+    if (!target.isConnected || check !== fileChecks.get(resource.href)) return;
+    const restoreFocus = document.activeElement === target;
+    target.innerHTML = resourceActions(resource);
+    if (restoreFocus) (target.querySelector('a,button') || target).focus({ preventScroll: true });
+  });
+}
+
+function hydrateFiles(root, resources) {
+  for (const resource of resources) {
+    if (!resource.isLocal || !resource.href || fileStatuses.has(resource.href)) continue;
+    const target = root.querySelector(`[data-library-target="${CSS.escape(resource.id)}"]`);
+    updateFileActions(target, resource, checkFile(resource));
   }
 }
 
@@ -99,7 +120,34 @@ function metadata(resource, catalog) {
 
 function resourceCard(resource, catalog, { compact = false } = {}) {
   const relatedLessons = resource.lessons.map(id => lessons.find(lesson => lesson.id === id)).filter(Boolean);
-  return `<article class="library-card ${compact ? 'library-card-compact' : ''}" id="library-resource-${clean(resource.id)}"><div class="library-card-heading"><span class="library-type-icon library-type-${clean(resource.type)}">${icon(resource.type)}</span><div><span class="library-type-label">${clean(RESOURCE_TYPES[resource.type])}</span>${!compact ? `<span class="library-organization">${clean(resource.organization || 'Organisme non renseigné')}</span>` : ''}</div></div><h3>${clean(resource.title)}</h3><p class="library-description">${clean(resource.description)}</p>${!compact ? `<div class="library-themes">${resource.themes.map(theme => `<a href="${clean(libraryUrl({ theme }))}">${clean(theme)}</a>`).join('')}</div><div class="library-units">${resource.units.length ? resource.units.map(id => { const unit = units.find(item => item.id === id); return `<a href="uc.html?id=${encodeURIComponent(id)}">${clean(unit.code)}</a>`; }).join('') : '<span>Ressource transversale · sans UC associée</span>'}</div>` : ''}<div class="library-actions" data-library-target="${clean(resource.id)}">${resourceActions(resource)}</div>${!compact && relatedLessons.length ? `<div class="library-related"><span>Cours associé${relatedLessons.length > 1 ? 's' : ''}</span><ul>${relatedLessons.map(lesson => `<li><a href="cours.html?id=${encodeURIComponent(lesson.id)}">${clean(lesson.title)} <span aria-hidden="true">→</span></a></li>`).join('')}</ul></div>` : ''}${!compact ? metadata(resource, catalog) : ''}</article>`;
+  const themes = resource.themes.map(theme => `<a href="${clean(libraryUrl({ theme }))}">${clean(theme)}</a>`).join('');
+  const unitLinks = resource.units.map(id => {
+    const unit = units.find(item => item.id === id);
+    return `<a href="uc.html?id=${encodeURIComponent(id)}">${clean(unit.code)}</a>`;
+  }).join('');
+  return `<article class="library-card${compact ? ' library-card-compact' : ''}" id="library-resource-${clean(resource.id)}">
+    <div class="library-card-heading">
+      <span class="library-type-icon library-type-${clean(resource.type)}">${icon(resource.type)}</span>
+      <div>
+        <span class="library-type-label">${clean(RESOURCE_TYPES[resource.type])}</span>
+        ${!compact && resource.organization ? `<span class="library-organization">${clean(resource.organization)}</span>` : ''}
+      </div>
+    </div>
+    <div class="library-card-copy">
+      <h3>${clean(resource.title)}</h3>
+      ${resource.description ? `<p class="library-description">${clean(resource.description)}</p>` : ''}
+    </div>
+    ${compact ? '' : `
+      ${themes ? `<div class="library-themes">${themes}</div>` : ''}
+      <div class="library-units">${unitLinks || '<span>Ressource transversale · sans UC associée</span>'}</div>
+    `}
+    <div class="library-actions${resource.isLocal && resource.href ? ' library-actions-local' : ''}" tabindex="-1" data-library-target="${clean(resource.id)}">${resourceActions(resource)}</div>
+    ${!compact && relatedLessons.length ? `<div class="library-related">
+      <span>Cours associé${relatedLessons.length > 1 ? 's' : ''}</span>
+      <ul>${relatedLessons.map(lesson => `<li><a href="cours.html?id=${encodeURIComponent(lesson.id)}">${clean(lesson.title)} <span aria-hidden="true">→</span></a></li>`).join('')}</ul>
+    </div>` : ''}
+    ${compact ? '' : metadata(resource, catalog)}
+  </article>`;
 }
 
 function bindFileRetry(root, resources, signal) {
@@ -108,14 +156,15 @@ function bindFileRetry(root, resources, signal) {
     if (!button) return;
     const resource = resources.find(item => item.id === button.dataset.libraryCheck);
     if (!resource?.isLocal || !resource.href) return;
-    const target = button.closest('[data-library-target]');
-    target.innerHTML = '<p class="library-file-state" role="status">Nouvelle vérification du document…</p>';
-    checkFile(resource, true).then(() => {
-      if (!target.isConnected) return;
-      target.innerHTML = resourceActions(resource);
-      const nextFocus = target.querySelector('a,button');
-      nextFocus?.focus({ preventScroll: true });
-    });
+    const check = checkFile(resource, true);
+    const matching = resources.filter(item => item.isLocal && item.href === resource.href);
+    for (const item of matching) {
+      const target = root.querySelector(`[data-library-target="${CSS.escape(item.id)}"]`);
+      if (!target) continue;
+      if (target.contains(document.activeElement)) target.focus({ preventScroll: true });
+      target.innerHTML = checkingFile;
+      updateFileActions(target, item, check);
+    }
   }, { signal });
 }
 
@@ -131,12 +180,26 @@ const distinct = values => [...new Set(values)].sort(collator.compare).map(value
 
 export async function initResources(root, { reload = false } = {}) {
   const { signal } = controllerFor(root);
-  root.innerHTML = `<section class="page-top wrap">${renderBreadcrumbs('resources')}<h1>Ressources documentaires</h1><p role="status">Chargement de la bibliothèque…</p></section>`;
+  const intro = `<section class="page-top wrap library-intro">
+    ${renderBreadcrumbs('resources')}
+    <h1>Ressources documentaires</h1>
+    <p>Retrouve des références techniques, des documents et des sources pour approfondir tes cours de BPREA.</p>
+  </section>`;
+  const restoreFocus = reload && root.contains(document.activeElement);
+  root.innerHTML = `${intro}<div class="wrap library-notice"><p role="status" tabindex="-1">Chargement de la bibliothèque…</p></div>`;
+  const loading = root.querySelector('[role="status"]');
+  if (restoreFocus) loading.focus({ preventScroll: true });
   const catalog = await loadResourceCatalog({ reload });
   if (signal.aborted) return;
+  const focusWasOnLoading = document.activeElement === loading;
   if (catalog.error) {
-    root.innerHTML = `<section class="page-top wrap">${renderBreadcrumbs('resources')}<h1>Ressources documentaires</h1><div class="library-notice" role="alert"><h2>La bibliothèque ne peut pas être chargée</h2><p>${clean(catalog.error)}</p><button class="btn btn-outline" type="button">Réessayer le chargement</button></div></section>`;
-    root.querySelector('button').addEventListener('click', () => initResources(root, { reload: true }), { signal });
+    root.innerHTML = `${intro}<div class="wrap library-notice library-load-error">
+      <div role="alert"><h2>La bibliothèque ne peut pas être chargée</h2><p>${clean(catalog.error)}</p></div>
+      <button class="${action}" type="button">Réessayer le chargement</button>
+    </div>`;
+    const retry = root.querySelector('button');
+    retry.addEventListener('click', () => initResources(root, { reload: true }), { signal });
+    if (focusWasOnLoading) retry.focus({ preventScroll: true });
     return;
   }
   const themes = distinct(catalog.resources.flatMap(resource => resource.themes));
@@ -150,23 +213,76 @@ export async function initResources(root, { reload = false } = {}) {
     ['organization', 'Organisme ou auteur', options(organizations, 'Tous les organismes')],
   ];
   const selectMarkup = ([key, label, choices]) => `<label for="resource-${key}">${label}<select id="resource-${key}" data-resource-filter="${key}">${choices}</select></label>`;
-  root.innerHTML = `<section class="page-top wrap library-intro">${renderBreadcrumbs('resources')}<div class="page-eyebrow">DES SOURCES POUR COMPRENDRE ET PRATIQUER</div><h1>Ressources documentaires</h1><p>Des références à explorer, des documents à garder sous la main et des liens directs avec tes cours de BPREA.</p></section><section class="wrap library-layout" aria-label="Bibliothèque pédagogique"><form class="library-filters" aria-label="Rechercher et filtrer les ressources"><div class="library-search-row"><label class="library-search" for="resource-search"><span class="sr-only">Rechercher par titre, description, mot-clé ou organisme</span>${icon('website')}<input type="search" id="resource-search" placeholder="Titre, mot-clé, organisme…" autocomplete="off" /></label><button type="reset" class="btn btn-outline library-reset">Réinitialiser les filtres</button></div><div class="library-filter-grid">${controls.slice(0, 3).map(selectMarkup).join('')}</div><details class="library-more-filters"><summary>Préciser par cours, chapitre ou organisme</summary><div class="library-filter-grid">${controls.slice(3).map(selectMarkup).join('')}</div></details><p class="library-search-help">La recherche porte sur les fiches descriptives, sans explorer le contenu des PDF.</p></form><p class="library-query-notice" id="resource-query-notice" role="status" hidden></p><div class="library-results-bar"><p id="resource-count" role="status" aria-live="polite" aria-atomic="true"></p><label for="resource-sort">Trier par<select id="resource-sort"><option value="title-asc">Titre · A à Z</option><option value="title-desc">Titre · Z à A</option><option value="added-desc">Date d’ajout · plus récents</option></select></label></div><p id="resource-context" class="library-context" hidden></p><p id="resource-date-notice" class="library-search-help" hidden>Les fiches sans date d’ajout connue sont placées à la fin, par ordre alphabétique.</p>${catalog.warnings.length ? `<details class="library-notice library-catalog-warnings"><summary>Certaines fiches nécessitent une mise à jour (${catalog.warnings.length})</summary><ul>${catalog.warnings.map(warning => `<li>${clean(warning)}</li>`).join('')}</ul></details>` : ''}<h2 class="sr-only">Documents et liens disponibles</h2><div class="library-grid" id="resource-grid"></div><div class="library-empty" id="resource-empty" hidden><span class="eyebrow">ÉLARGIR TA RECHERCHE</span><h2>Aucune ressource ne correspond</h2><p>Essaie un autre mot-clé ou retire un filtre pour élargir la sélection.</p><button class="btn btn-outline" type="button" data-resource-reset>Réinitialiser les filtres</button></div><aside class="library-note"><h2>De la documentation au cours</h2><p>Les UC, chapitres et cours sont associés explicitement aux ressources. Ouvre un cours depuis sa fiche, ou retrouve sa sélection documentaire dans la section « Pour approfondir ».</p><p>Les liens externes s’ouvrent dans un nouvel onglet. Les dates et les conditions de réutilisation sont indiquées lorsqu’elles sont connues.</p></aside></section>`;
+  const catalogIsEmpty = catalog.resources.length === 0;
+  root.innerHTML = `${intro}<section class="wrap library-layout" aria-label="Bibliothèque pédagogique">
+    <form class="library-filters" aria-label="Rechercher et filtrer les ressources">
+      <div class="library-search-field">
+        <label for="resource-search">Rechercher une ressource</label>
+        <div class="library-search">
+          ${icon('search')}
+          <input type="search" id="resource-search" aria-describedby="resource-search-help" placeholder="Titre, thème, organisme…" autocomplete="off" />
+        </div>
+        <p class="library-search-help" id="resource-search-help">La recherche porte sur les descriptions des ressources, pas sur le contenu des PDF.</p>
+      </div>
+      <div class="library-filter-grid">${controls.slice(0, 3).map(selectMarkup).join('')}</div>
+      <div class="library-filter-tools">
+        <details class="library-more-filters">
+          <summary>Affiner la recherche <span class="library-active-filters" hidden></span></summary>
+          <div class="library-filter-grid">${controls.slice(3).map(selectMarkup).join('')}</div>
+        </details>
+        <button type="reset" class="${action} library-reset">Réinitialiser les filtres</button>
+      </div>
+    </form>
+    <p class="library-query-notice" id="resource-query-notice" role="status" hidden></p>
+    <section class="library-results" aria-labelledby="resource-results-title">
+      <div class="library-results-bar">
+        <div>
+          <h2 id="resource-results-title">Résultats</h2>
+          <p id="resource-count" role="status" aria-atomic="true"></p>
+        </div>
+        <label for="resource-sort">Trier par<select id="resource-sort">
+          <option value="title-asc">Titre · A à Z</option>
+          <option value="title-desc">Titre · Z à A</option>
+          <option value="added-desc">Date d’ajout · plus récents</option>
+        </select></label>
+      </div>
+      <p id="resource-context" class="library-context" hidden></p>
+      <p id="resource-date-notice" class="library-search-help" hidden>Les fiches sans date d’ajout connue sont placées à la fin, par ordre alphabétique.</p>
+      ${catalog.warnings.length ? `<details class="library-notice library-catalog-warnings">
+        <summary>Certaines fiches nécessitent une mise à jour (${catalog.warnings.length})</summary>
+        <ul>${catalog.warnings.map(warning => `<li>${clean(warning)}</li>`).join('')}</ul>
+      </details>` : ''}
+      <div class="library-grid" id="resource-grid"></div>
+      <div class="library-empty" id="resource-empty" hidden>
+        <h3>${catalogIsEmpty ? 'Aucune ressource disponible pour le moment' : 'Aucune ressource ne correspond à ta recherche.'}</h3>
+        <p>${catalogIsEmpty ? 'Les documents et liens apparaîtront ici lorsqu’ils auront été ajoutés à la bibliothèque.' : 'Essaie un autre mot-clé ou retire un filtre pour élargir la sélection.'}</p>
+        <button class="${action}" type="button" data-resource-reset ${catalogIsEmpty ? 'hidden' : ''}>Réinitialiser les filtres</button>
+      </div>
+    </section>
+  </section>`;
   const grid = root.querySelector('#resource-grid');
   const form = root.querySelector('form');
+  const search = root.querySelector('#resource-search');
+  const advanced = root.querySelector('.library-more-filters');
+  const activeFilters = advanced.querySelector('.library-active-filters');
+  const count = root.querySelector('#resource-count');
+  const selects = [...root.querySelectorAll('[data-resource-filter],#resource-sort')];
   let filters = emptyFilters();
+  let shown = [];
 
   function readQuery() {
     const params = new URLSearchParams(location.search);
     filters = emptyFilters();
     filters.query = (params.get('q') || '').slice(0, 300);
     let discarded = false;
-    for (const key of ['unit', 'theme', 'type', 'lesson', 'chapter', 'organization', 'sort']) {
+    for (const select of selects) {
+      const key = select.dataset.resourceFilter || 'sort';
       const value = params.get(key);
       if (!value) continue;
-      const select = root.querySelector(`#resource-${key}`);
       if ([...select.options].some(option => option.value === value)) filters[key] = value;
       else discarded = true;
     }
+    if (filters.lesson || filters.chapter || filters.organization) advanced.open = true;
     const notice = root.querySelector('#resource-query-notice');
     notice.hidden = !discarded;
     notice.textContent = discarded ? 'Certains filtres ne sont plus disponibles et ont été retirés. Les autres critères restent appliqués.' : '';
@@ -186,39 +302,42 @@ export async function initResources(root, { reload = false } = {}) {
 
   function refresh() {
     const results = filterResources(catalog.resources, filters);
-    root.querySelector('#resource-search').value = filters.query;
-    for (const key of ['unit', 'theme', 'type', 'lesson', 'chapter', 'organization', 'sort']) root.querySelector(`#resource-${key}`).value = filters[key];
-    if (filters.lesson || filters.chapter || filters.organization) root.querySelector('.library-more-filters').open = true;
-    grid.innerHTML = results.map(resource => resourceCard(resource, catalog)).join('');
-    root.querySelector('#resource-count').textContent = `${results.length} ressource${results.length > 1 ? 's' : ''} sur ${catalog.resources.length}`;
-    const empty = root.querySelector('#resource-empty');
-    empty.hidden = results.length !== 0;
-    if (!catalog.resources.length) {
-      empty.querySelector('.eyebrow').textContent = 'LA BIBLIOTHÈQUE SE CONSTRUIT';
-      empty.querySelector('h2').textContent = 'Aucune ressource disponible pour le moment';
-      empty.querySelector('p').textContent = 'Les documents et liens apparaîtront ici lorsqu’ils auront été ajoutés à la bibliothèque.';
-      empty.querySelector('button').hidden = true;
+    if (search.value !== filters.query) search.value = filters.query;
+    for (const select of selects) select.value = filters[select.dataset.resourceFilter || 'sort'];
+    const active = [filters.lesson, filters.chapter, filters.organization].filter(Boolean).length;
+    activeFilters.hidden = active === 0;
+    activeFilters.textContent = `${active} filtre${active > 1 ? 's actifs' : ' actif'}`;
+    if (results.length !== shown.length || results.some((resource, index) => resource !== shown[index])) {
+      const opened = new Set([...grid.querySelectorAll('.library-record[open]')].map(record => record.closest('article').id));
+      grid.innerHTML = results.map(resource => resourceCard(resource, catalog)).join('');
+      for (const card of grid.children) {
+        if (opened.has(card.id)) card.querySelector('.library-record').open = true;
+      }
+      hydrateFiles(grid, results);
+      shown = results;
     }
+    const total = `${results.length} ressource${results.length > 1 ? 's' : ''} sur ${catalog.resources.length}`;
+    if (count.textContent !== total) count.textContent = total;
+    root.querySelector('#resource-empty').hidden = results.length !== 0;
+    grid.hidden = results.length === 0;
     root.querySelector('#resource-date-notice').hidden = filters.sort !== 'added-desc' || !results.some(resource => !resource.addedAt);
     const context = root.querySelector('#resource-context');
     const selectedLesson = lessons.find(lesson => lesson.id === filters.lesson);
     context.hidden = !selectedLesson;
     context.innerHTML = selectedLesson ? `Sélection liée au cours <a href="cours.html?id=${encodeURIComponent(selectedLesson.id)}">${clean(selectedLesson.title)} →</a>` : '';
-    hydrateFiles(root, results, reload);
-    reload = false;
   }
 
   function reset() {
     filters = emptyFilters();
     writeQuery();
     refresh();
-    root.querySelector('#resource-search').focus({ preventScroll: true });
+    search.focus();
   }
   form.addEventListener('submit', event => event.preventDefault(), { signal });
   form.addEventListener('reset', event => { event.preventDefault(); reset(); }, { signal });
   root.querySelector('[data-resource-reset]').addEventListener('click', reset, { signal });
-  root.querySelector('#resource-search').addEventListener('input', event => { filters.query = event.target.value; writeQuery(true); refresh(); }, { signal });
-  root.querySelectorAll('[data-resource-filter],#resource-sort').forEach(select => select.addEventListener('change', () => {
+  search.addEventListener('input', () => { filters.query = search.value; writeQuery(true); refresh(); }, { signal });
+  selects.forEach(select => select.addEventListener('change', () => {
     const key = select.dataset.resourceFilter || 'sort';
     filters[key] = select.value;
     writeQuery();
@@ -228,6 +347,7 @@ export async function initResources(root, { reload = false } = {}) {
   window.addEventListener('popstate', () => { readQuery(); refresh(); }, { signal });
   readQuery();
   refresh();
+  if (focusWasOnLoading) search.focus({ preventScroll: true });
 }
 
 async function initAssociatedResources(root, entity, scope, reload = false) {
@@ -242,17 +362,17 @@ async function initAssociatedResources(root, entity, scope, reload = false) {
   const unitId = scope === 'lesson' ? entity.unit : entity.id;
   const unit = units.find(item => item.id === unitId);
   if (catalog.error) {
-    root.innerHTML = `<h2>${heading}</h2><div class="library-notice"><p>Les ressources associées ne peuvent pas être chargées pour le moment.</p><button type="button" class="library-retry">Réessayer le chargement</button></div><a class="text-link" href="${libraryUrl({ unit: unitId })}">Ouvrir la bibliothèque de ${clean(unit?.code || 'cette UC')} →</a>`;
+    root.innerHTML = `<h2>${heading}</h2><div class="library-notice"><p>Les ressources associées ne peuvent pas être chargées pour le moment.</p><button type="button" class="${action}">Réessayer le chargement</button></div><a class="text-link" href="${libraryUrl({ unit: unitId })}">Ouvrir la bibliothèque de ${clean(unit?.code || 'cette UC')} →</a>`;
     root.querySelector('button').addEventListener('click', () => initAssociatedResources(root, entity, scope, true), { signal });
     return;
   }
   // Only an explicitly recorded lesson relation links a resource to this course.
   const related = filterResources(catalog.resources, scope === 'lesson' ? { lesson: entity.id } : { unit: entity.id });
   const visible = scope === 'unit' ? related.slice(0, 3) : related;
-  root.innerHTML = `<span class="eyebrow">DES REPÈRES POUR ALLER PLUS LOIN</span><h2>${heading}</h2>${visible.length ? `<p class="library-associated-intro">${scope === 'lesson' ? 'Une sélection directement associée à ce cours.' : `${related.length} ressource${related.length > 1 ? 's' : ''} associée${related.length > 1 ? 's' : ''} à cette UC${related.length > visible.length ? ' · aperçu de trois fiches' : ''}.`}</p><div class="library-compact-grid">${visible.map(resource => resourceCard(resource, catalog, { compact: true })).join('')}</div>` : '<p class="library-associated-empty">Aucune ressource n’est directement associée à ce cours pour le moment.</p>'}<div class="library-associated-links">${scope === 'lesson' && related.length ? `<a class="text-link" href="${libraryUrl({ lesson: entity.id })}">Voir les fiches de ce cours dans la bibliothèque →</a>` : ''}<a class="text-link" href="${libraryUrl({ unit: unitId })}">Toutes les ressources de ${clean(unit?.code || 'cette UC')} →</a></div>`;
+  root.innerHTML = `<h2>${heading}</h2>${visible.length ? `<p class="library-associated-intro">${scope === 'lesson' ? 'Une sélection directement associée à ce cours.' : `${related.length} ressource${related.length > 1 ? 's' : ''} associée${related.length > 1 ? 's' : ''} à cette UC${related.length > visible.length ? ' · aperçu de trois fiches' : ''}.`}</p><div class="library-compact-grid">${visible.map(resource => resourceCard(resource, catalog, { compact: true })).join('')}</div>` : '<p class="library-associated-empty">Aucune ressource n’est directement associée à ce cours pour le moment.</p>'}<div class="library-associated-links">${scope === 'lesson' && related.length ? `<a class="text-link" href="${libraryUrl({ lesson: entity.id })}">Voir les fiches de ce cours dans la bibliothèque →</a>` : ''}<a class="text-link" href="${libraryUrl({ unit: unitId })}">Toutes les ressources de ${clean(unit?.code || 'cette UC')} →</a></div>`;
   if (!visible.length && scope === 'unit') root.querySelector('.library-associated-empty').textContent = 'Aucune ressource n’est associée à cette UC pour le moment.';
   bindFileRetry(root, visible, signal);
-  hydrateFiles(root, visible, reload);
+  hydrateFiles(root, visible);
 }
 
 export const initCourseResources = (root, lesson) => initAssociatedResources(root, lesson, 'lesson');

@@ -305,11 +305,11 @@
   pointer-events: none;
   transition: opacity var(--transition-control);
 }
-.btn.btn-surface:hover:enabled {
+.btn.btn-surface:hover:not(:disabled) {
   border-color: var(--color-control-border);
   box-shadow: var(--shadow-raised);
 }
-.btn-surface:is(:hover, :active):enabled::before { opacity: .65; }
+.btn-surface:is(:hover, :active):not(:disabled)::before { opacity: .65; }
 .btn.btn-surface--accent {
   border-color: var(--color-terracotta);
   background: var(--control-pill-accent);
@@ -317,16 +317,16 @@
   box-shadow: var(--control-pill-accent-shadow);
 }
 .btn-surface--accent::before { background: var(--control-pill-accent-reflection); }
-.btn.btn-surface--accent:hover:enabled { box-shadow: var(--control-pill-accent-shadow); }
-.btn.btn-surface--danger, .btn.btn-surface--danger:hover:enabled {
+.btn.btn-surface--accent:hover:not(:disabled) { box-shadow: var(--control-pill-accent-shadow); }
+.btn.btn-surface--danger, .btn.btn-surface--danger:hover:not(:disabled) {
   border-color: var(--color-error-line);
   color: var(--color-error);
 }
-.btn.btn-surface:active:enabled {
+.btn.btn-surface:active:not(:disabled) {
   border-color: var(--color-terracotta-text);
   box-shadow: var(--control-pill-pressed-shadow);
 }
-.btn.btn-surface:focus-visible:enabled {
+.btn.btn-surface:focus-visible:not(:disabled) {
   outline: 3px solid var(--color-focus);
   outline-offset: 3px;
   box-shadow: var(--control-pill-focus-ring);
@@ -339,15 +339,16 @@
   box-shadow: none;
 }
 @media (forced-colors: active) {
-  .btn.btn-surface, .btn.btn-surface:hover:enabled {
+  .btn.btn-surface, .btn.btn-surface:hover:not(:disabled) {
     border-color: ButtonText;
     background: ButtonFace;
     color: ButtonText;
     box-shadow: none;
   }
   .btn-surface::before { display: none; }
-  .btn.btn-surface--accent, .btn.btn-surface--accent:hover:enabled, .btn.btn-surface:active:enabled { border: 2px solid Highlight; }
-  .btn.btn-surface:focus-visible:enabled { outline-color: Highlight; }
+  a.btn.btn-surface, a.btn.btn-surface:hover:not(:disabled) { color: LinkText; }
+  .btn.btn-surface--accent, .btn.btn-surface--accent:hover:not(:disabled), .btn.btn-surface:active:not(:disabled) { border: 2px solid Highlight; }
+  .btn.btn-surface:focus-visible:not(:disabled) { outline-color: Highlight; }
   .btn.btn-surface:disabled { color: GrayText; border-color: GrayText; }
 }
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}

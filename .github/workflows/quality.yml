@@ -112,6 +112,8 @@ jobs:
           node scripts/measure-ui-foundations.mjs --page 'tableau-de-bord.html?period=all' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-dashboard.json
           node scripts/measure-ui-foundations.mjs --page 'calendrier.html?month=2027-06' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-calendar.json
           node scripts/measure-ui-foundations.mjs --page 'itk.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-itk.json
+          node scripts/measure-ui-foundations.mjs --page 'ressources.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-resources.json --runs 3
+          node scripts/measure-ui-foundations.mjs --page 'ressources.html' --baseline-ref '${{ github.event.pull_request.base.sha }}' --output .tmp/ui-2027-foundations/performance-resources-600.json --runs 3 --large-catalog
       - name: Conserver mesures brutes, médianes et budgets diagnostiques
         if: always()
         uses: actions/upload-artifact@v7
@@ -124,5 +126,6 @@ jobs:
             .tmp/ui-2027-foundations/dashboard-review/
             .tmp/ui-2027-foundations/calendar-review/
             .tmp/ui-2027-foundations/itk-review/
+            .tmp/ui-2027-foundations/review/
           retention-days: 14
           if-no-files-found: ignore

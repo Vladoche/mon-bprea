@@ -39,8 +39,9 @@ Pour une commande autonome assortie aux entrées du header, utiliser
 terracotta de l’entrée active. `.btn-surface--danger` garde la surface neutre
 avec les couleurs fonctionnelles du retrait. Le header et ces variantes
 résolvent les mêmes tokens `--control-pill-*` pour les dégradés, reflets,
-ombres et anneau de focus. Le bouton natif porte ses propres états
-de survol, appui et désactivation, avec adaptation au contraste forcé.
+ombres et anneau de focus. Sur un bouton ou un lien natif, cette surface
+conserve les interactions de l’élément et adapte l’affichage au contraste
+forcé. L’état désactivé s’applique aux boutons natifs.
 
 ## Stockage et compatibilité
 
