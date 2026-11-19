@@ -69,10 +69,13 @@ export function initBotanicalSyncPanel(root, service, { signal } = {}) {
     const count = state.sync.pending || 0;
     const syncState = visitor ? 'visitor' : state.sync.state;
     const status = labels[syncState] || labels.session;
+    const storageIssue = state.view.error || state.sync.error;
+    root.hidden = visitor && !storageIssue;
     panel.dataset.syncState = syncState;
+    writeText('bot-storage-title', visitor ? 'Stockage de l’historique' : 'Sauvegarde et synchronisation');
     writeText('botanical-sync-status', `${status}${count ? ` · ${count} opération${count > 1 ? 's' : ''} en attente` : ''}`);
     writeText('botanical-sync-alert', notableStates.has(syncState) ? status : '');
-    writeText('botanical-sync-detail', state.view.error || state.sync.error || (visitor ? 'Résultats conservés dans ce navigateur. L’import vers un compte demande ta confirmation.' : 'La mention « synchronisé » confirme la sauvegarde distante.'));
+    writeText('botanical-sync-detail', storageIssue || (visitor ? '' : 'La mention « synchronisé » confirme la sauvegarde distante.'));
     refresh.hidden = visitor; refresh.disabled = refreshing;
     startImport.hidden = !usable; select('botanical-cache-info').hidden = !usable;
     select('botanical-sync-actions').hidden = visitor;

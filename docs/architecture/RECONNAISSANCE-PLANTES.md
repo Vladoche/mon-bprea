@@ -10,7 +10,7 @@ Choisir une catégorie, puis **Découverte** (sans limite) ou **Chrono** (15, 30
 
 Une session tire jusqu’à dix espèces sans répétition et mélange questions et propositions. Les trois distracteurs appartiennent à la catégorie ; les relations de confusion documentées sont prioritaires. Il y a exactement quatre noms distincts et une réponse correcte. Le prototype utilise le niveau facile. Le champ `difficulty` prépare `easy`, `intermediate`, `hard` ; aucun filtre de difficulté ni mode spécialisé « Confusions » n’est exposé avant un enrichissement fiable de la banque.
 
-La photographie est affichée en entier. L’auteur, la licence et le lien source figurent sous l’image. **Crédit complet** donne le titre original et l’attribution intégrale. Les alternatives textuelles décrivent la photographie sans révéler le nom à reconnaître. Les boutons de réponse présentent quatre propositions A à D. Le choix unique utilise `aria-pressed` et sa validation est explicite.
+La photographie est affichée en entier. **Sources et licences des photographies**, en bas de page, réunit les auteurs, les licences, les liens source, les titres originaux et les attributions intégrales. La mention de Luc Viatour reste près de la photo du groseillier, selon sa demande. Les alternatives textuelles décrivent la photographie sans révéler le nom à reconnaître. Les boutons de réponse présentent quatre propositions A à D. Le choix unique utilise `aria-pressed` et sa validation est explicite.
 
 La correction reçoit le focus à la validation. Elle affiche le résultat, le choix effectué en cas d’erreur, le nom commun, le nom scientifique, la famille et la description. **Ce que montre cette photographie** regroupe les caractères visibles, le stade et l’organe. Les caractères généraux se consultent dans une section dépliable et les sources restent accessibles sous les explications.
 
@@ -39,7 +39,7 @@ Pour ajouter une catégorie, ajouter `{ "id": "aromatiques", "name": "Plantes ar
 
 Pour ajouter une espèce, renseigner `id`, `commonName`, `scientificName`, `family`, `categoryIds`, `description`, `criteria`, `difficulty` et `sources` (objets `title`, `url`). Vérifier la nomenclature et les critères dans une source botanique identifiable. Ne décrire que les caractères pertinents au niveau BPREA. Les critères généraux sont distincts de ceux visibles sur chaque photo. Vérifier les homonymes : le moteur élimine les noms communs dupliqués parmi les propositions.
 
-Pour ajouter une photographie, fournir `id`, `speciesId`, `path` relatif au site, `stage`, `organ`, `author`, `sourceTitle` (titre original fourni, consultable dans « Crédit complet »), `sourceUrl`, `license`, `licenseUrl`, `attribution`, `alt` descriptif sans nom à deviner, `visibleCriteria` et `identification`. Plusieurs objets peuvent référencer une même espèce avec des photographies différentes. Une photographie n’existe qu’une fois dans le référentiel, même si l’espèce appartient à plusieurs catégories. Choisir une image où la bonne proposition est identifiable face aux trois autres espèces compatibles. Une image trop générale ou ambiguë doit être exclue.
+Pour ajouter une photographie, fournir `id`, `speciesId`, `path` relatif au site, `stage`, `organ`, `author`, `sourceTitle` (titre original fourni), `sourceUrl`, `license`, `licenseUrl`, `attribution`, `alt` descriptif sans nom à deviner, `visibleCriteria` et `identification`. Plusieurs objets peuvent référencer une même espèce avec des photographies différentes. Une photographie n’existe qu’une fois dans le référentiel, même si l’espèce appartient à plusieurs catégories. Choisir une image où la bonne proposition est identifiable face aux trois autres espèces compatibles. Une image trop générale ou ambiguë doit être exclue.
 
 Télécharger uniquement après vérification individuelle de l’identification et des droits sur la page d’origine. Conserver auteur, URL du fichier source, version de la licence et attribution exacte. Optimiser en JPEG ou WebP, indiquer les transformations dans l’attribution et conserver la licence requise pour la copie dérivée. Remplacer une image par un nouveau nom de fichier : les photographies ne reçoivent pas de paramètre de version automatique. Le registre [BOTANICAL-SOURCES.md](BOTANICAL-SOURCES.md) documente les ressources initiales et leurs limites. Aucun service photo externe n’est nécessaire au jeu ou à sa CI.
 
@@ -50,6 +50,8 @@ Ajouter une confusion seulement si elle est documentée : `{ "speciesId": "…",
 Une tentative contient les identifiants de session, question, catégorie, espèce et photo, le mode, le statut de révision, la réponse choisie, `status`, `correct`, `elapsedMs` et `answeredAt`. Les statuts sont `correct`, `incorrect`, `timeout`, `skipped_image`. Le visiteur et le moteur lisent le même format de tentative que la projection de l’historique du compte.
 
 **Taux de reconnaissance = correctes ÷ (correctes + incorrectes + temps écoulés) × 100.** Sans question réalisée, le taux est absent. Les photographies indisponibles et questions non tentées ne font pas baisser le taux. Les agrégats sont pondérés par le nombre de tentatives, pas par la moyenne de taux de sessions. Les doublons d’identifiant de réponse sont exclus. Les vues par espèce, thématique et jour UTC montrent volumes et résultats descriptifs. Les confusions observées associent espèce attendue et réponse effectivement choisie ; aucun score artificiel de maîtrise n’est calculé.
+
+En mode Chrono, la **Durée chronométrée** cumule le temps enregistré pour les questions comptées. Le temps de pause et les questions passées ou sans réponse restent hors de cette durée. **Expirations du chrono** compte les questions arrivées à échéance. Une session sans question chronométrée affiche « Non mesurée ».
 
 La révision sélectionne les espèces ayant au moins une erreur ou expiration dans l’historique. Les distracteurs restent issus de la catégorie entière, ce qui autorise de réviser une seule espèce. Une photo différente de la dernière erreur est privilégiée si elle existe. Une réussite ultérieure n’efface pas les tentatives initiales et ne retire pas automatiquement l’espèce de la révision.
 
@@ -66,5 +68,6 @@ Les vérifications réellement exécutées sont consignées dans [VALIDATION-LOT
 La [validation 2027](../validations/VALIDATION-UI-2027-PR4-LOT4.md) décrit les
 contrôles de la nouvelle présentation. **Consulter mon historique** ouvre les
 tableaux par espèce, par thématique et par jour UTC. Sur écran étroit, les tableaux
-se défilent au sein de leur cadre. Le suivi de sauvegarde, l’import et les
-conflits se trouvent sous l’historique.
+se défilent au sein de leur cadre. Le suivi du compte, l’import et les conflits
+se trouvent sous l’historique. En visiteur, un encadré apparaît seulement si le
+stockage rencontre un problème.

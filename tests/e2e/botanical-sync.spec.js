@@ -342,6 +342,7 @@ test('botanique : les résultats déjà affichés se réconcilient sans déplace
 
 test('botanique visiteur sans Supabase : historique indépendant et rendu clair/sombre sur deux écrans', async ({ page }) => {
   await page.goto(botanicalPath); await expect(page.locator('#botanical-sync-status')).toContainText('visiteur');
+  await expect(page.locator('#bot-storage')).toBeHidden();
   await startBotanical(page); await answerBotanical(page, false); await finishBotanical(page);
   await expectBotanicalHistory(page, { attempted: 1, correct: 0, incorrect: 1, rate: '0 %' });
   const raw = await page.evaluate(key => localStorage.getItem(key), botanicalStorageKey); expect(raw).not.toBeNull();
@@ -354,6 +355,7 @@ for (const [name, raw] of [['corrompu', '{ancienne-sauvegarde-incomplete'], ['fu
   test(`botanique visiteur : stockage ${name} conservé et jeu en mémoire après choix explicite`, async ({ page }) => {
     await page.addInitScript(source => localStorage.setItem('monbprea.botanical.v1', source), raw);
     await page.goto(botanicalPath); await expect(page.locator('#botanical-sync-status')).toContainText('visiteur');
+    await expect(page.getByRole('heading', { name: 'Stockage de l’historique' })).toBeVisible();
     await startBotanical(page);
     await expect(page.getByRole('img', { name: /^Photographie à identifier/ })).toHaveCount(0);
     await page.getByRole('button', { name: 'Jouer sans sauvegarder', exact: true }).click();

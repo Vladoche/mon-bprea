@@ -74,11 +74,10 @@ async function answerQuestion(page, { correct = true } = {}) {
   await expect(correction.getByText(photo.identification, { exact: true })).toBeVisible();
   await expect(page.locator('#bot-correction-announcement')).toHaveAttribute('aria-live', 'polite');
   await expect(options.getByRole('button').first()).toBeDisabled();
-  await expect(page.getByRole('link', { name: 'Source de la photographie', exact: true })).toHaveAttribute('href', photo.sourceUrl);
-  await expect(page.getByRole('link', { name: photo.license, exact: true }).first()).toHaveAttribute('href', photo.licenseUrl);
-  expect(photo.sourceTitle, 'Le crédit conserve le titre original de la photographie').toBeTruthy();
-  await page.getByText('Crédit complet', { exact: true }).click();
-  await expect(page.getByText(`Titre de la photographie : « ${photo.sourceTitle} ».`, { exact: true })).toBeVisible();
+  const caption = page.locator('.bot-photo figcaption');
+  if (photo.id === 'groseillier-rouge-01') {
+    await expect(caption).toHaveText('Luc Viatour / https://Lucnix.be');
+  } else await expect(caption).toHaveCount(0);
   return { photo, plant };
 }
 
@@ -97,6 +96,8 @@ test('Découverte depuis Outils : session complète, corrections, historique et 
   const breadcrumbs = page.getByRole('navigation', { name: /Fil d’Ariane/ });
   await expect(breadcrumbs.getByRole('link', { name: 'Outils', exact: true })).toHaveAttribute('href', 'outils.html');
   await startSession(page);
+  await expect(page.locator('#bot-storage')).toBeHidden();
+  await expect(page.locator('#bot-content').getByRole('link', { name: 'Source de la photographie' })).toHaveCount(0);
   await expect(page.getByRole('status', { name: 'Temps restant' })).toHaveCount(0);
   const heading = await page.getByRole('heading', { name: /^Question 1 sur \d+$/ }).textContent();
   const count = Number(heading.match(/sur (\d+)/)[1]);
@@ -117,7 +118,8 @@ test('Découverte depuis Outils : session complète, corrections, historique et 
   await expect(metric(results, 'Questions réalisées')).toHaveText(String(count));
   await expect(metric(results, 'Réponses correctes')).toHaveText(String(count - 1));
   await expect(metric(results, 'Réponses incorrectes')).toHaveText('1');
-  await expect(metric(results, 'Temps écoulés')).toHaveText('0');
+  await expect(metric(results, 'Expirations du chrono')).toHaveText('0');
+  await expect(metric(results, 'Durée chronométrée')).toHaveCount(0);
   await expect(metric(results, 'Taux de reconnaissance')).toHaveText(`${Math.round((count - 1) / count * 100)} %`);
   const saved = await savedState(page);
   expect(saved.answers).toHaveLength(count);
@@ -141,6 +143,44 @@ test('Découverte depuis Outils : session complète, corrections, historique et 
   expect(afterRevision.answers.slice(0, count)).toEqual(saved.answers);
   expect(afterRevision.answers.at(-1)).toMatchObject({ revision: true, status: 'correct', speciesId: firstError.plant.id });
   for (const [key, value] of Object.entries(existing)) expect(await page.evaluate(key => localStorage.getItem(key), key)).toBe(value);
+});
+
+test('les crédits photographiques sont consultables dans le volet replié sous le jeu', async ({ page }) => {
+  await page.goto(`${prefix}reconnaissance-plantes.html`);
+  await startSession(page);
+  const credits = page.locator('#bot-photo-credits');
+  const disclosure = credits.getByText('Sources et licences des photographies', { exact: true });
+  await expect(credits.locator('ul')).toBeHidden();
+  await disclosure.press('Enter');
+  await expect(credits.getByRole('listitem')).toHaveCount(bank.photos.length);
+  for (const photo of bank.photos) {
+    const entry = credits.locator(`[data-photo-credit="${photo.id}"]`);
+    await expect(entry.getByText(photo.sourceTitle, { exact: true })).toBeVisible();
+    await expect(entry.getByRole('link', { name: 'Source de la photographie', exact: true })).toHaveAttribute('href', photo.sourceUrl);
+    await expect(entry.getByRole('link', { name: photo.license, exact: true })).toHaveAttribute('href', photo.licenseUrl);
+  }
+  const special = credits.locator('[data-photo-credit="groseillier-rouge-01"]');
+  await expect(special.getByRole('link', { name: 'https://Lucnix.be', exact: true })).toHaveAttribute('href', 'https://Lucnix.be');
+  await expect(special).toContainText('Luc Viatour / https://Lucnix.be');
+});
+
+test('Chrono : le compte rendu cumule le temps mesuré même sans expiration', async ({ page }) => {
+  await page.goto(`${prefix}reconnaissance-plantes.html`);
+  await startSession(page, { mode: 'chrono' });
+  await page.clock.fastForward(4250);
+  await page.getByRole('button', { name: 'Mettre en pause', exact: true }).click();
+  await page.clock.fastForward(20000);
+  await page.getByRole('button', { name: 'Reprendre', exact: true }).click();
+  await answerQuestion(page);
+  await page.getByRole('button', { name: 'Question suivante' }).click();
+  await questionPhoto(page);
+  await page.clock.fastForward(7380);
+  await answerQuestion(page);
+  await page.getByRole('button', { name: 'Terminer cette session', exact: true }).click();
+  const results = page.locator('#bot-content');
+  await expect(metric(results, 'Durée chronométrée')).toHaveText('11,63 s');
+  await expect(metric(results, 'Expirations du chrono')).toHaveText('0');
+  expect((await savedState(page)).answers.map(answer => answer.elapsedMs)).toEqual([4250, 7380]);
 });
 
 test('Chrono : durée configurable, pause manuelle et expiration sans compter une mauvaise réponse', async ({ page }) => {
@@ -169,7 +209,8 @@ test('Chrono : durée configurable, pause manuelle et expiration sans compter un
   const results = page.locator('#bot-content');
   await expect(metric(results, 'Questions réalisées')).toHaveText('1');
   await expect(metric(results, 'Réponses incorrectes')).toHaveText('0');
-  await expect(metric(results, 'Temps écoulés')).toHaveText('1');
+  await expect(metric(results, 'Expirations du chrono')).toHaveText('1');
+  await expect(metric(results, 'Durée chronométrée')).toHaveText('15 s');
   await expect(metric(results, 'Taux de reconnaissance')).toHaveText('0 %');
 });
 
@@ -243,7 +284,8 @@ test('photographie indisponible : passage hors calcul et aucune erreur imputée 
   const results = page.locator('#bot-content');
   await expect(metric(results, 'Questions réalisées')).toHaveText('0');
   await expect(metric(results, 'Réponses incorrectes')).toHaveText('0');
-  await expect(metric(results, 'Temps écoulés')).toHaveText('0');
+  await expect(metric(results, 'Expirations du chrono')).toHaveText('0');
+  await expect(metric(results, 'Durée chronométrée')).toHaveText('Non mesurée');
   await expect(metric(results, 'Taux de reconnaissance')).toHaveText('Non calculable');
   await expect(metric(results, 'Photographies passées')).toHaveText('1');
   expect((await savedState(page)).answers[0]).toMatchObject({ status: 'skipped_image', selectedSpeciesId: null });

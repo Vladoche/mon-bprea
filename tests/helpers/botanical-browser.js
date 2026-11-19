@@ -50,7 +50,7 @@ export async function expectBotanicalHistory(page, { attempted, correct, incorre
   const history = page.locator('#bot-history');
   if ((await history.locator('details').getAttribute('open')) === null) await history.locator('summary').click();
   if (attempted === 0) return expect(history).toContainText('Aucune question réalisée');
-  for (const [label, value] of Object.entries({ 'Questions réalisées': attempted, 'Réponses correctes': correct, 'Réponses incorrectes': incorrect, 'Temps écoulés': timeouts, 'Taux de reconnaissance': rate })) {
+  for (const [label, value] of Object.entries({ 'Questions réalisées': attempted, 'Réponses correctes': correct, 'Réponses incorrectes': incorrect, 'Expirations du chrono': timeouts, 'Taux de reconnaissance': rate })) {
     if (value !== undefined) await expect(botanicalMetric(history, label)).toHaveText(String(value));
   }
 }

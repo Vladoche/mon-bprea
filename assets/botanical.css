@@ -71,7 +71,7 @@ p.bot-panel { margin: 0; }
   scroll-margin-block: var(--space-4);
 }
 .bot-heading:focus, #bot-correction-title:focus { outline: 0; }
-.bot-layout :is(figcaption, .bot-correction, .bot-history) a {
+.bot-layout :is(.bot-photo-credits, .bot-required-credit, .bot-correction, .bot-history) a {
   color: var(--green);
   text-decoration: underline;
   text-underline-offset: .2em;
@@ -293,24 +293,41 @@ p.bot-panel { margin: 0; }
   max-height: calc(var(--bot-photo-height) - 2 * (var(--space-1) + var(--space-2) + 2px));
   object-fit: contain;
 }
-.bot-photo figcaption {
-  margin-top: var(--space-2);
+.bot-required-credit {
+  margin-top: var(--space-1);
   color: var(--muted);
   font-size: var(--font-size-meta);
-  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 .bot-photo-links {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
 }
-.bot-photo summary {
+.bot-photo-credits > summary {
   width: fit-content;
-  min-height: 2rem;
-  padding-block: var(--space-1);
-  font-weight: 650;
+  min-height: var(--control-height);
+  padding: var(--space-2);
+  color: var(--muted);
+  font-size: var(--font-size-meta);
 }
-.bot-photo details > span { display: block; }
+.bot-photo-credits ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 23rem), 1fr));
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.bot-photo-credits li {
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--font-size-meta);
+  overflow-wrap: anywhere;
+}
+.bot-photo-credits p { margin: var(--space-2) 0 0; }
 .bot-image-error {
   padding: var(--space-3);
   text-align: center;
@@ -466,6 +483,24 @@ p.bot-panel { margin: 0; }
   color: var(--color-warning);
 }
 
+.bot-result-time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  flex-wrap: wrap;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-soft);
+}
+.bot-result-time dl, .bot-result-time p { margin: 0; }
+.bot-result-time dt { font-size: var(--font-size-label); }
+.bot-result-time dd {
+  margin: 0;
+  font-size: var(--font-size-card);
+  font-variant-numeric: tabular-nums;
+  font-weight: 750;
+}
 .bot-metrics {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));

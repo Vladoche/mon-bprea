@@ -1,12 +1,14 @@
 import { renderBreadcrumbs } from './breadcrumbs.js';
-import { getCategoryAvailability, createSession, evaluateAnswer, calculateStats, createQuestionTimer } from './botanical-engine.js';
+import { getCategoryAvailability, createSession, evaluateAnswer, normalizeAnswer, calculateStats, createQuestionTimer } from './botanical-engine.js';
 import { getBotanicalService } from './botanical-sync-service.js';
 import { initBotanicalSyncPanel } from './botanical-sync-ui.js';
 
 const clean = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const link = (url, label) => /^https:\/\//.test(url || '') ? `<a href="${clean(url)}" target="_blank" rel="noopener noreferrer">${clean(label)}</a>` : clean(label);
+const creditAddress = photo => photo.attribution?.match(/https:\/\/[^\s]+/)?.[0];
 const rate = value => value === null ? 'Non calculable' : `${Math.round(value)} %`;
 const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeZone: 'UTC' });
+const secondsFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 });
 const day = value => dateFormat.format(new Date(`${value}T12:00:00Z`));
 const action = 'btn btn-surface';
 const primaryAction = `${action} btn-surface--accent`;
@@ -27,6 +29,20 @@ function replaceStatistics(root, markup) {
   }
 }
 
+function chronoDuration(history) {
+  const seen = new Set();
+  let elapsedMs = 0;
+  for (const entry of history) {
+    const answer = normalizeAnswer(entry);
+    if (!answer || seen.has(answer.id)) continue;
+    seen.add(answer.id);
+    if (answer.status !== 'skipped_image') elapsedMs += answer.elapsedMs;
+  }
+  const minutes = Math.floor(elapsedMs / 60000);
+  const seconds = secondsFormat.format((elapsedMs % 60000) / 1000);
+  return `${minutes ? `${minutes} min ` : ''}${seconds} s`;
+}
+
 export async function initBotanical(root) {
   controllers.get(root)?.abort();
   const controller = new AbortController();
@@ -36,6 +52,11 @@ export async function initBotanical(root) {
   const content = root.querySelector('#bot-content');
   const historyRoot = root.querySelector('#bot-history');
   const storageRoot = root.querySelector('#bot-storage');
+  const credits = root.querySelector('#bot-photo-credits');
+  const creditsList = credits.querySelector('ul');
+  credits.hidden = true;
+  credits.open = false;
+  creditsList.replaceChildren();
   root.dataset.botScreen = 'selection';
   content.innerHTML = '<p class="bot-panel" role="status">Chargement de la photothèque…</p>';
   historyRoot.replaceChildren();
@@ -51,6 +72,18 @@ export async function initBotanical(root) {
     return;
   }
   if (signal.aborted) return;
+  credits.hidden = false;
+  credits.addEventListener('toggle', () => {
+    if (!credits.open || creditsList.childElementCount) return;
+    creditsList.innerHTML = bank.photos.map(photo => {
+      const address = creditAddress(photo);
+      return `<li data-photo-credit="${clean(photo.id)}">
+        <strong>${clean(photo.sourceTitle || photo.author)}</strong>
+        <div class="bot-photo-links"><span>${clean(photo.author)}${address ? ` / ${link(address, address)}` : ''}</span>${link(photo.licenseUrl, photo.license)}${link(photo.sourceUrl, 'Source de la photographie')}</div>
+        ${photo.attribution ? `<p>${clean(photo.attribution)}</p>` : ''}
+      </li>`;
+    }).join('');
+  }, { signal });
   const service = await getBotanicalService();
   if (signal.aborted) return;
   let state = service.getState();
@@ -134,14 +167,14 @@ export async function initBotanical(root) {
       <div><dt>Questions réalisées</dt><dd>${stats.attempted}</dd></div>
       <div><dt>Réponses correctes</dt><dd>${stats.correct}</dd></div>
       <div><dt>Réponses incorrectes</dt><dd>${stats.incorrect}</dd></div>
-      <div><dt>Temps écoulés</dt><dd>${stats.timeouts}</dd></div>
+      <div><dt>Expirations du chrono</dt><dd>${stats.timeouts}</dd></div>
       <div><dt>Photographies passées</dt><dd>${stats.skipped}</dd></div>
     </dl>`;
   }
   function breakdown(stats) {
     return `<div class="bot-table-wrap" role="region" aria-label="Détail par espèce" tabindex="0">
       <table class="bot-table"><caption>Résultats par espèce</caption>
-        <thead><tr><th scope="col">Espèce</th><th scope="col">Réalisées</th><th scope="col">Correctes</th><th scope="col">Incorrectes</th><th scope="col">Temps écoulés</th><th scope="col">Reconnaissance</th></tr></thead>
+        <thead><tr><th scope="col">Espèce</th><th scope="col">Réalisées</th><th scope="col">Correctes</th><th scope="col">Incorrectes</th><th scope="col">Expirations</th><th scope="col">Reconnaissance</th></tr></thead>
         <tbody>${stats.bySpecies.map(item => `<tr><th scope="row">${clean(species(item.id)?.commonName || item.id)}</th><td>${item.attempted}</td><td>${item.correct}</td><td>${item.incorrect}</td><td>${item.timeouts}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody>
       </table>
     </div>`;
@@ -366,6 +399,10 @@ export async function initBotanical(root) {
       mount.className = 'bot-photo-mount';
       mount.append(img);
       frame.replaceChildren(mount);
+      if (photo.id === 'groseillier-rouge-01') {
+        const address = creditAddress(photo);
+        frame.insertAdjacentHTML('afterend', `<figcaption class="bot-required-credit">${clean(photo.author)} / ${link(address, address)}</figcaption>`);
+      }
       resumeTimer();
       updateChoices();
     }, { once: true });
@@ -397,10 +434,8 @@ export async function initBotanical(root) {
     timerStarted = false;
     manuallyPaused = false;
     const question = session.questions[index];
-    const photo = bank.photos.find(item => item.id === question.photoId);
     timer = createQuestionTimer({ durationMs: session.mode === 'chrono' ? session.durationSeconds * 1000 : Number.MAX_SAFE_INTEGER });
     const questionLabel = `Question ${index + 1} sur ${session.questions.length}`;
-    const creditAddress = photo.attribution?.match(/https:\/\/[^\s]+/)?.[0];
     const choiceButtons = question.choices.map((id, position) => `
       <button class="${action} bot-choice" type="button" data-choice="${clean(id)}" aria-pressed="false" disabled>
         <span class="bot-choice-letter" aria-hidden="true">${String.fromCharCode(65 + position)}</span>
@@ -422,13 +457,6 @@ export async function initBotanical(root) {
       <div class="bot-question">
         <figure class="bot-photo">
           <div class="bot-photo-frame"></div>
-          <figcaption>
-            <div class="bot-photo-links"><span>${clean(photo.author)}${creditAddress ? ` / ${link(creditAddress, creditAddress)}` : ''}</span>${link(photo.licenseUrl, photo.license)}${link(photo.sourceUrl, 'Source de la photographie')}</div>
-            ${photo.sourceTitle || photo.attribution ? `<details><summary>Crédit complet</summary>
-              ${photo.sourceTitle ? `<span>Titre de la photographie : « ${clean(photo.sourceTitle)} ».</span>` : ''}
-              ${photo.attribution ? `<span>${clean(photo.attribution)}</span>` : ''}
-            </details>` : ''}
-          </figcaption>
         </figure>
         <div class="bot-answering">
           <h3>Quelle plante observes-tu ?</h3>
@@ -522,19 +550,24 @@ export async function initBotanical(root) {
     focus('#bot-correction-title');
     saveAnswer();
   }
-  function resultData(stats) {
-    return `${metrics(stats)}${stats.bySpecies.length ? breakdown(stats) : ''}`;
+  function resultData(stats, sessionAnswers) {
+    const duration = resultSession.mode === 'chrono' ? `<div class="bot-result-time">
+      <dl><div><dt>Durée chronométrée</dt><dd>${stats.attempted ? chronoDuration(sessionAnswers) : 'Non mesurée'}</dd></div></dl>
+      <p class="bot-help">Temps cumulé des questions comptées, pauses exclues.</p>
+    </div>` : '';
+    return `${duration}${metrics(stats)}${stats.bySpecies.length ? breakdown(stats) : ''}`;
   }
   function resultCount(stats) {
     return `${stats.attempted} question${stats.attempted > 1 ? 's' : ''} réalisée${stats.attempted > 1 ? 's' : ''} sur ${resultSession.questions.length} proposée${resultSession.questions.length > 1 ? 's' : ''}.`;
   }
   function refreshResults() {
     if (!resultSession) return;
-    const stats = calculateStats(answers.filter(item => item.sessionId === resultSession.id));
+    const sessionAnswers = answers.filter(item => item.sessionId === resultSession.id);
+    const stats = calculateStats(sessionAnswers);
     const count = content.querySelector('#bot-result-count');
     if (count) count.textContent = resultCount(stats);
     const data = content.querySelector('#bot-result-data');
-    if (data) replaceStatistics(data, resultData(stats));
+    if (data) replaceStatistics(data, resultData(stats, sessionAnswers));
   }
   function renderResults() {
     stopTicker();
@@ -542,13 +575,14 @@ export async function initBotanical(root) {
     screen = 'results';
     root.dataset.botScreen = screen;
     resultSession = session;
-    const stats = calculateStats(answers.filter(item => item.sessionId === session.id));
+    const sessionAnswers = answers.filter(item => item.sessionId === session.id);
+    const stats = calculateStats(sessionAnswers);
     content.innerHTML = `<section class="bot-panel bot-results">
       <p class="bot-context">${clean(category(session.categoryId)?.name)} · ${session.mode === 'chrono' ? 'Chrono' : 'Découverte'}${session.revision ? ' · Révision' : ''}</p>
       <h2 class="bot-heading" tabindex="-1">Résultats de la session</h2>
       <p id="bot-result-count">${resultCount(stats)}</p>
-      <div id="bot-result-data">${resultData(stats)}</div>
-      <p class="bot-help">Le taux est calculé sur les réponses correctes, les réponses incorrectes et les temps écoulés. Les photographies passées et les questions sans réponse restent hors calcul.</p>
+      <div id="bot-result-data">${resultData(stats, sessionAnswers)}</div>
+      <p class="bot-help">Le taux est calculé sur les réponses correctes, les réponses incorrectes et les expirations du chrono. Les photographies passées et les questions sans réponse restent hors calcul.</p>
       <p id="bot-save-message" class="bot-notice" role="status"></p>
       <div class="bot-actions" data-save-actions></div>
       <div class="bot-actions"><button class="${primaryAction}" type="button" data-new>Choisir une nouvelle session</button></div>

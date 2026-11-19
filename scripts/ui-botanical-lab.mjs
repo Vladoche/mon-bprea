@@ -48,10 +48,11 @@ async function questionContract(page) {
 
 async function resultContract(page) {
   return page.locator('#bot-result-data dt').evaluateAll(terms => Object.fromEntries(terms
-    .filter(term => term.textContent !== 'Photographies passées')
+    .filter(term => !['Photographies passées', 'Durée chronométrée'].includes(term.textContent))
     .map(term => {
       const value = term.nextElementSibling.textContent;
-      return [term.textContent, ['Aucune donnée', 'Non calculable'].includes(value) ? null : value];
+      const label = term.textContent === 'Expirations du chrono' ? 'Temps écoulés' : term.textContent;
+      return [label, ['Aucune donnée', 'Non calculable'].includes(value) ? null : value];
     })));
 }
 
@@ -136,6 +137,7 @@ async function replayVisitor(page, origin, phase) {
   await expect(page.locator('#bot-feedback')).toContainText('Temps écoulé');
   await finishBotanical(page);
   const timeoutResult = await resultContract(page);
+  if (phase === 'after') await expect(page.locator('.bot-result-time dd')).toHaveText('15 s');
   await page.locator('[data-new]').click();
 
   await chronology(page, 30);

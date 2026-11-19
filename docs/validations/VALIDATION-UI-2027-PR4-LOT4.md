@@ -18,23 +18,25 @@ PR4 lot 4 · [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) · 19 novem
 | Fichier | Intervention |
 | --- | --- |
 | `reconnaissance-plantes.html` | Introduction et structure présentes dès le chargement, fil d’Ariane de la navigation commune. |
-| `assets/botanical.js`, `assets/botanical.css` | Cartes de catégorie, modes et révision, photographie prioritaire, progression par question, correction en deux parties, résultats et tableaux d’historique. Les boutons de suite et de fin restent près de la correction. |
-| `assets/botanical-sync-ui.js` | Suivi sous l’historique, annonces centrées sur les états qui demandent de l’attention, dialogue d’import natif avec actions accessibles. Une génération d’interface invalide un aperçu tardif quand l’identité change, même au retour à A. |
+| `assets/botanical.js`, `assets/botanical.css` | Cartes de catégorie, modes et révision, photographie prioritaire, progression par question, correction en deux parties, durée en mode Chrono et tableaux d’historique. Les boutons de suite et de fin restent près de la correction. |
+| `assets/botanical-sync-ui.js` | Suivi du compte sous l’historique et message de stockage en cas de problème visiteur. Dialogue d’import natif avec actions accessibles. Une génération d’interface invalide un aperçu tardif quand l’identité change, même au retour à A. |
 | `tests/e2e/botanical*.js`, `scripts/ui-botanical-*.mjs`, `scripts/measure-ui-foundations.mjs`, `.github/workflows/quality.yml` | Parcours navigateur, simulation de synchronisation, parité exacte, mesures et galerie publiées en artefact de recette de la PR. |
 
-Le diff de `botanical-bank.json`, du moteur, des stores, du service, du modèle, du transport et du code d’import est vide. Les douze JPEG ont les mêmes SHA-256 que la référence. L’affichage vérifie les dimensions d’origine, `object-fit: contain`, l’absence de filtre et les chemins relatifs sous `/mon-bprea/`. Le cadre épouse le ratio de l’image et reprend l’arrondi `--radius-md` et l’ombre `--shadow-raised` du site. Sa marge laisse visibles les quatre coins du JPEG. L’auteur, la licence et le lien source restent au voisinage immédiat de l’image. « Crédit complet » donne le titre d’origine et l’attribution intégrale. Pour le groseillier, Luc Viatour et son adresse restent visibles sous la photo. Les alternatives textuelles proviennent de la banque. [Registre des sources](../architecture/BOTANICAL-SOURCES.md).
+Le diff de `botanical-bank.json`, du moteur, des stores, du service, du modèle, du transport et du code d’import est vide. Les douze JPEG ont les mêmes SHA-256 que la référence. L’affichage vérifie les dimensions d’origine, `object-fit: contain`, l’absence de filtre et les chemins relatifs sous `/mon-bprea/`. Le cadre suit le format de l’image et reprend l’arrondi `--radius-md` et l’ombre `--shadow-raised` du site. Sa marge laisse visibles les quatre coins du JPEG. Le volet replié **Sources et licences des photographies** réunit titres, auteurs, licences, liens source et mentions de retouche. Luc Viatour et son adresse restent visibles sous la seule photo du groseillier. Les alternatives textuelles proviennent de la banque. [Registre des sources](../architecture/BOTANICAL-SOURCES.md).
 
 ## Galerie et accessibilité
 
 La galerie locale est dans `.tmp/ui-2027-pr4-lot4/botanical-review/index.html` et la planche des commandes dans `boutons.html` au même emplacement. Le job `ui-performance-lab` fournit ces deux fichiers, les PNG, `controles.json`, `parite.json` et les mesures brutes. Les comparaisons utilisent le catalogue réel. Les écrans de synchronisation utilisent des comptes et réponses HTTP fictifs.
 
-- 124 captures avant/après, incluant les vues à 390, 768 et 1 440 px. L’inspection a porté sur l’accueil, les deux modes, la disponibilité des catégories, les photos horizontale et verticale, les choix, les corrections, les résultats, l’historique, la révision, l’import, l’attente, le hors-ligne et le conflit. Les contrôles de débordement couvrent aussi 320 et 1 024 px. Les tableaux gardent leur sémantique et le défilement clavier dans leur cadre.
+- 136 captures avant/après, incluant les vues à 390, 768 et 1 440 px. L’inspection a porté sur l’accueil, les deux modes, la disponibilité des catégories, les photos horizontale et verticale, les choix, les corrections, les résultats, l’historique, la révision, les licences, l’import, l’attente, le hors-ligne et le conflit. Les contrôles de débordement couvrent aussi 320 et 1 024 px. Les tableaux gardent leur sémantique et le défilement clavier dans leur cadre.
 - Clair, sombre, quatre saisons, contraste forcé et zoom Chromium natif à 200 %. Le clavier vérifie la sélection, le focus après validation, le retour de focus à la relance d’une image, le défilement de l’aperçu d’import à 200 %, le retour au bouton d’import et le déplacement dans les tableaux. Le chrono rend le temps lisible avec `aria-live="off"`. Une annonce courte et le focus sur le nom de la plante orientent vers la correction.
 - Les actions utilisent `.btn.btn-surface` et sa variante accent. Les commandes courantes mesurent 46 px de haut à 1 440 px avec un rayon de 999 px, comme les entrées du header. Les propositions mesurent au moins 52 px, avec le reflet et les ombres partagés et un rayon de 20 px pour les libellés longs. La planche compare repos, survol, focus, pression, sélection et désactivation. Le contraste de texte de l’accent atteint au minimum 6,13:1 en clair et 4,73:1 en sombre sur les extrémités du dégradé mesuré. Les choix validés ont un libellé en plus de leur couleur.
 
 ## Parité et synchronisation
 
 Le scénario de référence a été exécuté avant modification de l’interface. La comparaison après refonte est exacte pour les choix, les photos, les identifiants, les huit tentatives, les six sessions persistées, leurs dates et leurs temps, les totaux et les agrégats. Elle couvre les trois catégories jouables, la catégorie vide, les quatre durées dont la valeur par défaut de 30 s, la pause manuelle et le retour d’onglet, le chargement tardif, le double échec d’image et le passage hors calcul. À l’échéance, la réponse tardive est enregistrée comme `timeout` à 15 000 ms. À 29 999 ms sur une question de 30 s, la réponse est validée. Une réussite en révision laisse l’erreur historique éligible. Le même identifiant relu deux fois conserve un seul décompte, et une session sans tentative calculable affiche « Non calculable ».
+
+Le zéro signalé dans le compte rendu Chrono a été reproduit dans Chromium. Le navigateur avait enregistré 4 250 ms, tandis que « Temps écoulés » affichait le nombre d’expirations, zéro. Le nouveau libellé **Expirations du chrono** désigne ce nombre. **Durée chronométrée** cumule le temps sauvegardé pour les questions comptées. Le scénario de régression enregistre 4,25 s puis 7,38 s avec une pause de 20 s et affiche 11,63 s, zéro expiration. Une expiration à 15 s affiche 15 s et une session avec photo passée seulement affiche « Non mesurée ».
 
 Les suites applicatives vérifient le visiteur local, le stockage refusé et le jeu en mémoire choisi, les comptes vides ou riches, la sauvegarde locale et différée, la confirmation distante, la perte d’acquittement, le retry, les réponses asynchrones invalidées, la déconnexion et la reconnexion. Les conflits de réponse, de session et de date, l’import annulé, la source modifiée, le rejeu d’import et les deux onglets sont couverts. Une actualisation du compte pendant un Chrono conserve la photo, le temps, le choix, le focus et la position de défilement. Un échec de sauvegarde maintient la correction disponible et reprend la même tentative.
 
@@ -43,7 +45,7 @@ La recette PostgreSQL locale utilise la CLI 2.121.0 et la stack `mon-bprea-lot6-
 | Contrôle local | Résultat |
 | --- | --- |
 | `npm test` | 680 tests réussis, un ignoré par la suite sous Windows. |
-| `npm run test:e2e -- --workers=3` | 236 parcours Chromium réussis, dont 19 botaniques. |
+| `npm run test:e2e -- --workers=3` | 238 parcours Chromium, dont 21 botaniques. |
 | `npm run build:auth-sdk` puis `git diff --exit-code -- assets/vendor/supabase.js` | SDK 2.118.0 reproduit à l’identique selon Git. |
 | `node scripts/build-privacy-notice.mjs --check` | Notice publique conforme. |
 
@@ -53,22 +55,22 @@ Cinq passages alternés, Chromium 156 verrouillé, 1 440 × 1 000, cache froid, 
 
 | Médiane | Avant | Après |
 | --- | ---: | ---: |
-| CSS chargé | 65 192 octets | 75 285 octets |
-| JavaScript chargé | 809 850 octets | 813 434 octets |
+| CSS chargé | 65 192 octets | 76 302 octets |
+| JavaScript chargé | 809 850 octets | 815 100 octets |
 | Requêtes initiales | 79 | 79 |
-| LCP de laboratoire | 1 248 ms | 272 ms |
+| LCP de laboratoire | 1 300 ms | 280 ms |
 | CLS initial | 0,365 | 0 |
-| Sélection prête | 1 516 ms | 1 480 ms |
-| Démarrage de session | 92 ms | 107 ms |
-| Première photo affichée | 308 ms | 325 ms |
-| Choix d’une réponse | 27 ms | 25 ms |
-| Correction | 75 ms | 89 ms |
-| Question suivante | 42 ms | 57 ms |
-| Photo suivante affichée | 208 ms | 243 ms |
-| Résultats | 74 ms | 74 ms |
+| Sélection prête | 1 592 ms | 1 508 ms |
+| Démarrage de session | 105 ms | 104 ms |
+| Première photo affichée | 271 ms | 307 ms |
+| Choix d’une réponse | 25 ms | 25 ms |
+| Correction | 89 ms | 107 ms |
+| Question suivante | 42 ms | 40 ms |
+| Photo suivante affichée | 241 ms | 239 ms |
+| Résultats | 75 ms | 89 ms |
 | Photos demandées sur deux questions | 2 · 287 924 octets | 2 · 287 924 octets |
 
-Le titre présent dans le HTML rend le premier contenu visible plus tôt. Le déplacement du suivi sous le jeu réduit le déplacement initial mesuré. Le CSS augmente de 10,1 ko décodés. Les médianes de démarrage, de correction et de passage à la question suivante augmentent de 14 à 15 ms. Les temps d’affichage des photos augmentent de 17 et 35 ms à poids égal. Les actions de jeu restent sous le budget diagnostique de 200 ms hors chargement de photo. L’horloge déterministe vérifie indépendamment les pauses et l’échéance.
+Le titre présent dans le HTML rend le premier contenu visible plus tôt. Le déplacement du suivi sous le jeu réduit le déplacement initial mesuré. Le CSS augmente de 11,1 ko décodés. Les médianes de première photo, de correction et de résultats augmentent de 36, 18 et 14 ms. Les actions de jeu restent sous le budget diagnostique de 200 ms hors chargement de photo. L’horloge déterministe vérifie indépendamment les pauses et l’échéance.
 
 ## Portée de la recette
 

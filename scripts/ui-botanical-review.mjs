@@ -80,6 +80,7 @@ async function captureVisitor(page, origin, phase, capture) {
   await page.clock.pauseAt(frozen);
   await page.goto(base(origin, phase) + botanical);
   await expect(page.locator('[data-start]')).toBeEnabled();
+  if (phase === 'after') await expect(page.locator('#bot-storage')).toBeHidden();
   await capture('accueil', 'Accueil · Découverte · catégorie indisponible');
   await page.locator('#bot-history summary').click();
   await capture('historique-vide', 'Historique vide');
@@ -99,6 +100,7 @@ async function captureVisitor(page, origin, phase, capture) {
   await expect(page.locator('.bot-outcome')).toContainText('Temps écoulé');
   await capture('expiration', 'Correction après expiration');
   await finishBotanical(page);
+  await capture('resultats-chrono', 'Résultats d’une session Chrono');
 
   await newSession(page);
   await setCategory(page, 'petits-fruits');
@@ -117,10 +119,13 @@ async function captureVisitor(page, origin, phase, capture) {
   await nextBotanical(page);
   const wrong = await answerBotanical(page, false);
   assert.equal(wrong.plant.id, 'groseillier-rouge');
-  await page.getByText('Crédit complet', { exact: true }).click();
+  const creditSummary = page.locator(phase === 'before' ? '.bot-photo details summary' : '#bot-photo-credits summary');
+  await creditSummary.click();
   await expect(page.getByText(/Luc Viatour \/ https:\/\/Lucnix.be — Wikimedia Commons/)).toBeVisible();
+  await capture('licences', 'Sources et licences photographiques');
+  await creditSummary.click();
   await page.getByText('Caractères botaniques de l’espèce', { exact: true }).click();
-  await capture('correction-longue', 'Réponse incorrecte · critères généraux et crédit complet dépliés');
+  await capture('correction-longue', 'Réponse incorrecte · caractères généraux dépliés');
   await finishBotanical(page);
   await capture('resultats', 'Résultats de la session partielle');
   await page.locator('#bot-history summary').click();
