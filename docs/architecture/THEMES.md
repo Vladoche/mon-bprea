@@ -46,8 +46,9 @@ forcé. L’état désactivé s’applique aux boutons natifs.
 Les cartes de catégorie et les réponses botaniques adaptent la géométrie de
 `.btn.btn-surface` à leurs libellés. La sélection reprend le contour terracotta,
 le reflet et l’ombre pressée du header, avec un libellé visible et `aria-pressed`.
-Les couleurs de succès et d’erreur s’appliquent après validation. Les JPEG de la
-photothèque sont affichés avec leurs couleurs d’origine dans chaque palette.
+Les couleurs de succès et d’erreur s’appliquent après validation. Les cadres
+photo reprennent l’arrondi `--radius-md` et l’ombre `--shadow-raised` des cartes.
+Les JPEG s’affichent en entier avec leurs couleurs d’origine dans chaque palette.
 La [planche du lot botanique](../validations/VALIDATION-UI-2027-PR4-LOT4.md#galerie-et-accessibilité)
 compare les surfaces et les états interactifs en clair et sombre.
 

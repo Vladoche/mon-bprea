@@ -362,7 +362,10 @@ export async function initBotanical(root) {
     img.addEventListener('load', () => {
       if (attempt !== imageAttempt || !session || signal.aborted) return;
       imageReady = true;
-      frame.replaceChildren(img);
+      const mount = document.createElement('div');
+      mount.className = 'bot-photo-mount';
+      mount.append(img);
+      frame.replaceChildren(mount);
       resumeTimer();
       updateChoices();
     }, { once: true });

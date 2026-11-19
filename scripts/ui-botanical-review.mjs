@@ -34,11 +34,17 @@ async function checkLayout(page, phase, state, all) {
   const info = await page.evaluate(() => {
     const image = document.querySelector('.bot-photo-frame img');
     const imageStyle = image && getComputedStyle(image);
+    const mount = image?.closest('.bot-photo-mount');
+    const mountStyle = mount && getComputedStyle(mount);
+    const imageRect = image?.getBoundingClientRect();
+    const forcedColors = matchMedia('(forced-colors: active)').matches;
     const dialog = document.querySelector('dialog[open].bot-import-dialog');
     const rect = dialog?.getBoundingClientRect();
     return {
       width: innerWidth, scrollWidth: document.documentElement.scrollWidth, dpr: devicePixelRatio,
-      image: image && { id: image.dataset.photoId, width: image.naturalWidth, height: image.naturalHeight, fit: imageStyle.objectFit, filter: imageStyle.filter, transform: imageStyle.transform, padding: parseFloat(imageStyle.paddingTop) },
+      image: image && { id: image.dataset.photoId, width: image.naturalWidth, height: image.naturalHeight, fit: imageStyle.objectFit, filter: imageStyle.filter, transform: imageStyle.transform },
+      mount: mountStyle && { padding: parseFloat(mountStyle.paddingTop), radius: parseFloat(mountStyle.borderTopLeftRadius), shadow: mountStyle.boxShadow,
+        referenceShadow: getComputedStyle(mount.closest('.bot-panel')).boxShadow, forcedColors, width: imageRect.width, height: imageRect.height },
       choices: [...document.querySelectorAll('[data-choice]')].map(node => ({ width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })),
       dialog: rect && { safe: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight && dialog.scrollWidth <= dialog.clientWidth + 1 },
       tables: [...document.querySelectorAll('.bot-table-wrap')].filter(node => node.getClientRects().length).map(node => ({ clientWidth: node.clientWidth, scrollWidth: node.scrollWidth })),
@@ -51,9 +57,13 @@ async function checkLayout(page, phase, state, all) {
   }
   if (info.image) {
     const photo = botanicalBank.photos.find(row => row.id === info.image.id);
-    const { padding, ...content } = info.image;
-    assert.deepEqual(content, { id: photo.id, width: photo.width, height: photo.height, fit: 'contain', filter: 'none', transform: 'none' });
-    if (phase === 'after') assert.ok(padding >= 8, 'Les coins de la photographie dégagent l’arrondi du cadre');
+    assert.deepEqual(info.image, { id: photo.id, width: photo.width, height: photo.height, fit: 'contain', filter: 'none', transform: 'none' });
+    if (phase === 'after') {
+      const { padding, width, height, radius, forcedColors, shadow, referenceShadow } = info.mount;
+      assert.ok(padding >= 8 && radius >= 12, 'Le cadre arrondi dégage les coins de la photographie');
+      assert.ok(Math.abs(width - height * photo.width / photo.height) < 1, 'Le cadre conserve le ratio de la photo');
+      if (!forcedColors) assert.ok(shadow !== 'none' && shadow === referenceShadow, 'Le cadre utilise l’ombre du design system');
+    }
   }
   all.push({ phase, state, ...info });
 }
