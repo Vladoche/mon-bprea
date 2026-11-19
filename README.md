@@ -15,7 +15,7 @@ L’accès personnel du site publié est **sur invitation avec Auth PROD activé
 - **Apparence** : icône clair/sombre dans le header, saisons et ambiances horaires dans Profil → Paramètres ; mémorisation d’appareil volontaire et préférences personnelles synchronisées.
 - **Espace personnel configuré** : activation, connexion, récupération assistée, synchronisation des cours/QCM, Drill, botanique, paramètres ITK et apparence ; copie JSON, restauration limitée et gestion locale des données personnelles.
 
-Les contenus restent illustratifs : la banque Drill couvre surtout l’UC 03, les autres UC signalent leur banque incomplète ; la botanique contient douze espèces et le calendrier ne contient aucune date de formation inventée. Les statistiques portent sur les exercices réalisés, sans badge ni récompense. L’ITK et les indices de préparation sont des repères pédagogiques, sans valeur de prescription ou de prédiction de réussite.
+La banque Drill couvre surtout l’UC 03 et les autres UC signalent leur banque incomplète. Le quiz botanique propose 24 plantes réparties entre quatre catégories. Le calendrier affiche les dates de formation renseignées. Les statistiques portent sur les exercices réalisés, sans badge ni récompense. L’ITK et les indices de préparation sont des repères pédagogiques, sans valeur de prescription ou de prédiction de réussite.
 
 ## Démarrer localement
 

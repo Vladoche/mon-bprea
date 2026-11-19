@@ -9,6 +9,11 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Photothèque botanique enrichie**. 24 plantes à reconnaître, ouverture des
+  Légumineuses et 11 comparaisons documentées qui favorisent les propositions
+  proches. Les corrections distinguent bonnes et mauvaises réponses par une
+  animation brève qui respecte la préférence de mouvement réduit.
+
 - **Reconnaissance botanique 2027, PR4 lot 4**. Sélection des catégories et des
   modes accessible au clavier, photographies non recadrées avec des crédits dépliables,
   corrections structurées et résultats lisibles sur mobile. La durée mesurée

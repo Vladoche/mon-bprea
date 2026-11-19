@@ -294,10 +294,10 @@ test('botanique : les réglages restent verrouillés pendant une création local
   }
   await expect(page.locator(`[data-category="${requested.categoryId}"]`)).toHaveAttribute('aria-pressed', 'true');
   await page.evaluate(() => window.releaseBotanicalSession());
-  await expect(page.getByRole('heading', { name: 'Question 1 sur 4', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: `Question 1 sur ${requested.questions.length}`, exact: true })).toBeVisible();
   await botanicalSynced(page);
   const saved = [...api.sessions.values()]; expect(saved).toHaveLength(1);
-  expect(saved[0]).toMatchObject({ session_id: requested.id, category_id: requested.categoryId, mode: 'chrono', duration_seconds: 30, is_revision: false });
+  expect(saved[0]).toMatchObject({ session_id: requested.id, category_id: requested.categoryId, mode: 'chrono', duration_seconds: 30, is_revision: false, total_questions: requested.questions.length });
   await answerBotanical(page); await finishBotanical(page); await botanicalSynced(page);
   expect(api.sessions.size).toBe(1); expect(api.answers.size).toBe(1);
 
@@ -324,7 +324,7 @@ test('botanique : les résultats déjà affichés se réconcilient sans déplace
   await expect(botanicalMetric(page.locator('#bot-result-data'), 'Réponses correctes')).toHaveText('0');
   await expect(botanicalMetric(page.locator('#bot-result-data'), 'Réponses incorrectes')).toHaveText('1');
   await expect(botanicalMetric(page.locator('#bot-result-data'), 'Taux de reconnaissance')).toHaveText('0 %');
-  await expect(page.locator('#bot-result-count')).toContainText('1 question réalisée sur 4 proposées');
+  await expect(page.locator('#bot-result-count')).toContainText('1 question réalisée sur 7 proposées');
   await expect(nextSession).toBeFocused();
   await expectBotanicalHistory(page, { attempted: 1, correct: 0, incorrect: 1, rate: '0 %' });
   expect(api.sessions.size).toBe(1); expect(api.answers.size).toBe(1);
