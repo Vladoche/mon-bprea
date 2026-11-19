@@ -61,6 +61,12 @@ Les contrats de domaine sont dans ce dossier ; les preuves 6.6 restent dans [les
 
 ## Modifier les événements et les examens
 
+Les flèches, Aujourd’hui, Voir tout le mois, Réessayer et la fermeture du
+détail utilisent la [surface neutre commune](THEMES.md#modifier-les-palettes-ou-les-horaires).
+Les flèches gardent une cible de 44 × 44 px et le champ mois reste un
+`input[type="month"]`. Les jours, événements et compteurs tactiles ont leurs
+propres repères. Le lien de la grille mène à l’agenda.
+
 Le fichier **`assets/calendar-events.json`** est la seule source des dates du calendrier et du moteur de préparation aux examens conservé. Il est livré vide :
 
 ```json

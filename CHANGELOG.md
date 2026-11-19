@@ -9,6 +9,12 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Harmonisation graphique 2027, PR5 lot 2**. Les commandes autonomes des
+  parcours pédagogiques, du calendrier et du compte reprennent les surfaces
+  du header. Les flèches du calendrier restent compactes et le champ mois
+  natif adopte les repères communs des formulaires. [PR #78](https://github.com/Vladoche/mon-bprea/pull/78) ·
+  [Validation](docs/validations/VALIDATION-UI-2027-PR5-LOT2.md).
+
 - **Mon profil 2027, PR5 lot 1**. Compte, apparence et synchronisation des
   cours et QCM dans trois sections avec accès direct. Le profil affiche le
   pseudo confirmé et guide la sauvegarde. Export JSON, restauration JSON et
@@ -20,7 +26,9 @@ La version de l’application Windows reste propre à cet outil.
 - **Photothèque botanique enrichie**. 24 plantes à reconnaître, ouverture des
   Légumineuses et 11 comparaisons documentées qui favorisent les propositions
   proches. Les corrections distinguent bonnes et mauvaises réponses par une
-  animation brève qui respecte la préférence de mouvement réduit. [PR #75](https://github.com/Vladoche/mon-bprea/pull/75).
+  animation brève qui respecte la préférence de mouvement réduit.
+  [PR #75](https://github.com/Vladoche/mon-bprea/pull/75) ·
+  [Intégration à main #76](https://github.com/Vladoche/mon-bprea/pull/76).
 
 - **Reconnaissance botanique 2027, PR4 lot 4**. Sélection des catégories et des
   modes accessible au clavier, photographies non recadrées avec des crédits dépliables,

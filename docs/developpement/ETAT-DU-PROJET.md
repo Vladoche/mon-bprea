@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `469ceebd44fee995eb5433e47e9d3f927d8044af` |
-| Dernière PR fusionnée sur main | [#76](https://github.com/Vladoche/mon-bprea/pull/76), 19/11/2026 à 13:43:05 UTC |
+| Dernier commit | `2dbe4336690a50684bc52e54b65081961e1b9482` |
+| Dernière PR fusionnée sur main | [#77](https://github.com/Vladoche/mon-bprea/pull/77), 19/11/2026 à 15:36:45 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | **Mon profil 2027**, lot 1 de PR5. [PR #77](https://github.com/Vladoche/mon-bprea/pull/77) · [Validation](../validations/VALIDATION-UI-2027-PR5-LOT1.md) |
-| Prochaine action | Revoir le lot Profil et sa galerie. Côté exploitation, décider du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
+| Chantier en revue | **Harmonisation graphique 2027**, lot 2 de PR5. [PR #78](https://github.com/Vladoche/mon-bprea/pull/78) · [Validation](../validations/VALIDATION-UI-2027-PR5-LOT2.md) |
+| Prochaine action | Revoir le dernier lot graphique, puis effectuer la [recette finale indépendante](../validations/CHECKLIST-RECETTE-FINALE-2027.md) après fusion. Côté exploitation, décider du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel. |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,8 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#74. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut les lots graphiques jusqu’au profil #77.
+**Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -66,12 +67,15 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 [PR2b/PR2c](../validations/VALIDATION-UI-2027-PR2B.md) détaillent périmètres et limites.
 Les quatre checks de la [refonte botanique #74](https://github.com/Vladoche/mon-bprea/pull/74/checks)
 ont réussi sur `daadf53`. La [validation du lot 4](../validations/VALIDATION-UI-2027-PR4-LOT4.md) conserve les résultats détaillés.
+La tête `b4f0a4c` du [profil simplifié #77](https://github.com/Vladoche/mon-bprea/pull/77/checks)
+a passé Qualité et Sécurité Auth/RLS. L’interface d’harmonisation de PR5 lot 2
+est évaluée dans sa [validation propre](../validations/VALIDATION-UI-2027-PR5-LOT2.md).
 
 **Code publié** et **production vérifiée** restent distincts :
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `469ceebd44fee995eb5433e47e9d3f927d8044af` |
+| Dernier commit main relevé | `2dbe4336690a50684bc52e54b65081961e1b9482` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -160,7 +164,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir [la refonte du profil PR5 lot 1](../validations/VALIDATION-UI-2027-PR5-LOT1.md) et les captures comparatives. La [photothèque enrichie](https://github.com/Vladoche/mon-bprea/pull/76) a clos PR4 côté code.
+1. Revoir [PR5 lot 2, harmonisation finale](../validations/VALIDATION-UI-2027-PR5-LOT2.md), dont les captures comparatives. Après fusion, suivre la [checklist de recette indépendante](../validations/CHECKLIST-RECETTE-FINALE-2027.md).
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
