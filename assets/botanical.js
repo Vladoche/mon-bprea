@@ -1,23 +1,73 @@
 import { renderBreadcrumbs } from './breadcrumbs.js';
-import { getCategoryAvailability, createSession, evaluateAnswer, calculateStats, createQuestionTimer } from './botanical-engine.js';
+import { getCategoryAvailability, createSession, evaluateAnswer, normalizeAnswer, calculateStats, createQuestionTimer } from './botanical-engine.js';
 import { getBotanicalService } from './botanical-sync-service.js';
 import { initBotanicalSyncPanel } from './botanical-sync-ui.js';
 
 const clean = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const link = (url, label) => /^https:\/\//.test(url || '') ? `<a href="${clean(url)}" target="_blank" rel="noopener noreferrer">${clean(label)}</a>` : clean(label);
-const rate = value => value === null ? 'Aucune donnée' : `${Math.round(value)} %`;
-const day = value => new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${value}T12:00:00Z`));
+const creditAddress = photo => photo.attribution?.match(/https:\/\/[^\s]+/)?.[0];
+const rate = value => value === null ? 'Non calculable' : `${Math.round(value)} %`;
+const dateFormat = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeZone: 'UTC' });
+const secondsFormat = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 3 });
+const day = value => dateFormat.format(new Date(`${value}T12:00:00Z`));
+const action = 'btn btn-surface';
+const primaryAction = `${action} btn-surface--accent`;
 const controllers = new WeakMap();
+
+function photoCredit(photo) {
+  const address = creditAddress(photo);
+  return `<strong>${clean(photo.sourceTitle || photo.author)}</strong>
+    <div class="bot-photo-links"><span>${clean(photo.author)}${address ? ` / ${link(address, address)}` : ''}</span>${link(photo.licenseUrl, photo.license)}${link(photo.sourceUrl, 'Source de la photographie')}</div>
+    ${photo.attribution ? `<p>${clean(photo.attribution)}</p>` : ''}`;
+}
+
+function replaceStatistics(root, markup) {
+  const active = document.activeElement;
+  const focusedTable = root.contains(active) && active.matches('.bot-table-wrap') ? active : null;
+  const scrollLeft = focusedTable?.scrollLeft;
+  root.innerHTML = markup;
+  if (focusedTable) {
+    const label = CSS.escape(focusedTable.getAttribute('aria-label'));
+    const table = root.querySelector(`.bot-table-wrap[aria-label="${label}"]`);
+    if (table) {
+      table.scrollLeft = scrollLeft;
+      table.focus({ preventScroll: true });
+    }
+  }
+}
+
+function chronoDuration(history) {
+  const seen = new Set();
+  let elapsedMs = 0;
+  for (const entry of history) {
+    const answer = normalizeAnswer(entry);
+    if (!answer || seen.has(answer.id)) continue;
+    seen.add(answer.id);
+    if (answer.status !== 'skipped_image') elapsedMs += answer.elapsedMs;
+  }
+  const minutes = Math.floor(elapsedMs / 60000);
+  const seconds = secondsFormat.format((elapsedMs % 60000) / 1000);
+  return `${minutes ? `${minutes} min ` : ''}${seconds} s`;
+}
 
 export async function initBotanical(root) {
   controllers.get(root)?.abort();
   const controller = new AbortController();
   controllers.set(root, controller);
   const { signal } = controller;
-  root.innerHTML = `<section class="page-top wrap bot-intro">${renderBreadcrumbs('botanical')}<div class="page-eyebrow">OBSERVER · RECONNAÎTRE · COMPRENDRE</div><h1>Reconnaissance des plantes</h1><p>Entraîne ton regard, une photographie à la fois. Choisis une thématique, puis prends le temps de comprendre les caractères qui font la différence.</p></section><div class="wrap bot-layout"><div id="bot-storage" role="status"></div><div id="bot-content"><p role="status">Chargement de la photothèque…</p></div><div id="bot-history"></div><p class="bot-help">Un entraînement botanique indépendant des exercices hebdomadaires. Les résultats restent sur ce navigateur.</p></div>`;
+  root.querySelector('#bot-breadcrumbs').innerHTML = renderBreadcrumbs('botanical');
   const content = root.querySelector('#bot-content');
   const historyRoot = root.querySelector('#bot-history');
   const storageRoot = root.querySelector('#bot-storage');
+  const credits = root.querySelector('#bot-photo-credits');
+  const creditsList = credits.querySelector('ul');
+  credits.hidden = true;
+  credits.open = false;
+  creditsList.replaceChildren();
+  root.dataset.botScreen = 'selection';
+  content.innerHTML = '<p class="bot-panel" role="status">Chargement de la photothèque…</p>';
+  historyRoot.replaceChildren();
+  storageRoot.replaceChildren();
   let bank;
   try {
     const response = await fetch(new URL('./botanical-bank.json', import.meta.url), { signal });
@@ -29,6 +79,11 @@ export async function initBotanical(root) {
     return;
   }
   if (signal.aborted) return;
+  credits.hidden = false;
+  credits.addEventListener('toggle', () => {
+    if (!credits.open || creditsList.childElementCount) return;
+    creditsList.innerHTML = bank.photos.map(photo => `<li data-photo-credit="${clean(photo.id)}">${photoCredit(photo)}</li>`).join('');
+  }, { signal });
   const service = await getBotanicalService();
   if (signal.aborted) return;
   let state = service.getState();
@@ -58,6 +113,7 @@ export async function initBotanical(root) {
   let timerStarted = false;
   let manuallyPaused = false;
   let imageAttempt = 0;
+  let historyMarkup = '';
   const species = id => bank.species.find(item => item.id === id);
   const category = id => bank.categories.find(item => item.id === id);
   const focus = selector => content.querySelector(selector)?.focus();
@@ -67,7 +123,12 @@ export async function initBotanical(root) {
   function actionNotice(message, retry = '') {
     actionError = message || '';
     const target = content.querySelector('#bot-save-message') || content.querySelector('#bot-session-info');
-    if (target) target.innerHTML = `${clean(message)}${retry ? ` <button class="btn btn-outline" type="button" data-retry-save="${retry}">Réessayer l’enregistrement</button>` : ''}`;
+    const actions = content.querySelector('[data-save-actions]');
+    if (target) target.textContent = message;
+    if (actions) actions.innerHTML = retry ? `<button class="${action}" type="button" data-retry-save="${retry}">Réessayer l’enregistrement</button>` : '';
+  }
+  function saveOption(label, attribute) {
+    content.querySelector('[data-save-actions]')?.insertAdjacentHTML('beforeend', `<button class="${action}" type="button" ${attribute}>${label}</button>`);
   }
   async function saveAnswer() {
     if (!outcome || saving || savedOutcome || !session) return;
@@ -80,8 +141,8 @@ export async function initBotanical(root) {
     saving = false;
     if (result.error || result.accountChanged) {
       actionNotice(result.error || 'Le compte a changé. Cette réponse n’a pas été enregistrée dans le nouveau compte.', result.conflict ? '' : 'answer');
-      if (result.conflict) content.querySelector('#bot-save-message')?.insertAdjacentHTML('beforeend', ' <button class="btn btn-outline" type="button" data-abandon>Quitter cette session en conservant le conflit</button>');
-      if (state.mode === 'visitor') content.querySelector('#bot-save-message')?.insertAdjacentHTML('beforeend', ' <button class="btn btn-outline" type="button" data-visitor-continue>Continuer sans sauvegarder</button>');
+      if (result.conflict) saveOption('Quitter cette session en conservant le conflit', 'data-abandon');
+      if (state.mode === 'visitor') saveOption('Continuer sans sauvegarder', 'data-visitor-continue');
     } else {
       savedOutcome = true;
       actionNotice('Réponse enregistrée sur cet appareil.');
@@ -101,18 +162,60 @@ export async function initBotanical(root) {
     renderHistory();
   }
   function metrics(stats) {
-    return `<dl class="bot-metrics"><div><dt>Questions réalisées</dt><dd>${stats.attempted}</dd></div><div><dt>Réponses correctes</dt><dd>${stats.correct}</dd></div><div><dt>Réponses incorrectes</dt><dd>${stats.incorrect}</dd></div><div><dt>Temps écoulés</dt><dd>${stats.timeouts}</dd></div><div><dt>Taux de reconnaissance</dt><dd>${rate(stats.recognitionRate)}</dd></div></dl>`;
+    return `<dl class="bot-metrics">
+      <div class="bot-metric-rate"><dt>Taux de reconnaissance</dt><dd>${rate(stats.recognitionRate)}</dd></div>
+      <div><dt>Questions réalisées</dt><dd>${stats.attempted}</dd></div>
+      <div><dt>Réponses correctes</dt><dd>${stats.correct}</dd></div>
+      <div><dt>Réponses incorrectes</dt><dd>${stats.incorrect}</dd></div>
+      <div><dt>Expirations du chrono</dt><dd>${stats.timeouts}</dd></div>
+      <div><dt>Photographies passées</dt><dd>${stats.skipped}</dd></div>
+    </dl>`;
   }
   function breakdown(stats) {
-    return `<div class="bot-table-wrap"><table class="bot-table"><caption>Résultats par espèce</caption><thead><tr><th scope="col">Espèce</th><th scope="col">Réalisées</th><th scope="col">Correctes</th><th scope="col">Incorrectes</th><th scope="col">Temps écoulés</th><th scope="col">Reconnaissance</th></tr></thead><tbody>${stats.bySpecies.map(item => `<tr><th scope="row">${clean(species(item.id)?.commonName || item.id)}</th><td>${item.attempted}</td><td>${item.correct}</td><td>${item.incorrect}</td><td>${item.timeouts}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody></table></div>`;
+    return `<div class="bot-table-wrap" role="region" aria-label="Détail par espèce" tabindex="0">
+      <table class="bot-table"><caption>Résultats par espèce</caption>
+        <thead><tr><th scope="col">Espèce</th><th scope="col">Réalisées</th><th scope="col">Correctes</th><th scope="col">Incorrectes</th><th scope="col">Expirations</th><th scope="col">Reconnaissance</th></tr></thead>
+        <tbody>${stats.bySpecies.map(item => `<tr><th scope="row">${clean(species(item.id)?.commonName || item.id)}</th><td>${item.attempted}</td><td>${item.correct}</td><td>${item.incorrect}</td><td>${item.timeouts}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>`;
   }
   function renderHistory() {
-    const opened = historyRoot.querySelector('details')?.open;
-    const summaryFocused = document.activeElement === historyRoot.querySelector('summary');
     const stats = calculateStats(answers);
-    historyRoot.innerHTML = `<details class="bot-panel bot-history"><summary>Mon historique botanique${stats.attempted ? ` · ${stats.attempted} question${stats.attempted > 1 ? 's' : ''}` : ''}</summary>${stats.attempted ? `${metrics(stats)}${breakdown(stats)}<div class="bot-history-details"><div class="bot-table-wrap"><table class="bot-table"><caption>Résultats par thématique</caption><thead><tr><th scope="col">Thématique</th><th scope="col">Réalisées</th><th scope="col">Reconnaissance</th></tr></thead><tbody>${stats.byCategory.map(item => `<tr><th scope="row">${clean(category(item.id)?.name || item.id)}</th><td>${item.attempted}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody></table></div><div class="bot-table-wrap"><table class="bot-table"><caption>Évolution quotidienne (UTC)</caption><thead><tr><th scope="col">Date</th><th scope="col">Réalisées</th><th scope="col">Reconnaissance</th></tr></thead><tbody>${stats.timeline.map(item => `<tr><th scope="row">${day(item.date)}</th><td>${item.attempted}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody></table></div></div><h3>Confusions observées</h3><ul class="bot-help">${confusionsObserved()}</ul><p class="bot-help">Le taux porte sur les réponses validées et les temps écoulés. Les photographies indisponibles sont exclues. Chaque tentative reste dans l’historique, y compris après une révision réussie.</p>` : '<p class="bot-empty">Aucune question réalisée pour le moment. Ton historique se construira à partir de tes réponses.</p>'}</details>`;
-    if (opened) historyRoot.querySelector('details').open = true;
-    if (summaryFocused) historyRoot.querySelector('summary')?.focus({ preventScroll: true });
+    if (!historyRoot.firstElementChild) {
+      historyRoot.innerHTML = `<details class="bot-panel bot-history">
+        <summary id="bot-history-summary">Mon historique botanique<span class="bot-history-count"></span></summary>
+        <div class="bot-history-body"></div>
+      </details>`;
+      historyMarkup = '';
+    }
+    const count = historyRoot.querySelector('.bot-history-count');
+    const countLabel = stats.attempted ? ` · ${stats.attempted} question${stats.attempted > 1 ? 's' : ''}` : '';
+    if (count.textContent !== countLabel) count.textContent = countLabel;
+    const markup = stats.attempted || stats.skipped ? `
+      ${metrics(stats)}
+      ${breakdown(stats)}
+      <div class="bot-history-details">
+        <div class="bot-table-wrap" role="region" aria-label="Détail par thématique" tabindex="0">
+          <table class="bot-table"><caption>Résultats par thématique</caption>
+            <thead><tr><th scope="col">Thématique</th><th scope="col">Réalisées</th><th scope="col">Reconnaissance</th></tr></thead>
+            <tbody>${stats.byCategory.map(item => `<tr><th scope="row">${clean(category(item.id)?.name || item.id)}</th><td>${item.attempted}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+        <div class="bot-table-wrap" role="region" aria-label="Détail quotidien" tabindex="0">
+          <table class="bot-table"><caption>Évolution quotidienne (UTC)</caption>
+            <thead><tr><th scope="col">Date</th><th scope="col">Réalisées</th><th scope="col">Reconnaissance</th></tr></thead>
+            <tbody>${stats.timeline.map(item => `<tr><th scope="row">${day(item.date)}</th><td>${item.attempted}</td><td>${rate(item.recognitionRate)}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+      <h3>Confusions observées</h3>
+      <ul class="bot-confusions">${confusionsObserved()}</ul>
+      <p class="bot-help">Les tentatives restent dans ton historique, y compris après une révision réussie.</p>`
+      : '<p class="bot-empty">Aucune question réalisée pour le moment. Tes réponses apparaîtront ici.</p>';
+    if (historyMarkup !== markup) {
+      replaceStatistics(historyRoot.querySelector('.bot-history-body'), markup);
+      historyMarkup = markup;
+    }
   }
   function confusionsObserved() {
     const pairs = new Map();
@@ -134,12 +237,23 @@ export async function initBotanical(root) {
     const current = getCategoryAvailability(bank, answers).find(item => item.id === categoryId);
     const count = Math.min(10, revision ? current?.revisionCount || 0 : current?.playableCount || 0);
     const output = content.querySelector('#bot-revision-count');
-    if (output) output.textContent = current?.revisionCount || 0;
+    const revisionCount = current?.revisionCount || 0;
+    if (output) {
+      const label = revisionCount > 1 ? 'espèces à retravailler' : 'espèce à retravailler';
+      if (output.textContent !== String(revisionCount)) output.textContent = revisionCount;
+      const revisionLabel = content.querySelector('#bot-revision-label');
+      if (revisionLabel.textContent !== label) revisionLabel.textContent = label;
+    }
     const start = content.querySelector('[data-start]');
     if (start) start.disabled = !count || saving;
     if (!actionError) {
       const info = content.querySelector('#bot-session-info');
-      if (info) info.textContent = count ? `${count} question${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''} pour cette session${count < 10 ? ' courte (sur un maximum de 10)' : ''}. Une espèce n’apparaît qu’une fois.` : 'Aucune erreur à revoir dans cette catégorie. Choisis une autre catégorie ou désactive la révision.';
+      if (info) {
+        const message = count ? `${count} question${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''} pour cette session.`
+          : revision ? 'Aucune erreur à revoir dans cette catégorie. Choisis une autre catégorie ou désactive la révision.'
+            : 'La photothèque doit contenir au moins quatre espèces identifiables pour lancer une session.';
+        if (info.textContent !== message) info.textContent = message;
+      }
     }
   }
   async function saveSession() {
@@ -156,7 +270,7 @@ export async function initBotanical(root) {
     if (result.error || result.accountChanged) {
       settings.forEach(input => { input.disabled = false; });
       actionNotice(result.error || 'Le compte a changé. Aucune session créée dans le nouveau compte.', 'session');
-      if (state.mode === 'visitor') content.querySelector('#bot-session-info')?.insertAdjacentHTML('beforeend', ' <button class="btn btn-outline" type="button" data-visitor-play>Jouer sans sauvegarder</button>');
+      if (state.mode === 'visitor') saveOption('Jouer sans sauvegarder', 'data-visitor-play');
       if (start) start.disabled = true;
       return;
     }
@@ -189,26 +303,74 @@ export async function initBotanical(root) {
   function renderSelection(shouldFocus = false) {
     stopTicker();
     screen = 'selection';
+    root.dataset.botScreen = screen;
     resultSession = null;
     completionAt = null;
     actionError = '';
     session = null;
     const available = getCategoryAvailability(bank, answers);
-    const current = available.find(item => item.id === categoryId);
-    const count = Math.min(10, revision ? current?.revisionCount || 0 : current?.playableCount || 0);
-    content.innerHTML = `<section class="bot-panel"><div class="bot-topline"><div><h2 class="bot-heading" tabindex="-1">Quel regard veux-tu entraîner ?</h2><p>Choisis une catégorie pour commencer.</p></div><span class="bot-tag">Photothèque initiale · niveau facile</span></div><div class="bot-categories" role="group" aria-label="Catégories botaniques">${available.map(item => `<button type="button" class="bot-category" data-category="${clean(item.id)}" aria-pressed="${item.id === categoryId}" ${item.playable ? '' : 'disabled'}><span class="bot-symbol" aria-hidden="true">${clean(item.icon || '🌿')}</span><strong>${clean(item.name)}</strong><span>${clean(item.description)}</span><span>${item.speciesCount} espèce${item.speciesCount > 1 ? 's' : ''} · ${item.playableCount} question${item.playableCount > 1 ? 's' : ''} jouable${item.playableCount > 1 ? 's' : ''}</span><small>${item.playable ? item.id === categoryId ? '✓ Catégorie sélectionnée' : 'Choisir cette catégorie' : 'Photothèque à compléter'}</small></button>`).join('')}</div><div class="bot-settings"><fieldset><legend>Ton mode d’entraînement</legend><label class="bot-mode"><input type="radio" name="bot-mode" value="discovery" ${mode === 'discovery' ? 'checked' : ''}><span><strong>Découverte</strong><small>Sans limite de temps. Observe, réponds et lis la correction à ton rythme.</small></span></label><label class="bot-mode"><input type="radio" name="bot-mode" value="chrono" ${mode === 'chrono' ? 'checked' : ''}><span><strong>Chrono</strong><small>Un temps par photographie, puis une correction sans chronomètre.</small></span></label></fieldset><div><div class="bot-duration" ${mode === 'chrono' ? '' : 'hidden'}><label for="bot-duration">Durée par question</label><select id="bot-duration">${[15, 30, 45, 60].map(value => `<option value="${value}" ${value === durationSeconds ? 'selected' : ''}>${value} secondes</option>`).join('')}</select><p class="bot-help">Le chrono démarre après le chargement de l’image. Il se met en pause quand l’onglet est masqué, et reprend à ton retour. Tu peux aussi le mettre en pause.</p></div><label class="bot-revision"><input type="checkbox" id="bot-revision" ${revision ? 'checked' : ''}><span>Revoir mes erreurs dans cette catégorie<br><span class="soft-text"><span id="bot-revision-count">${current?.revisionCount || 0}</span> espèce${current?.revisionCount > 1 ? 's' : ''} à retravailler · erreurs et temps écoulés</span></span></label><p class="bot-help">Les espèces restent dans cette révision après une réussite : l’historique des tentatives est conservé.</p></div></div><div class="bot-start"><p id="bot-session-info">${count ? `${count} question${count > 1 ? 's' : ''} disponible${count > 1 ? 's' : ''} pour cette session${count < 10 ? ' courte (sur un maximum de 10)' : ''}. Une espèce n’apparaît qu’une fois.` : revision ? 'Aucune erreur à revoir dans cette catégorie. Choisis une autre catégorie ou désactive la révision.' : 'Cette catégorie ne dispose pas encore de quatre espèces identifiables pour proposer une session.'}</p><button type="button" class="btn btn-primary" data-start ${count ? '' : 'disabled'} aria-describedby="bot-session-info">Commencer la session <span aria-hidden="true">→</span></button></div></section><p class="bot-help">Le catalogue est volontairement limité. Les catégories signalées « à compléter » nécessitent des photographies identifiées, autorisées et accompagnées de critères vérifiés.</p>`;
+    const cards = available.map(item => {
+      const pressed = item.id === categoryId;
+      return `<button type="button" class="${action} bot-category" data-category="${clean(item.id)}" aria-pressed="${pressed}" ${item.playable ? '' : 'disabled'}>
+        <strong>${clean(item.name)}</strong>
+        <span class="bot-category-description">${clean(item.description)}</span>
+        <span class="bot-category-count">${item.speciesCount} espèce${item.speciesCount > 1 ? 's' : ''} · ${item.playableCount} question${item.playableCount > 1 ? 's' : ''} jouable${item.playableCount > 1 ? 's' : ''}</span>
+        ${item.playable ? '<span class="bot-category-selected" aria-hidden="true">✓ Sélectionnée</span>' : '<span class="bot-category-unavailable">Photothèque à compléter</span>'}
+      </button>`;
+    }).join('');
+    content.innerHTML = `<section class="bot-panel bot-setup">
+      <div class="bot-topline">
+        <h2 class="bot-heading" tabindex="-1">Quel regard veux-tu entraîner ?</h2>
+        <a class="${action}" href="#bot-history-summary">Consulter mon historique</a>
+      </div>
+      <div class="bot-categories" role="group" aria-label="Catégories botaniques">${cards}</div>
+      <div class="bot-settings">
+        <fieldset>
+          <legend>Mode d’entraînement</legend>
+          <div class="bot-modes">
+            <label class="bot-mode"><input type="radio" name="bot-mode" value="discovery" ${mode === 'discovery' ? 'checked' : ''}>
+              <span><strong>Découverte</strong><small>Observe à ton rythme, sans limite de temps.</small></span>
+            </label>
+            <label class="bot-mode"><input type="radio" name="bot-mode" value="chrono" ${mode === 'chrono' ? 'checked' : ''}>
+              <span><strong>Chrono</strong><small>Un temps par photographie. La correction reste en lecture libre.</small></span>
+            </label>
+          </div>
+          <div class="bot-duration" ${mode === 'chrono' ? '' : 'hidden'}>
+            <label for="bot-duration">Durée par question</label>
+            <select id="bot-duration" aria-describedby="bot-duration-help">${[15, 30, 45, 60].map(value => `<option value="${value}" ${value === durationSeconds ? 'selected' : ''}>${value} secondes</option>`).join('')}</select>
+            <p id="bot-duration-help" class="bot-help">Le décompte part quand la photo est chargée. Tu peux le mettre en pause. Il se suspend aussi quand tu changes d’onglet.</p>
+          </div>
+        </fieldset>
+        <div class="bot-revision-setting">
+          <h3>Révision</h3>
+          <label class="bot-revision"><input type="checkbox" id="bot-revision" ${revision ? 'checked' : ''} aria-describedby="bot-revision-help">
+            <span><strong>Revoir mes erreurs dans cette catégorie</strong><small><span id="bot-revision-count"></span> <span id="bot-revision-label"></span></small></span>
+          </label>
+          <p id="bot-revision-help" class="bot-help">Les erreurs et les temps écoulés restent à réviser après une réussite.</p>
+        </div>
+      </div>
+      <div class="bot-start">
+        <p id="bot-session-info" role="status"></p>
+        <button type="button" class="${primaryAction}" data-start disabled aria-describedby="bot-session-info">Commencer la session <span aria-hidden="true">→</span></button>
+      </div>
+      <div class="bot-actions" data-save-actions></div>
+    </section>`;
+    updateSelectionCounts();
     if (shouldFocus) focus('.bot-heading');
     renderHistory();
   }
   function updateTimer() {
     if (!timer || !session || outcome) return;
     const output = content.querySelector('#bot-time');
-    if (output) output.textContent = `${Math.ceil(timer.remainingMs() / 1000)} s`;
+    const remaining = `${Math.ceil(timer.remainingMs() / 1000)} s`;
+    if (output && output.textContent !== remaining) output.textContent = remaining;
     const paused = manuallyPaused || document.hidden;
     const pauseButton = content.querySelector('[data-pause]');
-    if (pauseButton) pauseButton.textContent = manuallyPaused ? 'Reprendre' : 'Mettre en pause';
+    const pauseLabel = manuallyPaused ? 'Reprendre' : 'Mettre en pause';
+    if (pauseButton && pauseButton.textContent !== pauseLabel) pauseButton.textContent = pauseLabel;
     const pausedText = content.querySelector('#bot-paused');
-    if (pausedText) pausedText.textContent = paused ? 'Chronomètre en pause.' : '';
+    const pauseMessage = paused ? 'Chronomètre en pause.' : '';
+    if (pausedText && pausedText.textContent !== pauseMessage) pausedText.textContent = pauseMessage;
     for (const button of content.querySelectorAll('[data-choice]')) button.disabled = !imageReady || paused;
     const validate = content.querySelector('[data-validate]');
     if (validate) validate.disabled = !selected || !imageReady || paused;
@@ -220,10 +382,11 @@ export async function initBotanical(root) {
     else { timer.start(); timerStarted = true; }
     updateTimer();
   }
-  function loadPhoto() {
+  function loadPhoto(restoreFocus = false) {
     const photo = bank.photos.find(item => item.id === session.questions[index].photoId);
     const frame = content.querySelector('.bot-photo-frame');
     const attempt = ++imageAttempt;
+    if (restoreFocus) focus('#bot-question-heading');
     frame.innerHTML = '<span class="bot-loading" role="status">Chargement de la photographie…</span>';
     imageReady = false;
     const img = new Image();
@@ -232,14 +395,29 @@ export async function initBotanical(root) {
     img.addEventListener('load', () => {
       if (attempt !== imageAttempt || !session || signal.aborted) return;
       imageReady = true;
-      frame.replaceChildren(img);
+      const mount = document.createElement('div');
+      mount.className = 'bot-photo-mount';
+      mount.append(img);
+      frame.replaceChildren(mount);
+      if (photo.id === 'groseillier-rouge-01') {
+        const address = creditAddress(photo);
+        frame.insertAdjacentHTML('afterend', `<figcaption class="bot-photo-caption">${clean(photo.author)} / ${link(address, address)}</figcaption>`);
+      }
       resumeTimer();
       updateChoices();
     }, { once: true });
     img.addEventListener('error', () => {
       if (attempt !== imageAttempt || !session || signal.aborted) return;
       timer?.pause();
-      frame.innerHTML = '<div class="bot-image-error" role="status"><h3>Photographie indisponible</h3><p>Cette question ne comptera pas comme une erreur.</p><div class="bot-actions"><button type="button" class="btn btn-outline" data-retry-image>Réessayer l’image</button><button type="button" class="btn btn-primary" data-skip-image>Passer sans compter</button></div></div>';
+      frame.innerHTML = `<div class="bot-image-error">
+        <h3>Photographie indisponible</h3>
+        <p role="status">Tu peux réessayer ou passer cette question hors calcul.</p>
+        <div class="bot-actions">
+          <button type="button" class="${action}" data-retry-image>Réessayer l’image</button>
+          <button type="button" class="${primaryAction}" data-skip-image>Passer sans compter</button>
+        </div>
+      </div>`;
+      if (restoreFocus && document.activeElement?.id === 'bot-question-heading') focus('[data-retry-image]');
     }, { once: true });
     // Catalogue paths are site-root relative (without leading slash), preserving Pages prefixes.
     img.src = new URL(photo.path, document.baseURI).href;
@@ -247,6 +425,7 @@ export async function initBotanical(root) {
   function renderQuestion() {
     stopTicker();
     screen = 'question';
+    root.dataset.botScreen = screen;
     selected = null;
     outcome = null;
     savedOutcome = false;
@@ -255,9 +434,44 @@ export async function initBotanical(root) {
     timerStarted = false;
     manuallyPaused = false;
     const question = session.questions[index];
-    const photo = bank.photos.find(item => item.id === question.photoId);
     timer = createQuestionTimer({ durationMs: session.mode === 'chrono' ? session.durationSeconds * 1000 : Number.MAX_SAFE_INTEGER });
-    content.innerHTML = `<section class="bot-panel"><div class="bot-topline"><span class="bot-tag">${clean(category(session.categoryId)?.name)} · ${session.mode === 'chrono' ? 'Chrono' : 'Découverte'}${session.revision ? ' · Révision' : ''}</span><button class="btn btn-outline" type="button" data-stop>Terminer cette session</button></div><progress class="bot-progress" value="${index}" max="${session.questions.length}" aria-label="Progression de la session"></progress><div class="bot-topline"><h2 id="bot-question-heading" class="bot-heading" tabindex="-1">Question ${index + 1} sur ${session.questions.length}</h2>${session.mode === 'chrono' ? `<div class="bot-timer"><span>Temps restant</span><output id="bot-time" aria-label="Temps restant">${session.durationSeconds} s</output><button class="btn btn-outline" type="button" data-pause>Mettre en pause</button></div>` : '<span class="bot-help">Prends le temps d’observer.</span>'}</div><p id="bot-paused" class="bot-help" role="status"></p><div class="bot-question"><figure class="bot-photo"><div class="bot-photo-frame"></div><figcaption>${clean(photo.author)} · ${link(photo.licenseUrl, photo.license)} · ${link(photo.sourceUrl, 'Source de la photographie')}${photo.attribution ? `<br>${clean(photo.attribution)}` : ''}${photo.sourceTitle ? `<details><summary>Crédit complet</summary><span>Titre de la photographie : « ${clean(photo.sourceTitle)} ».</span></details>` : ''}</figcaption></figure><div><h3>Quelle plante observes-tu ?</h3><p class="bot-help">Une seule réponse est correcte. Sélectionne un nom, puis valide.</p><div class="bot-choices" role="group" aria-label="Quatre propositions">${question.choices.map((id, position) => `<button class="bot-choice" type="button" data-choice="${clean(id)}" aria-pressed="false" disabled><span class="bot-choice-letter" aria-hidden="true">${String.fromCharCode(65 + position)}</span><span>${clean(species(id)?.commonName)}</span><span class="bot-choice-state"></span></button>`).join('')}</div><button class="btn btn-primary" type="button" data-validate disabled>Valider ma réponse</button></div></div><div id="bot-feedback" aria-live="polite" aria-atomic="true"></div></section>`;
+    const questionLabel = `Question ${index + 1} sur ${session.questions.length}`;
+    const choiceButtons = question.choices.map((id, position) => `
+      <button class="${action} bot-choice" type="button" data-choice="${clean(id)}" aria-pressed="false" disabled>
+        <span class="bot-choice-letter" aria-hidden="true">${String.fromCharCode(65 + position)}</span>
+        <span>${clean(species(id)?.commonName)}<small class="bot-choice-state" aria-hidden="true"></small></span>
+      </button>`).join('');
+    content.innerHTML = `<section class="bot-panel bot-observation">
+      <div class="bot-session-header">
+        <div class="bot-session-track">
+          <p class="bot-context">${clean(category(session.categoryId)?.name)} · ${session.mode === 'chrono' ? 'Chrono' : 'Découverte'}${session.revision ? ' · Révision' : ''}</p>
+          <h2 id="bot-question-heading" class="bot-heading" tabindex="-1">${questionLabel}</h2>
+          <progress class="bot-progress" value="${index + 1}" max="${session.questions.length}" aria-label="Progression de la session" aria-valuetext="${questionLabel}"></progress>
+        </div>
+        ${session.mode === 'chrono' ? `<div class="bot-timer">
+          <div><span>Temps restant</span><output id="bot-time" aria-label="Temps restant" aria-live="off">${session.durationSeconds} s</output></div>
+          <button class="${action}" type="button" data-pause>Mettre en pause</button>
+          <p id="bot-paused" role="status"></p>
+        </div>` : ''}
+      </div>
+      <div class="bot-question">
+        <figure class="bot-photo">
+          <div class="bot-photo-frame"></div>
+        </figure>
+        <div class="bot-answering">
+          <h3>Quelle plante observes-tu ?</h3>
+          <div class="bot-choices" role="group" aria-label="Quatre propositions">${choiceButtons}</div>
+          <div class="bot-actions">
+            <button class="${primaryAction}" type="button" data-validate disabled>Valider ma réponse</button>
+            <button class="${action}" type="button" data-stop>Terminer cette session</button>
+          </div>
+        </div>
+      </div>
+      <div id="bot-feedback">
+        <span id="bot-correction-announcement" class="sr-only" role="status" aria-live="polite"></span>
+        <div id="bot-correction-content"></div>
+      </div>
+    </section>`;
     loadPhoto();
     focus('#bot-question-heading');
     if (session.mode === 'chrono') ticker = window.setInterval(updateTimer, 200);
@@ -284,37 +498,95 @@ export async function initBotanical(root) {
     const photo = bank.photos.find(item => item.id === question.photoId);
     for (const button of content.querySelectorAll('[data-choice]')) {
       button.disabled = true;
-      if (button.dataset.choice === question.speciesId) { button.classList.add('correct'); button.querySelector('.bot-choice-state').textContent = '✓ Réponse correcte'; }
-      else if (button.dataset.choice === selected && outcome.status === 'incorrect') { button.classList.add('incorrect'); button.querySelector('.bot-choice-state').textContent = '✗ Ta réponse'; }
+      const label = button.querySelector('.bot-choice-state');
+      if (button.dataset.choice === question.speciesId) {
+        button.classList.add('correct');
+        label.textContent = '✓ Réponse correcte';
+      } else if (button.dataset.choice === selected && outcome.status === 'incorrect') {
+        button.classList.add('incorrect');
+        label.textContent = '✗ Ta réponse';
+      } else label.textContent = '';
+      label.removeAttribute('aria-hidden');
     }
     content.querySelector('[data-validate]').hidden = true;
     const pause = content.querySelector('[data-pause]');
     if (pause) pause.disabled = true;
-    const title = { correct: 'Réponse correcte', incorrect: 'Réponse incorrecte', timeout: 'Temps écoulé', skipped_image: 'Photographie passée · hors calcul' }[outcome.status];
+    const title = { correct: 'Réponse correcte', incorrect: 'Réponse incorrecte', timeout: 'Temps écoulé', skipped_image: 'Photographie passée, hors calcul' }[outcome.status];
     const confusions = (bank.confusions || []).filter(item => item.speciesId === plant.id);
-    content.querySelector('#bot-feedback').innerHTML = `<section class="bot-correction" aria-labelledby="bot-correction-title"><p class="bot-outcome">${clean(title)}${outcome.status === 'timeout' ? ' · aucune réponse fournie dans le temps imparti' : ''}</p><h2 id="bot-correction-title" tabindex="-1">${clean(plant.commonName)}</h2><p><i>${clean(plant.scientificName)}</i> · ${clean(plant.family)}</p><p>${clean(plant.description)}</p><h3>Ce que montre cette photographie</h3><p>${clean(photo.identification)}</p><ul>${(photo.visibleCriteria || []).map(item => `<li>${clean(item)}</li>`).join('')}</ul><p><strong>Stade :</strong> ${clean(photo.stage)} · <strong>Organe :</strong> ${clean(photo.organ)}</p><details><summary>Caractères botaniques de l’espèce</summary><ul>${(plant.criteria || []).map(item => `<li>${clean(item)}</li>`).join('')}</ul><p class="bot-help">Ces caractères généraux ne sont pas tous nécessairement visibles sur cette photographie.</p></details>${confusions.length ? `<h3>Confusions documentées</h3><ul>${confusions.map(item => `<li>${clean(species(item.otherSpeciesId)?.commonName)} : ${clean(item.explanation)}</li>`).join('')}</ul>` : '<p class="bot-help">Aucune relation de confusion documentée pour cette fiche dans le prototype.</p>'}<p class="bot-credits">Sources botaniques : ${(plant.sources || []).map(source => link(source.url, source.title)).join(' · ')}.</p><p id="bot-save-message" class="bot-notice" role="status" aria-live="polite"></p><div class="bot-actions"><button class="btn btn-primary" type="button" data-next disabled>${index + 1 === session.questions.length ? 'Voir les résultats' : 'Question suivante'} <span aria-hidden="true">→</span></button></div></section>`;
-    const stop = content.querySelector('[data-stop]'); if (stop) stop.disabled = true;
+    content.querySelector('#bot-correction-content').innerHTML = `<section class="bot-correction" aria-labelledby="bot-correction-title">
+      <div class="bot-correction-header">
+        <p class="bot-outcome" data-status="${outcome.status}">${title}${outcome.status === 'timeout' ? ' · aucune réponse fournie dans le temps imparti' : ''}</p>
+        <h2 id="bot-correction-title" tabindex="-1">${clean(plant.commonName)}</h2>
+        <p class="bot-taxonomy"><i>${clean(plant.scientificName)}</i> · ${clean(plant.family)}</p>
+        ${outcome.status === 'incorrect' ? `<p>Ta réponse <strong>${clean(species(outcome.selectedSpeciesId)?.commonName)}</strong></p>` : ''}
+        <p>${clean(plant.description)}</p>
+      </div>
+      <div class="bot-correction-body">
+        <section class="bot-observed">
+          <h3>Ce que montre cette photographie</h3><p>${clean(photo.identification)}</p>
+          <ul>${(photo.visibleCriteria || []).map(item => `<li>${clean(item)}</li>`).join('')}</ul>
+          <dl class="bot-photo-facts"><div><dt>Stade</dt><dd>${clean(photo.stage)}</dd></div><div><dt>Organe</dt><dd>${clean(photo.organ)}</dd></div></dl>
+        </section>
+        <div class="bot-background">
+          <details><summary>Caractères botaniques de l’espèce</summary>
+            <ul>${(plant.criteria || []).map(item => `<li>${clean(item)}</li>`).join('')}</ul>
+            <p class="bot-help">Ces caractères généraux ne sont pas tous visibles sur la photographie.</p>
+          </details>
+          ${confusions.length ? `<h3>Confusions documentées</h3><ul>${confusions.map(item => `<li>${clean(species(item.otherSpeciesId)?.commonName)} : ${clean(item.explanation)}</li>`).join('')}</ul>` : ''}
+          <h3>Sources botaniques</h3>
+          <ul class="bot-sources">${(plant.sources || []).map(source => `<li>${link(source.url, source.title)}</li>`).join('')}</ul>
+        </div>
+      </div>
+      <div class="bot-correction-footer">
+        <p id="bot-save-message" class="bot-notice" role="status"></p>
+        <div class="bot-actions" data-save-actions></div>
+        <div class="bot-actions bot-correction-actions"><button class="${primaryAction}" type="button" data-next disabled>${index + 1 === session.questions.length ? 'Voir les résultats' : 'Question suivante'} <span aria-hidden="true">→</span></button></div>
+      </div>
+    </section>`;
+    const stop = content.querySelector('[data-stop]');
+    stop.disabled = true;
+    content.querySelector('.bot-correction-actions').append(stop);
+    content.querySelector('#bot-correction-announcement').textContent = title;
     focus('#bot-correction-title');
     saveAnswer();
   }
-  function resultData(stats) {
-    return `${metrics(stats)}${stats.skipped ? `<p class="bot-notice">${stats.skipped} photographie${stats.skipped > 1 ? 's' : ''} indisponible${stats.skipped > 1 ? 's' : ''}, exclue${stats.skipped > 1 ? 's' : ''} du calcul.</p>` : ''}${stats.bySpecies.length ? breakdown(stats) : ''}`;
+  function resultData(stats, sessionAnswers) {
+    const duration = resultSession.mode === 'chrono' ? `<div class="bot-result-time">
+      <dl><div><dt>Durée chronométrée</dt><dd>${stats.attempted ? chronoDuration(sessionAnswers) : 'Non mesurée'}</dd></div></dl>
+      <p class="bot-help">Temps cumulé des questions comptées, pauses exclues.</p>
+    </div>` : '';
+    return `${duration}${metrics(stats)}${stats.bySpecies.length ? breakdown(stats) : ''}`;
+  }
+  function resultCount(stats) {
+    return `${stats.attempted} question${stats.attempted > 1 ? 's' : ''} réalisée${stats.attempted > 1 ? 's' : ''} sur ${resultSession.questions.length} proposée${resultSession.questions.length > 1 ? 's' : ''}.`;
   }
   function refreshResults() {
     if (!resultSession) return;
-    const stats = calculateStats(answers.filter(item => item.sessionId === resultSession.id));
+    const sessionAnswers = answers.filter(item => item.sessionId === resultSession.id);
+    const stats = calculateStats(sessionAnswers);
     const count = content.querySelector('#bot-result-count');
-    if (count) count.textContent = `${stats.attempted} question${stats.attempted > 1 ? 's' : ''} réalisée${stats.attempted > 1 ? 's' : ''} sur ${resultSession.questions.length} proposée${resultSession.questions.length > 1 ? 's' : ''}. Chaque tentative contribue à ton historique botanique.`;
+    if (count) count.textContent = resultCount(stats);
     const data = content.querySelector('#bot-result-data');
-    if (data) data.innerHTML = resultData(stats);
+    if (data) replaceStatistics(data, resultData(stats, sessionAnswers));
   }
   function renderResults() {
     stopTicker();
     ++imageAttempt;
     screen = 'results';
+    root.dataset.botScreen = screen;
     resultSession = session;
-    const stats = calculateStats(answers.filter(item => item.sessionId === session.id));
-    content.innerHTML = `<section class="bot-panel"><div class="page-eyebrow">${clean(category(session.categoryId)?.name)} · ${session.mode === 'chrono' ? 'CHRONO' : 'DÉCOUVERTE'}</div><h2 class="bot-heading" tabindex="-1">Résultats de la session</h2><p id="bot-result-count">${stats.attempted} question${stats.attempted > 1 ? 's' : ''} réalisée${stats.attempted > 1 ? 's' : ''} sur ${session.questions.length} proposée${session.questions.length > 1 ? 's' : ''}. Chaque tentative contribue à ton historique botanique.</p><div id="bot-result-data">${resultData(stats)}</div><p class="bot-help">Thématique : ${clean(category(session.categoryId)?.name)}. Le taux de reconnaissance est le nombre de réponses correctes divisé par les questions réalisées. Les temps écoulés comptent comme non réussis ; les questions laissées de côté restent hors calcul.</p><p id="bot-save-message" class="bot-notice" role="status" aria-live="polite"></p><div class="bot-actions"><button class="btn btn-primary" type="button" data-new>Choisir une nouvelle session</button></div></section>`;
+    const sessionAnswers = answers.filter(item => item.sessionId === session.id);
+    const stats = calculateStats(sessionAnswers);
+    content.innerHTML = `<section class="bot-panel bot-results">
+      <p class="bot-context">${clean(category(session.categoryId)?.name)} · ${session.mode === 'chrono' ? 'Chrono' : 'Découverte'}${session.revision ? ' · Révision' : ''}</p>
+      <h2 class="bot-heading" tabindex="-1">Résultats de la session</h2>
+      <p id="bot-result-count">${resultCount(stats)}</p>
+      <div id="bot-result-data">${resultData(stats, sessionAnswers)}</div>
+      <p class="bot-help">Le taux est calculé sur les réponses correctes, les réponses incorrectes et les expirations du chrono. Les photographies passées et les questions sans réponse restent hors calcul.</p>
+      <p id="bot-save-message" class="bot-notice" role="status"></p>
+      <div class="bot-actions" data-save-actions></div>
+      <div class="bot-actions"><button class="${primaryAction}" type="button" data-new>Choisir une nouvelle session</button></div>
+    </section>`;
     focus('.bot-heading');
     renderHistory();
     timer = null;
@@ -326,6 +598,17 @@ export async function initBotanical(root) {
     if (event.target.id === 'bot-revision') { revision = event.target.checked; renderSelection(); focus('#bot-revision'); }
   }, { signal });
   content.addEventListener('click', async event => {
+    const historyLink = event.target.closest('a[href="#bot-history-summary"]');
+    if (historyLink) {
+      const summary = historyRoot.querySelector('summary');
+      if (summary) {
+        event.preventDefault();
+        summary.parentElement.open = true;
+        summary.focus();
+        summary.scrollIntoView({ block: 'nearest' });
+      }
+      return;
+    }
     const button = event.target.closest('button');
     if (!button || button.disabled || saving) return;
     if (button.dataset.category) { categoryId = button.dataset.category; renderSelection(); focus(`[data-category="${categoryId}"]`); }
@@ -341,13 +624,21 @@ export async function initBotanical(root) {
     else if (button.hasAttribute('data-next')) { if (!savedOutcome) return; if (++index < session.questions.length) renderQuestion(); else await finishSession(); }
     else if (button.hasAttribute('data-stop')) { if (outcome && !savedOutcome) return; await finishSession(); }
     else if (button.hasAttribute('data-new')) renderSelection(true);
-    else if (button.dataset.retrySave === 'answer') await saveAnswer();
-    else if (button.dataset.retrySave === 'session') await saveSession();
-    else if (button.dataset.retrySave === 'completion') await finishSession();
+    else if (button.dataset.retrySave) {
+      const operation = button.dataset.retrySave;
+      const wasFocused = button === document.activeElement;
+      if (operation === 'answer') await saveAnswer();
+      if (operation === 'session') await saveSession();
+      if (operation === 'completion') await finishSession();
+      if (wasFocused && document.activeElement === document.body) {
+        const target = content.querySelector('[data-retry-save], [data-next]:enabled, [data-new]:enabled');
+        target?.focus({ preventScroll: true });
+      }
+    }
     else if (button.hasAttribute('data-visitor-continue')) continueVisitor();
     else if (button.hasAttribute('data-visitor-play') && state.mode === 'visitor') { visitorMemory = true; sessionSaved = true; renderQuestion(); }
     else if (button.hasAttribute('data-abandon')) renderSelection(true);
-    else if (button.hasAttribute('data-retry-image')) loadPhoto();
+    else if (button.hasAttribute('data-retry-image')) loadPhoto(button === document.activeElement);
     else if (button.hasAttribute('data-skip-image')) complete('skipped_image');
     else if (button.hasAttribute('data-pause')) {
       manuallyPaused = !manuallyPaused;
@@ -386,14 +677,13 @@ export async function initBotanical(root) {
       if (screen !== 'blocked') identityEpoch++;
       saving = false; outcome = null; resultSession = null; sessionSaved = false; savedOutcome = false;
       stopTicker(); ++imageAttempt; session = null; screen = 'blocked';
+      root.dataset.botScreen = screen;
       content.innerHTML = `<section class="bot-panel"><h2>Historique personnel indisponible</h2><p>${clean(next.view.error)}</p><p>Vérifie la connexion au compte puis actualise l’historique. Les résultats déjà enregistrés restent conservés.</p></section>`;
       historyRoot.innerHTML = ''; return;
     }
     if (changed || screen === 'blocked') renderSelection();
     else if (screen === 'selection') updateSelectionCounts();
     if (previousAnswers !== JSON.stringify(answers) || changed) { renderHistory(); if (screen === 'results') refreshResults(); }
-    const help = root.querySelector('.bot-layout > .bot-help');
-    if (help) help.textContent = next.mode === 'visitor' ? 'Un entraînement botanique indépendant des exercices hebdomadaires. Historique visiteur sur ce navigateur.' : 'Un entraînement botanique indépendant des exercices hebdomadaires. Historique personnel du compte ; aucune reprise de partie en cours.';
   });
   signal.addEventListener('abort', unsubscribe, { once: true });
   if (screen !== 'blocked') renderSelection();

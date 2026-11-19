@@ -10,6 +10,8 @@ import { installDashboardObserver, measureDashboard, seedDashboard, writeDashboa
 import { installCalendarObserver, measureCalendar, seedCalendar, writeCalendarReview } from './ui-calendar-lab.mjs';
 import { installItkObserver, measureItk, seedItkLab, writeItkReview } from './ui-itk-lab.mjs';
 import { installResourceObserver, largeResourceCatalog, measureResources, writeResourcesReview } from './ui-resources-lab.mjs';
+import { installBotanicalObserver, measureBotanical, seedBotanicalLab, writeBotanicalParity } from './ui-botanical-lab.mjs';
+import { writeBotanicalReview } from './ui-botanical-review.mjs';
 
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -18,7 +20,7 @@ const baseline = resolve(option('--baseline', '.tmp/ui-2027-foundations/baseline
 const output = resolve(option('--output', '.tmp/ui-2027-foundations/performance.json'));
 const baselineRef = option('--baseline-ref', 'baseline directory supplied by caller');
 const pageFile = option('--page', 'index.html');
-const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all', 'calendrier.html?month=2027-06', 'itk.html', 'ressources.html'];
+const allowedPages = ['index.html', 'mes-cours.html', 's-exercer.html', 'outils.html', 'uc.html?id=uc3', 'uc.html?id=uc1', 'cours.html?id=matiere-organique', 'cours.html?id=rapport-cn', 'exercices.html?id=matiere-organique', 'drill.html?unit=uc3&week=2026-W47', 'tableau-de-bord.html?period=all', 'calendrier.html?month=2027-06', 'itk.html', 'ressources.html', 'reconnaissance-plantes.html'];
 if (!allowedPages.includes(pageFile)) throw new Error('Unsupported UI laboratory page.');
 const quizPage = pageFile.startsWith('exercices.html');
 const drillPage = pageFile.startsWith('drill.html');
@@ -26,6 +28,7 @@ const dashboardPage = pageFile.startsWith('tableau-de-bord.html');
 const calendarPage = pageFile.startsWith('calendrier.html');
 const itkPage = pageFile === 'itk.html';
 const resourcesPage = pageFile === 'ressources.html';
+const botanicalPage = pageFile === 'reconnaissance-plantes.html';
 const largeCatalog = resourcesPage && args.includes('--large-catalog');
 const drillReviewDirectory = resolve(dirname(output), 'drill-review');
 const reviewDirectory = resolve(dirname(output), 'quiz-review');
@@ -62,6 +65,10 @@ try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'Europe/Paris', locale: 'fr-FR', reducedMotion: 'reduce' });
     await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
     const page = await context.newPage();
+    if (botanicalPage) {
+      await seedBotanicalLab(context);
+      await page.addInitScript(installBotanicalObserver);
+    }
     if (resourcesPage) {
       if (largeCatalog) await page.route('**/assets/resources.json*', route => route.fulfill({ json: largeResourceCatalog() }));
       await page.addInitScript(installResourceObserver);
@@ -127,7 +134,7 @@ try {
     await page.locator('h1').waitFor();
     await page.locator('.primary-nav__top-link').first().waitFor();
     const usefulMs = await page.evaluate(() => performance.now());
-    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics, .calendar-agenda-list > li, #itk-form, #resource-grid article').first().waitFor();
+    await page.locator('.home-course-card, .unit-card, .hub-unit-card, .hub-link-card, .lesson-row, .unit-empty, .empty-state, .course-article, #quiz-questions, .drill-preview, .dashboard-metrics, .calendar-agenda-list > li, #itk-form, #resource-grid article, #bot-content [data-start]').first().waitFor();
     const cardsReadyMs = await page.evaluate(() => performance.now());
     await page.waitForTimeout(1000);
     const metrics = await page.evaluate(() => {
@@ -140,6 +147,7 @@ try {
     if (dashboardPage) Object.assign(metrics, await measureDashboard(page));
     if (itkPage) Object.assign(metrics, await measureItk(page));
     if (resourcesPage) Object.assign(metrics, await measureResources(page, largeCatalog));
+    if (botanicalPage) metrics.botanical = await measureBotanical(page);
     if (calendarPage) {
       Object.assign(metrics, await measureCalendar(page));
       await page.keyboard.press('Escape');
@@ -229,6 +237,16 @@ try {
     results.methodology.resources = `${largeCatalog ? 600 : 'Versioned'} records. First card DOM and first PDF action paint from navigation. Filter, sort and reset from browser event to second frame. Action shifts include recent input.`;
     if (!largeCatalog) await writeResourcesReview(browser, { origin, baselineRef, directory: resolve(dirname(output), 'review') });
   }
+  if (botanicalPage) {
+    const keys = ['startMs', 'imageMs', 'choiceMs', 'correctionMs', 'nextMs', 'nextImageMs', 'resultsMs', 'photoRequests', 'photoBytes'];
+    for (const phase of ['before', 'after']) for (const key of keys) {
+      results.medians[phase][key] = median(results[phase].map(run => run.botanical[key]));
+    }
+    results.methodology.baselineRef = baselineRef;
+    results.methodology.botanical = 'Same catalogue, deterministic question order. Trusted actions to second frame after expected DOM state, including image load where indicated. Clock read on first image; fixed-time replay verifies actual elapsed time separately.';
+    await writeBotanicalParity(browser, { origin, baselineRef, directory: dirname(output) });
+    await writeBotanicalReview(browser, { origin, baselineRef, directory: resolve(dirname(output), 'botanical-review') });
+  }
   if (drillPage) {
     for (const phase of ['before','after']) for (const [key, source] of Object.entries({ drillSelectionMs: 'selection', drillValidationMs: 'validation', drillStatsMs: 'stats', drillHistoryMs: 'history', drillStartMs: 'start' }))
       results.medians[phase][key] = median(results[phase].flatMap(run => run.drillLab[source]));
@@ -274,6 +292,7 @@ try {
     dashboardPage && Object.values(after.dashboardActions).some(action => action.durationMs > 200) && 'dashboard laboratory interaction budget',
     calendarPage && (after.monthChangeMs > 200 || after.detailOpenMs > 200 || after.calendarRequests !== 1) && 'calendar laboratory interaction budget',
     itkPage && Math.max(after.parameterMs, after.timelineMs, after.dialogMs) > 200 && 'ITK laboratory interaction budget',
+    botanicalPage && Math.max(after.choiceMs, after.correctionMs, after.nextMs, after.resultsMs) > 200 && 'botanical laboratory interaction budget',
     calendarPage && results.calendarContrast.some(({ season, brightness, focus, ...text }) =>
       focus < 3 || Object.values(text).some(ratio => ratio < 4.5)) && 'calendar contrast budget',
     results.after.some(run => run.errors.length || run.failedResponses.length) && 'runtime/network errors',

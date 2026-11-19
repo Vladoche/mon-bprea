@@ -2,13 +2,20 @@
 
 Historique synthétique du code et de sa documentation, sans versionnement SemVer
 du frontend. Les dates ci-dessous sont les **dates de fusion UTC**, vérifiées sur
-GitHub le 18 novembre 2026. Une fusion ne prouve pas une publication : consulter
+GitHub le 19 novembre 2026. Une fusion ne prouve pas une publication : consulter
 l’[état actuel](docs/developpement/ETAT-DU-PROJET.md) et le
 [registre Pages](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages).
 La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Reconnaissance botanique 2027, PR4 lot 4**. Sélection des catégories et des
+  modes accessible au clavier, photographies non recadrées avec des crédits dépliables,
+  corrections structurées et résultats lisibles sur mobile. La durée mesurée
+  figure à côté du nombre d’expirations du chrono. Les commandes de jeu et
+  d’import reprennent les surfaces du header. Le suivi est réservé aux comptes
+  et aux problèmes de stockage. [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) ·
+  [Validation](docs/validations/VALIDATION-UI-2027-PR4-LOT4.md).
 - **Ressources documentaires 2027, PR4 lot 3**. Recherche et filtres plus
   lisibles, critères avancés actifs visibles, cartes et aperçus pédagogiques
   harmonisés avec les commandes du header et de l’ITK. La vérification des PDF

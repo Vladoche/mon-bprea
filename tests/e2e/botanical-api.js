@@ -23,17 +23,18 @@ export const answerRow = (value, uid) => ({
 });
 export function createBotanicalAPI() {
   const sessions = new Map(), answers = new Map(), sent = [];
-  const fixture = { sessions, answers, sent, restOffline: false, authOffline: false, loseAnswerAck: false, loseSessionAck: false };
-  fixture.install = async (context, account = 'A', visitorRaw = null) => {
-    await context.addInitScript(({ session, visitorRaw }) => {
+  const fixture = { sessions, answers, sent, restOffline: false, authOffline: false, loseAnswerAck: false, loseSessionAck: false, answerGate: null };
+  fixture.install = async (context, account = 'A', visitorRaw = null, siteUrl = 'http://127.0.0.1:4173/mon-bprea/') => {
+    const storageKey = `bprea-auth-botanical.invalid-${new URL(siteUrl).pathname}`;
+    await context.addInitScript(({ session, visitorRaw, storageKey }) => {
       if (localStorage.getItem('botanical-fixture-seeded')) return;
       localStorage.setItem('botanical-fixture-seeded', 'yes');
-      if (session) localStorage.setItem('bprea-auth-botanical.invalid-/mon-bprea/', JSON.stringify(session));
+      if (session) localStorage.setItem(storageKey, JSON.stringify(session));
       if (visitorRaw !== null) localStorage.setItem('monbprea.botanical.v1', visitorRaw);
-    }, { session: account ? sessionFor(account) : null, visitorRaw });
+    }, { session: account ? sessionFor(account) : null, visitorRaw, storageKey });
     await context.route('**/assets/auth-config.json*', route => route.fulfill({ json: {
       enabled: true, environment: 'development', url: botanicalAPIOrigin,
-      publishableKey: 'sb_publishable_syntheticBotanical', siteUrl: 'http://127.0.0.1:4173/mon-bprea/',
+      publishableKey: 'sb_publishable_syntheticBotanical', siteUrl,
     } }));
     await context.route(`${botanicalAPIOrigin}/**`, async route => {
       const request = route.request(), url = new URL(request.url()), uid = owner(request);
@@ -48,6 +49,7 @@ export function createBotanicalAPI() {
         if (url.pathname.endsWith('/token')) { const body = request.postDataJSON(); return respond(sessionFor(body.email?.includes('course-b') || body.refresh_token?.endsWith('-B') ? 'B' : 'A')); }
         if (url.pathname.endsWith('/logout')) return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
       }
+      if (url.pathname.endsWith('/personal_record_botanical_answer')) await fixture.answerGate;
       if (fixture.restOffline) return route.abort('failed');
       if (!uid) return respond({ code: 'PGRST303', message: 'Synthetic missing JWT' }, 401);
       if (request.method() === 'GET') {

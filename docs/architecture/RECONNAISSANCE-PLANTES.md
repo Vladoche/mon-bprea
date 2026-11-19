@@ -6,11 +6,13 @@ Le module statique `reconnaissance-plantes.html` appartient à **Accueil → Out
 
 ## Fonctionnement
 
-Choisir une catégorie, puis **Découverte** (sans limite) ou **Chrono** (15, 30, 45 ou 60 secondes, 30 par défaut). La photothèque initiale propose des sessions courtes ; l’interface affiche le nombre réellement disponible. Une catégorie sans quatre noms distincts compatibles et au moins une photographie jouable reste désactivée. L’objectif de dix questions est un maximum par session, pas une promesse de contenu absent.
+Choisir une catégorie, puis **Découverte** (sans limite) ou **Chrono** (15, 30, 45 ou 60 secondes, 30 par défaut). Chaque carte indique le nombre d’espèces et de questions jouables. Le bouton **Commencer la session** est associé au nombre de questions disponibles pour ce réglage, révision comprise. Une catégorie sans quatre noms distincts compatibles et au moins une photographie jouable reste visible sous la mention « Photothèque à compléter ». Dix questions constituent le maximum par session.
 
 Une session tire jusqu’à dix espèces sans répétition et mélange questions et propositions. Les trois distracteurs appartiennent à la catégorie ; les relations de confusion documentées sont prioritaires. Il y a exactement quatre noms distincts et une réponse correcte. Le prototype utilise le niveau facile. Le champ `difficulty` prépare `easy`, `intermediate`, `hard` ; aucun filtre de difficulté ni mode spécialisé « Confusions » n’est exposé avant un enrichissement fiable de la banque.
 
-Chaque réponse validée affiche le nom commun, le nom scientifique, la famille, le stade, les caractères visibles sur **cette** photographie, les caractères généraux séparés et les sources. Les attributions et liens de licence sont visibles dès la question. Les alternatives textuelles indiquent organe et stade sans révéler le nom à reconnaître. Les boutons sont accessibles au clavier, leur sélection utilise `aria-pressed`, la correction est annoncée et reçoit le focus.
+La photographie est affichée en entier. **Sources et licences des photographies**, en bas de page, réunit les auteurs, les licences, les liens source, les titres originaux et les attributions intégrales. La mention de Luc Viatour reste près de la photo du groseillier, selon sa demande. Les alternatives textuelles décrivent la photographie sans révéler le nom à reconnaître. Les boutons de réponse présentent quatre propositions A à D. Le choix unique utilise `aria-pressed` et sa validation est explicite.
+
+La correction reçoit le focus à la validation. Elle affiche le résultat, le choix effectué en cas d’erreur, le nom commun, le nom scientifique, la famille et la description. **Ce que montre cette photographie** regroupe les caractères visibles, le stade et l’organe. Les caractères généraux se consultent dans une section dépliable et les sources restent accessibles sous les explications.
 
 Le chrono utilise `performance.now()` dans le moteur, avec une horloge injectable en test. L’intervalle d’interface ne fait qu’actualiser l’affichage ; il ne détermine pas le temps écoulé. Le décompte commence après chargement de l’image. `visibilitychange` met automatiquement en pause à la disparition de l’onglet et reprend à son retour, sauf pause manuelle. La correction arrête le chrono. La validation vérifie aussi l’échéance pour éviter de valider tardivement entre deux rafraîchissements. L’expiration produit `timeout`, séparé d’`incorrect`.
 
@@ -37,7 +39,7 @@ Pour ajouter une catégorie, ajouter `{ "id": "aromatiques", "name": "Plantes ar
 
 Pour ajouter une espèce, renseigner `id`, `commonName`, `scientificName`, `family`, `categoryIds`, `description`, `criteria`, `difficulty` et `sources` (objets `title`, `url`). Vérifier la nomenclature et les critères dans une source botanique identifiable. Ne décrire que les caractères pertinents au niveau BPREA. Les critères généraux sont distincts de ceux visibles sur chaque photo. Vérifier les homonymes : le moteur élimine les noms communs dupliqués parmi les propositions.
 
-Pour ajouter une photographie, fournir `id`, `speciesId`, `path` relatif au site, `stage`, `organ`, `author`, `sourceTitle` (titre original fourni, consultable dans « Crédit complet »), `sourceUrl`, `license`, `licenseUrl`, `attribution`, `alt` descriptif sans nom à deviner, `visibleCriteria` et `identification`. Plusieurs objets peuvent référencer une même espèce avec des photographies différentes. Une photographie n’existe qu’une fois dans le référentiel, même si l’espèce appartient à plusieurs catégories. Choisir une image où la bonne proposition est identifiable face aux trois autres espèces compatibles. Une image trop générale ou ambiguë doit être exclue.
+Pour ajouter une photographie, fournir `id`, `speciesId`, `path` relatif au site, `stage`, `organ`, `author`, `sourceTitle` (titre original fourni), `sourceUrl`, `license`, `licenseUrl`, `attribution`, `alt` descriptif sans nom à deviner, `visibleCriteria` et `identification`. Plusieurs objets peuvent référencer une même espèce avec des photographies différentes. Une photographie n’existe qu’une fois dans le référentiel, même si l’espèce appartient à plusieurs catégories. Choisir une image où la bonne proposition est identifiable face aux trois autres espèces compatibles. Une image trop générale ou ambiguë doit être exclue.
 
 Télécharger uniquement après vérification individuelle de l’identification et des droits sur la page d’origine. Conserver auteur, URL du fichier source, version de la licence et attribution exacte. Optimiser en JPEG ou WebP, indiquer les transformations dans l’attribution et conserver la licence requise pour la copie dérivée. Remplacer une image par un nouveau nom de fichier : les photographies ne reçoivent pas de paramètre de version automatique. Le registre [BOTANICAL-SOURCES.md](BOTANICAL-SOURCES.md) documente les ressources initiales et leurs limites. Aucun service photo externe n’est nécessaire au jeu ou à sa CI.
 
@@ -45,9 +47,11 @@ Ajouter une confusion seulement si elle est documentée : `{ "speciesId": "…",
 
 ## Résultats et statistiques
 
-Une tentative contient les identifiants de session, question, catégorie, espèce et photo ; le mode, le statut de révision, la réponse choisie, `status`, `correct`, `elapsedMs`, `answeredAt`. Les statuts sont `correct`, `incorrect`, `timeout`, `skipped_image`. Le modèle garde des identifiants et dates ISO exploitables ultérieurement, sans Supabase ni synchronisation dans ce lot.
+Une tentative contient les identifiants de session, question, catégorie, espèce et photo, le mode, le statut de révision, la réponse choisie, `status`, `correct`, `elapsedMs` et `answeredAt`. Les statuts sont `correct`, `incorrect`, `timeout`, `skipped_image`. Le visiteur et le moteur lisent le même format de tentative que la projection de l’historique du compte.
 
 **Taux de reconnaissance = correctes ÷ (correctes + incorrectes + temps écoulés) × 100.** Sans question réalisée, le taux est absent. Les photographies indisponibles et questions non tentées ne font pas baisser le taux. Les agrégats sont pondérés par le nombre de tentatives, pas par la moyenne de taux de sessions. Les doublons d’identifiant de réponse sont exclus. Les vues par espèce, thématique et jour UTC montrent volumes et résultats descriptifs. Les confusions observées associent espèce attendue et réponse effectivement choisie ; aucun score artificiel de maîtrise n’est calculé.
+
+En mode Chrono, la **Durée chronométrée** cumule le temps enregistré pour les questions comptées. Le temps de pause et les questions passées ou sans réponse restent hors de cette durée. **Expirations du chrono** compte les questions arrivées à échéance. Une session sans question chronométrée affiche « Non mesurée ».
 
 La révision sélectionne les espèces ayant au moins une erreur ou expiration dans l’historique. Les distracteurs restent issus de la catégorie entière, ce qui autorise de réviser une seule espèce. Une photo différente de la dernière erreur est privilégiée si elle existe. Une réussite ultérieure n’efface pas les tentatives initiales et ne retire pas automatiquement l’espèce de la révision.
 
@@ -60,3 +64,10 @@ Une sauvegarde illisible ou provenant d’un schéma futur reste intacte et en l
 Le catalogue initial est petit, avec une seule photographie par espèce. Les sessions se limitent donc à quatre questions par catégorie jouable. Il reste à réunir des photos à différents stades, des légumineuses et des confusions documentées avant d’élargir les niveaux. L’entraînement ne constitue pas une clé de détermination exhaustive sur le terrain.
 
 Les vérifications réellement exécutées sont consignées dans [VALIDATION-LOT5-2.md](../archives/validations/VALIDATION-LOT5-2.md). Les mises à jour d’actions sont décrites dans [ACTIONS-NODE24.md](ACTIONS-NODE24.md).
+
+La [validation 2027](../validations/VALIDATION-UI-2027-PR4-LOT4.md) décrit les
+contrôles de la nouvelle présentation. **Consulter mon historique** ouvre les
+tableaux par espèce, par thématique et par jour UTC. Sur écran étroit, les tableaux
+se défilent au sein de leur cadre. Le suivi du compte, l’import et les conflits
+se trouvent sous l’historique. En visiteur, un encadré apparaît seulement si le
+stockage rencontre un problème.
