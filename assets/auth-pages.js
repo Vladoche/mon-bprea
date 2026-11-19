@@ -81,7 +81,7 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
   const listen = (node, event, callback) => node.addEventListener(event, callback, { signal: abort.signal });
 
   if (page === 'auth-login') {
-    panel.innerHTML = `<h2>Se connecter</h2>${messageMarkup()}<form class="auth-form">${emailField}<div class="auth-field"><label for="auth-password">Mot de passe</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required></div><button class="btn btn-primary" type="submit">Se connecter</button></form><div class="auth-links"><a href="mot-de-passe-oublie.html">Mot de passe oublié</a><a href="profil.html" data-profile-link hidden>Mon profil</a></div>`;
+    panel.innerHTML = `<h2>Se connecter</h2>${messageMarkup()}<form class="auth-form">${emailField}<div class="auth-field"><label for="auth-password">Mot de passe</label><input id="auth-password" name="password" type="password" autocomplete="current-password" required></div><button class="btn btn-surface btn-surface--accent" type="submit">Se connecter</button></form><div class="auth-links"><a href="mot-de-passe-oublie.html">Mot de passe oublié</a><a href="profil.html" data-profile-link hidden>Mon profil</a></div>`;
     const form = panel.querySelector('form');
     let pending = false;
     unsubscribe = service.subscribe(state => {
@@ -126,7 +126,7 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
       panel.innerHTML = '<h2>Lien invalide ou expiré</h2><p role="alert">Ce lien ne peut pas être utilisé. Il peut avoir expiré ou avoir déjà été utilisé.</p><p>Consulte le <a href="contact.html">contact et l’assistance sans connexion</a> pour obtenir de l’aide.</p><div class="auth-links"><a href="mot-de-passe-oublie.html">Récupération assistée</a><a href="connexion.html">Connexion</a></div>';
     }
     if (!link) { invalidLink(); return; }
-    panel.innerHTML = `<h2>${linkType === 'invite' ? 'Activer ton compte' : 'Réinitialiser ton mot de passe'}</h2>${messageMarkup()}<p>Pour vérifier le lien personnel qui t’a été transmis, utilise le bouton ci-dessous. Tu pourras ensuite choisir ton mot de passe.</p><button class="btn btn-primary" type="button" data-continue>${linkType === 'invite' ? 'Continuer l’activation' : 'Continuer la réinitialisation'}</button><div class="auth-links"><a href="connexion.html">Annuler</a></div>`;
+    panel.innerHTML = `<h2>${linkType === 'invite' ? 'Activer ton compte' : 'Réinitialiser ton mot de passe'}</h2>${messageMarkup()}<p>Pour vérifier le lien personnel qui t’a été transmis, utilise le bouton ci-dessous. Tu pourras ensuite choisir ton mot de passe.</p><button class="btn btn-surface btn-surface--accent" type="button" data-continue>${linkType === 'invite' ? 'Continuer l’activation' : 'Continuer la réinitialisation'}</button><div class="auth-links"><a href="connexion.html">Annuler</a></div>`;
     const continueButton = panel.querySelector('[data-continue]');
     unsubscribe = service.subscribe(state => {
       if (disposed || completed) return;
@@ -151,7 +151,7 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
       finally { pending = false; if (!disposed) panel.setAttribute('aria-busy', 'false'); }
     });
     function renderPasswordForm() {
-      panel.innerHTML = `<h2>Choisir ton mot de passe</h2>${messageMarkup()}<form class="auth-form">${passwordFields}<button class="btn btn-primary" type="submit">Définir le mot de passe</button></form>`;
+      panel.innerHTML = `<h2>Choisir ton mot de passe</h2>${messageMarkup()}<form class="auth-form">${passwordFields}<button class="btn btn-surface btn-surface--accent" type="submit">Définir le mot de passe</button></form>`;
       const form = panel.querySelector('form');
       form.elements.password.focus();
       listen(form, 'submit', async event => {
@@ -167,7 +167,7 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
           await service.updatePassword(password);
           if (disposed) return;
           completed = true;
-          panel.innerHTML = `<h2>${linkType === 'invite' ? 'Ton compte est activé' : 'Ton mot de passe est modifié'}</h2><p role="status">Ton nouveau mot de passe est enregistré. Tu peux maintenant consulter ton profil.</p><a class="btn btn-primary" href="profil.html">Mon profil</a>`;
+          panel.innerHTML = `<h2>${linkType === 'invite' ? 'Ton compte est activé' : 'Ton mot de passe est modifié'}</h2><p role="status">Ton nouveau mot de passe est enregistré. Tu peux maintenant consulter ton profil.</p><a class="btn btn-surface btn-surface--accent" href="profil.html">Mon profil</a>`;
         } catch (error) { if (!disposed && verified) message(safeError(error), 'error', true); }
         finally {
           pending = false;

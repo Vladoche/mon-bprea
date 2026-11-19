@@ -22,8 +22,6 @@
   margin: 0;
   font-size: clamp(1rem, 1.6vw, 1.125rem);
 }
-.dashboard-hero .btn { background: var(--white); }
-.dashboard-hero .btn:hover { background: var(--bg); }
 
 .dashboard-layout,
 #dashboard-content,
@@ -43,10 +41,6 @@
 .dashboard-layout .btn,
 .dashboard-hero .btn {
   min-height: var(--control-height);
-  max-width: 100%;
-  gap: var(--space-2);
-  white-space: normal;
-  font-size: var(--font-size-label);
 }
 
 .dashboard-filters {
@@ -72,7 +66,7 @@
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-control-border);
   border-radius: var(--radius-sm);
-  background: var(--bg);
+  background: var(--color-surface-soft);
   color: var(--text);
   font-size: var(--font-size-label);
 }
@@ -109,16 +103,6 @@
 .dashboard-sync:is([data-source-state="session"],[data-source-state="storage-error"],[data-source-state="error"]) {
   background: var(--color-error-bg);
   border-color: var(--color-error-line);
-}
-.dashboard-sync .btn-quiet { border-color: var(--color-control-border); background: var(--white); }
-.dashboard-sync .btn-quiet:hover { background: var(--bg); }
-.dashboard-sync [aria-disabled="true"],
-.dashboard-chart-pager button:disabled {
-  color: var(--muted);
-  border-color: var(--line);
-  opacity: .8;
-  cursor: default;
-  transform: none;
 }
 .dashboard-sync .ui-link { display: inline-block; padding-block: var(--space-2); }
 

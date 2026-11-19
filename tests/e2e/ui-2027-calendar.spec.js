@@ -62,6 +62,37 @@ test('commandes de mois, bornes et périodes inclusives entre deux années', asy
   expect(requests).toBe(1);
 });
 
+test('surfaces du header, cibles tactiles et champ mois natif du calendrier', async ({ page }) => {
+  await supply(page);
+  await page.setViewportSize({ width: 320, height: 780 });
+  await page.goto(path);
+  const previous = page.getByRole('button', { name: 'Mois précédent' });
+  const today = page.getByRole('button', { name: 'Aujourd’hui', exact: true });
+  const next = page.getByRole('button', { name: 'Mois suivant' });
+  const input = page.getByLabel('Aller au mois');
+  const reference = page.locator('.primary-nav__item:not(.active) > .primary-nav__entry').first();
+  for (const brightness of ['light', 'dark']) {
+    await page.evaluate(value => window.BpreaAppearance.updatePreferences({ brightness: value }), brightness);
+    const surface = await reference.evaluate(node => getComputedStyle(node).backgroundImage);
+    expect(surface).toContain('linear-gradient');
+    for (const control of [previous, today, next]) {
+      await expect(control).toHaveCSS('background-image', surface);
+      const { width, height } = await control.boundingBox();
+      expect(width).toBeGreaterThanOrEqual(44);
+      expect(height).toBeGreaterThanOrEqual(44);
+    }
+  }
+  await expect(input).toHaveAttribute('type', 'month');
+  await page.emulateMedia({ forcedColors: 'active', reducedMotion: 'reduce' });
+  await previous.press('Tab');
+  await expect(today).toBeFocused();
+  await expect(today).toHaveCSS('outline-width', '3px');
+  await expect(today).toHaveCSS('transition-duration', '0s');
+  await input.fill('0001-01');
+  await expect(previous).toBeDisabled();
+  await expect(previous).toHaveCSS('background-image', 'none');
+});
+
 test('grille, tri, chevauchement, avertissements et débordement vers l’agenda', async ({ page }) => {
   await supply(page);
   await page.goto(`${path}?date=2027-06-14`);

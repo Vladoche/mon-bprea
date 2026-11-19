@@ -129,9 +129,9 @@ function weeklyChart(weeks, kind) {
 
 function chartPager(weeks, start, end, total) {
   return total <= PAGE_SIZE ? '' : `<div class="dashboard-chart-pager">
-    <button type="button" class="btn btn-outline" data-chart-page="previous" ${start === 0 ? 'disabled' : ''} aria-label="Afficher les semaines précédentes">← Précédentes</button>
+    <button type="button" class="btn btn-surface" data-chart-page="previous" ${start === 0 ? 'disabled' : ''} aria-label="Afficher les semaines précédentes">← Précédentes</button>
     <p><strong>${weeks[0].id} → ${weeks.at(-1).id}</strong><small>Semaines ${start + 1} à ${end} sur ${number(total)}</small></p>
-    <button type="button" class="btn btn-outline" data-chart-page="next" ${end === total ? 'disabled' : ''} aria-label="Afficher les semaines suivantes">Suivantes →</button>
+    <button type="button" class="btn btn-surface" data-chart-page="next" ${end === total ? 'disabled' : ''} aria-label="Afficher les semaines suivantes">Suivantes →</button>
   </div>`;
 }
 
@@ -262,7 +262,7 @@ function dashboardShell(selectedUnit) {
     ${renderBreadcrumbs('dashboard')}
     <div class="dashboard-hero">
       <div><h1>Tableau de bord</h1><p>Comprends ta progression et repère les notions à revoir.</p></div>
-      <a id="dashboard-drill-link" class="btn btn-outline" href="${drillUrl(selectedUnit)}">Exercices hebdomadaires <span aria-hidden="true">→</span></a>
+      <a id="dashboard-drill-link" class="btn btn-surface" href="${drillUrl(selectedUnit)}">Exercices hebdomadaires <span aria-hidden="true">→</span></a>
     </div>
   </div>
   <div class="wrap dashboard-layout">
@@ -284,7 +284,7 @@ function dashboardShell(selectedUnit) {
         <p id="dashboard-conflict-note" hidden>Un conflit doit être résolu pour choisir la réponse à retenir.
           <a class="ui-link" href="drill.html">Résoudre dans les exercices hebdomadaires →</a></p>
       </div>
-      <button type="button" class="btn btn-quiet" data-dashboard-refresh>Actualiser les données</button>
+      <button type="button" class="btn btn-surface" data-dashboard-refresh>Actualiser les données</button>
       <a id="dashboard-login" class="ui-link" href="connexion.html" hidden>Vérifier ma connexion →</a>
     </section>
     <div id="dashboard-content">
@@ -511,8 +511,8 @@ export async function initDashboard(root) {
         <p>Les données sources sont conservées.</p></details>` : '';
       const empty = model.totals.completed ? '' : notice('Aucun exercice réalisé sur cette sélection',
         'Chaque première réponse validée apparaîtra ici, même si la série est encore en cours.', 'empty',
-        `<div class="dashboard-empty-actions"><a class="btn btn-primary" href="${drillUrl(selectedUnit)}">Ouvrir les exercices hebdomadaires →</a>
-          ${selectedPeriod !== 'all' ? '<button type="button" class="btn btn-outline" data-dashboard-all>Consulter tout l’historique</button>' : ''}</div>`);
+        `<div class="dashboard-empty-actions"><a class="btn btn-surface btn-surface--accent" href="${drillUrl(selectedUnit)}">Ouvrir les exercices hebdomadaires →</a>
+          ${selectedPeriod !== 'all' ? '<button type="button" class="btn btn-surface" data-dashboard-all>Consulter tout l’historique</button>' : ''}</div>`);
       updateRegion('notice', warnings + empty);
       results.hidden = false;
       updateRegion('metrics', metrics(model.totals));
