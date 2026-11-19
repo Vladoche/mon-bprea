@@ -72,7 +72,7 @@ async function answerQuestion(page, { correct = true } = {}) {
   await expect(correction.getByText(correct ? 'Réponse correcte' : 'Réponse incorrecte', { exact: true })).toBeVisible();
   await expect(correction.getByText(`${plant.scientificName} · ${plant.family}`, { exact: true })).toBeVisible();
   await expect(correction.getByText(photo.identification, { exact: true })).toBeVisible();
-  await expect(page.locator('#bot-feedback')).toHaveAttribute('aria-live', 'polite');
+  await expect(page.locator('#bot-correction-announcement')).toHaveAttribute('aria-live', 'polite');
   await expect(options.getByRole('button').first()).toBeDisabled();
   await expect(page.getByRole('link', { name: 'Source de la photographie', exact: true })).toHaveAttribute('href', photo.sourceUrl);
   await expect(page.getByRole('link', { name: photo.license, exact: true }).first()).toHaveAttribute('href', photo.licenseUrl);
@@ -87,7 +87,8 @@ async function savedState(page) {
 }
 
 test('Découverte depuis Outils : session complète, corrections, historique et révision conservés', async ({ page }) => {
-  await page.goto(`${prefix}outils.html`);
+  await page.goto(`${prefix}index.html`);
+  await page.getByRole('navigation', { name: 'Navigation principale' }).getByRole('link', { name: 'Outils', exact: true }).click();
   const existing = { 'bprea-demo-drill-v1': '{"version":1,"series":{}}', 'bprea-demo-progress-v1': '{"cours-test":{"done":true,"score":2}}' };
   await page.evaluate(values => Object.entries(values).forEach(([key, value]) => localStorage.setItem(key, value)), existing);
   await page.getByRole('main').getByRole('link', { name: /Reconnaissance des plantes/ }).click();
@@ -147,6 +148,7 @@ test('Chrono : durée configurable, pause manuelle et expiration sans compter un
   await startSession(page, { mode: 'chrono', duration: '15' });
   const output = page.getByRole('status', { name: 'Temps restant' });
   await expect(output).toHaveText('15 s');
+  await expect(output).toHaveAttribute('aria-live', 'off');
   await page.clock.fastForward(5000);
   await expect(output).toHaveText('10 s');
   await page.getByRole('button', { name: 'Mettre en pause', exact: true }).click();
@@ -221,7 +223,8 @@ test('Chrono : retour de page conservée en mémoire, reprise du décompte et ex
 });
 
 test('photographie indisponible : passage hors calcul et aucune erreur imputée au joueur', async ({ page }) => {
-  await page.route('**/assets/botanical-photos/**', route => route.abort());
+  let attempts = 0;
+  await page.route('**/assets/botanical-photos/**', route => { attempts++; return route.abort(); });
   await page.goto(`${prefix}reconnaissance-plantes.html`);
   await selectPlayableCategory(page);
   await page.getByRole('radio', { name: /^Chrono/ }).check();
@@ -230,15 +233,19 @@ test('photographie indisponible : passage hors calcul et aucune erreur imputée 
   await expect(page.getByRole('button', { name: 'Valider ma réponse' })).toBeDisabled();
   await page.clock.fastForward(60000);
   expect((await savedState(page)).answers).toHaveLength(0);
+  const retry = page.getByRole('button', { name: 'Réessayer l’image' });
+  await retry.press('Enter');
+  await expect(retry).toBeFocused();
+  expect(attempts).toBe(2);
   await page.getByRole('button', { name: 'Passer sans compter' }).click();
-  await expect(page.getByText('Photographie passée · hors calcul', { exact: true })).toBeVisible();
+  await expect(page.locator('.bot-outcome')).toHaveText('Photographie passée, hors calcul');
   await page.getByRole('button', { name: 'Terminer cette session', exact: true }).click();
   const results = page.locator('#bot-content');
   await expect(metric(results, 'Questions réalisées')).toHaveText('0');
   await expect(metric(results, 'Réponses incorrectes')).toHaveText('0');
   await expect(metric(results, 'Temps écoulés')).toHaveText('0');
-  await expect(metric(results, 'Taux de reconnaissance')).toHaveText('Aucune donnée');
-  await expect(results.getByText('1 photographie indisponible, exclue du calcul.', { exact: true })).toBeVisible();
+  await expect(metric(results, 'Taux de reconnaissance')).toHaveText('Non calculable');
+  await expect(metric(results, 'Photographies passées')).toHaveText('1');
   expect((await savedState(page)).answers[0]).toMatchObject({ status: 'skipped_image', selectedSpeciesId: null });
 });
 
@@ -276,6 +283,13 @@ test('mobile : accès au menu Outils, thèmes conservés et choix utilisable au 
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
-  await expect(page.getByText(/^Mon historique botanique · 1 question$/)).toBeVisible();
+  const summary = page.getByText(/^Mon historique botanique · 1 question$/);
+  await page.getByRole('link', { name: 'Consulter mon historique' }).press('Enter');
+  await expect(summary).toBeFocused();
+  await page.keyboard.press('Tab');
+  const table = page.getByRole('region', { name: 'Détail par espèce' });
+  await expect(table).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => table.evaluate(node => node.scrollLeft)).toBeGreaterThan(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

@@ -43,6 +43,14 @@ ombres et anneau de focus. Sur un bouton ou un lien natif, cette surface
 conserve les interactions de l’élément et adapte l’affichage au contraste
 forcé. L’état désactivé s’applique aux boutons natifs.
 
+Les cartes de catégorie et les réponses botaniques adaptent la géométrie de
+`.btn.btn-surface` à leurs libellés. La sélection reprend le contour terracotta,
+le reflet et l’ombre pressée du header, avec un libellé visible et `aria-pressed`.
+Les couleurs de succès et d’erreur s’appliquent après validation. Les JPEG de la
+photothèque sont affichés avec leurs couleurs d’origine dans chaque palette.
+La [planche du lot botanique](../validations/VALIDATION-UI-2027-PR4-LOT4.md#galerie-et-accessibilité)
+compare les surfaces et les états interactifs en clair et sombre.
+
 ## Stockage et compatibilité
 
 Le script classique `assets/theme-init.js` s’exécute **avant les feuilles de style**, sur toutes les pages, pour appliquer les attributs HTML avant le premier rendu. Le navigateur doit naturellement avoir reçu la nouvelle page et le script pour bénéficier du nouveau thème.

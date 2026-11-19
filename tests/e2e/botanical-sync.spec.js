@@ -58,6 +58,8 @@ test('botanique personnelle : deux appareils, erreurs révisables et chrono stab
     await choice.click(); await choice.focus(); await page.clock.fastForward(5000);
     const remaining = await page.locator('#bot-time').textContent();
     expect(remaining).toBe('25 s');
+    const position = () => page.evaluate(() => ({ scroll: scrollY, photo: document.querySelector('.bot-photo-frame').getBoundingClientRect().top }));
+    const beforeRefresh = await position();
     await page.evaluate(async () => {
       const app = new URL(document.querySelector('script[type="module"][src]').src);
       const url = new URL('./botanical-sync-service.js', app); url.search = app.search;
@@ -65,6 +67,7 @@ test('botanique personnelle : deux appareils, erreurs révisables et chrono stab
     });
     await botanicalSynced(page); await expect(choice).toHaveAttribute('aria-pressed', 'true'); await expect(choice).toBeFocused();
     await expect(image).toHaveAttribute('src', photo); await expect(page.locator('#bot-time')).toHaveText(remaining);
+    expect(await position()).toEqual(beforeRefresh);
     await page.getByRole('button', { name: 'Mettre en pause', exact: true }).click();
     await captureMatrix(page, 'chrono');
   } finally { await context.close(); }
@@ -115,8 +118,12 @@ test('botanique : import explicite, annulation, provenance et orpheline sans mut
   await expectBotanicalHistory(page, { attempted: 0 }); expect(api.answers.size).toBe(0);
   await importButton(page).click(); const dialog = page.getByRole('dialog', { name: 'Importer l’historique botanique local' });
   await expect(dialog).toContainText('autre personne'); await expect(dialog).toContainText(/orpheline|sans session/i);
+  await expect(dialog.getByRole('button', { name: 'Annuler', exact: true })).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(dialog.getByRole('region', { name: 'Aperçu de l’historique' })).toBeFocused();
   expect(await provenance()).toBeNull();
   await page.getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.answers.size).toBe(0);
+  await expect(importButton(page)).toBeFocused();
   expect(await provenance()).toBeNull();
   await importButton(page).click(); await captureMatrix(page, 'import');
   await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await botanicalSynced(page);
@@ -128,6 +135,40 @@ test('botanique : import explicite, annulation, provenance et orpheline sans mut
   expect(api.answers.size).toBe(1); expect((await botanicalRecords(page))[0].imports).toHaveLength(1);
   expect(await provenance()).toBe(document.imports[0].provenance);
   expect(await page.evaluate(key => localStorage.getItem(key), botanicalStorageKey)).toBe(raw);
+});
+
+test('botanique : le retour au compte A invalide un ancien aperçu d’import', async ({ page }) => {
+  const visitor = botanicalSession('botanical-preview-race', { mode: 'discovery' });
+  const api = createBotanicalAPI();
+  await api.install(page.context(), 'A', JSON.stringify({ schemaVersion: 1, sessions: [visitor], answers: [botanicalAnswer(visitor)] }));
+  await page.goto(botanicalPath);
+  await botanicalSynced(page);
+  await page.evaluate(async () => {
+    const app = new URL(document.querySelector('script[type="module"][src]').src);
+    const url = new URL('./botanical-sync-service.js', app); url.search = app.search;
+    const service = await (await import(url.href)).getBotanicalService();
+    const preview = service.previewImport;
+    service.previewImport = async () => {
+      const requested = await preview();
+      await new Promise(resolve => { window.releaseOldBotanicalPreview = resolve; });
+      return requested;
+    };
+  });
+  const switchAccount = email => page.evaluate(async email => {
+    const auth = await (await import('/mon-bprea/assets/auth-service.js')).getAuthService();
+    await auth.signOut();
+    await auth.signIn(email, 'synthetic-password');
+  }, email);
+  await importButton(page).click();
+  await page.waitForFunction(() => typeof window.releaseOldBotanicalPreview === 'function');
+  await switchAccount(accounts.B.email);
+  await botanicalSynced(page);
+  await switchAccount(accounts.A.email);
+  await botanicalSynced(page);
+  await page.evaluate(() => window.releaseOldBotanicalPreview());
+  await expect(importButton(page)).toBeEnabled();
+  await expect(page.getByRole('dialog', { name: 'Importer l’historique botanique local' })).toBeHidden();
+  expect(api.answers.size).toBe(0);
 });
 
 test('botanique : échec du commit du refus, rechargement et reconnaissance dans deux onglets', async ({ page, context }) => {

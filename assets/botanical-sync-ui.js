@@ -1,4 +1,5 @@
 const clean = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const action = 'btn btn-surface';
 const labels = {
   visitor: 'Historique visiteur local', loading: 'Chargement de l’historique du compte…', saving: 'Enregistrement sur cet appareil…',
   local: 'Historique du compte · enregistré sur cet appareil', pending: 'Enregistré sur cet appareil · synchronisation en attente',
@@ -6,32 +7,76 @@ const labels = {
   session: 'Connexion au compte à vérifier', conflict: 'Conflit botanique à examiner', error: 'Erreur de synchronisation',
   'storage-error': 'Erreur de sauvegarde sur cet appareil',
 };
+const notableStates = new Set(['offline', 'session', 'conflict', 'error', 'storage-error']);
 
 /** Status updates stay outside the game and the modal: no question, timer or
  * selected choice is recreated by an ordinary background notification. */
 export function initBotanicalSyncPanel(root, service, { signal } = {}) {
-  root.innerHTML = `<div class="bot-sync-panel"><p id="botanical-sync-status" role="status" aria-live="polite" aria-atomic="true"></p><p id="botanical-sync-detail"></p><div class="bot-actions"><button class="btn btn-outline" id="botanical-sync-refresh" type="button">Actualiser l’historique</button><button class="btn btn-outline" id="botanical-sync-import" type="button">Importer l’historique de cet appareil</button></div><div id="botanical-sync-archives"></div><p id="botanical-sync-message" role="status" aria-live="polite"></p><details id="botanical-cache-info"><summary>À propos de ce cache personnel</summary><p>Le cache de ce compte est conservé après déconnexion et n’est pas chiffré. Sur un appareil partagé, utilise un profil de navigateur privé. La synchronisation ne reprend pas une partie en cours.</p></details></div><dialog class="bot-import-dialog" aria-labelledby="botanical-import-title"><h2 id="botanical-import-title">Importer l’historique botanique local</h2><p>Les données de cet appareil peuvent appartenir à une autre personne. Confirme uniquement si cet historique est le tien.</p><div id="botanical-import-preview"></div><p id="botanical-import-message" role="status" aria-live="polite"></p><div class="bot-actions"><button class="btn btn-primary" id="botanical-import-confirm" type="button">Confirmer l’import</button><button class="btn btn-outline" id="botanical-import-cancel" type="button">Annuler</button></div><p>La sauvegarde visiteur originale et les données non transférables restent intactes.</p></dialog>`;
+  root.innerHTML = `<section class="bot-panel bot-sync-panel" aria-labelledby="bot-storage-title">
+    <h2 id="bot-storage-title">Sauvegarde et synchronisation</h2>
+    <p id="botanical-sync-status"></p>
+    <span id="botanical-sync-alert" class="sr-only" role="status"></span>
+    <p id="botanical-sync-detail"></p>
+    <div class="bot-actions" id="botanical-sync-actions">
+      <button class="${action}" id="botanical-sync-refresh" type="button">Actualiser l’historique</button>
+      <button class="${action}" id="botanical-sync-import" type="button">Importer l’historique de cet appareil</button>
+    </div>
+    <div id="botanical-sync-archives"></div>
+    <p id="botanical-sync-message" role="status"></p>
+    <details id="botanical-cache-info">
+      <summary>À propos de ce cache personnel</summary>
+      <p>Le cache de ce compte est conservé après déconnexion et n’est pas chiffré. Sur un appareil partagé, utilise un profil de navigateur privé. La synchronisation ne reprend pas une partie en cours.</p>
+    </details>
+  </section>
+  <dialog class="bot-import-dialog" aria-labelledby="botanical-import-title" aria-describedby="botanical-import-warning">
+    <div class="bot-import-body" role="region" aria-label="Aperçu de l’historique" tabindex="0">
+      <h2 id="botanical-import-title">Importer l’historique botanique local</h2>
+      <p id="botanical-import-warning">Les données de cet appareil peuvent appartenir à une autre personne. Confirme uniquement si cet historique est le tien.</p>
+      <div id="botanical-import-preview"></div>
+      <p id="botanical-import-message" role="status"></p>
+      <p>La sauvegarde visiteur originale et les données non transférables restent intactes.</p>
+    </div>
+    <div class="bot-import-actions"><div class="bot-actions">
+      <button class="${action}" id="botanical-import-cancel" type="button" autofocus>Annuler</button>
+      <button class="${action} btn-surface--accent" id="botanical-import-confirm" type="button">Confirmer l’import</button>
+    </div></div>
+  </dialog>`;
   const select = id => root.querySelector(`#${id}`);
+  const panel = root.querySelector('.bot-sync-panel');
   const dialog = root.querySelector('dialog');
   const refresh = select('botanical-sync-refresh'), startImport = select('botanical-sync-import'), confirm = select('botanical-import-confirm');
   let snapshot = service.getState(), preview = null, markup = '', refreshing = false;
   let source = `${snapshot.mode}:${snapshot.scope}`;
+  let identityVersion = 0;
   const currentSource = () => `${snapshot.mode}:${snapshot.scope}`;
-  const announce = message => { select('botanical-sync-message').textContent = message || ''; };
+  const writeText = (id, message) => {
+    const node = select(id);
+    if (node.textContent !== message) node.textContent = message;
+  };
+  const announce = message => writeText('botanical-sync-message', message || '');
   const unsubscribe = service.subscribe(state => {
     snapshot = state;
-    if (source !== currentSource() || state.mode !== 'personal' || state.sync.state === 'session') {
+    const visitor = state.mode === 'visitor', usable = state.mode === 'personal' && !state.view.error && state.sync.state !== 'session';
+    if (source !== currentSource() || !usable) {
       source = currentSource(); preview = null;
+      identityVersion++;
       if (dialog.open) dialog.close();
+      select('botanical-import-preview').replaceChildren();
+      writeText('botanical-import-message', '');
+      startImport.disabled = false;
       announce('');
     }
-    const visitor = state.mode === 'visitor', usable = state.mode === 'personal' && !state.view.error && state.sync.state !== 'session';
     const count = state.sync.pending || 0;
-    select('botanical-sync-status').textContent = `${labels[visitor ? 'visitor' : state.sync.state] || labels.session}${count ? ` · ${count} opération${count > 1 ? 's' : ''} en attente` : ''}`;
-    select('botanical-sync-detail').textContent = state.view.error || state.sync.error || (visitor ? 'Résultats conservés dans ce navigateur. Aucun transfert automatique vers un compte.' : 'Une sauvegarde locale peut attendre son envoi. Seule la mention « synchronisé » confirme la sauvegarde distante.');
+    const syncState = visitor ? 'visitor' : state.sync.state;
+    const status = labels[syncState] || labels.session;
+    panel.dataset.syncState = syncState;
+    writeText('botanical-sync-status', `${status}${count ? ` · ${count} opération${count > 1 ? 's' : ''} en attente` : ''}`);
+    writeText('botanical-sync-alert', notableStates.has(syncState) ? status : '');
+    writeText('botanical-sync-detail', state.view.error || state.sync.error || (visitor ? 'Résultats conservés dans ce navigateur. L’import vers un compte demande ta confirmation.' : 'La mention « synchronisé » confirme la sauvegarde distante.'));
     refresh.hidden = visitor; refresh.disabled = refreshing;
     startImport.hidden = !usable; select('botanical-cache-info').hidden = !usable;
-    const nextMarkup = (state.sync.conflicts || []).map(conflict => `<details class="botanical-conflict" data-conflict="${clean(conflict.id)}"><summary>${conflict.resolved ? 'Conflit conservé en archive' : 'Résultat botanique en conflit'}</summary><p>Deux versions de cette session ou de cette réponse sont incompatibles. La version du compte est conservée dans l’historique ; l’intention locale reste archivée sans créer une nouvelle tentative.</p>${conflict.resolved ? '' : `<button class="btn btn-outline" type="button" data-botanical-resolve="${clean(conflict.id)}">Garder la version du compte</button>`}</details>`).join('') + (state.sync.operations?.length ? '<p>Des enregistrements refusés restent conservés sur cet appareil. Examine les conflits ou contacte la personne qui gère le site.</p>' : '') + (state.sync.imports?.length ? '<p>Import volontaire conservé. Les envois restants figurent dans le suivi ci-dessus.</p>' : '');
+    select('botanical-sync-actions').hidden = visitor;
+    const nextMarkup = (state.sync.conflicts || []).map(conflict => `<details class="botanical-conflict" data-conflict="${clean(conflict.id)}"><summary>${conflict.resolved ? 'Conflit conservé en archive' : 'Résultat botanique en conflit'}</summary><p>Deux versions de cette session ou de cette réponse sont incompatibles. La version du compte figure dans l’historique. L’intention locale est conservée en archive.</p>${conflict.resolved ? '' : `<button class="${action}" type="button" data-botanical-resolve="${clean(conflict.id)}">Garder la version du compte</button>`}</details>`).join('') + (state.sync.operations?.length ? '<p>Des enregistrements refusés restent conservés sur cet appareil. Examine les conflits ou contacte la personne qui gère le site.</p>' : '') + (state.sync.imports?.length ? '<p>Import volontaire conservé. Les envois restants figurent dans le suivi ci-dessus.</p>' : '');
     const archiveMarkup = (state.sync.importArchives || []).map(item => `<details class="botanical-import-archive"><summary>Sauvegarde locale non transférée</summary><p>${clean(item.message)}</p><p>Ce refus reste enregistré dans le cache local du compte.</p></details>`).join('');
     const fullMarkup = nextMarkup + archiveMarkup;
     if (markup !== fullMarkup) {
@@ -46,27 +91,30 @@ export function initBotanicalSyncPanel(root, service, { signal } = {}) {
     }
   });
   refresh.addEventListener('click', async () => {
-    const current = currentSource(); refreshing = true; refresh.disabled = true; announce('Actualisation en cours…');
-    try { await service.retry(); if (current === currentSource()) announce(''); }
-    catch { if (current === currentSource()) announce('L’actualisation reste indisponible. Les résultats enregistrés sont conservés.'); }
+    const current = identityVersion; refreshing = true; refresh.disabled = true; announce('Actualisation en cours…');
+    try { await service.retry(); if (current === identityVersion) announce(''); }
+    catch { if (current === identityVersion) announce('L’actualisation reste indisponible. Les résultats enregistrés sont conservés.'); }
     finally { refreshing = false; refresh.disabled = false; }
   }, { signal });
   startImport.addEventListener('click', async () => {
-    const current = currentSource(); startImport.disabled = true;
+    const current = identityVersion; startImport.disabled = true;
     try {
       const value = await service.previewImport();
-      if (current !== currentSource() || snapshot.mode !== 'personal') return;
+      if (current !== identityVersion || signal?.aborted) return;
       preview = value; const summary = value.summary || {};
-      select('botanical-import-preview').innerHTML = `<dl class="bot-import-summary"><div><dt>Sessions exploitables</dt><dd>${summary.sessions || 0}</dd></div><div><dt>Réponses exploitables</dt><dd>${summary.answers || 0}</dd></div></dl>${value.warnings?.length ? `<p>Données conservées hors transfert :</p><ul>${value.warnings.map(item => `<li>${clean(typeof item === 'string' ? item : item.message || item.reason || 'Donnée non transférable')}</li>`).join('')}</ul>` : ''}`;
-      select('botanical-import-message').textContent = value.error || (value.available ? 'Aucune opération personnelle n’est créée avant ta confirmation.' : 'Aucun historique exploitable n’est disponible.');
+      select('botanical-import-preview').innerHTML = `<dl class="bot-import-summary">
+        <div><dt>Sessions exploitables</dt><dd>${summary.sessions || 0}</dd></div>
+        <div><dt>Réponses exploitables</dt><dd>${summary.answers || 0}</dd></div>
+      </dl>${value.warnings?.length ? `<h3>Données conservées hors transfert</h3><ul>${value.warnings.map(item => `<li>${clean(typeof item === 'string' ? item : item.message || item.reason || 'Donnée non transférable')}</li>`).join('')}</ul>` : ''}`;
+      writeText('botanical-import-message', value.error || (value.available ? '' : 'Aucun historique exploitable n’est disponible.'));
       confirm.disabled = !!value.error || !value.available;
       dialog.showModal();
-    } catch { announce('L’historique local ne peut pas être lu. Sa sauvegarde reste intacte.'); }
-    finally { startImport.disabled = false; }
+    } catch { if (current === identityVersion) announce('L’historique local ne peut pas être lu. Sa sauvegarde reste intacte.'); }
+    finally { if (current === identityVersion) startImport.disabled = false; }
   }, { signal });
   const close = () => { dialog.close(); preview = null; startImport.focus({ preventScroll: true }); };
   select('botanical-import-cancel').addEventListener('click', close, { signal });
-  dialog.addEventListener('cancel', () => { preview = null; }, { signal });
+  dialog.addEventListener('cancel', event => { event.preventDefault(); close(); }, { signal });
   confirm.addEventListener('click', async () => {
     if (!preview) return;
     const requested = preview; confirm.disabled = true;
@@ -80,10 +128,10 @@ export function initBotanicalSyncPanel(root, service, { signal } = {}) {
   root.addEventListener('click', async event => {
     const button = event.target.closest('[data-botanical-resolve]');
     if (!button) return;
-    const current = currentSource(); button.disabled = true;
+    const current = identityVersion; button.disabled = true;
     try {
       const result = await service.resolveConflict(button.dataset.botanicalResolve, 'remote');
-      if (current === currentSource()) { announce(result?.error || 'La version du compte est conservée. L’intention précédente reste archivée.'); if (!result?.error) refresh.focus({ preventScroll: true }); }
+      if (current === identityVersion) { announce(result?.error || 'La version du compte est conservée. L’intention précédente reste archivée.'); if (!result?.error) refresh.focus({ preventScroll: true }); }
     } finally { if (button.isConnected) button.disabled = false; }
   }, { signal });
   signal?.addEventListener('abort', () => { unsubscribe(); if (dialog.open) dialog.close(); }, { once: true });
