@@ -12,7 +12,7 @@ La version de l’application Windows reste propre à cet outil.
 - **Photothèque botanique enrichie**. 24 plantes à reconnaître, ouverture des
   Légumineuses et 11 comparaisons documentées qui favorisent les propositions
   proches. Les corrections distinguent bonnes et mauvaises réponses par une
-  animation brève qui respecte la préférence de mouvement réduit.
+  animation brève qui respecte la préférence de mouvement réduit. [PR #75](https://github.com/Vladoche/mon-bprea/pull/75).
 
 - **Reconnaissance botanique 2027, PR4 lot 4**. Sélection des catégories et des
   modes accessible au clavier, photographies non recadrées avec des crédits dépliables,
