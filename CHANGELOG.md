@@ -9,6 +9,10 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Ressources documentaires 2027, PR4 lot 3**. Recherche et filtres plus
+  lisibles, critères avancés actifs visibles, cartes et aperçus pédagogiques
+  harmonisés avec les commandes du header et de l’ITK. La vérification des PDF
+  applique sa limite de lecture en octets. [Validation](docs/validations/VALIDATION-UI-2027-PR4-LOT3.md).
 - **Générateur ITK 2027, PR4 lot 2**. Paramètres de culture regroupés,
   synthèse et chronologie adaptées au mobile, boutons assortis au header,
   feuille imprimée allégée et actions de sauvegarde explicites. Les calculs,

@@ -11,7 +11,7 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification Git/PR et chantier local le **18 novembre 2026**.
+- Dernière vérification Git/PR et chantier local le **19 novembre 2026**.
   Le registre Pages conserve le relevé du **16 novembre à 13:10 UTC**.
   Les lectures PROD et contrôles Windows du 18 novembre figurent dans la
   [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `d361184391ee4b70554a7eddaa620a1919893dae` |
-| Dernière PR fusionnée | [#71](https://github.com/Vladoche/mon-bprea/pull/71), 18/11/2026 à 17:33:30 UTC |
+| Dernier commit | `1f86041bdb8eea7523f137845f27a22846de7bf3` |
+| Dernière PR fusionnée | [#72](https://github.com/Vladoche/mon-bprea/pull/72), 18/11/2026 à 18:41:05 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **PR4 lot 2**. Générateur ITK 2027. [PR #72](https://github.com/Vladoche/mon-bprea/pull/72) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
-| Prochaine action | Revoir le générateur ITK, la planche des boutons et la feuille imprimée. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
+| Chantier courant, non fusionné | **PR4 lot 3**. Bibliothèque et aperçus documentaires 2027. [Validation](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
+| Prochaine action | Revoir la bibliothèque, ses aperçus et la planche des commandes. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#71. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#72. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -69,7 +69,7 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `d361184391ee4b70554a7eddaa620a1919893dae` |
+| Dernier commit main relevé | `1f86041bdb8eea7523f137845f27a22846de7bf3` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -98,7 +98,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
 | Tableau de bord | Présentation 2027 fusionnée en PR3 lot 4 (#69), statistiques Drill et synthèse partagée | Les indicateurs portent sur les premières réponses validées. [Validation du lot 4](../validations/VALIDATION-UI-2027-PR3-LOT4.md) | [Dashboard](../architecture/DASHBOARD.md) |
 | Calendrier | Interface 2027 fusionnée dans #71, événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Validation du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
-| Générateur ITK | Génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [ITK/apparence](../architecture/ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) |
+| Générateur ITK | Interface 2027 fusionnée dans #72, génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [Validation du générateur](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
 | Ressources | Catalogue filtrable et PDF publics | Références éditoriales à entretenir | [Ressources](../architecture/RESSOURCES.md) |
 | Reconnaissance botanique | Jeu et historique personnel/visiteur | Douze espèces ; entraînement illustratif | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
 | Mon profil | Compte, paramètres, export/restauration et retrait local ; #59/#60 | Retrait local distinct d’une clôture serveur | [Auth](../architecture/AUTHENTIFICATION.md) |
@@ -158,9 +158,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir la [refonte du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md).
-   Les autres outils spécialisés de PR4 et PR5 (profil et harmonisation finale)
-   restent à réaliser.
+1. Revoir la [bibliothèque 2027](../validations/VALIDATION-UI-2027-PR4-LOT3.md)
+   et ses aperçus dans les pages de cours et d’UC. La reconnaissance botanique
+   et PR5 (profil et harmonisation finale) restent à réaliser.
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
