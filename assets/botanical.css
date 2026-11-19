@@ -431,6 +431,19 @@ p.bot-panel { margin: 0; }
   background: var(--color-warning-bg);
   color: var(--color-warning);
 }
+@media (prefers-reduced-motion: no-preference) {
+  .bot-outcome[data-status="correct"] { animation: bot-correct 260ms ease-out; }
+  .bot-outcome[data-status="incorrect"] { animation: bot-incorrect 280ms ease-out; }
+}
+@keyframes bot-correct {
+  0% { transform: translateY(3px); }
+  55% { transform: translateY(-2px); }
+}
+@keyframes bot-incorrect {
+  25% { transform: translateX(-4px); }
+  55% { transform: translateX(3px); }
+  75% { transform: translateX(-1px); }
+}
 .bot-correction-body {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);

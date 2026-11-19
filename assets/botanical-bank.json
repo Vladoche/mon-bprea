@@ -1,19 +1,19 @@
 {
   "version": 1,
-  "reviewedAt": "2026-10-21",
-  "scope": "Prototype : quatre espèces et quatre photographies par catégorie jouable. Les identifications sont proposées parmi quatre espèces de la même catégorie ; elles ne constituent pas une clé complète de détermination sur le terrain.",
+  "reviewedAt": "2026-11-19",
+  "scope": "Entraînement à la reconnaissance de plantes parmi quatre propositions de la même catégorie, à partir de photographies documentées. Les identifications illustrent des caractères observables et ne constituent pas une clé complète de détermination sur le terrain.",
   "categories": [
     {
       "id": "petits-fruits",
       "name": "Petits fruits",
       "icon": "🍓",
-      "description": "Reconnaître quatre cultures à petits fruits à leur stade de fructification."
+      "description": "Comparer les baies et les fruits composés de plantes cultivées ou communes."
     },
     {
       "id": "legumineuses",
       "name": "Légumineuses",
       "icon": "🫛",
-      "description": "Banque à constituer : quatre espèces photographiées et vérifiées sont nécessaires pour ouvrir cette catégorie."
+      "description": "Reconnaître gousses, vrilles et feuilles de légumineuses potagères ou fourragères."
     },
     {
       "id": "fleurs",
@@ -25,7 +25,7 @@
       "id": "legumes",
       "name": "Légumes maraîchers",
       "icon": "🥕",
-      "description": "Comparer feuilles, bulbes, racines et fleurs de quatre cultures maraîchères."
+      "description": "Comparer feuilles, bulbes, racines et fleurs de cultures maraîchères."
     }
   ],
   "species": [
@@ -284,6 +284,259 @@
         {
           "title": "NC State Extension — Lactuca sativa",
           "url": "https://plants.ces.ncsu.edu/plants/lactuca-sativa/"
+        }
+      ]
+    },
+    {
+      "id": "cassissier",
+      "commonName": "Cassissier",
+      "scientificName": "Ribes nigrum",
+      "family": "Grossulariaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Arbuste caduc qui porte des grappes de baies devenant pourpre foncé à noires à maturité.",
+      "criteria": [
+        "Baies lisses groupées sur un axe de grappe.",
+        "Des fleurs discrètes, jaune verdâtre, apparaissent en grappes au printemps."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "Royal Horticultural Society — Ribes nigrum",
+          "url": "https://www.rhs.org.uk/plants/106234/ribes-nigrum-b/details"
+        }
+      ]
+    },
+    {
+      "id": "groseillier-maquereau",
+      "commonName": "Groseillier à maquereau",
+      "scientificName": "Ribes uva-crispa",
+      "family": "Grossulariaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Arbuste à rameaux épineux et à feuilles lobées. Ses baies ovales peuvent rester vertes à maturité ou prendre une teinte jaune, rosée ou rouge selon la variété.",
+      "criteria": [
+        "Feuilles simples et lobées.",
+        "Baies souvent isolées ou peu nombreuses sur un rameau.",
+        "Épines sur les tiges."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "Royal Horticultural Society — Ribes uva-crispa",
+          "url": "https://www.rhs.org.uk/plants/15898/ribes-uva-crispa/details"
+        }
+      ]
+    },
+    {
+      "id": "ronce-orme",
+      "commonName": "Ronce à feuilles d’orme",
+      "scientificName": "Rubus ulmifolius",
+      "family": "Rosaceae",
+      "categoryIds": [
+        "petits-fruits"
+      ],
+      "description": "Ronce aux tiges munies d’aiguillons et aux fruits qui passent du vert au rouge avant de mûrir en noir. Les folioles sont souvent feutrées en dessous.",
+      "criteria": [
+        "Fruit composé de petites drupes accolées.",
+        "Feuilles à trois ou cinq folioles, souvent feutrées dessous."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "New South Wales Flora Online — Rubus ulmifolius",
+          "url": "https://plantnet.rbgsyd.nsw.gov.au/cgi-bin/NSWfl.pl?lvl=sp&name=Rubus~ulmifolius&page=nswfl"
+        }
+      ]
+    },
+    {
+      "id": "pois",
+      "commonName": "Pois cultivé",
+      "scientificName": "Lathyrus oleraceus",
+      "family": "Fabaceae",
+      "categoryIds": [
+        "legumineuses"
+      ],
+      "description": "Plante annuelle à gousses, encore largement connue sous le nom scientifique Pisum sativum. Les feuilles des formes grimpantes portent des vrilles qui s’accrochent au support.",
+      "criteria": [
+        "Feuilles composées terminées par des vrilles.",
+        "Gousses allongées contenant des graines arrondies."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "NC State Extension — Lathyrus oleraceus",
+          "url": "https://plants.ces.ncsu.edu/plants/lathyrus-oleraceus/"
+        }
+      ]
+    },
+    {
+      "id": "feve",
+      "commonName": "Fève",
+      "scientificName": "Vicia faba",
+      "family": "Fabaceae",
+      "categoryIds": [
+        "legumineuses"
+      ],
+      "description": "Légumineuse annuelle à port dressé. Ses gousses épaisses renferment les grosses graines aplaties que l’on récolte en fèves.",
+      "criteria": [
+        "Gousses épaisses et charnues.",
+        "Feuilles composées de folioles ovales."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "NC State Extension — Vicia faba",
+          "url": "https://plants.ces.ncsu.edu/plants/vicia-faba/"
+        }
+      ]
+    },
+    {
+      "id": "haricot",
+      "commonName": "Haricot commun",
+      "scientificName": "Phaseolus vulgaris",
+      "family": "Fabaceae",
+      "categoryIds": [
+        "legumineuses"
+      ],
+      "description": "Le haricot commun comprend des formes naines ou grimpantes. Les haricots verts sont les gousses récoltées jeunes de certains cultivars.",
+      "criteria": [
+        "Feuilles généralement divisées en trois folioles.",
+        "Gousses de forme et de couleur variables selon le cultivar."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Phaseolus vulgaris",
+          "url": "https://plants.ces.ncsu.edu/plants/phaseolus-vulgaris/"
+        }
+      ]
+    },
+    {
+      "id": "luzerne",
+      "commonName": "Luzerne cultivée",
+      "scientificName": "Medicago sativa",
+      "family": "Fabaceae",
+      "categoryIds": [
+        "legumineuses"
+      ],
+      "description": "Légumineuse fourragère vivace à trois folioles. Les fleurs en grappes sont souvent violacées, mais leur couleur varie. Les gousses s’enroulent en spirale.",
+      "criteria": [
+        "Trois folioles allongées, dentées vers leur extrémité.",
+        "Petites gousses enroulées après la floraison."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "USDA NRCS — Identification of Common Legumes",
+          "url": "https://efotg.sc.egov.usda.gov/references/public/MI/No_04a_Identification_of_Common_Legumes_11-2012.pdf"
+        }
+      ]
+    },
+    {
+      "id": "cosmos",
+      "commonName": "Cosmos bipenné",
+      "scientificName": "Cosmos bipinnatus",
+      "family": "Asteraceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Annuelle à feuilles très finement divisées. Le capitule associe des fleurs centrales tubulées et des fleurs périphériques en languette.",
+      "criteria": [
+        "Feuillage découpé en segments très fins.",
+        "Capitules souvent roses, pourpres ou blancs avec un disque jaune."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "NC State Extension — Cosmos bipinnatus",
+          "url": "https://plants.ces.ncsu.edu/plants/cosmos-bipinnatus/"
+        }
+      ]
+    },
+    {
+      "id": "oeillet-inde",
+      "commonName": "Œillet d’Inde",
+      "scientificName": "Tagetes patula",
+      "family": "Asteraceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Annuelle à feuilles divisées et à capitules souvent jaunes, orange ou bicolores. Selon le cultivar, les capitules peuvent être simples ou doubles.",
+      "criteria": [
+        "Folioles étroites à bord denté.",
+        "Capitules portés par un involucre, l’ensemble des bractées à leur base."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "NC State Extension — Tagetes patula",
+          "url": "https://plants.ces.ncsu.edu/plants/tagetes-patula/"
+        }
+      ]
+    },
+    {
+      "id": "zinnia",
+      "commonName": "Zinnia élégant",
+      "scientificName": "Zinnia elegans",
+      "family": "Asteraceae",
+      "categoryIds": [
+        "fleurs"
+      ],
+      "description": "Annuelle à feuilles simples, larges et opposées. Elle porte des capitules aux couleurs et formes variées selon les cultivars.",
+      "criteria": [
+        "Feuilles entières, opposées, souvent ovales à lancéolées.",
+        "Capitules terminaux, simples ou doubles selon la variété."
+      ],
+      "difficulty": "intermediate",
+      "sources": [
+        {
+          "title": "NC State Extension — Zinnia elegans",
+          "url": "https://plants.ces.ncsu.edu/plants/zinnia-elegans/"
+        }
+      ]
+    },
+    {
+      "id": "ail",
+      "commonName": "Ail cultivé",
+      "scientificName": "Allium sativum",
+      "family": "Amaryllidaceae",
+      "categoryIds": [
+        "legumes"
+      ],
+      "description": "Plante à bulbe dont les caïeux, appelés gousses en cuisine, sont réunis sous des enveloppes sèches.",
+      "criteria": [
+        "Bulbe divisé en plusieurs caïeux.",
+        "Feuilles planes et allongées lorsque la plante est en végétation."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Allium sativum",
+          "url": "https://plants.ces.ncsu.edu/plants/allium-sativum/"
+        }
+      ]
+    },
+    {
+      "id": "radis",
+      "commonName": "Radis cultivé",
+      "scientificName": "Raphanus raphanistrum subsp. sativus",
+      "family": "Brassicaceae",
+      "categoryIds": [
+        "legumes"
+      ],
+      "description": "Légume souvent récolté pour sa racine et sa base de tige renflées. Aussi appelé Raphanus sativus, il existe en formes rondes ou allongées et en plusieurs couleurs.",
+      "criteria": [
+        "Organe de réserve renflé avec une racine fine dans son prolongement.",
+        "Formes, dimensions et couleurs variables selon le cultivar."
+      ],
+      "difficulty": "easy",
+      "sources": [
+        {
+          "title": "NC State Extension — Raphanus raphanistrum subsp. sativus",
+          "url": "https://plants.ces.ncsu.edu/plants/raphanus-raphanistrum-subsp-sativus/"
         }
       ]
     }
@@ -595,7 +848,369 @@
       "width": 960,
       "height": 638,
       "bytes": 262312
+    },
+    {
+      "id": "cassissier-01",
+      "speciesId": "cassissier",
+      "path": "assets/botanical-photos/cassissier.jpg",
+      "stage": "fructification",
+      "organ": "fruit",
+      "author": "Jean-Pierre Bazard (Jpbazard)",
+      "sourceTitle": "Une grappe de cassis.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Une_grappe_de_cassis.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Une_grappe_de_cassis.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "attribution": "Jean-Pierre Bazard (Jpbazard) — Wikimedia Commons — CC BY-SA 3.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Baies rondes, noires et brillantes.",
+        "Pédicelles attachés à un même axe.",
+        "Restes secs du calice au bout de plusieurs baies."
+      ],
+      "identification": "Suivre les petits pédicelles jusqu’à l’axe commun. La grappe de baies noires brillantes distingue ici le cassis de la groseille rouge et des myrtilles bleutées.",
+      "alt": "Gros plan de baies noires et brillantes, disposées en grappe près d’une feuille dentée.",
+      "width": 960,
+      "height": 906,
+      "bytes": 140033
+    },
+    {
+      "id": "groseillier-maquereau-01",
+      "speciesId": "groseillier-maquereau",
+      "path": "assets/botanical-photos/groseillier-maquereau.jpg",
+      "stage": "fructification",
+      "organ": "fruit et feuille",
+      "author": "Darijanus",
+      "sourceTitle": "Ribes uva-crispa - fruit green1.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Ribes_uva-crispa_-_fruit_green1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d2/Ribes_uva-crispa_-_fruit_green1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "attribution": "Darijanus — Wikimedia Commons — CC BY-SA 4.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Quelques baies vertes ovales séparées les unes des autres.",
+        "Lignes longitudinales claires sur les baies.",
+        "Feuilles à lobes arrondis."
+      ],
+      "identification": "La forme ovale et les baies espacées sont plus utiles que leur teinte verte. Le groseillier à grappes porte de nombreuses petites baies rondes sur un axe commun.",
+      "alt": "Jeunes baies vertes ovales avec des lignes pâles, sous des feuilles lobées.",
+      "width": 960,
+      "height": 640,
+      "bytes": 142523
+    },
+    {
+      "id": "ronce-orme-01",
+      "speciesId": "ronce-orme",
+      "path": "assets/botanical-photos/ronce-orme.jpg",
+      "stage": "fructification",
+      "organ": "fruit",
+      "author": "Simonjoan",
+      "sourceTitle": "Blackberries Rubus ulmifolius1.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Blackberries_Rubus_ulmifolius1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Blackberries_Rubus_ulmifolius1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "attribution": "Simonjoan — Wikimedia Commons — CC BY-SA 3.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "De nombreuses petites drupes forment chaque mûre.",
+        "Fruits rouges et noirs sur la même tige."
+      ],
+      "identification": "La surface bosselée distingue une mûre d’une baie lisse comme le cassis. Les fruits noirs sont mûrs sur ce rameau. Sur le terrain, examiner aussi les tiges et le dessous des folioles pour préciser l’espèce dans le genre Rubus.",
+      "alt": "Fruits bosselés encore rouges ou devenus noirs, disposés sur une même tige.",
+      "width": 960,
+      "height": 720,
+      "bytes": 167442
+    },
+    {
+      "id": "pois-01",
+      "speciesId": "pois",
+      "path": "assets/botanical-photos/pois.jpg",
+      "stage": "fructification",
+      "organ": "gousse et feuille",
+      "author": "Kolforn",
+      "sourceTitle": "-2022-06-13 Forming garden pea pods (Pisum sativum), Trimingham, Norfolk.JPG",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:-2022-06-13_Forming_garden_pea_pods_(Pisum_sativum),_Trimingham,_Norfolk.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a7/-2022-06-13_Forming_garden_pea_pods_%28Pisum_sativum%29%2C_Trimingham%2C_Norfolk.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "attribution": "Kolforn — Wikimedia Commons — CC BY-SA 4.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Gousses vertes pendantes et resserrées à la pointe.",
+        "Folioles larges près des gousses.",
+        "Vrilles enroulées sur le treillis."
+      ],
+      "identification": "Chercher les vrilles avant de comparer la forme des gousses. Elles orientent vers le pois parmi les légumineuses proposées.",
+      "alt": "Gousses vertes suspendues sur des tiges qui s’accrochent à un treillis.",
+      "width": 960,
+      "height": 720,
+      "bytes": 286301
+    },
+    {
+      "id": "feve-01",
+      "speciesId": "feve",
+      "path": "assets/botanical-photos/feve.jpg",
+      "stage": "fructification",
+      "organ": "gousse",
+      "author": "Rasbak",
+      "sourceTitle": "Vicia faba pod (01).jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Vicia_faba_pod_(01).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Vicia_faba_pod_%2801%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+      "attribution": "Rasbak — Wikimedia Commons — CC BY-SA 3.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Gousses larges et épaisses.",
+        "Courbure modérée et extrémité pointue."
+      ],
+      "identification": "L’épaisseur des gousses est bien visible face aux gousses fines du haricot proposé. Les feuilles et les graines restent à observer sur la plante entière ou dans une gousse ouverte.",
+      "alt": "Trois gousses vertes, épaisses et légèrement courbes, posées côte à côte.",
+      "width": 500,
+      "height": 559,
+      "bytes": 63831
+    },
+    {
+      "id": "haricot-01",
+      "speciesId": "haricot",
+      "path": "assets/botanical-photos/haricot.jpg",
+      "stage": "fructification",
+      "organ": "gousse",
+      "author": "Aldrina A Manashe",
+      "sourceTitle": "Phaseolus Vulgaris.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Phaseolus_Vulgaris.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Phaseolus_Vulgaris.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "attribution": "Aldrina A Manashe — Wikimedia Commons — CC0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Gousses longues et minces.",
+        "Plusieurs gousses sont légèrement courbées."
+      ],
+      "identification": "La photo présente un type récolté en haricot vert. L’allure mince et régulière de ces gousses les distingue des gousses épaisses de la fève dans cette série.",
+      "alt": "Nombreuses gousses vertes, fines et allongées, déposées sur un plateau.",
+      "width": 500,
+      "height": 669,
+      "bytes": 101170
+    },
+    {
+      "id": "luzerne-01",
+      "speciesId": "luzerne",
+      "path": "assets/botanical-photos/luzerne.jpg",
+      "stage": "début de fructification",
+      "organ": "gousse et feuille",
+      "author": "Matt Lavin",
+      "sourceTitle": "Medicago sativa - alfalfa - Flickr - Matt Lavin.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Medicago_sativa_-_alfalfa_-_Flickr_-_Matt_Lavin.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/5/53/Medicago_sativa_-_alfalfa_-_Flickr_-_Matt_Lavin.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
+      "attribution": "Matt Lavin — Wikimedia Commons — CC BY-SA 2.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Petites gousses vertes enroulées au milieu des fleurs fanées.",
+        "Folioles allongées et finement dentées."
+      ],
+      "identification": "Ici les pétales sont pâles. Les petites gousses enroulées, au centre de l’image, sont plus révélatrices que la couleur des fleurs.",
+      "alt": "Petites gousses vertes arrondies parmi des restes de fleurs crème et des folioles étroites.",
+      "width": 960,
+      "height": 720,
+      "bytes": 147172
+    },
+    {
+      "id": "cosmos-01",
+      "speciesId": "cosmos",
+      "path": "assets/botanical-photos/cosmos.jpg",
+      "stage": "floraison",
+      "organ": "capitule",
+      "author": "George Chernilevsky",
+      "sourceTitle": "Cosmos bipinnatus 2026 G1.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Cosmos_bipinnatus_2026_G1.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/cb/Cosmos_bipinnatus_2026_G1.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "attribution": "George Chernilevsky — Wikimedia Commons — CC BY 4.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Languettes roses striées, légèrement échancrées au bout.",
+        "Petit disque jaune formé de nombreuses fleurs serrées."
+      ],
+      "identification": "Observer la petite taille du disque et l’extrémité échancrée des languettes. Le feuillage très fin, utile pour confirmer le cosmos sur pied, est hors du plan de netteté.",
+      "alt": "Capitule rose vu de face, avec un petit disque jaune et de larges languettes échancrées.",
+      "width": 960,
+      "height": 960,
+      "bytes": 119953
+    },
+    {
+      "id": "oeillet-inde-01",
+      "speciesId": "oeillet-inde",
+      "path": "assets/botanical-photos/oeillet-inde.jpg",
+      "stage": "floraison",
+      "organ": "capitule et feuille",
+      "author": "Vishalsh521",
+      "sourceTitle": "Tagetes-patula-(French-Marigold).jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Tagetes-patula-(French-Marigold).jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Tagetes-patula-%28French-Marigold%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+      "attribution": "Vishalsh521 — Wikimedia Commons — CC BY 3.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Capitules orange avec des languettes ondulées.",
+        "Boutons verts allongés.",
+        "Feuillage découpé en segments étroits."
+      ],
+      "identification": "Le souci peut aussi avoir des capitules orange. Ici, les boutons allongés et les feuilles divisées sont de meilleurs indices que la couleur.",
+      "alt": "Deux capitules orange avec des boutons verts allongés et un feuillage découpé.",
+      "width": 960,
+      "height": 720,
+      "bytes": 98705
+    },
+    {
+      "id": "zinnia-01",
+      "speciesId": "zinnia",
+      "path": "assets/botanical-photos/zinnia.jpg",
+      "stage": "floraison",
+      "organ": "capitule et feuille",
+      "author": "Sara Nabih",
+      "sourceTitle": "Zinnia elegans flower.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Zinnia_elegans_flower.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/3/3e/Zinnia_elegans_flower.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "attribution": "Sara Nabih — Wikimedia Commons — CC BY-SA 4.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Languettes roses disposées autour du disque central.",
+        "Petites fleurs jaunes en couronne autour du centre.",
+        "Feuilles simples et larges."
+      ],
+      "identification": "Le capitule rose rappelle le cosmos. Comparer les feuilles visibles autour de la fleur, larges et entières ici, et finement découpées chez le cosmos.",
+      "alt": "Capitule rose autour d’un disque bordé de jaune, au-dessus de feuilles vertes et larges.",
+      "width": 960,
+      "height": 540,
+      "bytes": 118210
+    },
+    {
+      "id": "ail-01",
+      "speciesId": "ail",
+      "path": "assets/botanical-photos/ail.jpg",
+      "stage": "bulbe récolté",
+      "organ": "bulbe",
+      "author": "Dubravko Sorić (SoraZG sur Flickr)",
+      "sourceTitle": "Opened garlic bulb with garlic clove.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Opened_garlic_bulb_with_garlic_clove.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/4/49/Opened_garlic_bulb_with_garlic_clove.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY 2.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+      "attribution": "Dubravko Sorić (SoraZG sur Flickr) — Wikimedia Commons — CC BY 2.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Enveloppe blanche sèche et fine.",
+        "Bulbe formé de plusieurs caïeux.",
+        "Un caïeu isolé montre sa forme."
+      ],
+      "identification": "L’organisation en caïeux distingue ce bulbe de l’oignon à couches concentriques. Une gousse d’ail est ici un caïeu du bulbe, différent du fruit des légumineuses.",
+      "alt": "Bulbe blanc ouvert, à enveloppe sèche, avec une gousse détachée à côté.",
+      "width": 960,
+      "height": 720,
+      "bytes": 33264
+    },
+    {
+      "id": "radis-01",
+      "speciesId": "radis",
+      "path": "assets/botanical-photos/radis.jpg",
+      "stage": "récolte",
+      "organ": "racine renflée",
+      "author": "Nefronus",
+      "sourceTitle": "Colored radishes.jpg",
+      "sourceUrl": "https://commons.wikimedia.org/wiki/File:Colored_radishes.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/de/Colored_radishes.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+      "attribution": "Nefronus — Wikimedia Commons — CC BY-SA 4.0. Vignette redimensionnée par Wikimedia Commons.",
+      "modifications": "Vignette JPEG de Wikimedia Commons, redimensionnée proportionnellement sans recadrage.",
+      "reviewedAt": "2026-11-19",
+      "visibleCriteria": [
+        "Renflements presque ronds de plusieurs couleurs.",
+        "Une racine fine prolonge chaque renflement."
+      ],
+      "identification": "Repérer d’abord le renflement arrondi et la racine fine qui s’en prolonge. Ces radis issus d’un mélange illustrent que la couleur rouge n’est pas indispensable pour reconnaître la culture.",
+      "alt": "Une main tient de petites racines rondes rouges, violettes, claires et jaunes, encore munies de leurs feuilles.",
+      "width": 960,
+      "height": 1280,
+      "bytes": 248135
     }
   ],
-  "confusions": []
+  "confusions": [
+    {
+      "speciesId": "cassissier",
+      "otherSpeciesId": "groseillier-rouge",
+      "explanation": "Les deux portent des baies lisses en grappes. Comparer le noir brillant des cassis mûrs et le rouge translucide des groseilles de la photothèque."
+    },
+    {
+      "speciesId": "cassissier",
+      "otherSpeciesId": "myrtillier",
+      "explanation": "Les cassis noirs et brillants pendent sur un axe commun. Les myrtilles de la photothèque sont bleutées et couvertes d’une pruine claire."
+    },
+    {
+      "speciesId": "cassissier",
+      "otherSpeciesId": "ronce-orme",
+      "explanation": "Comparer les surfaces. La mûre se compose de drupes accolées et le cassis présente une baie lisse."
+    },
+    {
+      "speciesId": "groseillier-maquereau",
+      "otherSpeciesId": "groseillier-rouge",
+      "explanation": "Rechercher des baies ovales isolées ou peu nombreuses, face aux baies rondes et réunies en grappes du groseillier à grappes."
+    },
+    {
+      "speciesId": "ronce-orme",
+      "otherSpeciesId": "framboisier",
+      "explanation": "Les deux fruits sont formés de petites drupes. Sur ces photos, les mûres deviennent noires à maturité, tandis que les framboises mûres restent rouges."
+    },
+    {
+      "speciesId": "pois",
+      "otherSpeciesId": "feve",
+      "explanation": "Chercher les vrilles sur le pois. La fève montre des gousses plus épaisses sur la photographie de récolte."
+    },
+    {
+      "speciesId": "feve",
+      "otherSpeciesId": "haricot",
+      "explanation": "Comparer les gousses de la photothèque. Celles de fève sont larges et épaisses, celles du type haricot vert longues et fines."
+    },
+    {
+      "speciesId": "oeillet-inde",
+      "otherSpeciesId": "souci",
+      "explanation": "Les deux capitules peuvent être orange. Les feuilles divisées de l’œillet d’Inde contrastent avec les feuilles simples du souci."
+    },
+    {
+      "speciesId": "cosmos",
+      "otherSpeciesId": "zinnia",
+      "explanation": "Sur les capitules roses de la photothèque, comparer les languettes échancrées du cosmos et la couronne de petites fleurs jaunes du zinnia. Sur pied, vérifier les feuilles très divisées du cosmos et les feuilles entières du zinnia."
+    },
+    {
+      "speciesId": "ail",
+      "otherSpeciesId": "oignon",
+      "explanation": "Le bulbe d’ail est partagé en caïeux. Celui de l’oignon s’organise en couches concentriques."
+    },
+    {
+      "speciesId": "radis",
+      "otherSpeciesId": "carotte",
+      "explanation": "Dans la photothèque, la carotte est conique et les radis sont ronds. La forme des feuilles est aussi utile sur pied, finement découpées chez la carotte."
+    }
+  ]
 }

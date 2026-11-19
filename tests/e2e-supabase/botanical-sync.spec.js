@@ -56,7 +56,7 @@ test('Botanique réelle A : deux appareils, historique réconcilié et nouvelle 
     const firstRows = await rows(a, 'botanical_answers'); expect(firstRows).toHaveLength(2);
     const sessions = await rows(a, 'botanical_sessions'); expect(sessions).toHaveLength(1);
     expect(sessions[0].revision).toBe(2); expect(sessions[0].completed_at).not.toBeNull();
-    expect(sessions[0].total_questions).toBe(4);
+    expect(sessions[0].total_questions).toBe(7);
     expect(Date.parse(sessions[0].completed_at)).toBeGreaterThanOrEqual(Math.max(...firstRows.map(row => Date.parse(row.answered_at))));
     stage = 'deuxième appareil';
     const context = await browser.newContext({ timezoneId: 'Europe/Paris', locale: 'fr-FR' }); contexts.push(context);
