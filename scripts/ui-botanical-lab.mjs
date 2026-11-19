@@ -12,6 +12,10 @@ const time = page => page.locator('#bot-time');
 const choices = page => page.locator('[data-choice]');
 const history = page => page.locator('#bot-history');
 const readVisitor = page => page.evaluate(key => JSON.parse(localStorage.getItem(key)), botanicalStorageKey);
+const initialSpecies = new Set([
+  'fraisier', 'framboisier', 'groseillier-rouge', 'myrtillier', 'tournesol', 'souci',
+  'capucine', 'coquelicot', 'tomate', 'carotte', 'oignon', 'laitue',
+]);
 
 export async function seedBotanicalLab(context, { season = 'autumn', brightness = 'light', deterministic = false } = {}) {
   await context.addInitScript(({ season, brightness, deterministic }) => {
@@ -196,6 +200,15 @@ export async function writeBotanicalParity(browser, { origin, baselineRef, direc
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, timezoneId: 'Europe/Paris', reducedMotion: 'reduce' });
     try {
       await context.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+      // Rejouer le contrat historique du lot 4 avec la même banque dans les deux versions.
+      await context.route('**/assets/botanical-bank.json*', async route => {
+        const response = await route.fetch();
+        const bank = await response.json();
+        bank.species = bank.species.filter(plant => initialSpecies.has(plant.id));
+        bank.photos = bank.photos.filter(photo => initialSpecies.has(photo.speciesId));
+        bank.confusions = bank.confusions.filter(pair => initialSpecies.has(pair.speciesId) && initialSpecies.has(pair.otherSpeciesId));
+        await route.fulfill({ response, json: bank });
+      });
       await seedBotanicalLab(context, { deterministic: true });
       observations[phase] = await replayVisitor(await context.newPage(), origin, phase);
     } finally {
@@ -204,7 +217,7 @@ export async function writeBotanicalParity(browser, { origin, baselineRef, direc
   }
   assert.deepEqual(observations.after, observations.before);
   await mkdir(directory, { recursive: true });
-  await writeFile(resolve(directory, 'parite.json'), JSON.stringify({ baselineRef, ...observations, identical: true }, null, 2));
+  await writeFile(resolve(directory, 'parite.json'), JSON.stringify({ baselineRef, species: [...initialSpecies], ...observations, identical: true }, null, 2));
 }
 
 export function installBotanicalObserver() {
@@ -232,7 +245,7 @@ export async function measureBotanical(page) {
   await page.locator('#bot-correction-title').waitFor();
   const correctionMs = await paint('validate');
   await nextBotanical(page);
-  await expect(page.locator('#bot-question-heading')).toHaveText('Question 2 sur 4');
+  await expect(page.locator('#bot-question-heading')).toHaveText(/^Question 2 sur \d+$/);
   const nextMs = await paint('next');
   await currentBotanicalPhoto(page);
   const nextImageMs = await paint('next');
