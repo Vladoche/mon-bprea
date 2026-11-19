@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `c7cd0c6828a02d52f88a1975b807022bff6436e0` |
-| Dernière PR fusionnée | [#73](https://github.com/Vladoche/mon-bprea/pull/73), 19/11/2026 à 07:12:38 UTC |
+| Dernier commit | `9991e54b69d60b788b007d523143b9915bebe52e` |
+| Dernière PR fusionnée sur main | [#74](https://github.com/Vladoche/mon-bprea/pull/74), 19/11/2026 à 13:13:33 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantiers en revue | **PR4 lot 4**, reconnaissance botanique 2027. [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT4.md). **Photothèque enrichie**, 24 plantes et animations des réponses. [PR #75](https://github.com/Vladoche/mon-bprea/pull/75) basée sur la #74 |
-| Prochaine action | Revoir la refonte botanique puis l’enrichissement. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
+| Chantier en revue | **Photothèque botanique enrichie**, 24 plantes et animations des réponses. La [PR #75](https://github.com/Vladoche/mon-bprea/pull/75) a fusionné dans `codex/ui-2027-botanical` à 13:17:11 UTC, après la fusion de la #74 dans main. [Comparaison pour l’intégration à main](https://github.com/Vladoche/mon-bprea/compare/main...codex%2Fbotanical-variety-main) |
+| Prochaine action | Revoir l’intégration de la photothèque à main. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut #59–#73. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
+**Code fusionné** : main inclut #59–#74. **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
 revendiquer une nouvelle campagne sur le commit de fusion. Pour #61 :
@@ -64,12 +64,14 @@ et [sécurité sur stack éphémère](https://github.com/Vladoche/mon-bprea/acti
 Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 [PR2](../validations/VALIDATION-UI-2027-PR2.md) et
 [PR2b/PR2c](../validations/VALIDATION-UI-2027-PR2B.md) détaillent périmètres et limites.
+Les quatre checks de la [refonte botanique #74](https://github.com/Vladoche/mon-bprea/pull/74/checks)
+ont réussi sur `daadf53`. La [validation du lot 4](../validations/VALIDATION-UI-2027-PR4-LOT4.md) conserve les résultats détaillés.
 
 **Code publié** et **production vérifiée** restent distincts :
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `c7cd0c6828a02d52f88a1975b807022bff6436e0` |
+| Dernier commit main relevé | `9991e54b69d60b788b007d523143b9915bebe52e` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
@@ -100,7 +102,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Calendrier | Interface 2027 fusionnée dans #71, événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Validation du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
 | Générateur ITK | Interface 2027 fusionnée dans #72, génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [Validation du générateur](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
 | Ressources | Bibliothèque, filtres et aperçus de cours et d’UC harmonisés dans #73 | Références éditoriales à entretenir | [Validation de la bibliothèque](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
-| Reconnaissance botanique | Jeu et historique personnel/visiteur. Refonte 2027 et enrichissement en revue | Douze taxons et trois catégories jouables sur main | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
+| Reconnaissance botanique | Refonte 2027 fusionnée dans #74. Photothèque enrichie en revue | Douze taxons et trois catégories jouables sur main | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
 | Mon profil | Compte, paramètres, export/restauration et retrait local ; #59/#60 | Retrait local distinct d’une clôture serveur | [Auth](../architecture/AUTHENTIFICATION.md) |
 | Apparence | Icône clair/sombre, dialogue dans Profil → Paramètres ; #59 | Mémorisation appareil volontaire ; anciennes clés conservées | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
@@ -158,9 +160,8 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir la [reconnaissance botanique 2027](../validations/VALIDATION-UI-2027-PR4-LOT4.md).
-   La fusion de ce dernier lot clôturera PR4. PR5 (profil et harmonisation finale)
-   reste à réaliser. Revoir ensuite l’[enrichissement de la photothèque](https://github.com/Vladoche/mon-bprea/pull/75).
+1. Revoir l’[intégration de la photothèque enrichie à main](https://github.com/Vladoche/mon-bprea/compare/main...codex%2Fbotanical-variety-main).
+   Le lot 4 de la refonte botanique clôture PR4. PR5 (profil et harmonisation finale) reste à réaliser.
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
