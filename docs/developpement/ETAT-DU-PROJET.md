@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `c7cd0c6828a02d52f88a1975b807022bff6436e0` |
 | Dernière PR fusionnée | [#73](https://github.com/Vladoche/mon-bprea/pull/73), 19/11/2026 à 07:12:38 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **PR4 lot 4**. Reconnaissance botanique 2027. [Validation](../validations/VALIDATION-UI-2027-PR4-LOT4.md) |
+| Chantier courant, non fusionné | **PR4 lot 4**. Reconnaissance botanique 2027. [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT4.md) |
 | Prochaine action | Revoir la galerie botanique, les commandes et la PR du dernier lot. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais

@@ -13,7 +13,8 @@ La version de l’application Windows reste propre à cet outil.
   modes accessible au clavier, photographies non recadrées avec leurs crédits,
   corrections structurées et résultats lisibles sur mobile. Les commandes de jeu
   et d’import reprennent les surfaces du header. Le suivi de sauvegarde est placé
-  sous le jeu. [Validation](docs/validations/VALIDATION-UI-2027-PR4-LOT4.md).
+  sous le jeu. [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) ·
+  [Validation](docs/validations/VALIDATION-UI-2027-PR4-LOT4.md).
 - **Ressources documentaires 2027, PR4 lot 3**. Recherche et filtres plus
   lisibles, critères avancés actifs visibles, cartes et aperçus pédagogiques
   harmonisés avec les commandes du header et de l’ITK. La vérification des PDF

@@ -1,6 +1,6 @@
 # Validation de la reconnaissance botanique 2027
 
-PR4 lot 4 · 19 novembre 2026 · Base `c7cd0c6828a02d52f88a1975b807022bff6436e0`, fusion de la [bibliothèque documentaire #73](https://github.com/Vladoche/mon-bprea/pull/73).
+PR4 lot 4 · [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) · 19 novembre 2026 · Base `c7cd0c6828a02d52f88a1975b807022bff6436e0`, fusion de la [bibliothèque documentaire #73](https://github.com/Vladoche/mon-bprea/pull/73).
 
 ## Audit
 
