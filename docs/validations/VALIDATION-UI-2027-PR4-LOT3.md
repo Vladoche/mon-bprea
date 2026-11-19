@@ -1,6 +1,6 @@
 # Validation de la bibliothèque documentaire 2027
 
-PR4 lot 3 · 19 novembre 2026 · Base `1f86041bdb8eea7523f137845f27a22846de7bf3`, fusion de la [PR ITK #72](https://github.com/Vladoche/mon-bprea/pull/72).
+PR4 lot 3 · [PR #73](https://github.com/Vladoche/mon-bprea/pull/73) · 19 novembre 2026 · Base `1f86041bdb8eea7523f137845f27a22846de7bf3`, fusion de la [PR ITK #72](https://github.com/Vladoche/mon-bprea/pull/72).
 
 ## Audit et périmètre
 

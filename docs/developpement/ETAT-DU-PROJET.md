@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit | `1f86041bdb8eea7523f137845f27a22846de7bf3` |
 | Dernière PR fusionnée | [#72](https://github.com/Vladoche/mon-bprea/pull/72), 18/11/2026 à 18:41:05 UTC |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier courant, non fusionné | **PR4 lot 3**. Bibliothèque et aperçus documentaires 2027. [Validation](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
+| Chantier courant, non fusionné | **PR4 lot 3**. Bibliothèque et aperçus documentaires 2027. [PR #73](https://github.com/Vladoche/mon-bprea/pull/73) · [Validation](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
 | Prochaine action | Revoir la bibliothèque, ses aperçus et la planche des commandes. Côté exploitation, décider séparément du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
