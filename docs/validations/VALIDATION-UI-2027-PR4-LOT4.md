@@ -22,7 +22,7 @@ PR4 lot 4 · [PR #74](https://github.com/Vladoche/mon-bprea/pull/74) · 19 novem
 | `assets/botanical-sync-ui.js` | Suivi sous l’historique, annonces centrées sur les états qui demandent de l’attention, dialogue d’import natif avec actions accessibles. Une génération d’interface invalide un aperçu tardif quand l’identité change, même au retour à A. |
 | `tests/e2e/botanical*.js`, `scripts/ui-botanical-*.mjs`, `scripts/measure-ui-foundations.mjs`, `.github/workflows/quality.yml` | Parcours navigateur, simulation de synchronisation, parité exacte, mesures et galerie publiées en artefact de recette de la PR. |
 
-Le diff de `botanical-bank.json`, du moteur, des stores, du service, du modèle, du transport et du code d’import est vide. Les douze JPEG ont les mêmes SHA-256 que la référence. L’affichage vérifie les dimensions d’origine, `object-fit: contain`, l’absence de filtre et les chemins relatifs sous `/mon-bprea/`. L’auteur, la licence et le lien source restent au voisinage immédiat de l’image. « Crédit complet » donne le titre d’origine et l’attribution intégrale. Pour le groseillier, Luc Viatour et son adresse restent visibles sous la photo. Les alternatives textuelles proviennent de la banque. [Registre des sources](../architecture/BOTANICAL-SOURCES.md).
+Le diff de `botanical-bank.json`, du moteur, des stores, du service, du modèle, du transport et du code d’import est vide. Les douze JPEG ont les mêmes SHA-256 que la référence. L’affichage vérifie les dimensions d’origine, `object-fit: contain`, l’absence de filtre et les chemins relatifs sous `/mon-bprea/`. Un espace autour de chaque image laisse ses quatre coins visibles dans le cadre arrondi. L’auteur, la licence et le lien source restent au voisinage immédiat de l’image. « Crédit complet » donne le titre d’origine et l’attribution intégrale. Pour le groseillier, Luc Viatour et son adresse restent visibles sous la photo. Les alternatives textuelles proviennent de la banque. [Registre des sources](../architecture/BOTANICAL-SOURCES.md).
 
 ## Galerie et accessibilité
 
@@ -53,22 +53,22 @@ Cinq passages alternés, Chromium 156 verrouillé, 1 440 × 1 000, cache froid, 
 
 | Médiane | Avant | Après |
 | --- | ---: | ---: |
-| CSS chargé | 65 192 octets | 74 924 octets |
+| CSS chargé | 65 192 octets | 74 951 octets |
 | JavaScript chargé | 809 850 octets | 813 310 octets |
 | Requêtes initiales | 79 | 79 |
-| LCP de laboratoire | 1 264 ms | 276 ms |
+| LCP de laboratoire | 1 256 ms | 284 ms |
 | CLS initial | 0,365 | 0 |
-| Sélection prête | 1 533 ms | 1 477 ms |
+| Sélection prête | 1 513 ms | 1 490 ms |
 | Démarrage de session | 92 ms | 108 ms |
-| Première photo affichée | 325 ms | 340 ms |
-| Choix d’une réponse | 25 ms | 24 ms |
-| Correction | 90 ms | 88 ms |
-| Question suivante | 43 ms | 58 ms |
-| Photo suivante affichée | 242 ms | 241 ms |
-| Résultats | 76 ms | 73 ms |
+| Première photo affichée | 309 ms | 309 ms |
+| Choix d’une réponse | 27 ms | 26 ms |
+| Correction | 76 ms | 91 ms |
+| Question suivante | 53 ms | 59 ms |
+| Photo suivante affichée | 242 ms | 243 ms |
+| Résultats | 73 ms | 74 ms |
 | Photos demandées sur deux questions | 2 · 287 924 octets | 2 · 287 924 octets |
 
-Le titre présent dans le HTML rend le premier contenu visible plus tôt. Le déplacement du suivi sous le jeu réduit le déplacement initial mesuré. Le CSS augmente de 9,7 ko décodés. Les médianes de démarrage, d’affichage de la première photo et de passage à la question suivante augmentent de 16, 15 et 15 ms (écarts mineurs de laboratoire). Les actions de jeu restent sous le budget diagnostique de 200 ms hors chargement de photo. L’horloge déterministe vérifie indépendamment les pauses et l’échéance.
+Le titre présent dans le HTML rend le premier contenu visible plus tôt. Le déplacement du suivi sous le jeu réduit le déplacement initial mesuré. Le CSS augmente de 9,8 ko décodés. Les médianes du démarrage, de la correction et du passage à la question suivante augmentent de 16, 15 et 6 ms (écarts mineurs de laboratoire). Les actions de jeu restent sous le budget diagnostique de 200 ms hors chargement de photo. L’horloge déterministe vérifie indépendamment les pauses et l’échéance.
 
 ## Portée de la recette
 

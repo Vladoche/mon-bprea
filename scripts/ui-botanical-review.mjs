@@ -38,7 +38,7 @@ async function checkLayout(page, phase, state, all) {
     const rect = dialog?.getBoundingClientRect();
     return {
       width: innerWidth, scrollWidth: document.documentElement.scrollWidth, dpr: devicePixelRatio,
-      image: image && { id: image.dataset.photoId, width: image.naturalWidth, height: image.naturalHeight, fit: imageStyle.objectFit, filter: imageStyle.filter, transform: imageStyle.transform },
+      image: image && { id: image.dataset.photoId, width: image.naturalWidth, height: image.naturalHeight, fit: imageStyle.objectFit, filter: imageStyle.filter, transform: imageStyle.transform, padding: parseFloat(imageStyle.paddingTop) },
       choices: [...document.querySelectorAll('[data-choice]')].map(node => ({ width: node.getBoundingClientRect().width, height: node.getBoundingClientRect().height })),
       dialog: rect && { safe: rect.left >= 0 && rect.right <= innerWidth && rect.top >= 0 && rect.bottom <= innerHeight && dialog.scrollWidth <= dialog.clientWidth + 1 },
       tables: [...document.querySelectorAll('.bot-table-wrap')].filter(node => node.getClientRects().length).map(node => ({ clientWidth: node.clientWidth, scrollWidth: node.scrollWidth })),
@@ -51,7 +51,9 @@ async function checkLayout(page, phase, state, all) {
   }
   if (info.image) {
     const photo = botanicalBank.photos.find(row => row.id === info.image.id);
-    assert.deepEqual(info.image, { id: photo.id, width: photo.width, height: photo.height, fit: 'contain', filter: 'none', transform: 'none' });
+    const { padding, ...content } = info.image;
+    assert.deepEqual(content, { id: photo.id, width: photo.width, height: photo.height, fit: 'contain', filter: 'none', transform: 'none' });
+    if (phase === 'after') assert.ok(padding >= 8, 'Les coins de la photographie dégagent l’arrondi du cadre');
   }
   all.push({ phase, state, ...info });
 }
