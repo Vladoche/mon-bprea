@@ -49,8 +49,8 @@ assistée décrite dans la notice. [Contact](../../contact.html) ·
   reconstruit à l’identique. pgTAP a réussi avec 414 assertions et les suites
   Auth, Drill et données personnelles ont réussi leurs 12, 22 et 26 groupes
   sur la stack fictive.
-- 46 cas Chromium ciblés ont réussi. Les neuf cas Profil ont ensuite réussi
-  avec Chromium complet, y compris un retour BFCache natif entre A et B. Le
+- 249 cas Chromium ont réussi, dont les neuf cas Profil exécutés avec
+  Chromium complet et un retour BFCache natif entre A et B. Le
   test vérifie `pagehide.persisted` et `pageshow.persisted`, le retrait de la
   vue de A et le rechargement des données et des réglages pour B.
 - 30 cas Chromium connectés ont réussi sur la stack dédiée du poste. Ils
@@ -88,7 +88,7 @@ footer inclus.
 
 ## Performance de laboratoire
 
-Médianes de trois paires alternées par version à 1 440 × 1 000 px, cache froid,
+Médianes de trois exécutions alternées par version à 1 440 × 1 000 px, cache froid,
 CPU ralenti ×4, latence 20 ms et débit 1,25 Mo/s. Le laboratoire sert les
 sources sans compression et utilise un compte et des réponses HTTP fictifs.
 Les temps d’action vont de l’événement à la deuxième image après le changement
@@ -96,16 +96,16 @@ attendu. Le temps de confirmation inclut l’acquittement HTTP fictif.
 
 | Mesure | Avant | Après |
 | --- | ---: | ---: |
-| JavaScript décodé | 1 040 394 octets | 906 675 octets |
-| CSS décodé | 64 923 octets | 63 966 octets |
+| JavaScript décodé | 1 040 394 octets | 906 735 octets |
+| CSS décodé | 64 923 octets | 63 871 octets |
 | Requêtes | 97 | 82 |
-| LCP | 1 444 ms | 344 ms |
+| LCP | 1 384 ms | 328 ms |
 | CLS | 0,011 | 0,012 |
-| Profil avec formulaire | 2 046 ms | 1 577 ms |
-| Préférences chargées | 2 136 ms | 1 671 ms |
-| Ouverture du dialogue d’apparence | 69 ms | 56 ms |
-| Saisie du pseudo | 43 ms | 38 ms |
-| Confirmation du pseudo | 87 ms | 88 ms |
+| Profil avec formulaire | 1 959 ms | 1 518 ms |
+| Préférences chargées | 2 047 ms | 1 610 ms |
+| Ouverture du dialogue d’apparence | 61 ms | 43 ms |
+| Saisie du pseudo | 36 ms | 30 ms |
+| Confirmation du pseudo | 89 ms | 87 ms |
 
 Le titre s’affiche avant la vérification Auth. La mesure du formulaire
 indique séparément le moment où le compte est utilisable. La campagne n’a

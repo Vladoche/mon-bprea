@@ -40,7 +40,7 @@
 
 .profile-details {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0 0 var(--space-4);
   gap: var(--space-3) var(--space-5);
   padding: var(--space-4);
@@ -145,7 +145,6 @@
   .profile-shell { margin-block-end: var(--space-6); }
   .profile-intro { margin-block-end: var(--space-5); }
   .profile-layout, .profile-settings-stack { gap: var(--space-4); }
-  .profile-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .profile-details > :first-child { grid-column: 1 / -1; }
   .profile-details > :last-child { grid-column: auto; }
   .profile-pseudo-form > button { width: 100%; }
