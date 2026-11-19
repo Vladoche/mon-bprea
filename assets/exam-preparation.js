@@ -65,7 +65,7 @@ export async function initExamPreparation(root, courseService) {
     if (!data || !root.isConnected) return;
     displayedDay = todayKey();
     if (data.error) {
-      replaceMarkup(`<div class="exam-empty"><div><span class="eyebrow">PRÉPARATION AUX EXAMENS</span><h2 id="exam-heading">Calendrier indisponible</h2><p>Impossible de consulter les dates d’examen pour le moment. Tes résultats restent conservés sur cet appareil.</p></div><button class="btn btn-outline" type="button" id="retry-exam-calendar">Réessayer</button></div>`);
+      replaceMarkup(`<div class="exam-empty"><div><span class="eyebrow">PRÉPARATION AUX EXAMENS</span><h2 id="exam-heading">Calendrier indisponible</h2><p>Impossible de consulter les dates d’examen pour le moment. Tes résultats restent conservés sur cet appareil.</p></div><button class="btn btn-surface" type="button" id="retry-exam-calendar">Réessayer</button></div>`);
       root.querySelector('#retry-exam-calendar').onclick = async () => {
         root.innerHTML = '<p class="exam-loading" role="status">Chargement des dates…</p>';
         lastMarkup = '';
@@ -78,7 +78,7 @@ export async function initExamPreparation(root, courseService) {
     const exam = exams[0];
     const warning = data.warnings.length ? '<p class="exam-data-note">Certaines entrées du calendrier sont incomplètes ou invalides. Les informations affichées peuvent être partielles.</p>' : '';
     if (!exam) {
-      replaceMarkup(`<div class="exam-empty"><div><span class="eyebrow">PRÉPARATION AUX EXAMENS</span><h2 id="exam-heading">Chaque étape se prépare à ton rythme.</h2><p>Aucune période d’examen en cours ou à venir n’est enregistrée. Le suivi de préparation apparaîtra lorsqu’une date sera renseignée.</p></div><a class="btn btn-outline" href="calendrier.html">Consulter le calendrier <span aria-hidden="true">→</span></a></div>${warning}`);
+      replaceMarkup(`<div class="exam-empty"><div><span class="eyebrow">PRÉPARATION AUX EXAMENS</span><h2 id="exam-heading">Chaque étape se prépare à ton rythme.</h2><p>Aucune période d’examen en cours ou à venir n’est enregistrée. Le suivi de préparation apparaîtra lorsqu’une date sera renseignée.</p></div><a class="btn btn-surface" href="calendrier.html">Consulter le calendrier <span aria-hidden="true">→</span></a></div>${warning}`);
       return;
     }
     const unit = units.find(item => item.id === exam.unit);

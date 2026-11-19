@@ -42,9 +42,9 @@ function pageMarkup() {
           <h2 id="calendar-month-title" aria-live="polite" aria-atomic="true" tabindex="-1"></h2>
           <div class="calendar-controls">
             <div class="calendar-month-nav" role="group" aria-label="Navigation entre les mois">
-              <button class="btn btn-outline calendar-arrow" type="button" data-month-step="-1" aria-label="Mois précédent">←</button>
-              <button class="btn btn-outline" type="button" data-calendar-today>Aujourd’hui</button>
-              <button class="btn btn-outline calendar-arrow" type="button" data-month-step="1" aria-label="Mois suivant">→</button>
+              <button class="btn btn-surface calendar-arrow" type="button" data-month-step="-1" aria-label="Mois précédent">←</button>
+              <button class="btn btn-surface" type="button" data-calendar-today>Aujourd’hui</button>
+              <button class="btn btn-surface calendar-arrow" type="button" data-month-step="1" aria-label="Mois suivant">→</button>
             </div>
             <label class="calendar-month-choice">Aller au mois
               <input type="month" id="calendar-month-input" min="0001-01" max="9999-12" placeholder="AAAA-MM" />
@@ -69,7 +69,7 @@ function pageMarkup() {
         <div class="calendar-agenda-heading">
           <h2 id="calendar-agenda-title" tabindex="-1">Agenda du mois</h2>
           <span id="calendar-event-count" class="calendar-count"></span>
-          <button class="btn btn-outline calendar-reset" type="button" hidden>Voir tout le mois</button>
+          <button class="btn btn-surface calendar-reset" type="button" hidden>Voir tout le mois</button>
         </div>
         <div class="calendar-feedback"></div>
         <div id="calendar-agenda-content"></div>
@@ -78,7 +78,7 @@ function pageMarkup() {
     <dialog class="calendar-dialog" aria-labelledby="calendar-detail-title">
       <div class="calendar-dialog-content" id="calendar-detail-content"></div>
       <form method="dialog" class="calendar-dialog-actions">
-        <button class="btn btn-primary" type="submit">Fermer le détail</button>
+        <button class="btn btn-surface" type="submit">Fermer le détail</button>
       </form>
     </dialog>`;
 }
@@ -260,7 +260,7 @@ export function renderCalendar(root, initialData) {
     if (data.error) {
       sourceFeedback.innerHTML = `<div class="calendar-notice calendar-notice-error">
         <div role="alert"><strong>Calendrier indisponible</strong><p>${clean(data.error)}</p></div>
-        <button class="btn btn-outline" type="button" data-calendar-retry>Réessayer</button>
+        <button class="btn btn-surface" type="button" data-calendar-retry>Réessayer</button>
       </div>`;
     } else {
       sourceFeedback.innerHTML = '';

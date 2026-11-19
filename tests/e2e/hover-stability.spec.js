@@ -41,7 +41,7 @@ test('hover : gradients continus à l’entrée, à la sortie et lors des invers
   const report = [];
   for (const season of ['spring', 'summer', 'autumn', 'winter']) for (const theme of ['light', 'dark']) {
     await page.evaluate(({ season, theme }) => { document.documentElement.dataset.season = season; document.documentElement.dataset.theme = theme; }, { season, theme });
-    for (const selector of ['[data-revision-start]', '.home-all-courses .btn-primary', '.home-course-card']) {
+    for (const selector of ['[data-revision-start]', '.home-all-courses .btn-surface--accent', '.home-course-card']) {
       const result = await sampleHover(page, page.locator(selector).first());
       expect(result.initial.image, `${season}/${theme}/${selector}`).toContain('gradient');
       for (const frame of result.frames) {
@@ -85,7 +85,7 @@ test('hover : contrôles communs des pages, compte synthétique et préférences
     if (file === 'profil.html') await createSettingsAPI().install(page.context(), 'A');
     await page.goto(prefix + file); await page.evaluate(() => document.fonts.ready);
     if (file === 'profil.html') await waitForIdentity(page, accounts.A.id);
-    for (const selector of ['.btn-primary', '.btn-outline', '.btn-quiet', '.option', '.resource-filter', '.standalone-nav a']) {
+    for (const selector of ['main .btn-surface--accent', 'main .btn-surface:not(.btn-surface--accent)', '.option', '.resource-filter', '.standalone-nav a']) {
       const target = page.locator(selector).first();
       if (!await target.isVisible()) continue;
       const result = await sampleHover(page, target, 250);

@@ -40,6 +40,8 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  min-inline-size: 0;
+  max-inline-size: 100%;
   gap: var(--space-2);
 }
 
@@ -49,7 +51,8 @@
   min-height: var(--control-height);
   padding: .4em .9em;
 }
-.calendar-controls .calendar-arrow {
+.calendar-month-nav .calendar-arrow {
+  flex: none;
   width: var(--control-height);
   padding: 0;
   font-size: 1.25rem;
@@ -65,11 +68,13 @@
   min-width: 0;
   min-height: var(--control-height);
   max-width: 100%;
-  padding: .35em .6em;
+  padding: var(--space-2);
   color: var(--color-text);
-  background: var(--color-surface);
-  border: 1px solid var(--color-control-border);
+  background: var(--color-surface-soft);
+  border: var(--border-width) solid var(--color-control-border);
   border-radius: var(--radius-sm);
+  font-size: var(--font-size-body);
+  line-height: 1.4;
 }
 
 .calendar-type-cours {
@@ -493,9 +498,7 @@
     gap: 6px;
   }
   .calendar-month-nav .btn:not(.calendar-arrow) {
-    display: block;
     padding-inline: .5em;
-    overflow-wrap: anywhere;
   }
   .calendar-agenda-item { grid-template-columns: minmax(0, 1fr); }
   .calendar-reset { margin-inline-start: 0; }

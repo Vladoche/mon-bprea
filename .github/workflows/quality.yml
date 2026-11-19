@@ -95,6 +95,11 @@ jobs:
         run: |
           mkdir -p .tmp/ui-2027-foundations/baseline
           git archive "$BASE_SHA" assets documents ':(top,glob)*.html' | tar -xf - -C .tmp/ui-2027-foundations/baseline
+      - name: Capturer la comparaison transversale pour revue
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          node scripts/ui-harmonisation-lab.mjs .tmp/ui-2027-foundations/baseline "$BASE_SHA" .tmp/ui-2027-foundations/harmonisation
       - name: Comparer les mesures de laboratoire
         run: |
           node scripts/measure-ui-foundations.mjs
@@ -132,5 +137,13 @@ jobs:
             .tmp/ui-2027-foundations/botanical-review/
             .tmp/ui-2027-foundations/profile-review/
             .tmp/ui-2027-foundations/parite.json
+          retention-days: 14
+          if-no-files-found: ignore
+      - name: Conserver la galerie et la planche comparative
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: harmonisation-ui-${{ github.run_id }}
+          path: .tmp/ui-2027-foundations/harmonisation/
           retention-days: 14
           if-no-files-found: ignore

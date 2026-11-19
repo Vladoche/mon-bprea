@@ -42,6 +42,11 @@ résolvent les mêmes tokens `--control-pill-*` pour les dégradés, reflets,
 ombres et anneau de focus. Sur un bouton ou un lien natif, cette surface
 conserve les interactions de l’élément et adapte l’affichage au contraste
 forcé. L’état désactivé s’applique aux boutons natifs.
+Les commandes temporairement indisponibles avec `aria-disabled="true"`
+partagent ces couleurs et gardent leur focus. Le code du composant ignore
+l’activation dans cet état, comme pour l’actualisation du tableau de bord.
+Les commandes neutres du calendrier, de la navigation autonome des pages
+publiques et des parcours pédagogiques utilisent la même surface.
 
 Les cartes de catégorie et les réponses botaniques adaptent la géométrie de
 `.btn.btn-surface` à leurs libellés. La sélection reprend le contour terracotta,
