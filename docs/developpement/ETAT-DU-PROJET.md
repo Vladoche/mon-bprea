@@ -28,7 +28,7 @@ pas une preuve opérationnelle.
 
 ## B — État du code
 
-**Admin 2.3 et capacité.** Le correctif applique dix comptes, dont neuf places participantes, dans Admin Windows et les outils de préouverture. La notice V1.3 de cette livraison est candidate. Son empreinte attend une approbation avant une publication Pages autorisée. Le signal `backup_drift` rapporté le 20/11 maintient le blocage de création PROD tant qu’une sauvegarde du schéma courant n’a pas été restaurée et qualifiée.
+**Admin 2.3 et capacité.** La [PR #84](https://github.com/Vladoche/mon-bprea/pull/84) applique dix comptes, dont neuf places participantes, dans Admin Windows et les outils de préouverture. La notice V1.3 de cette livraison est candidate. Son empreinte attend une approbation avant une publication Pages autorisée. Le signal `backup_drift` rapporté le 20/11 maintient le blocage de création PROD tant qu’une sauvegarde du schéma courant n’a pas été restaurée et qualifiée.
 
 | Repère | État vérifié |
 | --- | --- |
