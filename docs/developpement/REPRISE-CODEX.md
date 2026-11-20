@@ -20,7 +20,10 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
    a fusionné après la [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
    [Admin 2.2 #70](https://github.com/Vladoche/mon-bprea/pull/70) couvre le renouvellement des invitations expirées.
    Le [guide](../../tools/mon-bprea-admin/README.md) décrit l’assistant et la vérification Auth.
-   Le lot 4 tableau de bord a fusionné dans #69. La suppression PROD, PR4 outils et PR5 profil restent des chantiers distincts.
+   La refonte graphique s’est achevée avec [#78](https://github.com/Vladoche/mon-bprea/pull/78).
+   La [recette finale](../validations/VALIDATION-RECETTE-FINALE-2027.md) et le
+   [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) portent les
+   résultats et les décisions 2027 encore attendues.
 4. Séparer code fusionné, code testé, code publié et recette hébergée. Consulter le
    [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
    avant d’affirmer une publication. L’écart de publication et la fraîcheur de

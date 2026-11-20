@@ -30,6 +30,8 @@ Ces liens sont intégrés dans les sources et la copie de publication locale. Le
 
 ## Publication Pages avec Auth PROD
 
+Les décisions et preuves ci-dessous concernent la V1.1 du 8 novembre. Pour le texte révisé du profil 2027, utiliser la [fiche d’approbation de la V1.2 candidate](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation).
+
 Le [workflow](../../.github/workflows/deploy.yml), **fusionné par #50**, ne se déclenche plus sur push : une fusion ne publie plus Pages. Seul un `workflow_dispatch` sur `main`, avec `publish_auth_production=true` et le SHA-256 LF de la notice expressément approuvée, peut publier. La confirmation est désactivée par défaut. Un lancement exige son autorisation explicite ; aucune fusion par Codex. Les anciens workflows et anciennes versions restent à éviter ; ces contrôles s’appliquent au workflow modifié sur `main`.
 
 Paramètres publics à fournir dans les variables Actions du dépôt (ou dans `github-pages`, en vérifiant les éventuelles surcharges) :

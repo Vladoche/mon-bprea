@@ -4,7 +4,7 @@ Le workflow `.github/workflows/deploy.yml` exécute `scripts/prepare-pages.py` a
 
 ## Ce qui est publié
 
-L'artefact `site-public/` contient les pages HTML à la racine, les fichiers publics de `assets/`, les PDF de `documents/` et `.nojekyll`. Les dossiers privés et cachés, Git, la documentation et le script de préparation ne sont pas copiés. Les types de fichiers autorisés sont explicites dans `ASSET_TYPES` : ajouter un type si un futur contenu public le nécessite. N'y placer aucune donnée privée ; le script n'analyse pas le contenu des fichiers autorisés pour y détecter des secrets.
+L'artefact `site-public/` contient les pages HTML à la racine, les fichiers publics de `assets/`, les PDF de `documents/` et `.nojekyll`. Les dossiers privés et cachés, Git, la documentation et le script de préparation ne sont pas copiés. Les types de fichiers autorisés sont explicites dans `ASSET_TYPES`. Le constructeur refuse les clés administratives, URI PostgreSQL avec mot de passe et preuves Auth littérales qu’il reconnaît dans les fichiers texte publics. Vérifier aussi le contenu autorisé et ses fichiers binaires avant publication.
 
 Les sources restent inchangées et peuvent toujours être servies directement avec `python -m http.server 8000`. Servir le site ne nécessite ni installation npm ni compilation applicative ; les dépendances npm du lot 5.1 servent aux vérifications de développement.
 

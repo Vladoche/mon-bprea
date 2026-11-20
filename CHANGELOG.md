@@ -9,6 +9,13 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Recette finale de préproduction 2027**. Notice V1.2 candidate et parcours
+  de copie, d’effacement et de clôture via le contact officiel. Vérification
+  de la conservation des données et répétition locale de la mise à niveau et
+  du repli Pages. Approbation de la notice en attente.
+  [PR #79](https://github.com/Vladoche/mon-bprea/pull/79) ·
+  [Recette](docs/validations/VALIDATION-RECETTE-FINALE-2027.md).
+
 - **Harmonisation graphique 2027, PR5 lot 2**. Les commandes autonomes des
   parcours pédagogiques, du calendrier et du compte reprennent les surfaces
   du header. Les flèches du calendrier restent compactes et le champ mois
