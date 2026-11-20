@@ -145,8 +145,9 @@ internal static class BackupFiles
         VerifyStorage(generation, directory: true);
         var manifest = Parse(Read(Path.Combine(generation, Manifest)));
         var proof = Parse(Read(Path.Combine(generation, proofName)));
+        var recordedSchemaHash = manifest.GetProperty("schemaHash").GetString();
         Require(manifest.GetProperty("version").GetInt32() == 1 && manifest.GetProperty("projectRef").GetString() == project
-            && manifest.GetProperty("sourceKind").GetString() == SourceKind(project) && manifest.GetProperty("schemaHash").GetString() == SchemaHash
+            && manifest.GetProperty("sourceKind").GetString() == SourceKind(project) && IsHash(recordedSchemaHash)
             && Regex.IsMatch(manifest.GetProperty("sourceCommit").GetString()!, "^[a-f0-9]{40}$")
             && Regex.IsMatch(manifest.GetProperty("toolVersion").GetString()!, @"^pg_dump \(PostgreSQL\) 17\.\d+(?:\.\d+)?$")
             && manifest.GetProperty("method").GetString() == "pg_dump-custom-single-snapshot" && !manifest.GetProperty("authIncluded").GetBoolean()
@@ -166,13 +167,15 @@ internal static class BackupFiles
         }
         CheckToc(Read(Path.Combine(generation, Toc)));
         Require(proof.GetProperty("version").GetInt32() == 1 && proof.GetProperty("manifestHash").GetString() == Digest(manifest)
-            && proof.GetProperty("projectRef").GetString() == project && proof.GetProperty("schemaHash").GetString() == SchemaHash
+            && proof.GetProperty("projectRef").GetString() == project && proof.GetProperty("schemaHash").GetString() == recordedSchemaHash
             && proof.GetProperty("archiveHash").GetString() == files.GetProperty(Dump).GetProperty("sha256").GetString()
             && IsHash(ledgerHash) && proof.GetProperty("deletionLedgerHash").GetString() == ledgerHash);
         foreach (var field in new[] { "isolated", "restoreSucceeded", "dataCompared", "schemaAndPrivilegesCompared",
             "dependenciesCompatible", "deletionsReconciled", "clusterStopped", "localChecksumsVerified" })
             Require(proof.GetProperty(field).ValueKind == JsonValueKind.True);
         var deadline = point.AddHours(MaximumHours);
+        // A verified older schema is evidence of drift, never a usable backup for mutations.
+        if (recordedSchemaHash != SchemaHash) return new(point, deadline, false, "backup_drift");
         var expired = now >= deadline;
         return new(point, deadline, now >= point.AddHours(WarningHours), expired ? "backup_expired" : null,
             now >= point.AddHours(WarningHours - 12));

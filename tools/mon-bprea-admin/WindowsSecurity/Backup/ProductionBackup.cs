@@ -22,6 +22,7 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
             var config = Configure();
             var latest = Latest(config, ReadLedger(config));
             if (latest is null) return new(null, null, true, "backup_evidence");
+            if (latest.Status.Problem == "backup_drift") return latest.Status;
             using var registry = Registry.CurrentUser.OpenSubKey(RegistryPath);
             if (registry?.GetValue("BackupConfiguration") is null) SaveConfiguration(config);
             return latest.Status;
@@ -86,7 +87,8 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
             try { return new Generation(path, Verify(path, ledger, verifiedAt ?? DateTimeOffset.UtcNow)); }
             catch (Exception e) when (e is AdminException or IOException or UnauthorizedAccessException or JsonException
                 or InvalidOperationException or KeyNotFoundException or FormatException) { return null; }
-        }).Where(x => x is not null).OrderByDescending(x => x!.Status.Snapshot).FirstOrDefault();
+        }).OfType<Generation>().OrderBy(x => x.Status.Problem == "backup_drift")
+            .ThenByDescending(x => x.Status.Snapshot).FirstOrDefault();
     }
 
     public async Task<BackupStatus> RenewAsync(AccountInventory inventory, string? suppliedPassword, bool automatic)
@@ -99,6 +101,7 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         var config = Configure();
         var ledger = ReadLedger(config);
         var latest = Latest(config, ledger) ?? throw new AdminException("backup_evidence");
+        if (latest.Status.Problem == "backup_drift") throw new AdminException("backup_drift");
         if (automatic && !latest.Status.Due) return latest.Status;
         Require(inventory.Accounts.All(a => !a.RecoveryRestricted && (a.ConfirmedAt.HasValue || a.InvitedAt.HasValue)), "lookup");
         Require(!Generations(config).Any(path => File.Exists(Path.Combine(path, "restoration", "cluster", "postmaster.pid"))), "backup_isolation");
