@@ -68,6 +68,8 @@ internal static class Program
         Check(FindAll<TextBox>(form).Count == 0, "no key on home");
         foreach (var name in new[] { "CreateAccount", "RecoverAccount", "DeleteAccount" }) Check(Find<Button>(form, name).Visible, "home action " + name);
         Click(form, "CreateAccount"); await Pump(); Check(FindAll<TextBox>(form).Count == 1, "invitation only email");
+        Check(Find<Label>(form, "AvailableParticipantPlaces").Text.Contains(": 7 ("), "remaining places supported by a fresh inventory");
+        Check(Find<TextBox>(form, "RecipientEmail").Focused, "invitation remains keyboard-ready");
         Find<TextBox>(form, "RecipientEmail").Text = "participant@example.test"; fake.Hold = new TaskCompletionSource();
         Click(form, "GenerateInvite"); Click(form, "GenerateInvite"); form.Close();
         Check(form.Visible && fake.Invites == 1, "double click and close blocked");

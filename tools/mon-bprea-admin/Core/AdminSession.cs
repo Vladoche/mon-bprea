@@ -156,7 +156,7 @@ public sealed partial class AdminSession : IDisposable
     {
         using (var settings = await SendAsync(HttpMethod.Get, AdminContract.Api + "/auth/v1/settings").ConfigureAwait(false))
             AdminContract.ValidateSettings(settings.RootElement);
-        using var result = await SendAsync(HttpMethod.Get, AdminContract.Api + "/auth/v1/admin/users?page=1&per_page=8", inventory: true).ConfigureAwait(false);
+        using var result = await SendAsync(HttpMethod.Get, AdminContract.Api + AdminContract.InventoryPath, inventory: true).ConfigureAwait(false);
         return AdminContract.ParseInventory(result.RootElement, _operatorEmail, _clock.GetUtcNow());
     }
 
@@ -192,13 +192,7 @@ public sealed partial class AdminSession : IDisposable
             try
             {
                 CheckUniqueProperties(parsed.RootElement);
-                if (inventory)
-                {
-                    var count = parsed.RootElement.GetProperty("users").GetArrayLength();
-                    if (response.Headers.TryGetValues("x-total-count", out var values)
-                        && (values.Count() != 1 || !int.TryParse(values.Single(), out var total) || total != count)) throw new AdminException("lookup");
-                    if (response.Headers.TryGetValues("Link", out var links) && links.Any(x => System.Text.RegularExpressions.Regex.IsMatch(x, "rel\\s*=\\s*\"?next", System.Text.RegularExpressions.RegexOptions.IgnoreCase))) throw new AdminException("lookup");
-                }
+                if (inventory) AdminContract.ValidateInventoryHeaders(parsed.RootElement, response.Headers);
                 return parsed;
             }
             catch { parsed.Dispose(); throw; }

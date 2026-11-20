@@ -2,7 +2,7 @@
 // The C# test runner consumes this output to verify compatibility independently.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { PROD_API, PROD_CALLBACK, validateProdTarget, prodAdminFetch } from '../../scripts/prod-auth/environment.mjs';
+import { PROD_API, PROD_CALLBACK, MAX_ACCOUNTS, INVENTORY_PAGE_SIZE, validateProdTarget, prodAdminFetch } from '../../scripts/prod-auth/environment.mjs';
 import { buildProdManualLink, inspectProdAuthSettings, inspectProdAccounts, generateProdAuthLink } from '../../scripts/prod-auth/generator.mjs';
 
 if (process.argv.length !== 3) throw new Error('Usage: node contract-vectors.mjs OUTPUT.json');
@@ -12,7 +12,7 @@ const user = { id: '11111111-1111-4111-8111-111111111111', email,
   created_at: '2026-11-01T10:00:00Z', email_confirmed_at: null };
 const settings = { disable_signup: true, mailer_autoconfirm: false,
   external: { email: true, anonymous_users: false, phone: false } };
-const result = { version: 1, email, emailCases: [], linkCases: [], settingsCases: [], inventoryCases: [] };
+const result = { maxAccounts: MAX_ACCOUNTS, inventoryPageSize: INVENTORY_PAGE_SIZE, version: 1, email, emailCases: [], linkCases: [], settingsCases: [], inventoryCases: [] };
 
 for (const input of [email, ' PARTICIPANT@EXAMPLE.TEST ', 'a+b@example.test', "a!#$%&'*+/=?^_`{|}~@example.test",
   '', 'a@localhost', '.a@example.test', 'a.@example.test', 'a..b@example.test',
@@ -73,15 +73,15 @@ const users = count => Array.from({ length: count }, (_, index) => ({ ...user,
   email: index === 0 ? 'operator@example.test' : `participant-${index}@example.test`,
   email_confirmed_at: index % 2 ? null : '2026-11-01T10:00:00Z' }));
 for (const [name, accounts] of [
-  ['none', []], ['operator only', users(1)], ['confirmed and pending', users(4)], ['seven', users(7)],
-  ['eight', users(8)], ['incomplete', null], ['duplicate identity', [user, { ...user }]],
+  ['none', []], ['operator only', users(1)], ['one operator and four participants', users(5)], ['one place left', users(9)], ['full', users(10)],
+  ['over capacity', users(11)], ['incomplete', null], ['duplicate identity', [user, { ...user }]],
   ['duplicate email', [user, { ...user, id: '22222222-2222-4222-8222-222222222222', email: email.toUpperCase() }]],
   ['invalid address', [{ ...user, email: 'malformed' }]], ['invalid identity', [{ ...user, id: 'invalid' }]],
   ['identity trailing newline', [{ ...user, id: user.id + '\n' }]],
 ]) {
   try {
-    const inventory = await inspectProdAccounts({ listUsers: async () => ({ data: { users: accounts } }) }, email);
-    result.inventoryCases.push({ name, users: accounts, valid: true, count: inventory.count });
+    const inventory = await inspectProdAccounts({ listUsers: async () => ({ data: { users: accounts }, total: accounts?.length }) }, email);
+    result.inventoryCases.push({ name, users: accounts, valid: true, count: inventory.count, participantPlaces: Math.max(0, MAX_ACCOUNTS - inventory.count - Number(!inventory.emails.includes('operator@example.test'))) });
   } catch { result.inventoryCases.push({ name, users: accounts, valid: false }); }
 }
 // Recovery expectations come from the real Node generator and transport guard.
@@ -106,13 +106,13 @@ const runtime = { isNode: true, nodeMajor: 24, stdinTTY: true, stdoutTTY: true, 
 result.recoveryTargetCases = [];
 for (const [name, accounts] of [['confirmed', [{ ...user, email_confirmed_at: '2026-11-01T10:00:00Z' }]],
   ['absent', []], ['pending', [user]], ['invalid uuid', [{ ...user, id: 'invalid', email_confirmed_at: '2026-11-01T10:00:00Z' }]],
-  ['seven', [{ ...user, email_confirmed_at: '2026-11-01T10:00:00Z' }, ...users(6)]]]) {
+  ['ten', [{ ...user, email_confirmed_at: '2026-11-01T10:00:00Z' }, ...users(9)]]]) {
   let parameters = null;
   try {
     await generateProdAuthLink({ env, runtime, type: 'recovery', email,
       store: { withLock: action => action(), read: async () => false, reserve: async () => 'synthetic-operation', markDelivered: async () => {} },
       confirm: async () => `CONFIRMER PROD recovery ${email}`, deliver: async () => {},
-      makeAdmin: () => ({ getSettings: async () => settings, listUsers: async () => ({ data: { users: accounts } }),
+      makeAdmin: () => ({ getSettings: async () => settings, listUsers: async () => ({ data: { users: accounts }, total: accounts?.length }),
         generateLink: async p => { parameters = p; const data = linkData(); data.properties.verification_type = 'recovery';
           data.properties.action_link = data.properties.action_link.replace('type=invite', 'type=recovery'); return { data }; } }) });
     result.recoveryTargetCases.push({ name, users: accounts, valid: true, parameters });

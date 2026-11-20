@@ -22,6 +22,7 @@ internal static partial class Program
         {
             Check("closure fixed HTTPS PROD shape (synthetic transport)", request.RequestUri!.GetLeftPart(UriPartial.Authority) == AdminContract.Api);
             string text;
+            int? accounts = null;
             if (request.Method == HttpMethod.Delete)
             {
                 Check("native deletion only one exact UUID endpoint", request.RequestUri.AbsolutePath == "/auth/v1/admin/users/" + ClosureTargetId && request.RequestUri.Query == "");
@@ -40,8 +41,11 @@ internal static partial class Program
                 if (!Deleted && !OmitTarget) users.Add(new { id = ClosureTargetId, email = TargetAddress, role = "authenticated",
                     app_metadata = new { provider = "email", providers = new[] { "email" } }, email_confirmed_at = "2026-11-01T10:00:00Z" });
                 text = JsonSerializer.Serialize(new { users });
+                accounts = users.Count;
             }
-            return new(HttpStatusCode.OK) { RequestMessage = request, Content = new StringContent(text, Encoding.UTF8, "application/json") };
+            var response = new HttpResponseMessage(HttpStatusCode.OK) { RequestMessage = request, Content = new StringContent(text, Encoding.UTF8, "application/json") };
+            if (accounts.HasValue) response.Headers.Add("x-total-count", accounts.Value.ToString());
+            return response;
         }
     }
     private sealed class Evidence(Clock clock) : IClosureEvidenceSource

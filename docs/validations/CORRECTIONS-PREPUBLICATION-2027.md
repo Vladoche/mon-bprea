@@ -33,7 +33,7 @@ le texte candidat. L’empreinte SHA-256 LF candidate est
 `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57`.
 La V1.1 du 8 novembre, empreinte
 `c2b2422b9c3d6b7ec25227f143080782842c4c077f5a1361d4cd36653ad9b8c1`,
-reste celle approuvée et servie au relevé. [Source V1.1 au SHA publié](https://github.com/Vladoche/mon-bprea/blob/3952fd5a98705397bb341dc1fa54e0e8f92979d8/docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) · [Source V1.2 candidate](../rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) · [Rendu généré](../../confidentialite.html).
+reste celle approuvée et servie au relevé. [Source V1.1 au SHA publié](https://github.com/Vladoche/mon-bprea/blob/3952fd5a98705397bb341dc1fa54e0e8f92979d8/docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) · [Source V1.2 au commit contrôlé](https://github.com/Vladoche/mon-bprea/blob/bacb6832f00946f4927f98c0d5a904b27b1b1ac4/docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) · [Rendu V1.2 au même commit](https://github.com/Vladoche/mon-bprea/blob/bacb6832f00946f4927f98c0d5a904b27b1b1ac4/confidentialite.html).
 
 | Passage | V1.1, repère dans le texte approuvé | V1.2, changement | Justification pour les participants |
 | --- | --- | --- | --- |

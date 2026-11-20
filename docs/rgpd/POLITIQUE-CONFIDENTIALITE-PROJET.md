@@ -1,8 +1,8 @@
 # Notice de confidentialité de Mon BPREA
 
-Version 1.2 · 20 novembre 2026
+Version 1.3 · 20 novembre 2026
 
-Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour sept adultes au total, dont l’exploitant et six autres participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
+Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour dix adultes au total, dont l’exploitant et neuf participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
 
 ## Responsable et contact
 

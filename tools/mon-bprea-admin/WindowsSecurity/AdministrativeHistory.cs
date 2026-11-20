@@ -14,9 +14,16 @@ public sealed partial class AutomaticPrivateStore
 
     internal void VerifyOperator(AccountInventory inventory)
     {
-        var firstInvite = new WindowsPrivateStore(directory, "").SingleHistoricalInvite();
-        if (inventory.Accounts.Count(a => a.ConfirmedAt.HasValue && !a.RecoveryRestricted && !a.ClosureRestricted
-            && ClosureContract.TargetHash(a.Email) == firstInvite) != 1) throw new AdminException("backup_operator");
+        if (!IsOperatorPresent(inventory)) throw new AdminException("backup_operator");
+    }
+
+    internal bool IsOperatorPresent(AccountInventory inventory)
+    {
+        string firstInvite;
+        try { firstInvite = new WindowsPrivateStore(directory, "").SingleHistoricalInvite(); }
+        catch (AdminException error) when (error.Code == "backup_operator") { return false; }
+        return inventory.Accounts.Count(a => a.ConfirmedAt.HasValue && !a.RecoveryRestricted && !a.ClosureRestricted
+            && ClosureContract.TargetHash(a.Email) == firstInvite) == 1;
     }
 
     private sealed record HistorySnapshot(HistoryStatus Status, Dictionary<string, string> Files);

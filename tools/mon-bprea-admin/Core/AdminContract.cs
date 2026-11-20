@@ -11,7 +11,8 @@ public static partial class AdminContract
     public const string Api = "https://oqoqrxwfbkhtpksqimgd.supabase.co";
     public const string Site = "https://vladoche.github.io/mon-bprea/";
     public const string Callback = Site + "authentification.html";
-    public const int MaximumAccounts = 7;
+    public const int MaximumAccounts = 10;
+    internal static readonly string InventoryPath = $"/auth/v1/admin/users?page=1&per_page={MaximumAccounts + 1}";
     public const int InvitationExpirySeconds = 86400;
     public const string AuthSettingsDashboard = "https://supabase.com/dashboard/project/" + Project + "/auth/providers";
     public static readonly TimeSpan MaximumInventoryAge = TimeSpan.FromMinutes(5);
@@ -69,16 +70,19 @@ public static partial class AdminContract
         return result;
     }
 
-    public static AccountInventory ParseInventory(JsonElement response, string operatorEmail, DateTimeOffset observedAt)
+    public static AccountInventory ParseInventory(JsonElement response, string? operatorEmail, DateTimeOffset observedAt)
     {
         try
         {
             var users = response.GetProperty("users");
             if (users.ValueKind != JsonValueKind.Array) throw new FormatException();
-            if (users.GetArrayLength() > MaximumAccounts) throw new AdminException("capacity");
+            if (users.GetArrayLength() > MaximumAccounts) throw new AdminException("capacity_exceeded");
             foreach (var name in new[] { "total", "total_count" })
                 if (response.TryGetProperty(name, out var total) && (!total.TryGetInt32(out var count) || count != users.GetArrayLength())) throw new FormatException();
-            if (response.TryGetProperty("next_page", out var next) && next.ValueKind != JsonValueKind.Null && !(next.TryGetInt32(out var page) && page == 0)) throw new FormatException();
+            if (response.TryGetProperty("next_page", out var next) && next.ValueKind != JsonValueKind.Null && !(next.TryGetInt32(out var page) && page == 0)
+                || response.TryGetProperty("last_page", out var last) && (!last.TryGetInt32(out var lastPage) || lastPage is < 0 or > 1)
+                || response.TryGetProperty("has_more", out var more) && more.ValueKind != JsonValueKind.False
+                || response.TryGetProperty("next_cursor", out var cursor) && cursor.ValueKind != JsonValueKind.Null) throw new FormatException();
             var accounts = new List<AuthAccount>();
             var ids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var emails = new HashSet<string>(StringComparer.Ordinal);
@@ -117,10 +121,21 @@ public static partial class AdminContract
             var json = JsonSerializer.Serialize(snapshotRows.OrderBy(x => x.Id, StringComparer.Ordinal).Select(x => new object?[] { x.Id, x.Email, x.Confirmed }),
                 new JsonSerializerOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             var snapshot = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
-            return new(accounts.AsReadOnly(), observedAt, snapshot, emails.Contains(NormalizeEmail(operatorEmail)));
+            return new(accounts.AsReadOnly(), observedAt, snapshot, operatorEmail is not null && emails.Contains(NormalizeEmail(operatorEmail)));
         }
-        catch (AdminException error) when (error.Code == "capacity") { throw; }
+        catch (AdminException error) when (error.Code == "capacity_exceeded") { throw; }
         catch { throw new AdminException("lookup"); }
+    }
+
+    internal static void ValidateInventoryHeaders(JsonElement body, System.Net.Http.Headers.HttpResponseHeaders headers)
+    {
+        var count = body.GetProperty("users").GetArrayLength();
+        if (count > MaximumAccounts) throw new AdminException("capacity_exceeded");
+        if (!headers.TryGetValues("x-total-count", out var totals) || totals.Count() != 1
+            || !int.TryParse(totals.Single(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var total)
+            || total != count || headers.TryGetValues("Link", out var links)
+                && links.Any(link => Regex.IsMatch(link, "rel\\s*=\\s*\"?next", RegexOptions.IgnoreCase)))
+            throw new AdminException("lookup");
     }
 
     // Accepts the SDK-shaped object for parity tests. The REST adapter maps the

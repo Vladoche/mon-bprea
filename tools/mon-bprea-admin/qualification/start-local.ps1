@@ -1,4 +1,4 @@
-param([Parameter(Mandatory=$true)][string]$CliPath, [switch]$Resume, [switch]$FinalCampaign, [switch]$InvitationCampaign,
+param([Parameter(Mandatory=$true)][string]$CliPath, [switch]$Resume, [switch]$FinalCampaign, [switch]$InvitationCampaign, [switch]$CapacityCampaign,
     [ValidateSet(0,45,60,86400)][int]$RenewalOtpSeconds = 0)
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
@@ -9,6 +9,11 @@ if($InvitationCampaign){
     if($FinalCampaign){throw 'Choose a single local campaign'}
     $campaign=Join-Path $repo '.tmp/premiere-invitation-prod/qualification'
     $localProject='mon-bprea-admin-v2-invitation-local'
+}
+if($CapacityCampaign){
+    if($FinalCampaign -or $InvitationCampaign -or $RenewalOtpSeconds){throw 'Choose a single local campaign'}
+    $campaign=Join-Path $repo '.tmp/admin-23-capacity'
+    $localProject='mon-bprea-admin-23-capacity-local'
 }
 $stage=Join-Path $campaign 'stack'
 if($RenewalOtpSeconds){

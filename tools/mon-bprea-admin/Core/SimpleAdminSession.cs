@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace MonBprea.Admin.Core;
 
@@ -14,19 +13,22 @@ public sealed partial class SimpleAdminSession : IDisposable
     private readonly TimeProvider clock;
     private readonly Func<AccountInventory, Task>? invitationGuard;
     private readonly SemaphoreSlim mutation = new(1, 1);
+    private readonly Func<AccountInventory, bool>? operatorPresent;
     private AccountInventory? inventory;
     private LocalCapabilities? capabilities;
 
-    public SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store, Func<AccountInventory, Task>? invitationGuard = null)
+    public SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store, Func<AccountInventory, Task>? invitationGuard = null,
+        Func<AccountInventory, bool>? operatorPresent = null)
         : this(key, target, store, TimeProvider.System, new SocketsHttpHandler {
             AllowAutoRedirect = false, UseProxy = false, UseCookies = false,
-            PooledConnectionLifetime = TimeSpan.Zero, ConnectTimeout = TimeSpan.FromSeconds(10) }, invitationGuard) { }
+            PooledConnectionLifetime = TimeSpan.Zero, ConnectTimeout = TimeSpan.FromSeconds(10) }, invitationGuard, operatorPresent) { }
     internal SimpleAdminSession(string key, AdminTarget target, ISimplePrivateStore store, TimeProvider time,
-        HttpMessageHandler handler, Func<AccountInventory, Task>? invitationGuard = null)
+        HttpMessageHandler handler, Func<AccountInventory, Task>? invitationGuard = null,
+        Func<AccountInventory, bool>? operatorPresent = null)
     {
         AdminContract.ValidateSecret(key);
         secret = key; this.target = target; this.store = store; clock = time;
-        this.invitationGuard = invitationGuard;
+        this.invitationGuard = invitationGuard; this.operatorPresent = operatorPresent;
         http = new(handler, true) { Timeout = TimeSpan.FromSeconds(15) };
     }
 
@@ -34,20 +36,21 @@ public sealed partial class SimpleAdminSession : IDisposable
     {
         inventory = null;
         using (var settings = await Send(HttpMethod.Get, "/auth/v1/settings")) AdminContract.ValidateSettings(settings.RootElement);
-        using var users = await Send(HttpMethod.Get, "/auth/v1/admin/users?page=1&per_page=8", inventoryResponse: true);
+        using var users = await Send(HttpMethod.Get, AdminContract.InventoryPath, inventoryResponse: true);
         // Operator identity is not guessed from the public contact or from
         // whichever account happens to be first. PROD deletion stays blocked.
-        var observed = AdminContract.ParseInventory(users.RootElement, "unknown-operator@example.invalid", clock.GetUtcNow());
+        var observed = AdminContract.ParseInventory(users.RootElement, null, clock.GetUtcNow());
         if (target.IsLocal)
         {
             using var response = await Send(HttpMethod.Get, "/capabilities", capability: true);
             var c = response.RootElement.Deserialize<LocalCapabilities>() ?? throw new AdminException("configuration");
             if (c.Project != target.Project || !ClosureContract.Uuid(c.OperatorId) || c.OtpExpiry is < 1 or > 86400
-                || c.ObservedAt > clock.GetUtcNow() || clock.GetUtcNow() - c.ObservedAt > TimeSpan.FromMinutes(1)
-                || observed.Accounts.All(a => a.Id != c.OperatorId)) throw new AdminException("configuration");
+                || c.ObservedAt > clock.GetUtcNow() || clock.GetUtcNow() - c.ObservedAt > TimeSpan.FromMinutes(1)) throw new AdminException("configuration");
             capabilities = c;
-            observed = observed with { OperatorPresent = true };
+            observed = observed with { OperatorPresent = observed.Accounts.Any(a => a.Id == c.OperatorId) };
         }
+        else if (operatorPresent is not null)
+            observed = observed with { OperatorPresent = operatorPresent(observed) };
         return inventory = observed;
     }
 
@@ -167,7 +170,7 @@ public sealed partial class SimpleAdminSession : IDisposable
             store.Validate(); using var lease = store.AcquireLock();
             if (store.HasUncertainOperation() || store.HasLegacyTarget(selected.Email)) throw new AdminException("pending");
             var current = await RefreshAsync(); RequireCurrent(current, selected);
-            if (capabilities?.OperatorId == selected.Id) throw new AdminException("closure_target");
+            if (!current.OperatorPresent || capabilities?.OperatorId == selected.Id) throw new AdminException("closure_target");
             var ledger = store.DeletionLedgerHash();
             using var before = await Send(HttpMethod.Post, "/evidence", new { target = selected.Id, snapshot = current.Snapshot, ledgerHash = ledger }, capability: true);
             var e = before.RootElement.Deserialize<ClosureEvidence>() ?? throw new AdminException("closure_evidence");
@@ -252,13 +255,7 @@ public sealed partial class SimpleAdminSession : IDisposable
             try
             {
                 SimpleJson.Unique(json.RootElement);
-                if (inventoryResponse)
-                {
-                    var count = json.RootElement.GetProperty("users").GetArrayLength();
-                    if (response.Headers.TryGetValues("x-total-count", out var totals) && (totals.Count() != 1 || !int.TryParse(totals.Single(), out var total) || total != count)
-                        || response.Headers.TryGetValues("Link", out var links) && links.Any(l => Regex.IsMatch(l, "rel\\s*=\\s*\"?next", RegexOptions.IgnoreCase)))
-                        throw new AdminException("lookup");
-                }
+                if (inventoryResponse) AdminContract.ValidateInventoryHeaders(json.RootElement, response.Headers);
                 return json;
             }
             catch { json.Dispose(); throw; }

@@ -1,6 +1,6 @@
-# Cadrage Mon BPREA — sept comptes confirmés
+# Cadrage Mon BPREA — dix comptes sur invitation
 
-**Cadre actualisé le 5 novembre 2026 par les mandats 6.5.5.B et 6.5.5.C ; ouverture non autorisée.** Le nom du fichier conserve sa référence historique « six adultes ». Jusqu'au lot A, le projet prévoyait six personnes ; la nouvelle politique ne réécrit pas ces décisions passées. [Suivi des P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md), [D01–D14](DECISIONS-A-VALIDER.md).
+**Capacité actualisée le 20 novembre 2026.** Le nom de fichier conserve la référence historique « six adultes ». La décision d’ouverture demeure distincte. [Suivi des P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md), [D01–D14](DECISIONS-A-VALIDER.md).
 
 ## Périmètre acté
 
@@ -8,13 +8,13 @@ L'exploitant développe et exploite personnellement un outil de révision et d'e
 
 Les résultats sont individuels et privés, sans accès formateur, transmission des résultats à l'établissement, notation officielle ni conséquence sur la formation. Aucun classement public, badge ou gamification. Les scores servent aux révisions ; ils ne certifient pas un acquis. Le seul administrateur est l'exploitant, sans accès administratif des camarades. Les privilèges techniques nécessaires aux opérations autorisées ne doivent pas servir à lire les résultats d'autrui.
 
-**Décision définitive C : sept comptes au total, un pour l’exploitant et six pour d’autres participants adultes.** Ce décompte est validé et ne demande plus de confirmation. Le plafond est administratif, sans quota de comptes imposé par Supabase ou migration serveur ajoutée ; son respect dépend du circuit d’invitation contrôlé par l’unique opérateur. Les comptes A/B de recette ne sont pas ces personnes ni des places librement réutilisables ; D règle séparément leur sort.
+**Décision du 20 novembre 2026. Dix comptes au total, dont un compte exploitant administrateur et neuf comptes participants adultes.** Elle remplace le plafond de sept comptes du [5 novembre 2026](RECU-ARBITRAGES-2026-11-05.md). Les invitations en attente occupent une place. La place de l’exploitant reste réservée s’il est absent. Le plafond est administratif, sans quota de comptes imposé par Supabase ou migration serveur ajoutée ; son respect dépend du circuit d’invitation contrôlé par l’unique opérateur. Les comptes A/B de recette ne sont pas ces personnes ni des places librement réutilisables ; D règle séparément leur sort.
 
 Fin normale du service : **30 juin 2027**, avec préavis/export dès le **31 mai** et suppression des comptes/données applicatives hébergées prévue au plus tard le **30 juillet**. [Calendrier et couches résiduelles](CALENDRIER-FERMETURE-PROJET.md). Sauvegarde applicative hebdomadaire gratuite, perte maximale visée sept jours, sans garantie Auth/projet complet ; clôture assistée choisie. Aucun de ces choix n'autorise une action hébergée immédiate.
 
 ## Visibilités et finalités
 
-Le dépôt est public et GitHub Pages distribue des fichiers publics ; sept invitations ne rendent pas Pages privé. Les pages pédagogiques peuvent être consultées sans compte, avec sauvegarde visiteur locale et flux de sécurité de l'hébergeur distincts. L'espace personnel configuré utiliserait Supabase Auth/PostgreSQL ; le défaut versionné reste `enabled:false`. Protection par UUID/RLS/privilèges, jamais par URL cachée ; état effectif hébergé non relu dans ce lot.
+Le dépôt et les fichiers distribués par GitHub Pages sont publics. L’invitation donne accès à l’espace personnel. Les pages pédagogiques peuvent être consultées sans compte, avec sauvegarde visiteur locale et flux de sécurité de l'hébergeur distincts. L'espace personnel configuré utiliserait Supabase Auth/PostgreSQL ; le défaut versionné reste `enabled:false`. Protection par UUID/RLS/privilèges, jamais par URL cachée ; état effectif hébergé non relu dans ce lot.
 
 Les finalités R01–R05 restent celles du [registre](REGISTRE-TRAITEMENTS.md) : accès/sécurité, profil minimal facultatif, reprise/résultats personnels, paramètres ITK/apparence, distribution et exploitation minimale. Assistance, export et suppression les accompagnent, sans réutilisation institutionnelle ou commerciale. [Inventaire technique](INVENTAIRE-DONNEES.md) inchangé dans ses identifiants.
 

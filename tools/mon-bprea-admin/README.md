@@ -1,12 +1,12 @@
-# Mon BPREA Admin 2.2 — guide utilisateur
+# Mon BPREA Admin 2.3 — guide utilisateur
 
-L’application Windows propose trois actions : **Créer un compte**, **Récupérer un compte** et **Supprimer un compte**. Elle gère au maximum sept comptes, exploitant compris. Aucun logiciel complémentaire n’est nécessaire pour la lancer.
+L’application Windows propose trois actions : **Créer un compte**, **Récupérer un compte** et **Supprimer un compte**. La capacité administrative est de dix comptes au total, dont un exploitant et neuf participants. Les invitations en attente occupent une place. Si l’exploitant est absent de l’inventaire, sa place reste réservée. Aucun logiciel complémentaire n’est nécessaire pour la lancer.
 
 **Limite de cette version : la suppression sur le service réel reste bloquée.** Les contrôles des données et des sauvegardes doivent encore y être installés et qualifiés séparément. La suppression a un parcours de qualification locale distinct ; aucun bouton ne permet de lever le blocage réel.
 
 ## Télécharger et ouvrir
 
-Depuis une exécution réussie du [workflow Windows officiel](https://github.com/Vladoche/mon-bprea/actions/workflows/admin-windows.yml), télécharger l’artefact **MonBPREAAdmin-2.2-win-x64-…**. Une connexion GitHub peut être nécessaire. L’archive contient `MonBPREAAdmin.exe`, ce guide (`LIRE-MOI.md`) et l’empreinte `SHA256.txt`.
+Depuis une exécution réussie du [workflow Windows officiel](https://github.com/Vladoche/mon-bprea/actions/workflows/admin-windows.yml), télécharger l’artefact **MonBPREAAdmin-2.3-win-x64-…**. Une connexion GitHub peut être nécessaire. L’archive contient `MonBPREAAdmin.exe`, ce guide (`LIRE-MOI.md`) et l’empreinte `SHA256.txt`.
 
 Ouvrir `MonBPREAAdmin.exe`. Le programme n’est pas signé : Windows peut afficher un avertissement de provenance. Vérifier qu’il vient bien du dépôt officiel avant de l’exécuter.
 
@@ -28,7 +28,7 @@ Le camarade ouvre lui-même le lien et choisit son mot de passe. L’application
 
 Si l’adresse est déjà activée, utilise **Récupérer un compte**. Si elle attend son activation, l’application retrouve le lien encore utilisable ou ouvre le parcours de renouvellement. Chaque copie revérifie l’invitation en cours.
 
-En PROD, une nouvelle invitation ou son renouvellement exige une sauvegarde applicative restaurée et vérifiée depuis moins de sept jours et une durée Auth vérifiée de 24 heures. La première invitation exige aussi une place disponible.
+En PROD, une nouvelle invitation ou son renouvellement exige une sauvegarde applicative restaurée et vérifiée depuis moins de sept jours et une durée Auth vérifiée de 24 heures. La première invitation exige aussi une place disponible. **Créer un compte** affiche les places participantes d’après un inventaire Auth complet, relu sous verrou avant la mise en réserve. Une récupération ou un renouvellement conserve le compte et sa place.
 
 ## Récupérer un compte
 

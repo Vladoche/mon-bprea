@@ -60,6 +60,11 @@ internal static partial class Program
                 store.FindLegacyInvitation(Operator) == new LegacyInvitation(operation, Now, Now.AddMinutes(1))
                 && Fingerprints(legacy).SequenceEqual(originals));
             Check("completed V1 permits another account check", !store.HasUncertainOperation());
+            var inventory = new AccountInventory([new AuthAccount(ClosureOperatorId, Operator, Now, Now, null)], Now, "synthetic", false);
+            Check("operator identified from the protected invitation history", store.IsOperatorPresent(inventory));
+            Check("another account cannot occupy the reserved operator place", !store.IsOperatorPresent(inventory with {
+                Accounts = [inventory.Accounts[0] with { Email = Recipient }]
+            }));
             using (var pointer = Registry.CurrentUser.OpenSubKey(registry + legacyKey.ToString("D"), writable: true)!)
             {
                 Check("same original history configured in Windows", (string?)pointer.GetValue("PrivateDirectory") == legacy);

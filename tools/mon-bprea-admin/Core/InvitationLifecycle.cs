@@ -84,7 +84,7 @@ public sealed partial class SimpleAdminSession
 
             if (selected is null)
             {
-                if (current.Count >= AdminContract.MaximumAccounts) throw new AdminException("capacity");
+                if (current.AvailableParticipantPlaces == 0) throw new AdminException("capacity");
                 if (current.Accounts.Any(a => a.RecoveryRestricted || !a.ConfirmedAt.HasValue && !a.InvitedAt.HasValue))
                     throw new AdminException("lookup");
                 if (store.InvitationHistory(email).Count != 0 || store.FindLegacyInvitation(email) is not null)
@@ -113,6 +113,7 @@ public sealed partial class SimpleAdminSession
                 if (selected is not null) _ = RequireInvitationAccount(latest, selected.Account.Id, email);
                 throw new AdminException("invitation_changed");
             }
+            if (selected is null && latest.AvailableParticipantPlaces == 0) throw new AdminException("capacity");
             var kind = selected is null ? SimpleOperationKind.Invite : SimpleOperationKind.RenewInvitation;
             var now = clock.GetUtcNow();
             var id = store.Reserve(email, kind, selected?.Account.Id, null, now, initialInvitation: selected?.InitialOperation);

@@ -63,11 +63,11 @@ function checkInventory(input, now) {
   requireThat(input.inventory.complete === true && Array.isArray(input.inventory.accounts) && input.inventory.accounts.length <= 100, 'inventory_incomplete');
   const ids = new Set(), emails = new Set();
   for (const account of input.inventory.accounts) {
-    requireThat(uuid.test(account.id) && !ids.has(account.id), 'inventory_identity');
+    requireThat(uuid.test(account.id) && !ids.has(account.id.toLowerCase()), 'inventory_identity');
     const email = validateTarget('invite', account.email);
     requireThat(!emails.has(email) && ['participant', 'operator', 'fixture'].includes(account.kind)
       && ['pending', 'active', 'uncertain'].includes(account.state) && account.privileged === false, 'inventory_account');
-    ids.add(account.id); emails.add(email);
+    ids.add(account.id.toLowerCase()); emails.add(email);
   }
   requireThat(input.inventory.accounts.filter(a => a.kind === 'operator').length <= 1, 'operator_count');
   requireThat(input.inventory.publicSignup === false && input.inventory.anonymousSignIn === false, 'signup_not_closed');
@@ -83,6 +83,7 @@ export function invitationPreflight(input, config, now) {
   const existing = input.inventory.accounts.find(a => a.email.toLowerCase() === email);
   const operatorReserved = input.inventory.accounts.some(a => a.kind === 'operator') ? 0 : 1;
   const occupied = input.inventory.accounts.length + operatorReserved;
+  requireThat(input.inventory.accounts.length <= POLICY.capacity.total && occupied <= POLICY.capacity.total, 'capacity_exceeded');
   requireThat(input.type === 'invite' ? !existing : existing?.state === 'active', 'account_state');
   if (input.type === 'invite') requireThat(occupied < POLICY.capacity.total, 'capacity_full');
   requireThat(contactCheck(config, now).missing.length === 0 && Boolean(config.operatorIdentity?.trim()), 'contact_or_identity');

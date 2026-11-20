@@ -3,7 +3,10 @@ export const PROD_PROJECT = 'oqoqrxwfbkhtpksqimgd';
 export const PROD_API = `https://${PROD_PROJECT}.supabase.co`;
 export const PROD_SITE = 'https://vladoche.github.io/mon-bprea/';
 export const PROD_CALLBACK = `${PROD_SITE}authentification.html`;
-export const MAX_ACCOUNTS = 7; // Limite administrative, pas une contrainte serveur.
+import policy from '../preopening/policy.json' with { type: 'json' };
+
+export const MAX_ACCOUNTS = policy.capacity.total;
+export const INVENTORY_PAGE_SIZE = MAX_ACCOUNTS + 1;
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export const TOKEN = /^[A-Za-z0-9_-]{20,512}$/;
 
@@ -15,7 +18,8 @@ const messages = {
   arguments: 'Usage : npm run admin:auth-link:prod -- check (ou invite, recovery). Aucun autre argument, batch ou confirmation automatique.',
   lookup: 'Inventaire Auth non confirmé. Aucune génération ; vérifier cible et habilitations en lecture seule.',
   configuration: 'Réglages Auth absents ou divergents : inscription fermée, anonymat refusé et fournisseur e-mail avec confirmation requis. Aucune génération.',
-  capacity: 'Capacité administrative de sept comptes atteinte ou dépassée, invitations en attente comprises. Aucune invitation.',
+  capacity: `Aucune place disponible dans la limite de ${MAX_ACCOUNTS} comptes. La place exploitant et les invitations en attente sont décomptées.`,
+  capacity_exceeded: `Anomalie : l’inventaire Auth dépasse le plafond administratif de ${MAX_ACCOUNTS} comptes.`,
   exists: 'Compte déjà présent, même en attente. Invitation refusée ; ne pas supprimer ou recréer ce compte.',
   missing: 'La récupération exige un compte existant dont l’adresse est confirmée. Aucune création.',
   pending: 'Une opération antérieure reste non acquittée pour cette cible. Arrêter ; diagnostic privé requis avant toute nouvelle décision.',
@@ -93,7 +97,7 @@ export function prodAdminFetch({ type, email, fetcher = globalThis.fetch } = {})
         // Réglages publics du service, relus sans création ni génération de jeton.
       } else if (method === 'GET' && url.pathname === '/auth/v1/admin/users') {
         if ([...url.searchParams.keys()].sort().join(',') !== 'page,per_page'
-            || url.searchParams.get('page') !== '1' || url.searchParams.get('per_page') !== '8') fail('transport');
+            || url.searchParams.get('page') !== '1' || url.searchParams.get('per_page') !== String(INVENTORY_PAGE_SIZE)) fail('transport');
       } else if (method === 'POST' && url.pathname === '/auth/v1/admin/generate_link' && !generated) {
         const body = JSON.parse(options.body);
         if (!['invite', 'recovery'].includes(type) || validateProdTarget(type, email) !== email

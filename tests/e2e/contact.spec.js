@@ -15,7 +15,7 @@ for (const width of [320, 390, 1280]) {
         const response = await page.goto(`http://127.0.0.1:4173${prefix}contact.html`);
         expect(response.status()).toBe(200);
         await expect(page.getByRole('heading', { level: 1 })).toHaveText('Contact et assistance');
-        await expect(page.locator('main')).toContainText('sept comptes au total : l’exploitant et six autres participants adultes');
+        await expect(page.locator('main')).toContainText('dix comptes au total, dont l’exploitant et neuf participants adultes');
         await expect(page.locator('main')).toContainText('Son ouverture privée n’est pas encore autorisée');
         const email = page.getByRole('link', { name: policy.contact.email, exact: true });
         await expect(email).toHaveAttribute('href', `mailto:${policy.contact.email}`);

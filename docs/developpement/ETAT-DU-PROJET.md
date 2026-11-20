@@ -3,7 +3,7 @@
 ## A — Identification et sources
 
 Mon BPREA est un site personnel de révision BPREA, facultatif et non commercial,
-prévu pour un exploitant et six autres adultes invités. Frontend statique HTML,
+prévu pour un exploitant et neuf participants adultes invités. Frontend statique HTML,
 CSS et modules JavaScript, sans Node.js à l’exécution ; Supabase Auth/PostgreSQL
 pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 
@@ -27,6 +27,8 @@ porte les publications effectives. Une vérification documentaire ne renouvelle
 pas une preuve opérationnelle.
 
 ## B — État du code
+
+**Admin 2.3 et capacité.** La [PR #84](https://github.com/Vladoche/mon-bprea/pull/84) applique dix comptes, dont neuf places participantes, dans Admin Windows et les outils de préouverture. La notice V1.3 de cette livraison est candidate. Son empreinte attend une approbation avant une publication Pages autorisée. Le signal `backup_drift` rapporté le 20/11 maintient le blocage de création PROD tant qu’une sauvegarde du schéma courant n’a pas été restaurée et qualifiée.
 
 | Repère | État vérifié |
 | --- | --- |
@@ -126,7 +128,7 @@ portent sur la branche de travail.
 ## E — Sécurité et exploitation
 
 - **Accès**. Le relevé PROD du 18 novembre confirme les inscriptions publiques et
-  anonymes fermées et un compte confirmé. La limite de sept comptes repose sur
+  anonymes fermées et un compte confirmé. La capacité de dix comptes, issue de la [décision du 20 novembre](../rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté), repose sur
   le circuit administratif. [Contrôles et portée](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
 - **Backend PROD** : installation P puis M1–M5 documentée le 07/11 ; dix tables
   avec RLS et permissions contrôlées, premier compte et synchronisations vérifiés
@@ -169,7 +171,7 @@ portent sur la branche de travail.
   hébergé et RTO non démontrés. Circuit de clôture qualifié sur données fictives
   isolées, aucune suppression réelle PROD revendiquée ; réconciliation du journal,
   copies et appareils à traiter pour chaque demande réelle.
-- **Décisions humaines** : aucune décision d’ouverture aux six autres adultes
+- **Décisions humaines** : aucune décision d’ouverture aux participants
   retrouvée dans les sources consultées. La matrice préparatoire 15/15 du 08/11
   ne l’autorise pas. Publication, invitations et opérations sensibles exigent leurs
   accords propres ; voir le [plan et ses preuves](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md).

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using MonBprea.Admin.Core;
 using MonBprea.Admin.WindowsSecurity;
 using static MonBprea.Admin.WindowsSecurity.BackupFiles;
@@ -66,6 +67,10 @@ internal static partial class Program
             Check("synthetic source has one linked profile and ten application tables",
                 identity.AccountIds.Length == 1 && measurements.Rows.EnumerateObject().Count() == 10);
             PostgresSnapshot.ValidateSource(measurements, measurements.Catalogue, measurements.Privileges);
+            await Reject("different qualified catalogue blocks renewal", "backup_drift", () => Task.Run(() =>
+                PostgresSnapshot.ValidateSource(measurements, JsonSerializer.SerializeToElement(new { }), measurements.Privileges)));
+            await Reject("different qualified privileges block renewal", "backup_drift", () => Task.Run(() =>
+                PostgresSnapshot.ValidateSource(measurements, measurements.Catalogue, JsonSerializer.SerializeToElement(new { }))));
             var ledger = Hash("[]");
             _stage = "native-test-archive";
             var good = Generation("good");
@@ -83,6 +88,21 @@ internal static partial class Program
             Check("at 168 h invitation proof expires", Verify(good, ledger, point.AddHours(168), project) is { Ready: false, Problem: "backup_expired" });
             Check("changed deletion journal refuses an otherwise valid proof", !Valid(() => Verify(good, Hash("[{}]"), DateTimeOffset.UtcNow, project)));
             Check("synthetic project cannot satisfy PROD", !Valid(() => Verify(good, ledger, DateTimeOffset.UtcNow)));
+            var previous = Generation("previous-schema");
+            foreach (var name in new[] { Dump, Toc })
+                File.Copy(Path.Combine(good, name), Path.Combine(previous, name));
+            var previousManifest = JsonNode.Parse(manifest.GetRawText())!.AsObject();
+            var previousProof = JsonNode.Parse(proof.GetRawText())!.AsObject();
+            var previousHash = Hash("synthetic previous migration set");
+            previousManifest["schemaHash"] = previousHash;
+            Save(Path.Combine(previous, Manifest), previousManifest);
+            previousProof["manifestHash"] = Digest(Parse(previousManifest.ToJsonString()));
+            previousProof["schemaHash"] = previousHash;
+            Save(Path.Combine(previous, BackupFiles.Evidence), previousProof);
+            Check("qualified backup of an older schema reports drift and cannot be used or renewed automatically",
+                Verify(previous, ledger, DateTimeOffset.UtcNow, project) is { Ready: false, Due: false, Problem: "backup_drift" });
+            Check("historical proof remains subject to current deletion journal",
+                !Valid(() => Verify(previous, Hash("[{}]"), DateTimeOffset.UtcNow, project)));
             var goodHash = await File.ReadAllBytesAsync(Path.Combine(good, Dump));
             foreach (var failure in new[] { "corrupt", "source-data-drift", "current-journal-changed" })
             {

@@ -1,7 +1,7 @@
 // Génération séparée des contrôles d’environnement et du stockage privé.
 import { createClient } from '@supabase/supabase-js';
 import { createHash } from 'node:crypto';
-import { PROD_API, PROD_PROJECT, PROD_CALLBACK, MAX_ACCOUNTS, UUID, TOKEN, fail,
+import { PROD_API, PROD_PROJECT, PROD_CALLBACK, MAX_ACCOUNTS, INVENTORY_PAGE_SIZE, UUID, TOKEN, fail,
   validateProdEnvironment, validateProdTarget, validateProdCallback, prodAdminFetch } from './environment.mjs';
 
 export function createProdLinkAdmin(env, { type, email, runtime } = {}) {
@@ -11,12 +11,19 @@ export function createProdLinkAdmin(env, { type, email, runtime } = {}) {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, debug: false },
     global: { fetch: fetcher },
   }).auth.admin;
+  const headers = { apikey: configuration.adminKey, Authorization: `Bearer ${configuration.adminKey}` };
   return {
-    listUsers: parameters => admin.listUsers(parameters),
+    async listUsers({ page, perPage }) {
+      // Read the REST count directly. The SDK can default it to zero when Link is absent.
+      const response = await fetcher(`${PROD_API}/auth/v1/admin/users?page=${page}&per_page=${perPage}`, { headers });
+      if (!response.ok) fail('lookup');
+      const total = response.headers.get('x-total-count');
+      return { data: await response.json(), total: /^\d+$/.test(total ?? '') ? Number(total) : null,
+        hasNextPage: /rel\s*=\s*"?next/i.test(response.headers.get('link') ?? '') };
+    },
     generateLink: parameters => admin.generateLink(parameters),
     async getSettings() {
-      const response = await fetcher(`${PROD_API}/auth/v1/settings`, { method: 'GET',
-        headers: { apikey: configuration.adminKey, Authorization: `Bearer ${configuration.adminKey}` } });
+      const response = await fetcher(`${PROD_API}/auth/v1/settings`, { headers });
       if (!response.ok) fail('configuration');
       return response.json();
     },
@@ -37,17 +44,22 @@ export async function inspectProdAuthSettings(admin) {
 
 export async function inspectProdAccounts(admin, email) {
   let result;
-  try { result = await admin.listUsers({ page: 1, perPage: MAX_ACCOUNTS + 1 }); } catch { fail('lookup'); }
-  const users = result?.data?.users;
+  try { result = await admin.listUsers({ page: 1, perPage: INVENTORY_PAGE_SIZE }); } catch { fail('lookup'); }
+  const data = result?.data;
+  const users = data?.users;
   if (result?.error || !Array.isArray(users)) fail('lookup');
-  // La huitième ligne suffit à établir un dépassement ; aucune pagination aveugle.
-  if (users.length > MAX_ACCOUNTS) fail('capacity');
+  if (users.length > MAX_ACCOUNTS) fail('capacity_exceeded');
+  if (result.total !== users.length || result.hasNextPage
+      || ['total', 'total_count'].some(name => Object.hasOwn(data, name) && data[name] !== users.length)
+      || (data.next_page != null && data.next_page !== 0)
+      || (Object.hasOwn(data, 'last_page') && ![0, 1].includes(data.last_page))
+      || (Object.hasOwn(data, 'has_more') && data.has_more !== false) || data.next_cursor != null) fail('lookup');
   const ids = new Set(), emails = new Set();
   for (const user of users) {
     let target;
     try { target = validateProdTarget('invite', user?.email); } catch { fail('lookup'); }
-    if (!UUID.test(user?.id || '') || target !== user.email.toLowerCase() || ids.has(user.id) || emails.has(target)) fail('lookup');
-    ids.add(user.id); emails.add(target);
+    if (!UUID.test(user?.id || '') || target !== user.email.toLowerCase() || ids.has(user.id.toLowerCase()) || emails.has(target)) fail('lookup');
+    ids.add(user.id.toLowerCase()); emails.add(target);
   }
   return { count: users.length, existing: users.find(user => user.email.toLowerCase() === email) || null,
     emails: [...emails], snapshot: createHash('sha256').update(JSON.stringify(users.map(user =>

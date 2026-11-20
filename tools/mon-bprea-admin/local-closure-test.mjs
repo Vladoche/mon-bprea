@@ -102,7 +102,7 @@ try {
           PermissionsVerified:permissions,ParticipantVerified:true,StorageObjects:storage,Orphans:orphans,Sessions:Number(read(`select count(*) from auth.sessions where user_id=${quote(a.userId)}`)),RefreshTokens:Number(read(`select count(*) from auth.refresh_tokens where user_id=${quote(a.userId)}::text`)),
           WitnessDigest:digest(counts(b.userId)),BackupVerified:verified.reasons.length===0,SnapshotStartedAt:snapshotStartedAt,BackupReference:digest(manifest),BackupLedgerHash:restoreEvidence.deletionLedgerHash});return;
       }
-      assert.ok(request.url==='/auth/v1/settings'||request.url==='/auth/v1/admin/users?page=1&per_page=8'||request.url===`/auth/v1/admin/users/${a.userId}`);
+      assert.ok(request.url==='/auth/v1/settings'||request.url==='/auth/v1/admin/users?page=1&per_page=11'||request.url===`/auth/v1/admin/users/${a.userId}`);
       if(request.method==='DELETE') {assert.equal(request.url,`/auth/v1/admin/users/${a.userId}`);assert.equal(body,'{"should_soft_delete":false}'); assert.equal(++deletes,1); attempted=true;}
       const r=await fetch(environment.url+request.url,{method:request.method,headers:{apikey:environment.adminKey,Authorization:`Bearer ${environment.adminKey}`,'Content-Type':'application/json'},...(body?{body}:{}),redirect:'error',signal:AbortSignal.timeout(10000)});
       response.statusCode=r.status;response.setHeader('Content-Type','application/json');response.end(await r.text());

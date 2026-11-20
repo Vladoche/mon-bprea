@@ -12,7 +12,7 @@ L’article 30 distingue les registres du responsable et du sous-traitant. Le su
 | Responsables conjoints / donneur d'instructions | B : aucun rôle institutionnel, service imposé, accès formateur ou remontée officielle prévus. B : D02 actée par mandat B ; réexaminer si les pratiques changent ; aucun conjoint ni contrat pédagogique présumé. |
 | Point de contact droits | Contact officiel public approuvé et fonctionnement attesté en D04. [Contact sans compte](../../contact.html). |
 | Gestionnaire du registre et validation | Exploitant. Tenir les preuves datées et les habilitations en privé. |
-| Personnes concernées | A : visiteurs de pages publiques, distincts des comptes. B : sept comptes adultes confirmés, exploitant et six autres participants, facultatif, gratuit, sans publicité/non commercial ; fermeture le 30 juin 2027. D09 actée ; décompte séparé P0-14. |
+| Personnes concernées | A : visiteurs de pages publiques, distincts des comptes. B : jusqu’à dix comptes adultes, dont l’exploitant et neuf participants, invitations en attente comprises, facultatif, gratuit, sans publicité/non commercial ; fermeture le 30 juin 2027. D09 actée ; décompte séparé P0-14. |
 | Statut des traitements | A : capacités relues sur la fusion #24 `39a5196…`, copie partielle, retrait local et clôture locale éphémère préparés ; Auth publique désactivée. Ni volume ni activité étudiante hébergée vérifiés. |
 
 ## D03 — Intérêt légitime et mises en balance approuvées
@@ -28,7 +28,7 @@ Le [calendrier](CALENDRIER-FERMETURE-PROJET.md) et la [politique de conservation
 | Rubrique | Fiche préparatoire |
 | --- | --- |
 | Finalité / statut | A : permettre connexion sur invitation, activation, récupération et session personnelle. Capacité développée, Auth publique désactivée. Ne comprend pas la création libre de comptes. |
-| Responsable / personnes | B : sept comptes adultes confirmés, exploitant et six autres participants, exploitant indépendant. D01/D02/D09 approuvées. |
+| Responsable / personnes | B : jusqu’à dix comptes adultes, dont l’exploitant et neuf participants, invitations en attente comprises, exploitant indépendant. D01/D02/D09 approuvées. |
 | Données et origine | A01–A04/A06–A07 : adresse fournie et confirmée par la personne dans le circuit volontaire prévu, UUID et métadonnées Auth, preuves temporaires, session SDK et marqueur local ; mot de passe saisi directement. F04/F07/F08/F10. D10 prévoit l’information avant collecte directe. Vérifier le circuit effectivement retenu. |
 | Base approuvée | D03, art. 6 §1 f : intérêt à fournir et sécuriser l'accès individuel volontairement demandé. E-mail/UUID nécessaires au compte invité et à la récupération ; visiteur sans compte possible mais sans reprise distante. Impact : compte compromis, lien exposé ; garanties : accès propriétaire, liens individuels, aucune réutilisation commerciale, contact et clôture. Le canal est attesté. Les mesures effectives restent suivies dans les autres P0. |
 | Destinataires / prestataires | A : titulaire via interface, Auth/SDK, service d'invitation de confiance préparé. F : opérateurs effectivement habilités, chaîne Supabase et remise privée individuelle, avec rôles par flux. Aucun accès formateur aux comptes n'est démontré par le frontend. |
@@ -43,7 +43,7 @@ Le [calendrier](CALENDRIER-FERMETURE-PROJET.md) et la [politique de conservation
 | Rubrique | Fiche préparatoire |
 | --- | --- |
 | Finalité / statut | A : retrouver un profil minimal privé et un pseudo facultatif ; pas d'annuaire public ni de classement. |
-| Responsable / personnes | B : titulaires des sept comptes confirmés (exploitant inclus). D01/D02/D09 approuvées. |
+| Responsable / personnes | B : titulaires de dix comptes au maximum, invitations en attente et exploitant compris. D01/D02/D09 approuvées. |
 | Données et origine | A05 : UUID fourni par Auth, pseudo saisi par l'utilisateur, dates serveur. Table `public.profiles`. E-mail affiché depuis Auth, pas dupliqué dans le profil SQL. |
 | Base approuvée | D03, art. 6 §1 f : retrouver son profil minimal et l'identification choisie. UUID nécessaire au rattachement ; pseudo facultatif laissé vide ou retirable, sans annuaire. Alternative UUID seul à conserver si le pseudo n'a pas d'utilité demandée. Impact de réidentification limité par absence de diffusion et accès propriétaire ; facultativité et garanties à vérifier en service. |
 | Destinataires / prestataires | A : seul compte propriétaire via SELECT propre, Supabase DB ; E/F : administrateurs habilités et chaîne fournisseur. Pas de vue des profils d'autres comptes autorisée par les policies. |
@@ -75,7 +75,7 @@ Cette finalité regroupe états de cours, résultats, historiques d'entraînemen
 | Rubrique | Fiche préparatoire |
 | --- | --- |
 | Finalité / statut | A : reprendre les huit derniers paramètres ITK, les choix saison/luminosité, masquer l'anecdote du jour. Pas de stockage du document ITK complet ni d'historique du rendu automatique. |
-| Responsable / personnes | A : visiteurs ; B : sept comptes adultes confirmés (exploitant inclus). D01/D02/D09 approuvées. |
+| Responsable / personnes | A : visiteurs ; B : jusqu’à dix comptes adultes, invitations en attente et exploitant compris. D01/D02/D09 approuvées. |
 | Données et origine | I01–I03/P01–P05/X01 : saisie formulaire et choix explicites, date facultative de préférence, données techniques de synchronisation/import ; saison et heure de rendu calculées localement. |
 | Base approuvée | D03, art. 6 §1 f : retrouver les seuls derniers paramètres ITK et choix d'interface demandés, sans historique du rendu ni document ITK complet. Alternative locale conservée, aucune donnée de localisation/météo supplémentaire. Faible intrusion attendue, mais caches/bruts à limiter ; suppression/rectification des choix possibles. Nécessité et durée de chaque accès au terminal à traiter avec D12. |
 | Destinataires / prestataires | A : profil navigateur ; Supabase pour derniers paramètres/choix personnels configurés ; téléchargement/impression utilisateur pour résultats reconstruits. Aucun service météo/solaire constaté. F : admins et copies OS éventuelles. |

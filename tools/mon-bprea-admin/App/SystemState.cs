@@ -81,7 +81,6 @@ internal sealed partial class SimpleMainForm
                     }
                     try
                     {
-                        if (inventory.Count >= AdminContract.MaximumAccounts) throw new AdminException("capacity");
                         if (inventory.Accounts.Any(a => a.RecoveryRestricted || !a.ConfirmedAt.HasValue && !a.InvitedAt.HasValue))
                             throw new AdminException("lookup");
                         await Task.Run(async () => {
@@ -89,6 +88,7 @@ internal sealed partial class SimpleMainForm
                             if (productionHistory!().HasUncertainOperation()) throw new AdminException("pending");
                             await maintenance.RequireReadyAsync(inventory);
                         });
+                        if (inventory.AvailableParticipantPlaces == 0) throw new AdminException("capacity");
                         await workflow.RequireProductionInvitationDurationAsync();
                     }
                     catch (AdminException error) { invitationProblem = error.Code; }
@@ -109,13 +109,15 @@ internal sealed partial class SimpleMainForm
         AcceptButton = null;
         var history = state.History is null ? "bloqué" : $"prêt · {state.History.Operations} opération(s)";
         var backup = state.Backup is not { Ready: true } ? "bloquée" : state.Backup.Approaching ? "à renouveler" : "à jour";
-        var connection = state.ConnectionProblem is null ? $"prête · {state.Accounts} compte(s) sur 7" : "indisponible";
+        var connection = state.ConnectionProblem is null ? $"prête · {state.Accounts} compte(s) sur {AdminContract.MaximumAccounts}" : "indisponible";
         var invitation = state.InvitationProblem is null ? "disponible" : "bloquée";
         var diagnostic = $"Sauvegarde — {backup}\nHistorique administratif — {history}\nConnexion PROD — {connection}\nInvitation — {invitation}";
         if (state.Backup is { Snapshot: { } point, Deadline: { } deadline })
             diagnostic += $"\nDernier point restauré le {point.ToLocalTime():g} · échéance le {deadline.ToLocalTime():g}";
         var explanation = state.HistoryProblem ?? state.BackupFailure ?? state.Backup?.Problem ?? state.InvitationProblem;
         page.Controls.Add(Label(diagnostic, "SystemSummary"));
+        if (state.ConnectionProblem is not (null or "key") && state.ConnectionProblem != explanation)
+            page.Controls.Add(Label(AdminMessages.For(state.ConnectionProblem), "ConnectionExplanation"));
         if (state.InvitationProblem is null)
             page.Controls.Add(Label("Configuration terminée. Mon BPREA Admin est prêt."));
         if (explanation is not null && explanation != "key")

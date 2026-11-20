@@ -14,7 +14,7 @@
 | D06 | **DOCUMENTÉE SUR SOURCES PUBLIQUES.** Région primaire, support, journaux et accès internationaux distingués | Établir la région et l’offre de la cible et rattacher les garanties aux flux retenus. [Matrice](FLUX-ET-PRESTATAIRES.md#matrice-des-lieux-transferts-et-conservations) |
 | D07 | **APPROUVÉE.** Calendrier et durées résiduelles, exceptions motivées, copie historique du 29/10 à part. [Politique](POLITIQUE-CONSERVATION-PROJET.md) | Délais fournisseur et exécution réelle dans leurs portes opérationnelles |
 | D08 | **CHOIX ACTÉ.** Clôture assistée native, sauvegarde applicative hebdomadaire visée, perte visée sept jours | Accepter limites Auth/projet/caches. Éprouver première copie, reprise et assistance réelles |
-| D09 | **ACTÉE.** Sept comptes adultes au total, dont un exploitant, gratuit et volontaire, privé, fermeture le 30/06/2027 | Maintenir ce périmètre et le plafond administratif |
+| D09 | **ACTÉE le 20/11/2026.** Dix comptes adultes au total, dont un exploitant et neuf participants. L’usage reste gratuit, volontaire et privé, avec fermeture le 30/06/2027 | Maintenir ce périmètre et le plafond administratif |
 | D10 | **VOLONTARIAT ET REMISE INDIVIDUELLE ACTÉS SUR LE FOND.** La V1.0 décrit la fourniture directe de l’adresse après information | Confirmer le circuit de remise sur la cible. Valider et vérifier la remise de la notice accessible avant collecte, avec preuve minimale de sa version et de sa date |
 | D11 | **APPROUVÉE.** AIPD complète non jugée nécessaire dans le périmètre examiné ci-dessous | Réexaminer au changement significatif ou à l’apparition d’un risque élevé |
 | D12 | **APPROUVÉE PAR L’EXPLOITANT LE 06/11/2026.** Qualifications par usage, nouvelles archives minimisées, historique conservé, retrait ciblé sur vérification et suivi du volume. [Reçu](RECU-ARBITRAGE-D12-2026-11-06.md) | Réexaminer en cas d’évolution significative. La rédaction finale de la V1.1 et sa publication relèvent de P0-05 |
@@ -64,7 +64,11 @@ Un critère est établi, sans cumul actuellement identifié justifiant la préso
 
 Listes CNIL : pas de correspondance identifiée à la [liste requise](https://www.cnil.fr/sites/cnil/files/atoms/files/liste-traitements-aipd-requise.pdf) ; les formations algorithmiques citées y relèvent notamment du profilage RH, pas du cadre privé déclaré. La [liste non requise](https://www.cnil.fr/sites/cnil/files/atoms/files/liste-traitements-aipd-non-requise.pdf) ne fournit pas de dispense par analogie avec une gestion scolaire institutionnelle. Consultation **05/11/2026**, ainsi que les [neuf critères CNIL](https://www.cnil.fr/fr/ce-quil-faut-savoir-sur-lanalyse-dimpact-relative-la-protection-des-donnees-aipd) et les [lignes directrices G29/CEPD](https://www.cnil.fr/sites/default/files/atoms/files/wp248_rev.01_fr.pdf). Ce screening documenté est la pièce approuvée pour P0-10.
 
-## Risques concrets — revue à sept comptes confirmés — actualisation des R01–R12, pas de nouveau registre
+## Revue D09/D11 du 20 novembre 2026
+
+Le passage de sept à dix comptes augmente de trois le nombre maximal de personnes concernées dans l’espace personnel. Le registre reflète ce nombre, y compris pour les invitations en attente. Le cercle reste local et volontaire, les catégories de données, finalités, destinataires et durées restent ceux du registre. Le scoring descriptif reste le seul critère identifié dans le screening. Le nombre, le volume, la durée et l’étendue du traitement ne caractérisent pas un traitement à grande échelle. Sur ces faits, la conclusion D11 reste applicable. Les risques R01–R12 et les mesures associées restent pertinents, notamment la vérification individuelle de l’adresse et de la cible, la remise privée et la qualification des sauvegardes. Réexaminer D11 si un autre critère ou un risque élevé apparaît. [Critères de grande échelle de la CNIL](https://www.cnil.fr/fr/cnil-direct/question/reglement-europeen-un-traitement-grande-echelle-cest-quoi?visiteur=pro)
+
+## Risques concrets — revue historique du 5 novembre à sept comptes
 
 La gravité se rapporte à la personne ; aucune fréquence observée en production ni note chiffrée inventée. Les protections A sont reliées à la matrice 6.4, leur état hébergé reste F.
 

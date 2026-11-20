@@ -97,13 +97,19 @@ internal static partial class Program
             Check("Node link parity " + item.GetProperty("name").GetString(), valid == item.GetProperty("valid").GetBoolean());
             if (valid) Check("Node callback parity", link == item.GetProperty("link").GetString());
         }
+        Check("Node account capacity parity", AdminContract.MaximumAccounts == root.GetProperty("maxAccounts").GetInt32());
+        Check("Node inventory page size parity", AdminContract.InventoryPath.EndsWith("=" + root.GetProperty("inventoryPageSize").GetInt32(), StringComparison.Ordinal));
         foreach (var item in root.GetProperty("inventoryCases").EnumerateArray())
         {
             var response = JsonSerializer.SerializeToElement(new { users = item.GetProperty("users") });
             AccountInventory? inventory = null;
             var valid = Valid(() => inventory = AdminContract.ParseInventory(response, Operator, Now));
             Check("Node inventory parity " + item.GetProperty("name").GetString(), valid == item.GetProperty("valid").GetBoolean());
-            if (valid) Check("Node inventory count parity", inventory!.Count == item.GetProperty("count").GetInt32());
+            if (valid)
+            {
+                Check("Node inventory count parity", inventory!.Count == item.GetProperty("count").GetInt32());
+                Check("Node participant places parity", inventory.AvailableParticipantPlaces == item.GetProperty("participantPlaces").GetInt32());
+            }
         }
     }
 
@@ -127,14 +133,14 @@ internal static partial class Program
         using (var session = Session(store, router))
         {
             var inventory = await session.RefreshAsync();
-            Check("operator present", inventory.OperatorPresent && inventory.Count == 1 && inventory.AvailableParticipantPlaces == 6);
+            Check("operator present", inventory.OperatorPresent && inventory.Count == 1 && inventory.AvailableParticipantPlaces == 9);
             Check("consultation independent from invitation storage", store.Validations == 0);
             Check("confirmed state truthful", inventory.Accounts[0].State == "Adresse confirmée");
         }
         using (var session = Session(new(), new() { Users = [] }))
         {
             var inventory = await session.RefreshAsync();
-            Check("operator absent place reserved", inventory.Count == 0 && inventory.AvailableParticipantPlaces == 6 && !inventory.OperatorPresent);
+            Check("operator absent place reserved", inventory.Count == 0 && inventory.AvailableParticipantPlaces == 9 && !inventory.OperatorPresent);
         }
         using (var session = Session(new(), new() { Users = [Account(1), Account(2, false, true)] }))
         {
@@ -145,7 +151,8 @@ internal static partial class Program
             Check("indeterminate not fabricated", (await session.RefreshAsync()).Accounts[1].State == "Indéterminé");
         foreach (var (name, routerCase, code) in new[]
         {
-            ("eight accounts", new Router { Users = Accounts(8) }, "capacity"),
+            ("eleven accounts", new Router { Users = Accounts(11) }, "capacity_exceeded"),
+            ("missing total", new Router { OmitTotal = true }, "lookup"),
             ("duplicate identities", new Router { Users = [Account(1), Account(1)] }, "lookup"),
             ("incomplete inventory", new Router { Total = 4 }, "lookup"),
             ("unexpected next page", new Router { NextPage = true }, "lookup"),
@@ -183,15 +190,15 @@ internal static partial class Program
             ("previous uncertain operation", new FakeStore { Uncertain = true }, new Router(), Recipient, "pending"),
             ("previous target reservation", new FakeStore { Reserved = true }, new Router(), Recipient, "pending"),
             ("existing account", new FakeStore(), new Router(), Operator, "exists"),
-            ("full capacity", new FakeStore(), new Router { Users = Accounts(7) }, Recipient, "capacity"),
-            ("operator absent reserve place capacity", new FakeStore(), new Router { Users = Enumerable.Range(2, 6).Select(x => Account(x)).ToArray() }, Recipient, "capacity"),
+            ("full capacity", new FakeStore(), new Router { Users = Accounts(10) }, Recipient, "capacity"),
+            ("operator absent reserve place capacity", new FakeStore(), new Router { Users = Enumerable.Range(2, 9).Select(x => Account(x)).ToArray() }, Recipient, "capacity"),
             ("ambiguous unconfirmed account", new FakeStore(), new Router { Users = [Account(1), Account(2, false)] }, Recipient, "lookup")
         })
         { using var session = Session(store, router); await Reject(name, code, async () => await session.PrepareAsync(target, Human, Workstation)); Check(name + " no POST", router.Posts == 0); }
         {
             var store = new FakeStore(); var router = new Router { Users = [] }; using var session = Session(store, router);
             var prepared = await session.PrepareAsync(Recipient, Human, Workstation);
-            Check("absent operator preflight reserves place", prepared.Inventory.AvailableParticipantPlaces == 6);
+            Check("absent operator preflight reserves place", prepared.Inventory.AvailableParticipantPlaces == 9);
         }
         {
             var store = new FakeStore(); var router = new Router(); using var session = Session(store, router);
@@ -296,6 +303,7 @@ internal static partial class Program
         public string? SettingsBody, ListBody, PostBody;
         public bool ReadFailure, Redirect, WrongTarget, NextPage, PostFailure, PostRedirect, PostHttpFailure, PostHangsBody;
         public int? Total;
+        public bool OmitTotal;
         public int Posts, Requests;
         public JsonElement LastPostBody;
         public string OperationType = "invite", TargetEmail = Recipient;
@@ -333,12 +341,17 @@ internal static partial class Program
             else if (path == "/auth/v1/settings") response = SettingsBody ?? JsonSerializer.Serialize(Settings);
             else
             {
-                Check("bounded first inventory page", path == "/auth/v1/admin/users" && request.RequestUri.Query == "?page=1&per_page=8");
+                Check("bounded first inventory page", path == "/auth/v1/admin/users" && request.RequestUri.Query == "?page=1&per_page=11");
                 response = ListBody ?? JsonSerializer.Serialize(new { users = Users });
             }
             var result = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(response, Encoding.UTF8, "application/json"), RequestMessage = request };
             if (WrongTarget) result.RequestMessage = new HttpRequestMessage(request.Method, "https://example.test/");
-            if (path == "/auth/v1/admin/users" && Total.HasValue) result.Headers.Add("x-total-count", Total.Value.ToString());
+            if (path == "/auth/v1/admin/users" && !OmitTotal)
+            {
+                using var body = JsonDocument.Parse(response);
+                var count = body.RootElement.TryGetProperty("users", out var users) && users.ValueKind == JsonValueKind.Array ? users.GetArrayLength() : 0;
+                result.Headers.Add("x-total-count", (Total ?? count).ToString());
+            }
             if (path == "/auth/v1/admin/users" && NextPage) result.Headers.Add("Link", "<https://example.test/?page=2>; rel=\"next\"");
             return result;
         }
