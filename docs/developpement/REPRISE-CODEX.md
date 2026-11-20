@@ -6,8 +6,8 @@ d’exploitation. Le [changelog](../../CHANGELOG.md) porte l’historique des ch
 
 ## Reprendre un chantier
 
-1. Lire `git status`, les consignes et les faits datés de l’état du projet ;
-   refaire `git fetch origin` et vérifier les PR pertinentes avant toute modification.
+1. Appliquer l’[hygiène Git de début de tâche](../../AGENTS.md#hygiène-git-obligatoire)
+   et vérifier les PR pertinentes avant toute modification.
 2. Créer une branche dédiée depuis la référence autorisée, préserver les travaux
    existants et consulter seulement les contrats utiles. [PR #63, lot 1 UC et
    lecture](https://github.com/Vladoche/mon-bprea/pull/63) est fusionnée sur main

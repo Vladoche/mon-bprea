@@ -13,6 +13,9 @@ La version de l’application Windows reste propre à cet outil.
   2026, avec une place exploitant et neuf places participantes. Inventaire Auth
   complet exigé dans les circuits de création et places restantes affichées dans
   Admin. Cadrage, registre et notice V1.3 candidate mis à jour. [PR #84](https://github.com/Vladoche/mon-bprea/pull/84) · [Décision](docs/rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté).
+- **Hygiène Git après livraison**. Inventaire au démarrage, isolation des tâches
+  et contrôle du distant avant le nettoyage des builds et worktrees de la tâche.
+  [PR #83](https://github.com/Vladoche/mon-bprea/pull/83).
 
 - **Continuité des palettes entre les pages**. La palette du compte reconnu
   s’applique avant les feuilles de style. Les modes saisonnier et personnalisé
