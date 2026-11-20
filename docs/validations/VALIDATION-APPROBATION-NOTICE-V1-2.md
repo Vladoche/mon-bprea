@@ -9,7 +9,7 @@ Préparation **GO PARTIEL**. Publication **non autorisée**.
 | --- | --- |
 | Référence synchronisée | `origin/main` à `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458`, fusion de [#79](https://github.com/Vladoche/mon-bprea/pull/79) le 20/11/2026 à 07:09:33 UTC. |
 | Branche et worktree | Départ sur `codex/recette-finale-2027`, worktree propre. Branche `codex/approbation-notice-v1-2` créée sur ce `origin/main`, worktree propre avant contrôles. |
-| Source | [Notice de confidentialité](../rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md), « Version 1.2 · 20 novembre 2026 ». |
+| Source | [Source V1.2 au commit vérifié](https://github.com/Vladoche/mon-bprea/blob/bb3514efecbc4edd85b7e3f3fde90bb5d69ed458/docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md), « Version 1.2 · 20 novembre 2026 ». |
 | SHA-256 LF attendu | `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57` |
 | SHA-256 LF recalculé | `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57` |
 | Comparaison | Les **64 caractères** concordent. Calcul indépendant sur les octets du fichier et du blob de `origin/main`, après conversion des CRLF en LF. |

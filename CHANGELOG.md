@@ -9,6 +9,11 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Admin Windows 2.3 et capacité de dix comptes**. Décision du 20 novembre
+  2026, avec une place exploitant et neuf places participantes. Inventaire Auth
+  complet exigé dans les circuits de création et places restantes affichées dans
+  Admin. Cadrage, registre et notice V1.3 candidate mis à jour. [Décision](docs/rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté).
+
 - **Continuité des palettes entre les pages**. La palette du compte reconnu
   s’applique avant les feuilles de style. Les modes saisonnier et personnalisé
   sont exclusifs, avec une luminosité indépendante. [PR #82](https://github.com/Vladoche/mon-bprea/pull/82).

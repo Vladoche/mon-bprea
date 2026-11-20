@@ -6,7 +6,7 @@ Durée techniquement observée, choix de l'exploitant et obligation juridique re
 
 ## Matrice par catégorie
 
-L’exploitant approuve ces durées pour sept comptes adultes et une exploitation temporaire. Les critères et durées propres aux fournisseurs sont documentés séparément. Toute exception précise la justification, le périmètre minimal, le responsable et l’échéance de réexamen. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md).
+L’exploitant a approuvé ces durées le 5 novembre 2026 pour une exploitation temporaire. Elles s’appliquent au [périmètre de dix comptes](CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté). Les critères et durées propres aux fournisseurs sont documentés séparément. Toute exception précise la justification, le périmètre minimal, le responsable et l’échéance de réexamen. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md).
 
 | Catégorie / finalité | Décision ou durée résiduelle | Contrôle, exceptions et preuve |
 | --- | --- | --- |

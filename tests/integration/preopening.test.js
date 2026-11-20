@@ -16,45 +16,45 @@ function config() {
   result.approvals = Object.fromEntries(Object.keys(result.approvals).map(key => [key, true]));
   return result;
 }
-function input(count = 6) {
+function input(count = 9) {
   return { target: { environment: 'production', projectRef: 'oqoqrxwfbkhtpksqimgd', siteUrl: 'https://vladoche.github.io/mon-bprea/', callback: 'https://vladoche.github.io/mon-bprea/authentification.html' },
     inventory: { projectRef: 'oqoqrxwfbkhtpksqimgd', observedAt, complete: true, publicSignup: false, anonymousSignIn: false, accounts: Array.from({ length: count }, (_, i) => account(i + 1)) },
-    type: 'invite', requestedRole: 'participant', recipient: 'synthetic-7@example.invalid', noticeProvidedBeforeEmail: true,
+    type: 'invite', requestedRole: 'participant', recipient: `synthetic-${count + 1}@example.invalid`, noticeProvidedBeforeEmail: true,
     directRequest: true, emailConfirmed: true, noticeVersion: 'synthetic-v1', identityChecked: true, previousResult: 'none' };
 }
 describe('préouverture : capacité administrative, jamais quota Supabase', () => {
-  it('la décision définitive réserve un compte exploitant et six autres, sans inscription libre', () => {
-    expect(POLICY.capacity).toMatchObject({ total: 7, includesOperator: true, operatorPlaces: 1, otherParticipants: 6, confirmationRequired: false, controlledInvitationRequired: true, enforcement: 'administrative' });
+  it('la décision définitive réserve un compte exploitant et neuf participants, sans inscription libre', () => {
+    expect(POLICY.capacity).toMatchObject({ total: 10, includesOperator: true, operatorPlaces: 1, otherParticipants: 9, confirmationRequired: false, controlledInvitationRequired: true, enforcement: 'administrative' });
     expect(POLICY.capacity.operatorPlaces + POLICY.capacity.otherParticipants).toBe(POLICY.capacity.total);
     expect(POLICY.publicSignup).toBe(false); expect(POLICY.anonymousSignIn).toBe(false);
   });
-  it('permet le septième compte dans le plan hors ligne et refuse le huitième', () => {
+  it('permet le dixième compte, refuse le onzième et signale un dépassement', () => {
     const result = invitationPreflight(input(), config(), now);
-    expect(result).toMatchObject({ capacity: 7, occupiedIncludingOperator: 6, enforcement: 'administrative', targetChecked: true });
-    const eighth = input(7); eighth.recipient = 'synthetic-8@example.invalid';
-    expect(() => invitationPreflight(eighth, config(), now)).toThrow('capacity_full');
+    expect(result).toMatchObject({ capacity: 10, occupiedIncludingOperator: 9, enforcement: 'administrative', targetChecked: true });
+    expect(() => invitationPreflight(input(10), config(), now)).toThrow('capacity_full');
+    expect(() => invitationPreflight(input(11), config(), now)).toThrow('capacity_exceeded');
   });
   it('réserve la place de l’exploitant absent et exige la confirmation du décompte', () => {
     const value = input(); value.inventory.accounts = value.inventory.accounts.filter(a => a.kind !== 'operator');
-    expect(invitationPreflight(value, config(), now).occupiedIncludingOperator).toBe(6);
-    value.inventory.accounts.push(account(8));
+    expect(invitationPreflight(value, config(), now).occupiedIncludingOperator).toBe(9);
+    value.inventory.accounts.push(account(11));
     expect(() => invitationPreflight(value, config(), now)).toThrow('capacity_full');
     expect(() => invitationPreflight(input(), { ...config(), capacityConfirmed: false }, now)).toThrow('capacity_unconfirmed');
   });
   it('compte les invitations en attente, bloque l’incertain et distingue les comptes fictifs', () => {
     const value = input(); value.inventory.accounts[2].state = 'pending';
-    expect(invitationPreflight(value, config(), now).occupiedIncludingOperator).toBe(6);
+    expect(invitationPreflight(value, config(), now).occupiedIncludingOperator).toBe(9);
     value.inventory.accounts[2].state = 'uncertain';
     expect(() => invitationPreflight(value, config(), now)).toThrow('uncertain_no_retry');
     value.inventory.accounts[2].kind = 'fixture';
     expect(() => invitationPreflight(value, config(), now)).toThrow('fixtures_require_separate_D');
   });
   it('une place en attente ferme aussi la capacité ; une récupération ne consomme aucune nouvelle place', () => {
-    const full = input(7); full.recipient = 'synthetic-8@example.invalid';
-    full.inventory.accounts[6].state = 'pending';
+    const full = input(10);
+    full.inventory.accounts[9].state = 'pending';
     expect(() => invitationPreflight(full, config(), now)).toThrow('capacity_full');
     full.type = 'recovery'; full.recipient = full.inventory.accounts[1].email;
-    expect(invitationPreflight(full, config(), now)).toMatchObject({ type: 'recovery', occupiedIncludingOperator: 7, capacity: 7 });
+    expect(invitationPreflight(full, config(), now)).toMatchObject({ type: 'recovery', occupiedIncludingOperator: 10, capacity: 10 });
   });
   it('un résultat administratif incertain interdit aussi de continuer avec un inventaire actif', () => {
     const value = input(); value.previousResult = 'uncertain';
@@ -87,7 +87,7 @@ describe('préouverture : capacité administrative, jamais quota Supabase', () =
 describe('contact et clôture préparés sans identité ou opération inventée', () => {
   it('intègre seulement les décisions et conserve les preuves privées, sans valider le canal', () => {
     const initial = emptyPrivateConfiguration(), decided = withConfirmedDecisions(initial);
-    expect(decided).toMatchObject({ capacityConfirmed: true, capacity: { total: 7, includesOperator: true, otherParticipants: 6 }, contact: { email: POLICY.contact.email, publicationApproved: true } });
+    expect(decided).toMatchObject({ capacityConfirmed: true, capacity: { total: 10, includesOperator: true, otherParticipants: 9 }, contact: { email: POLICY.contact.email, publicationApproved: true } });
     expect(initial.contact.email).toBeNull(); expect(initial.capacityConfirmed).toBe(false);
     expect(contactCheck(decided, now).missing).not.toContain('real_email');
     expect(contactCheck(decided, now).missing).toEqual(expect.arrayContaining(['contact_owned', 'contact_protected', 'contact_recoveryChecked', 'contact_monitoringConfirmed', 'contact_receivedAt', 'contact_repliedAt', 'contact_withoutAccountChecked']));

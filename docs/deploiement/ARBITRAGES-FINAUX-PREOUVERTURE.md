@@ -1,6 +1,6 @@
 # Décisions et preuves encore nécessaires avant ouverture privée
 
-**6 novembre 2026 · lot 6.5.5.G.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu du 5 novembre](../rgpd/RECU-ARBITRAGES-2026-11-05.md). D12 est approuvée dans le périmètre recetté par D, E et F. La capacité reste de sept comptes, exploitant et six autres adultes. [Reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md).
+**6 novembre 2026 · lot 6.5.5.G.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu du 5 novembre](../rgpd/RECU-ARBITRAGES-2026-11-05.md). D12 est approuvée dans le périmètre recetté par D, E et F. La capacité examinée le 6 novembre était de sept comptes. Le [cadrage du 20 novembre](../rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté) fixe dix comptes, dont un exploitant et neuf participants. [Reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md).
 
 ## Actions actuelles
 

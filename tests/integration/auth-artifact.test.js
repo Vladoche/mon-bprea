@@ -49,7 +49,7 @@ describe('artefact Pages et frontière de configuration publique Auth, sans mock
     const contact = readFileSync(join(result.output, 'contact.html'), 'utf8');
     const policy = JSON.parse(readFileSync('scripts/preopening/policy.json', 'utf8'));
     expect(contact).toContain(`href="mailto:${policy.contact.email}"`);
-    expect(contact).toContain('sept comptes au total');
+    expect(contact).toContain('dix comptes au total');
     expect(contact).not.toContain('assets/app.js');
     expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).toContain('sans service d’envoi automatique d’e-mails');
     expect(readFileSync(join(result.output, 'assets/auth-pages.js'), 'utf8')).not.toContain('requestPasswordReset');

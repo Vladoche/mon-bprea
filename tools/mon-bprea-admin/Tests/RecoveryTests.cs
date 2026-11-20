@@ -91,13 +91,13 @@ internal static partial class Program
         }
         {
             var store = new FakeStore(); var router = RecoveryRouter();
-            router.Users = [RecoveryAccount(), .. Enumerable.Range(1, 6).Select(x => Account(x))];
+            router.Users = [RecoveryAccount(), .. Enumerable.Range(1, 9).Select(x => Account(x))];
             using var session = Session(store, router); var prepared = await PrepareRecovery(session);
             router.BeforePost = () => Check("recovery reservation and shared lock before POST", store.Uncertain && store.Locked);
             var one = session.GenerateRecoveryAsync(prepared, prepared.ConfirmationText);
             await Reject("recovery double click", "pending", () => session.GenerateRecoveryAsync(prepared, prepared.ConfirmationText));
             var receipt = await one;
-            Check("recovery at seven accounts one POST one file same UUID", router.Posts == 1 && store.Deliveries == 1 && receipt.OperationId == store.Operation && prepared.Account.Id == RecoveryId);
+            Check("recovery at ten accounts one POST one file same UUID", router.Posts == 1 && store.Deliveries == 1 && receipt.OperationId == store.Operation && prepared.Account.Id == RecoveryId);
             Check("recovery callback type", store.Link?.EndsWith("&type=recovery", StringComparison.Ordinal) == true);
             await Reject("not handed over blocks fresh request", "pending", async () => await PrepareRecovery(session));
             await session.MarkHandedOverAsync(receipt.OperationId);

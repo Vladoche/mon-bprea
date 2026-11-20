@@ -15,7 +15,7 @@ internal static partial class Program
             var time = new SimpleClock(now);
             var router = new SimpleRouter(time); var store = new SimpleStore();
             using var session = new SimpleAdminSession(FakeSecret, AdminTarget.Production, store, time, router,
-                invitationGuard ?? (_ => Task.CompletedTask));
+                invitationGuard ?? (_ => Task.CompletedTask), inventory => inventory.Accounts.Any(a => a.Email == Operator));
             await session.CheckInvitationDurationAsync(FakeManagementToken);
             await action(session, router, store);
         }
@@ -29,12 +29,29 @@ internal static partial class Program
         });
         await Scenario(async (s, r, st) => {
             await Reject("V2 duplicate", "exists", () => s.CreateAsync(Recipient)); Check("V2 duplicate no mutation", r.Posts == 0 && st.Reservations.Count == 0);
-            r.Count = 7; await Reject("V2 capacity", "capacity", () => s.CreateAsync("new@example.test")); Check("V2 cap no post", r.Posts == 0);
+            r.Count = 10; await Reject("V2 capacity", "capacity", () => s.CreateAsync("new@example.test")); Check("V2 cap no post", r.Posts == 0);
         });
-        foreach (var failure in new[] { "network", "redirect", "revoked", "open-signup", "pagination" })
+        await Scenario(async (s, r, st) => {
+            foreach (var (count, available) in new[] { (1, 9), (5, 5), (9, 1), (10, 0) })
+            {
+                r.Count = count;
+                Check($"V2 {count} accounts leave {available} participant places", (await s.RefreshAsync()).AvailableParticipantPlaces == available);
+            }
+            var full = await s.RefreshAsync();
+            var recovery = await s.RecoverAsync(full.Accounts.Single(a => a.Email == Recipient), SimpleOperationKind.Password);
+            Check("V2 recovery at full capacity preserves count and UUID", recovery.AccountId == RecoveryId && (await s.RefreshAsync()).Count == 10);
+            r.Count = 11;
+            await Reject("V2 over capacity", "capacity_exceeded", () => s.CreateAsync("new@example.test"));
+            r.OperatorPresent = false; r.Count = 0;
+            Check("V2 empty inventory reserves the operator place", (await s.RefreshAsync()).AvailableParticipantPlaces == 9);
+            r.Count = 9;
+            await Reject("V2 last place reserved for the absent operator", "capacity", () => s.CreateAsync("new@example.test"));
+            Check("V2 capacity failures reserve and generate nothing", st.Reservations.Count == 1 && r.Posts == 1);
+        });
+        foreach (var failure in new[] { "network", "redirect", "revoked", "open-signup", "pagination", "missing-total", "truncated" })
             await Scenario(async (s, r, st) => {
                 r.ReadFailure = failure;
-                await Reject("V2 preflight " + failure, failure == "revoked" ? "key_revoked" : failure == "open-signup" ? "configuration" : failure == "pagination" ? "lookup" : "transport", () => s.CreateAsync("new@example.test"));
+                await Reject("V2 preflight " + failure, failure == "revoked" ? "key_revoked" : failure == "open-signup" ? "configuration" : failure is "pagination" or "missing-total" or "truncated" ? "lookup" : "transport", () => s.CreateAsync("new@example.test"));
                 Check("V2 failed read no reservation " + failure, st.Reservations.Count == 0 && r.Posts == 0);
             });
         foreach (var failure in new[] { "lost", "wrong-user", "wrong-recipient", "wrong-callback", "duplicate-json" })
@@ -159,11 +176,11 @@ internal static partial class Program
         await Reject("short PROD expiration blocks issuance", "otp_duration", () => s.CreateAsync(email));
         Check("wrong settings reserve nothing", r.Posts == 0 && st.Reservations.Count == 0);
         r.Otp = 86400;
-        r.Count = 6;
+        r.Count = 9;
         var first = await s.CreateAsync(email);
         var selected = (await s.RefreshAsync()).Accounts.Single(a => a.Id == first.AccountId);
         var review = await s.ReviewInvitationAsync(selected);
-        Check("first link pending and usable at seven accounts", review.State == InvitationState.Pending
+        Check("tenth account created with the link pending and usable", review.State == InvitationState.Pending
             && (await s.ReadInvitationLinkAsync(selected, first.Operation)) == first.Links[0]);
         await Reject("wrong UUID cannot renew", "invitation_changed", () => s.ReviewInvitationAsync(selected with { Id = RecoveryId }));
         await Reject("wrong address cannot renew", "invitation_changed", () => s.ReviewInvitationAsync(selected with { Email = Recipient }));
@@ -186,7 +203,7 @@ internal static partial class Program
         r.ReadFailure = null;
         Check("preflight failure creates no extra reservation", st.Reservations.Count == 1 && r.Posts == 1);
         var renewal = await s.RenewInvitationAsync(review);
-        Check("renewal preserves UUID and quota", renewal.AccountId == first.AccountId && (await s.RefreshAsync()).Count == 7);
+        Check("renewal preserves UUID and quota", renewal.AccountId == first.AccountId && (await s.RefreshAsync()).Count == 10);
         Check("renewal links to initial operation", st.Reservations[0] == firstReservation && st.Reservations[1].InitialInvitation == first.Operation);
         await Reject("superseded operation cannot be copied", "invitation_changed", () => s.ReadInvitationLinkAsync(selected, first.Operation));
         Check("new link can be copied", (await s.ReadInvitationLinkAsync(selected, renewal.Operation)).Address == email);
@@ -330,6 +347,7 @@ internal static partial class Program
         public string? InvitationEmail;
         public DateTimeOffset? InvitedAt, InviteCreatedAt;
         public bool Activated, Banned, OtherRecovery;
+        public bool OperatorPresent = true;
         public int? Otp = 86400;
         public int? ActivateOnRead;
         private readonly DateTimeOffset now = time.Now;
@@ -352,15 +370,19 @@ internal static partial class Program
                 if (ReadFailure == "revoked") return Reply("{}", HttpStatusCode.Unauthorized);
                 if (ReadFailure == "redirect") { var redirect = Reply("{}"); redirect.Headers.Location = new Uri("https://example.invalid"); return redirect; }
                 if (path.EndsWith("settings")) return Reply(JsonSerializer.Serialize(new { disable_signup = ReadFailure != "open-signup", mailer_autoconfirm = false, external = new { email = true, anonymous_users = false } }));
-                var accounts = new List<object> {
-                    new { id = "11111111-1111-4111-8111-111111111111", email = Operator, role = "authenticated", email_confirmed_at = now, app_metadata = new { provider = "email" } },
-                    new { id = AccountId, email = Email, role = "authenticated", email_confirmed_at = now, app_metadata = new { provider = "email" } } };
-                for (var n = 2; n < Count; n++) accounts.Add(new { id = $"{n+1:D8}-1111-4111-8111-111111111111", email = $"user{n}@example.test", role = "authenticated", email_confirmed_at = now });
+                Check("V2 bounded first inventory page", request.RequestUri.Query == "?page=1&per_page=11");
+                var accounts = new List<object>();
+                if (OperatorPresent && Count > 0)
+                    accounts.Add(new { id = "11111111-1111-4111-8111-111111111111", email = Operator, role = "authenticated", email_confirmed_at = now, app_metadata = new { provider = "email" } });
+                if (Count > accounts.Count)
+                    accounts.Add(new { id = AccountId, email = Email, role = "authenticated", email_confirmed_at = now, app_metadata = new { provider = "email" } });
+                for (var n = accounts.Count; n < Count; n++) accounts.Add(new { id = $"{n+1:D8}-1111-4111-8111-111111111111", email = $"user{n}@example.test", role = "authenticated", email_confirmed_at = now });
                 if (InvitationEmail is not null) accounts.Add(new { id = InviteId, email = InvitationEmail, role = "authenticated",
                     created_at = InviteCreatedAt, invited_at = InvitedAt, confirmation_sent_at = InvitedAt,
                     email_confirmed_at = Activated ? (DateTimeOffset?)time.Now : null, banned_until = Banned ? (DateTimeOffset?)time.Now.AddHours(1) : null,
                     recovery_sent_at = OtherRecovery ? (DateTimeOffset?)time.Now : null, app_metadata = new { provider = "email" } });
                 var response = Reply(JsonSerializer.Serialize(new { users = accounts }));
+                if (ReadFailure != "missing-total") response.Headers.Add("x-total-count", (accounts.Count + (ReadFailure == "truncated" ? 1 : 0)).ToString());
                 if (ReadFailure == "pagination") response.Headers.TryAddWithoutValidation("Link", "<next>; rel=next");
                 return response;
             }

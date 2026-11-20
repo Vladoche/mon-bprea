@@ -66,6 +66,10 @@ internal static partial class Program
             Check("synthetic source has one linked profile and ten application tables",
                 identity.AccountIds.Length == 1 && measurements.Rows.EnumerateObject().Count() == 10);
             PostgresSnapshot.ValidateSource(measurements, measurements.Catalogue, measurements.Privileges);
+            await Reject("different qualified catalogue blocks renewal", "backup_drift", () => Task.Run(() =>
+                PostgresSnapshot.ValidateSource(measurements, JsonSerializer.SerializeToElement(new { }), measurements.Privileges)));
+            await Reject("different qualified privileges block renewal", "backup_drift", () => Task.Run(() =>
+                PostgresSnapshot.ValidateSource(measurements, measurements.Catalogue, JsonSerializer.SerializeToElement(new { }))));
             var ledger = Hash("[]");
             _stage = "native-test-archive";
             var good = Generation("good");

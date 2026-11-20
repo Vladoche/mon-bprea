@@ -34,7 +34,8 @@ internal sealed class SimpleWorkflow(SimpleAdminSession session) : ISimpleWorkfl
 
 internal sealed class SimpleBootstrap(AdminTarget target, IAdminCredentialVault vault, ISimplePrivateStore store, ProductionBackup? backup = null)
 {
-    private SimpleAdminSession Session(string key) => new(key, target, store, backup is null ? null : backup.RequireReadyAsync);
+    private SimpleAdminSession Session(string key) => new(key, target, store, backup is null ? null : backup.RequireReadyAsync,
+        backup is null ? null : backup.IsOperatorPresent);
     public string? ReadSavedKey() => vault.Read();
     public ISimpleWorkflow OpenSaved(string key)
     {

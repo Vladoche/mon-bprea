@@ -76,7 +76,7 @@ for (const width of [390, 1280]) {
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mes cours');
       await page.locator('footer').getByRole('link', { name: 'Confidentialité', exact: true }).click();
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notice de confidentialité de Mon BPREA');
-      await expect(page.locator('main')).toContainText('Version 1.2 · 20 novembre 2026');
+      await expect(page.locator('main')).toContainText('Version 1.3 · 20 novembre 2026');
       await expect(page.locator('main')).toContainText('Pour obtenir une copie des données personnelles qui vous concernent, écrivez au responsable.');
       await expect(page.locator('main')).toContainText('Pour demander l’effacement ou la clôture de votre compte, écrivez au responsable.');
       await expect(page.locator('main')).not.toContainText('Le profil permet de rechercher les sauvegardes locales');

@@ -2,6 +2,8 @@
 
 **5 novembre 2026, lot 6.5.5.D. Choix du cadre RGPD approuvé par l’exploitant.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md). Sept comptes confirmés, exploitant et six autres adultes, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
 
+La décision du 20 novembre porte le plafond à dix comptes (exploitant inclus). Le choix du cadre RGPD demeure celui de D01. [Cadrage actualisé](CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté).
+
 ## Sources officielles et portée
 
 Consultation du **05/11/2026** : [RGPD, art. 2/4 sur CNIL](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre1), [réponse CNIL sur les particuliers](https://www.cnil.fr/fr/cnil-direct/question/1817). L'exception vise une activité strictement personnelle/domestique ; un particulier peut être responsable du traitement. Le caractère non commercial ne remplace pas cette condition. La route [EUR-Lex demandée](https://eur-lex.europa.eu/eli/reg/2016/679/oj/fra) reste bloquée par une vérification antirobot ; le texte des articles a été lu sur CNIL, sans prétendre avoir relu le considérant 18 sur EUR-Lex.

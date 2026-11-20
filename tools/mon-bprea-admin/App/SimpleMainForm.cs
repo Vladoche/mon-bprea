@@ -26,7 +26,7 @@ internal sealed partial class SimpleMainForm : Form
         confirm = confirmation ?? ((text, title) => ConfirmationForm.Ask(this, text, title,
             title == "Confirmer la suppression" ? "Confirmer la suppression" : "Confirmer cette action"));
         copy = clipboard ?? (text => Clipboard.SetText(text));
-        Text = "Mon BPREA Admin 2.2" + (target.IsLocal ? " — QUALIFICATION LOCALE · COMPTES FICTIFS" : "");
+        Text = $"Mon BPREA Admin {Application.ProductVersion.Split('+')[0]}" + (target.IsLocal ? " — QUALIFICATION LOCALE · COMPTES FICTIFS" : "");
         Name = "MonBpreaAdminV2"; AccessibleName = Text;
         ClientSize = new Size(760, 650); MinimumSize = new Size(620, 560);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -89,7 +89,7 @@ internal sealed partial class SimpleMainForm : Form
     {
         AcceptButton = null;
         var page = Page("Que souhaites-tu faire ?", false);
-        page.Controls.Add(Button("Créer un compte", "CreateAccount", Create));
+        page.Controls.Add(Button("Créer un compte", "CreateAccount", () => _ = Run(Create)));
         page.Controls.Add(Button("Récupérer un compte", "RecoverAccount", () => _ = Accounts(false)));
         page.Controls.Add(Button("Supprimer un compte", "DeleteAccount", () => _ = Accounts(true)));
         AttachMessage(page);
@@ -112,10 +112,13 @@ internal sealed partial class SimpleMainForm : Form
         page.Controls.Add(validate); AttachMessage(page); AcceptButton = validate; key.Select();
     }
 
-    private void Create()
+    private async Task Create()
     {
+        var inventory = await workflow!.RefreshAsync();
         AcceptButton = null;
         var page = Page("Créer un compte");
+        page.Controls.Add(Label($"Places restantes pour les participants : {inventory.AvailableParticipantPlaces} (place exploitant réservée).",
+            "AvailableParticipantPlaces"));
         page.Controls.Add(Label("Adresse e-mail du camarade"));
         var email = Input("RecipientEmail"); email.AccessibleName = "Adresse e-mail du camarade"; page.Controls.Add(email);
         var create = Button("Créer le lien d’activation", "GenerateInvite", () => _ = Run(async () => {

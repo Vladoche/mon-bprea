@@ -25,7 +25,7 @@ const response = (type = 'invite') => {
     redirect_to: PROD_CALLBACK, action_link: action.href } };
 };
 function fixture(type = 'invite', users = []) {
-  const admin = { getSettings: vi.fn().mockResolvedValue(settings), listUsers: vi.fn().mockResolvedValue({ data: { users }, error: null }),
+  const admin = { getSettings: vi.fn().mockResolvedValue(settings), listUsers: vi.fn().mockResolvedValue({ data: { users }, total: users?.length, error: null }),
     generateLink: vi.fn().mockResolvedValue({ data: response(type), error: null }) };
   let unresolved = false;
   const store = { withLock: vi.fn(action => action()), read: vi.fn(async () => unresolved),
@@ -89,19 +89,19 @@ describe('administration PROD : refus avant toute écriture et confirmation indi
   it('le contrôle de configuration reste en lecture seule et ne retourne aucune donnée personnelle', async () => {
     const f = fixture('invite', otherUsers(2));
     expect(await checkProdConfiguration(f.options)).toEqual({ project: PROD_PROJECT, status: 'checked-read-only',
-      accounts: 2, capacity: 7, callback: PROD_CALLBACK, operatorPlaceReserved: false, authSettingsChecked: true });
+      accounts: 2, capacity: 10, callback: PROD_CALLBACK, operatorPlaceReserved: false, authSettingsChecked: true });
     expect(f.admin.generateLink).not.toHaveBeenCalled(); expect(f.store.reserve).not.toHaveBeenCalled();
     expect(f.options.deliver).not.toHaveBeenCalled();
   });
 
-  it('compte les invitations en attente et refuse une huitième invitation', async () => {
-    const full = fixture('invite', otherUsers(7));
+  it('compte les invitations en attente, permet le dixième compte et refuse le onzième', async () => {
+    const full = fixture('invite', otherUsers(10));
     await expect(full.run()).rejects.toMatchObject({ code: 'capacity' });
     expect(full.options.confirm).not.toHaveBeenCalled(); expect(full.admin.generateLink).not.toHaveBeenCalled();
-    const last = fixture('invite', otherUsers(6));
-    expect(await last.run()).toMatchObject({ accountsBefore: 6, status: 'delivered-private' });
-    const exceeded = fixture('recovery', [user, ...otherUsers(7)]);
-    await expect(exceeded.run()).rejects.toMatchObject({ code: 'capacity' });
+    const last = fixture('invite', otherUsers(9));
+    expect(await last.run()).toMatchObject({ accountsBefore: 9, status: 'delivered-private' });
+    const exceeded = fixture('recovery', [user, ...otherUsers(10)]);
+    await expect(exceeded.run()).rejects.toMatchObject({ code: 'capacity_exceeded' });
     expect(exceeded.admin.generateLink).not.toHaveBeenCalled();
   });
 
@@ -113,18 +113,18 @@ describe('administration PROD : refus avant toute écriture et confirmation indi
     }
   });
 
-  it('réserve la septième place à l’exploitant quand six autres comptes sont déjà présents', async () => {
-    const f = fixture('invite', otherUsers(6).map((account, index) => ({ ...account, email: `other-${index}@example.test` })));
+  it('réserve la dixième place à l’exploitant quand neuf autres comptes sont présents', async () => {
+    const f = fixture('invite', otherUsers(9).map((account, index) => ({ ...account, email: `other-${index}@example.test` })));
     await expect(f.run()).rejects.toMatchObject({ code: 'capacity' });
     expect(f.admin.generateLink).not.toHaveBeenCalled();
     f.options.env = { ...env, SUPABASE_PROD_OPERATOR_EMAIL: email };
-    expect(await f.run()).toMatchObject({ accountsBefore: 6, status: 'delivered-private' });
+    expect(await f.run()).toMatchObject({ accountsBefore: 9, status: 'delivered-private' });
   });
 
   it('une modification de l’inventaire pendant la confirmation bloque toute génération', async () => {
     const f = fixture();
-    f.admin.listUsers.mockResolvedValueOnce({ data: { users: [] } })
-      .mockResolvedValueOnce({ data: { users: otherUsers(1) } });
+    f.admin.listUsers.mockResolvedValueOnce({ data: { users: [] }, total: 0 })
+      .mockResolvedValueOnce({ data: { users: otherUsers(1) }, total: 1 });
     await expect(f.run()).rejects.toMatchObject({ code: 'lookup' });
     expect(f.store.reserve).not.toHaveBeenCalled(); expect(f.admin.generateLink).not.toHaveBeenCalled();
   });
@@ -147,20 +147,25 @@ describe('administration PROD : refus avant toute écriture et confirmation indi
     expect(f.options.confirm).toHaveBeenCalledOnce(); expect(f.admin.generateLink).not.toHaveBeenCalled();
   });
 
-  it('la récupération exige un compte confirmé et reste possible à sept comptes', async () => {
+  it('la récupération exige un compte confirmé et reste possible à dix comptes', async () => {
     for (const users of [[], [{ ...user, email_confirmed_at: null }], [{ ...user, email_confirmed_at: 'invalid' }]]) {
       const f = fixture('recovery', users);
       await expect(f.run()).rejects.toMatchObject({ code: 'missing' }); expect(f.admin.generateLink).not.toHaveBeenCalled();
     }
-    const f = fixture('recovery', [user, ...otherUsers(6)]);
-    expect(await f.run()).toMatchObject({ type: 'recovery', accountsBefore: 7 });
+    const f = fixture('recovery', [user, ...otherUsers(9)]);
+    expect(await f.run()).toMatchObject({ type: 'recovery', accountsBefore: 10 });
   });
 
   it('un inventaire incomplet, ambigu ou indisponible bloque la génération', async () => {
     for (const users of [null, [{ id: 'invalid', email }], [user, { ...user }],
       [user, { ...otherUsers(1)[0], email: email.toUpperCase() }], [{ ...user, email: 'malformed' }]]) {
-      const f = fixture(); f.admin.listUsers.mockResolvedValue({ data: { users }, error: null });
+      const f = fixture(); f.admin.listUsers.mockResolvedValue({ data: { users }, total: users?.length, error: null });
       await expect(f.run()).rejects.toMatchObject({ code: 'lookup' }); expect(f.admin.generateLink).not.toHaveBeenCalled();
+    }
+    for (const page of [{}, { total: 2 }, { total: 1, hasNextPage: true }, { total: 1, data: { users: [user], last_page: 2 } }]) {
+      const f = fixture(); f.admin.listUsers.mockResolvedValue({ data: { users: [user] }, ...page });
+      await expect(f.run()).rejects.toMatchObject({ code: 'lookup' });
+      expect(f.store.reserve).not.toHaveBeenCalled(); expect(f.admin.generateLink).not.toHaveBeenCalled();
     }
     const f = fixture(); f.admin.listUsers.mockRejectedValue(new Error(`${key} ${token}`));
     await expect(f.run()).rejects.toMatchObject({ code: 'lookup' }); expect(f.options.deliver).not.toHaveBeenCalled();
@@ -221,7 +226,7 @@ describe('administration PROD : validation du lien et verrou du transport', () =
       if (url.pathname === '/auth/v1/settings') return new Response(JSON.stringify(settings),
         { status: 200, headers: { 'Content-Type': 'application/json' } });
       if (url.pathname === '/auth/v1/admin/users') return new Response(JSON.stringify({ users: [], aud: 'authenticated' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } });
+        { status: 200, headers: { 'Content-Type': 'application/json', 'x-total-count': '0' } });
       const data = response(type);
       return new Response(JSON.stringify({ ...data.user, ...data.properties }),
         { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -229,7 +234,8 @@ describe('administration PROD : validation du lien et verrou du transport', () =
     vi.stubGlobal('fetch', fetcher);
     const admin = createProdLinkAdmin(env, { type, email, runtime });
     expect((await admin.getSettings()).disable_signup).toBe(true);
-    expect((await admin.listUsers({ page: 1, perPage: 8 })).error).toBeNull();
+    expect(await inspectProdAccounts(admin)).toMatchObject({ count: 0 });
+    expect(new URL(fetcher.mock.calls[1][0]).search).toBe('?page=1&per_page=11');
     const result = await admin.generateLink({ type, email, options: { redirectTo: PROD_CALLBACK } });
     expect(result.error).toBeNull();
     expect(() => buildProdManualLink(result.data, { type, email })).not.toThrow();
@@ -265,10 +271,11 @@ describe('administration PROD : validation du lien et verrou du transport', () =
     const request = prodAdminFetch({ type: 'invite', email, fetcher });
     for (const target of ['http://127.0.0.1:54321/auth/v1/admin/generate_link',
       'https://wcckbyhrtroittbfophv.supabase.co/auth/v1/admin/generate_link', `${PROD_API}/rest/v1/profiles`,
-      `${PROD_API}/auth/v1/admin/users/${user.id}`, `${PROD_API}/auth/v1/admin/users?page=2&per_page=8`])
+      `${PROD_API}/auth/v1/admin/users/${user.id}`, `${PROD_API}/auth/v1/admin/users?page=2&per_page=11`])
       await expect(request(target, { method: 'GET' })).rejects.toThrow();
     expect(fetcher).not.toHaveBeenCalled();
-    await request(`${PROD_API}/auth/v1/admin/users?page=1&per_page=8`);
+    await expect(request(`${PROD_API}/auth/v1/admin/users?page=1&per_page=8`)).rejects.toThrow();
+    await request(`${PROD_API}/auth/v1/admin/users?page=1&per_page=11`);
     expect(fetcher.mock.calls[0][1]).toMatchObject({ redirect: 'error', signal: expect.any(AbortSignal) });
   });
 

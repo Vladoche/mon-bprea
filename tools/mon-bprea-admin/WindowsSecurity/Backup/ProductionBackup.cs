@@ -182,6 +182,8 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         return result;
     }
 
+    public bool IsOperatorPresent(AccountInventory inventory) => history.IsOperatorPresent(inventory);
+
     public async Task RequireReadyAsync(AccountInventory inventory)
     {
         try

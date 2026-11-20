@@ -15,13 +15,16 @@ import { protectDirectory } from '../../../scripts/dev-recipe/private-files.mjs'
 const root = resolve('.');
 const finalCampaign = process.argv.includes('--final-campaign');
 const invitationCampaign = process.argv.includes('--invitation-campaign');
+const capacityCampaign = process.argv.includes('--capacity-campaign');
 const renewal = process.argv.find(arg => /^--renewal-otp=(45|60|86400)$/.test(arg));
 const renewalExpiry = renewal?.split('=')[1];
-assert.ok([finalCampaign, invitationCampaign, Boolean(renewal)].filter(Boolean).length <= 1);
+assert.ok([finalCampaign, invitationCampaign, capacityCampaign, Boolean(renewal)].filter(Boolean).length <= 1);
 const campaign = renewal ? join(root, '.tmp/admin-22', 'otp-' + renewalExpiry)
+  : capacityCampaign ? join(root, '.tmp/admin-23-capacity')
   : invitationCampaign ? join(root, '.tmp/premiere-invitation-prod/qualification')
   : join(root, '.tmp/mon-bprea-admin-v2', ...(finalCampaign ? ['final-qualification'] : []));
 const localProject = renewal ? 'mon-bprea-admin-22-otp-' + renewalExpiry
+  : capacityCampaign ? 'mon-bprea-admin-23-capacity-local'
   : invitationCampaign ? 'mon-bprea-admin-v2-invitation-local'
   : finalCampaign ? 'mon-bprea-admin-v2-final-local' : 'mon-bprea-admin-v2-local';
 const container = 'supabase_db_' + localProject;
@@ -49,7 +52,7 @@ const q = id => { assert.match(id, /^[a-f0-9]{8}-[a-f0-9-]{27}$/); return `'${id
 const counts = (id, query = read) => Object.fromEntries(POLICY.tables.map(t => [t, Number(query(`select count(*) from public.${t} where ${t === 'profiles' ? 'id' : 'user_id'}=${q(id)}`))]));
 const allRows = query => Object.fromEntries(POLICY.tables.map(t => [t, JSON.parse(query(`select coalesce(jsonb_agg(to_jsonb(d) order by to_jsonb(d)::text),'[]') from public.${t} d`))]));
 const resume = process.argv.includes('--resume');
-assert.ok(process.argv.slice(2).every(arg => ['--resume', '--final-campaign', '--invitation-campaign', renewal].includes(arg)));
+assert.ok(process.argv.slice(2).every(arg => ['--resume', '--final-campaign', '--invitation-campaign', '--capacity-campaign', renewal].includes(arg)));
 const privateDirectory = join(campaign, 'private');
 if (!existsSync(privateDirectory)) { mkdirSync(privateDirectory); protectDirectory(privateDirectory); }
 const stateFile = join(privateDirectory, 'session.private.json');
