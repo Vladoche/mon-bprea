@@ -53,7 +53,7 @@ select is((select array_agg(attname::text order by attnum) from pg_attribute whe
 select is((select array_agg(attname::text order by attnum) from pg_attribute where attrelid='public.itk_settings'::regclass and attnum>0 and not attisdropped),
   array['user_id','parameters','operation_id','base_revision','revision','schema_version','created_at','updated_at'],'ITK singleton de paramètres');
 select is((select array_agg(attname::text order by attnum) from pg_attribute where attrelid='public.appearance_preferences'::regclass and attnum>0 and not attisdropped),
-  array['user_id','season','brightness','client_updated_at','operation_id','base_revision','revision','schema_version','created_at','updated_at'],'Préférences persistantes sans rendu instantané');
+  array['user_id','season','brightness','client_updated_at','operation_id','base_revision','revision','schema_version','created_at','updated_at','color_mode','custom_color'],'Préférences persistantes sans rendu instantané');
 select is((select array_agg(format_type(atttypid,atttypmod) order by attnum) from pg_attribute
   where attrelid=('public.'||name)::regclass and attnum>0 and not attisdropped),types,'Types SQL exacts : '||name)
   from (values
@@ -62,7 +62,7 @@ select is((select array_agg(format_type(atttypid,atttypmod) order by attnum) fro
     ('botanical_sessions',array['uuid','text','text','text','numeric','boolean','timestamp with time zone','integer','timestamp with time zone','uuid','bigint','bigint','integer','timestamp with time zone','timestamp with time zone']),
     ('botanical_answers',array['uuid','text','text','text','text','text','text','text','boolean','text','text','boolean','bigint','timestamp with time zone','integer','timestamp with time zone']),
     ('itk_settings',array['uuid','jsonb','uuid','bigint','bigint','integer','timestamp with time zone','timestamp with time zone']),
-    ('appearance_preferences',array['uuid','text','text','timestamp with time zone','uuid','bigint','bigint','integer','timestamp with time zone','timestamp with time zone'])
+    ('appearance_preferences',array['uuid','text','text','timestamp with time zone','uuid','bigint','bigint','integer','timestamp with time zone','timestamp with time zone','text','text'])
   ) expected(name,types);
 select ok(not exists(select 1 from pg_attribute where attrelid=('public.'||name)::regclass and attnum>0 and not attisdropped
   and attnotnull=(attname::text=any(nullable))),'Colonnes obligatoires et facultatives exactes : '||name)
@@ -70,7 +70,7 @@ select ok(not exists(select 1 from pg_attribute where attrelid=('public.'||name)
     ('course_states',array['best_score','legacy_score','legacy_total']),
     ('quiz_attempts',array[]::text[]),('botanical_sessions',array['completed_at']),
     ('botanical_answers',array['selected_species_id']),('itk_settings',array[]::text[]),
-    ('appearance_preferences',array['client_updated_at'])
+    ('appearance_preferences',array['client_updated_at','custom_color'])
   ) expected(name,nullable);
 select is((select pg_get_constraintdef(oid) from pg_constraint where conrelid=('public.'||name)::regclass and contype='p'),definition,
   'Clé primaire métier exacte : '||name)
@@ -88,7 +88,7 @@ select is((select coalesce(array_agg(attname::text order by attnum),'{}'::text[]
     ('botanical_sessions',array['session_id','category_id','mode','duration_seconds','is_revision','started_at','total_questions','completed_at','operation_id','base_revision']),
     ('botanical_answers',array['answer_id','session_id','question_id','category_id','species_id','photo_id','mode','is_revision','status','selected_species_id','correct','elapsed_ms','answered_at']),
     ('itk_settings',array['parameters','operation_id','base_revision']),
-    ('appearance_preferences',array['season','brightness','client_updated_at','operation_id','base_revision'])
+    ('appearance_preferences',array['season','brightness','client_updated_at','operation_id','base_revision','color_mode','custom_color'])
   ) expected(name,writable);
 select is((select coalesce(array_agg(attname::text order by attnum),'{}'::text[]) from pg_attribute
   where attrelid=('public.'||name)::regclass and attnum>0 and not attisdropped and has_column_privilege('authenticated',attrelid,attnum,'UPDATE')),
@@ -97,7 +97,7 @@ select is((select coalesce(array_agg(attname::text order by attnum),'{}'::text[]
     ('course_states',array['done','best_score','legacy_score','legacy_total','operation_id','base_revision']),
     ('quiz_attempts',array[]::text[]),('botanical_sessions',array['completed_at','operation_id','base_revision']),
     ('botanical_answers',array[]::text[]),('itk_settings',array['parameters','operation_id','base_revision']),
-    ('appearance_preferences',array['season','brightness','client_updated_at','operation_id','base_revision'])
+    ('appearance_preferences',array['season','brightness','client_updated_at','operation_id','base_revision','color_mode','custom_color'])
   ) expected(name,writable);
 select ok(not has_table_privilege('service_role','public.'||name,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')
   and not has_any_column_privilege('service_role','public.'||name,'SELECT,INSERT,UPDATE,REFERENCES'),'Aucun privilège administratif applicatif ajouté : '||name)
@@ -232,6 +232,8 @@ select throws_ok($$select public.personal_save_itk((select itk||'{"area":"100.5"
 
 select is(public.personal_save_appearance((select appearance from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000050',0)->>'status','inserted','Préférences auto sans date ancienne créées');
 select is((select client_updated_at from public.appearance_preferences),null::timestamptz,'Aucune date appareil inventée');
+select is((select color_mode from public.appearance_preferences),'seasonal','Palette saisonnière sur une écriture historique');
+select is((select custom_color from public.appearance_preferences),null::text,'Aucune couleur inventée pour une préférence historique');
 select is(public.personal_save_appearance((select appearance from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000050',0)->>'status','replayed','Retry apparence exact');
 select is(public.personal_save_appearance('{"version":1,"season":"winter","brightness":"dark","updatedAt":"2026-10-21T12:00:00.000Z"}','63100000-0000-4000-8000-000000000051',1)->>'status','updated','Préférence explicite modifiable');
 select is(public.personal_save_appearance((select appearance from pg_temp.personal_test_payloads),'63100000-0000-4000-8000-000000000052',1)->>'status','conflict','Conflit apparence préserve le choix gagnant');

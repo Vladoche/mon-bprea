@@ -1,6 +1,6 @@
 import { crops } from './content.js';
 import { validUUID } from './course-quiz-model.js';
-import { TABLES } from './export-sources.js';
+import { TABLES, appearanceColorColumns } from './export-sources.js';
 export const clone = value => structuredClone(value);
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const safe = value => Number.isSafeInteger(value) && value >= 0;
@@ -52,9 +52,13 @@ export function validateItk(value) {
     validArea(value.area) && /^([1-9]|1[0-2])$/.test(value.month) && /^(202[6-9]|203[0-3])$/.test(value.year);
 }
 export function validateAppearance(value) {
-  return keys(value, ['version', 'season', 'brightness', 'updatedAt'], ['version', 'season', 'brightness']) && value.version === 1 &&
-    ['auto', 'spring', 'summer', 'autumn', 'winter'].includes(value.season) && ['auto', 'light', 'dark'].includes(value.brightness) &&
-    (!Object.hasOwn(value, 'updatedAt') || value.updatedAt === null || utc(value.updatedAt));
+  if (!keys(value, ['version', 'season', 'brightness', 'updatedAt', 'colorMode', 'customColor'], ['version', 'season', 'brightness']) ||
+    value.version !== 1 || !['auto', 'spring', 'summer', 'autumn', 'winter'].includes(value.season) ||
+    !['auto', 'light', 'dark'].includes(value.brightness) ||
+    Object.hasOwn(value, 'updatedAt') && value.updatedAt !== null && !utc(value.updatedAt)) return false;
+  if (!Object.hasOwn(value, 'colorMode') && !Object.hasOwn(value, 'customColor')) return true;
+  const validHex = typeof value.customColor === 'string' && /^#[0-9a-f]{6}$/.test(value.customColor);
+  return value.colorMode === 'custom' ? validHex : value.colorMode === 'seasonal' && (validHex || value.customColor === null);
 }
 export const validateValue = (domain, value) => domain === 'itk' ? validateItk(value) : domain === 'appearance' && validateAppearance(value);
 export class SettingsSyncError extends Error {
@@ -69,12 +73,20 @@ export const valueField = domain => domain === 'itk' ? 'p_parameters' : 'p_prefe
 export function valueFromRow(domain, row) {
   if (!row) return null;
   if (domain === 'itk') return clone(row.parameters);
-  protocol(row.client_updated_at === null || typeof row.client_updated_at === 'string');
-    if (row.client_updated_at === null) return { version: 1, season: row.season, brightness: row.brightness };
+  const value = { version: 1, season: row.season, brightness: row.brightness };
+  if (Object.hasOwn(row, 'color_mode') || Object.hasOwn(row, 'custom_color')) {
+    protocol(Object.hasOwn(row, 'color_mode') && Object.hasOwn(row, 'custom_color'));
+    // The default is equivalent to an old record, including in preserved queues.
+    if (row.color_mode !== 'seasonal' || row.custom_color !== null) {
+      value.colorMode = row.color_mode;
+      value.customColor = row.custom_color;
+    }
+  }
+  if (row.client_updated_at === null) return value;
   protocol(timestamp(row.client_updated_at));
   const utcValue = new Date(row.client_updated_at).toISOString().slice(0, 19);
   const fraction = row.client_updated_at.match(/\.(\d+)/)?.[1];
-  return { version: 1, season: row.season, brightness: row.brightness, updatedAt: `${utcValue}${fraction ? '.' + fraction : ''}Z` };
+  return { ...value, updatedAt: `${utcValue}${fraction ? '.' + fraction : ''}Z` };
 }
 export function validateRow(domain, row, userId) {
   protocol(domains.includes(domain) && record(row) && row.user_id === userId && row.schema_version === 1 && validUUID(row.operation_id) &&
@@ -144,7 +156,8 @@ function archiveOperation(document, kind, operation, details = {}) {
 function compactableConflict(item) {
   const columns = TABLES[item.domain === 'itk' ? 'itk_settings' : 'appearance_preferences'].fields;
   return keys(item, conflictFields) && compactable(item.operation) && item.operation.id === item.id && item.operation.domain === item.domain &&
-    ['remote', 'local'].includes(item.resolution) && (item.remote === null || keys(item.remote, columns));
+    ['remote', 'local'].includes(item.resolution) && (item.remote === null || keys(item.remote, columns) ||
+      item.domain === 'appearance' && keys(item.remote, [...columns, ...appearanceColorColumns]));
 }
 function rebuild(document) {
   for (const domain of domains) {
@@ -199,7 +212,9 @@ export function queueSettings(document, domain, value, randomUUID = () => global
 function matches(op, row) {
   const value = op.payload[valueField(op.domain)];
   return row.operation_id === op.id && row.base_revision === op.expectedRevision && row.revision === op.expectedRevision + 1 &&
-    (op.domain === 'itk' ? equal(value, row.parameters) : row.season === value.season && row.brightness === value.brightness && sameTime(row.client_updated_at, value.updatedAt));
+    (op.domain === 'itk' ? equal(value, row.parameters) : row.season === value.season && row.brightness === value.brightness &&
+      (!Object.hasOwn(value, 'colorMode') || value.colorMode === row.color_mode && value.customColor === row.custom_color) &&
+      sameTime(row.client_updated_at, value.updatedAt));
 }
 function conflict(document, op, row) {
   if (!document.conflicts.some(item => item.id === op.id)) document.conflicts.push({ id: op.id, domain: op.domain, operation: clone(op), local: clone(op.payload[valueField(op.domain)]), remote: clone(row), resolved: false });
@@ -211,7 +226,16 @@ function conflict(document, op, row) {
 function merge(document, domain, row) {
   const previous = document.remote[domain];
   if (previous && previous.revision > row.revision) return;
-  if (previous?.revision === row.revision) protocol(equal(previous, row));
+  if (previous?.revision === row.revision) {
+    if (domain === 'appearance' && Object.hasOwn(previous, 'color_mode') !== Object.hasOwn(row, 'color_mode')) {
+      const richer = Object.hasOwn(row, 'color_mode') ? row : previous;
+      const { color_mode, custom_color, ...base } = richer;
+      protocol(equal(base, richer === row ? previous : row));
+      document.remote[domain] = clone(richer);
+      return;
+    }
+    protocol(equal(previous, row));
+  }
   document.remote[domain] = clone(row);
 }
 export function reconcileSettings(document, remote, userId, at) {
@@ -248,7 +272,11 @@ export function acknowledgeSettings(document, id, response, userId) {
   if (response.status === 'conflict') { conflict(document, op, response.row); if (response.row) merge(document, op.domain, response.row); }
   else {
     protocol(response.row && matches(op, response.row) && (response.status === 'replayed' || response.status === (op.expectedRevision === 0 ? 'inserted' : 'updated')));
-    op.state = 'confirmed'; op.error = null; merge(document, op.domain, response.row);
+    let row = response.row;
+    const previous = document.remote[op.domain];
+    if (op.domain === 'appearance' && !Object.hasOwn(row, 'color_mode') && previous?.revision === op.expectedRevision && Object.hasOwn(previous, 'color_mode'))
+      row = { ...row, color_mode: previous.color_mode, custom_color: previous.custom_color };
+    op.state = 'confirmed'; op.error = null; merge(document, op.domain, row);
   }
   rebuild(document); prune(document);
 }

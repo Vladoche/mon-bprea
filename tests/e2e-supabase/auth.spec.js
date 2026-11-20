@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { courseQuizAction } from '../helpers/course-quiz-browser.js';
 import {
   configureLocalAuthPage, createLocalAuthFixture, getLocalSupabaseEnvironment,
   LOCAL_SITE, openCapturedLink,
@@ -95,7 +96,8 @@ test('Supabase local réel : invitation, activation, profil, session, déconnexi
     await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'Régler l’apparence', exact: true })).toBeFocused();
-    await expect(main.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
+    await expect(main.locator('#donnees-synchronisation, [data-course-quiz-settings]')).toHaveCount(0);
+    await expect.poll(async () => (await courseQuizAction(page, 'getState')).sync.state).toBe('synced');
     await expect(main.getByRole('link', { name: 'Confidentialité', exact: true })).toHaveAttribute('href', 'confidentialite.html');
     await expect(main.locator('.data-export, .data-restore, .data-erasure, [data-closure-form], input[type="file"]')).toHaveCount(0);
 

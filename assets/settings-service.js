@@ -27,7 +27,10 @@ export function readSettingsSource(domain, storage, { archived = false } = {}) {
     let parsed; try { parsed = JSON.parse(raw); } catch { return { raw, source, value: null, error: 'Le document local est illisible. Il est conservé sans modification.' }; }
     let value = parsed;
     if (domain === 'appearance' && record(parsed)) {
-      value = { version: parsed.version, season: parsed.season, brightness: parsed.brightness, ...(Object.hasOwn(parsed, 'updatedAt') ? { updatedAt: parsed.updatedAt } : {}) };
+      value = { version: parsed.version, season: parsed.season, brightness: parsed.brightness,
+        ...(Object.hasOwn(parsed, 'updatedAt') ? { updatedAt: parsed.updatedAt } : {}),
+        ...(Object.hasOwn(parsed, 'colorMode') || Object.hasOwn(parsed, 'customColor')
+          ? { colorMode: parsed.colorMode, customColor: parsed.customColor } : {}) };
     }
     if (!validateValue(domain, value)) return { raw, source, value: null, error: domain === 'itk' ? 'Les paramètres locaux sont invalides pour le catalogue et les années 2026 à 2033. La source reste intacte.' : 'Les préférences locales sont inconnues ou invalides. Le document et ses archives restent intacts.' };
     return { raw, source, value, error: null };
@@ -118,6 +121,15 @@ export function createSettingsService({ auth, configuration, repositoryFactory =
             await repo.change(saved => acknowledgeSettings(saved, operation.id, response, userId), options.active);
           } catch (issue) {
             if (!active(current)) return;
+            if (issue.code === 'appearance_schema_pending') {
+              // Keep the exact intention for the upgraded backend and let ITK
+              // continue draining while we wait for the next schema read.
+              await repo.change(saved => {
+                const op = saved.operations.find(item => item.id === operation.id && item.state === 'pending');
+                if (op) { op.retryAt = now() + 60000; op.error = issue.code; }
+              }, options.active);
+              continue;
+            }
             const classified = classifySettingsError(issue);
             if (issue.code === 'local_storage' || classified.kind !== 'permanent') throw issue;
             // One invalid domain does not stop another domain's durable outbox.

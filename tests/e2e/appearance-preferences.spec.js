@@ -54,7 +54,7 @@ test('thème mémorisé disponible avant les CSS et avant toute vérification r�
   expect(privateRequests).toEqual([]);
 });
 
-test('dialogue clavier, choix de page distinct, priorité de la reprise et archives intactes', async ({ page }, testInfo) => {
+test('dialogue clavier, choix de page distinct et archives intactes', async ({ page }, testInfo) => {
   const histories = {
     [LEGACY]: 'dark',
     [ARCHIVED]: '{"version":1,"season":"spring","brightness":"light","future":{"preserve":true}}',
@@ -66,7 +66,7 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
   await seed(page, histories);
   await page.goto('/mon-bprea/profil.html#parametres');
   await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
-  await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
+  await expect(page.locator('#appearance-save')).toBeEmpty();
   await expect(page.locator('html')).toHaveAttribute('data-season', 'autumn');
   await openAppearance(page).focus();
   await page.keyboard.press('Enter');
@@ -83,9 +83,10 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
   await expect(season).toBeFocused();
   await page.keyboard.press('Shift+Tab');
   await expect(close).toBeFocused();
-  await dialog.getByRole('button', { name: 'Reprendre une ancienne apparence' }).press('Enter');
-  await expect(season).toHaveValue('spring');
-  await expect(brightness).toHaveValue('light');
+  await expect(dialog.getByRole('button', { name: /import|ancienne apparence/i })).toHaveCount(0);
+  await expect(dialog.locator('#appearance-current, #appearance-season-help, #appearance-time-help')).toHaveCount(0);
+  await expect(season).toHaveValue('auto');
+  await expect(brightness).toHaveValue('auto');
   await close.focus();
   await page.keyboard.press('Tab');
   await expect(season).toBeFocused();
@@ -95,7 +96,7 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
   await expect(brightness).toBeFocused();
   await page.keyboard.press('End');
   await expect(brightness).toHaveValue('dark');
-  await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
+  await expect(page.locator('#appearance-save')).toHaveText('Choix non mémorisé sur cet appareil.');
   expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBeNull();
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-season', 'autumn');
@@ -110,6 +111,8 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       await brightness.focus();
       await page.keyboard.press('Tab');
+      await expect(dialog.getByRole('combobox', { name: 'Couleurs' })).toBeFocused();
+      await page.keyboard.press('Tab');
       await expect(remember).toBeFocused();
       expect(await remember.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -117,7 +120,7 @@ test('dialogue clavier, choix de page distinct, priorité de la reprise et archi
     }
   }
   await remember.press('Enter');
-  await expect(page.locator('#appearance-save')).toHaveText('Apparence mémorisée sur cet appareil.');
+  await expect(page.locator('#appearance-save')).toBeEmpty();
   await dialog.screenshot({ path: testInfo.outputPath('appearance-remembered.png'), animations: 'disabled' });
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
@@ -135,7 +138,7 @@ test('auto reste auto pendant les seuils horaires, saisons et changements d’he
   await seed(page, { [ARCHIVED]: original });
   await page.goto('/mon-bprea/profil.html#parametres');
   await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
-  await expect(page.locator('#appearance-save')).toHaveText('Choix de cette page.');
+  await expect(page.locator('#appearance-save')).toBeEmpty();
   for (const [instant, season, time, theme] of [
     ['2026-02-28T22:59:00.000Z', 'winter', 'night', 'dark'],
     ['2026-03-01T05:00:00.000Z', 'spring', 'morning', 'light'],
@@ -175,7 +178,7 @@ test('erreur de stockage : choix temporaire visible, sauvegarde et anciennes cl�
     };
   }, { key: KEY, legacy: LEGACY, original });
   await page.goto('/mon-bprea/profil.html#parametres');
-  await expect(page.locator('#appearance-save')).toHaveText('Apparence mémorisée sur cet appareil.');
+  await expect(page.locator('#appearance-save')).toBeEmpty();
   await openAppearance(page).click();
   await dialogFor(page).getByRole('combobox', { name: 'Luminosité', exact: true }).selectOption('dark');
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');

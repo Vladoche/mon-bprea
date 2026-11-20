@@ -1,6 +1,7 @@
 // Explicit contracts: never SELECT *, enumerate accounts, or serialize SDK state.
 export const MAX_BYTES = 20 * 1024 * 1024;
 export const MAX_ROWS = 100000;
+export const appearanceColorColumns = Object.freeze(['color_mode', 'custom_color']);
 const table = (fields, key, inventory, owner = 'user_id', time = null) => ({ fields: fields.split(','), key, owner, time, inventory });
 export const TABLES = Object.freeze({
   profiles: table('id,pseudo,created_at,updated_at', 'id', 'A05', 'id'),
@@ -12,7 +13,10 @@ export const TABLES = Object.freeze({
   botanical_sessions: table('user_id,session_id,category_id,mode,duration_seconds,is_revision,started_at,total_questions,completed_at,operation_id,base_revision,revision,schema_version,created_at,updated_at', 'session_id', 'B04'),
   botanical_answers: table('user_id,answer_id,session_id,question_id,category_id,species_id,photo_id,mode,is_revision,status,selected_species_id,correct,elapsed_ms,answered_at,schema_version,created_at', 'answer_id', 'B05', 'user_id', 'created_at'),
   itk_settings: table('user_id,parameters,operation_id,base_revision,revision,schema_version,created_at,updated_at', 'user_id', 'I02'),
-  appearance_preferences: table('user_id,season,brightness,client_updated_at,operation_id,base_revision,revision,schema_version,created_at,updated_at', 'user_id', 'P03'),
+  appearance_preferences: {
+    ...table('user_id,season,brightness,client_updated_at,operation_id,base_revision,revision,schema_version,created_at,updated_at', 'user_id', 'P03'),
+    optionalFields: appearanceColorColumns,
+  },
 });
 export const CACHES = Object.freeze({
   drill: 'mon-bprea-drill-personal-v1', courses: 'mon-bprea-course-quiz-personal-v1',

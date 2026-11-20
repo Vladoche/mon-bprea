@@ -33,6 +33,7 @@ export const rowKey = (name, row) => row[({ profiles: 'id', drill_series: 'serie
 const own = (value, key) => value && Object.hasOwn(value, key) ? value[key] : undefined;
 const sameTime = (a, b) => a == null || b == null ? a === b : botanical.normalizeTimestamp(a, true) === botanical.normalizeTimestamp(b, true);
 export function business(name, row) {
+  if (name === 'appearance_preferences') row = { color_mode: 'seasonal', custom_color: null, ...row };
   const excluded = new Set(['created_at', 'updated_at', 'operation_id', 'revision', 'base_revision', 'schema_version', 'user_id']);
   if (name.startsWith('drill_')) excluded.delete('operation_id');
   if (name === 'quiz_attempts') excluded.delete('attempt_id');
@@ -186,7 +187,8 @@ export function rowFromOperation(domain, op, file) {
     : { name: 'course_states', row: { user_id, lesson_id: p.p_lesson_id, done: p.p_done, best_score: p.p_best_score, legacy_score: p.p_legacy_score, legacy_total: p.p_legacy_total, operation_id: op.id, base_revision: p.p_expected_revision, revision: p.p_expected_revision + 1 } };
   if (domain === 'settings') return { name: op.domain === 'itk' ? 'itk_settings' : 'appearance_preferences', row: { user_id, operation_id: op.id,
     base_revision: op.expectedRevision, revision: op.expectedRevision + 1, ...(op.domain === 'itk' ? { parameters: p.p_parameters }
-      : { season: p.p_preferences.season, brightness: p.p_preferences.brightness, client_updated_at: p.p_preferences.updatedAt ?? null }) } };
+      : { season: p.p_preferences.season, brightness: p.p_preferences.brightness, client_updated_at: p.p_preferences.updatedAt ?? null,
+        ...(Object.hasOwn(p.p_preferences, 'colorMode') ? { color_mode: p.p_preferences.colorMode, custom_color: p.p_preferences.customColor } : {}) }) } };
   if (domain === 'botanical') {
     const v = op.type === 'answer' ? p.p_answer : p.p_session;
     return op.type === 'answer' ? { name: 'botanical_answers', row: { user_id, answer_id: v.id, session_id: v.sessionId, question_id: v.questionId, category_id: v.categoryId,

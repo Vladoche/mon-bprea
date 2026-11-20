@@ -21,6 +21,25 @@ describe('contrat singletons ITK/apparence', () => {
     expect(validateAppearance({ ...appearance, dataTheme: 'dark' })).toBe(false);
     expect(validateAppearance({ ...appearance, season: 'night' })).toBe(false);
   });
+  it('rejoint une ligne historique et sa lecture chromatique, puis exige la couleur exacte sur un acquittement', () => {
+    const doc = emptySettingsDocument(scope);
+    queueSettings(doc, 'appearance', appearance, uuid);
+    const first = prepareSettingsOperation(doc, 0);
+    const { version, ...legacy } = row(first);
+    acknowledgeSettings(doc, first.id, { status: 'inserted', row: legacy }, user);
+    reconcileSettings(doc, { appearance: { ...legacy, color_mode: 'seasonal', custom_color: null }, itk: null }, user, at);
+    expect(doc.values.appearance).toEqual(appearance);
+
+    const custom = { ...appearance, colorMode: 'custom', customColor: '#ff00ff' };
+    queueSettings(doc, 'appearance', custom, uuid);
+    const next = prepareSettingsOperation(doc, 0);
+    const response = { ...doc.remote.appearance, color_mode: 'custom', custom_color: '#ffffff', operation_id: next.id, base_revision: 1, revision: 2 };
+    expect(() => acknowledgeSettings(doc, next.id, { status: 'updated', row: response }, user)).toThrow();
+    expect(prepareSettingsOperation(doc, 0).rpcPayload).toEqual(next.rpcPayload);
+    acknowledgeSettings(doc, next.id, { status: 'updated', row: { ...response, custom_color: custom.customColor } }, user);
+    expect(validateSettingsDocument(doc, scope).values.appearance).toEqual(custom);
+    expect(validateAppearance({ ...custom, customColor: null })).toBe(false);
+  });
   it('garde une preuve minimale de l’intention remplacée sans réutiliser son UUID', () => {
     const doc = emptySettingsDocument(scope);
     const first = queueSettings(doc, 'appearance', { ...appearance, season: 'winter' }, uuid);

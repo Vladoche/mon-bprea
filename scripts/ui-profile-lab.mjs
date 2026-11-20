@@ -25,11 +25,24 @@ export async function seedProfileLab(context, siteUrl, { account = 'A', brightne
   const api = createCourseQuizAPI();
   api.profiles.set(accounts.A.id, nickname);
   await api.install(context, account, JSON.stringify({ 'matiere-organique': { done: true } }), siteUrl);
+  let appearanceRow = null;
+  const respond = (route, data) => route.fulfill({ json: data, headers: { 'access-control-allow-origin': '*' } });
+  await context.route(`${apiOrigin}/rest/v1/appearance_preferences?**`, route => {
+    if (route.request().method() !== 'GET') return route.fallback();
+    if (api.restOffline) return route.abort('failed');
+    if (!appearanceRow) return respond(route, []);
+    const { color_mode, custom_color, ...legacy } = appearanceRow;
+    const fields = new URL(route.request().url()).searchParams.get('select');
+    return respond(route, [fields.includes('color_mode') ? appearanceRow : legacy]);
+  });
   await context.route(`${apiOrigin}/rest/v1/rpc/personal_save_appearance`, route => {
     if (route.request().method() === 'OPTIONS') return route.fallback();
+    if (api.restOffline) return route.abort('failed');
     const value = route.request().postDataJSON();
-    const row = settingsRow('appearance', value.p_preferences, accounts[account].id, value.p_operation_id, value.p_expected_revision);
-    return route.fulfill({ json: { status: 'inserted', row }, headers: { 'access-control-allow-origin': '*' } });
+    const previous = appearanceRow;
+    if (value.p_expected_revision !== (previous?.revision || 0)) return respond(route, { status: 'conflict', row: previous });
+    appearanceRow = settingsRow('appearance', value.p_preferences, accounts[account].id, value.p_operation_id, value.p_expected_revision);
+    return respond(route, { status: previous ? 'updated' : 'inserted', row: appearanceRow });
   });
   return api;
 }
@@ -43,7 +56,12 @@ export function installProfileObserver() {
     pending.add(key);
     requestAnimationFrame(() => requestAnimationFrame(() => { metrics[key] = performance.now() - start; }));
   }
+  const appearanceReady = () => {
+    if (window.BpreaAppearance?.getSource() === 'personal') painted('preferencesMs');
+  };
+  window.addEventListener('bprea:preferences-change', appearanceReady);
   const observer = new MutationObserver(() => {
+    appearanceReady();
     if (document.querySelector('#auth-pseudo')) painted('profileMs');
     if (document.querySelector('#appearance-save')?.textContent.includes('Aucun choix d’apparence enregistré sur le compte')) painted('preferencesMs');
     if (opened !== undefined && document.querySelector('#appearance-dialog[open]')) painted('appearanceDialogMs', opened);
@@ -59,7 +77,8 @@ export function installProfileObserver() {
 export const profileMetricKeys = ['profileMs', 'preferencesMs', 'appearanceDialogMs', 'pseudoInputMs', 'pseudoConfirmedMs'];
 
 export async function measureProfile(page) {
-  await expect(sync(page)).toHaveText('Synchronisé');
+  await expect(pseudo(page)).toBeVisible();
+  await page.waitForFunction(() => Number.isFinite(window.profileLab?.preferencesMs));
   await openAppearance(page).click();
   await expect(page.locator('#appearance-dialog')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -67,7 +86,11 @@ export async function measureProfile(page) {
   await pseudo(page).press('End');
   await pseudo(page).press('b');
   await save(page).click();
-  await page.waitForFunction(keys => keys.every(key => Number.isFinite(window.profileLab[key])), profileMetricKeys);
+  await page.waitForFunction(keys => keys.every(key => Number.isFinite(window.profileLab[key])), profileMetricKeys, { timeout: 10000 })
+    .catch(async () => {
+      const keys = await page.evaluate(() => Object.keys(window.profileLab));
+      throw new Error(`Indicateurs de profil manquants (${page.url()}) : ${profileMetricKeys.filter(key => !keys.includes(key)).join(', ')}`);
+    });
   return page.evaluate(() => window.profileLab);
 }
 
@@ -112,12 +135,12 @@ async function browserZoom(origin, directory, layouts) {
         const worker = context.serviceWorkers()[0] || await context.waitForEvent('serviceworker');
         await page.goto(site + 'profil.html');
         await expect(pseudo(page)).toBeVisible();
-        const zoom = await worker.evaluate(async url => {
+        const setZoom = factor => worker.evaluate(async ({ url, factor }) => {
           const tab = (await chrome.tabs.query({})).find(item => item.url === url);
-          await chrome.tabs.setZoom(tab.id, 2);
+          await chrome.tabs.setZoom(tab.id, factor);
           return chrome.tabs.getZoom(tab.id);
-        }, page.url());
-        assert.equal(zoom, 2);
+        }, { url: page.url(), factor });
+        assert.equal(await setZoom(2), 2);
         await page.waitForFunction(() => innerWidth === 390 && devicePixelRatio === 2);
         const client = await context.newCDPSession(page);
         for (const state of ['zoom', 'zoom-dialogue']) {
@@ -125,6 +148,23 @@ async function browserZoom(origin, directory, layouts) {
           await checkedLayout(page, phase, state, layouts);
           const { data } = await client.send('Page.captureScreenshot', { format: 'png', fromSurface: true, captureBeyondViewport: false });
           await writeFile(resolve(directory, `${phase}-${state}.png`), Buffer.from(data, 'base64'));
+        }
+        const color = page.locator('#appearance-color-mode');
+        if (await color.count()) {
+          await color.selectOption('custom');
+          await checkedLayout(page, phase, 'roue-zoom-200', layouts);
+          const medium = await client.send('Page.captureScreenshot', { format: 'png' });
+          await writeFile(resolve(directory, `${phase}-roue-zoom-200.png`), Buffer.from(medium.data, 'base64'));
+          await page.setViewportSize({ width: 1280, height: 900 });
+          assert.ok(Math.abs(await setZoom(4) - 4) < 0.001);
+          await page.waitForFunction(() => innerWidth === 320 && Math.abs(devicePixelRatio - 4) < 0.001);
+          const input = page.getByRole('textbox', { name: 'Code hexadécimal' });
+          await input.focus();
+          await expect(input).toBeFocused();
+          await expect(input).toBeInViewport();
+          await checkedLayout(page, phase, 'roue-zoom-400', layouts);
+          const large = await client.send('Page.captureScreenshot', { format: 'png' });
+          await writeFile(resolve(directory, `${phase}-roue-zoom-400.png`), Buffer.from(large.data, 'base64'));
         }
         await page.keyboard.press('Escape');
         await expect(openAppearance(page)).toBeFocused();
@@ -189,11 +229,12 @@ async function compareButtons(browser, origin, directory) {
 
 export async function writeProfileReview(browser, { origin, baselineRef, directory }) {
   await mkdir(directory, { recursive: true });
-  const layouts = [], pairs = new Map();
+  const layouts = [], pairs = new Map(), screenshots = new Set();
   const shot = async (page, phase, state, label, fullPage = false) => {
     await checkedLayout(page, phase, state, layouts);
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: resolve(directory, `${phase}-${state}.png`), fullPage, animations: 'disabled' });
+    screenshots.add(`${phase}-${state}.png`);
     pairs.set(state, label);
   };
   for (const phase of phases) {
@@ -205,7 +246,8 @@ export async function writeProfileReview(browser, { origin, baselineRef, directo
       await page.clock.setFixedTime(new Date('2026-11-19T13:30:00Z'));
       await page.goto(site + 'profil.html');
       await expect(pseudo(page)).toBeVisible();
-      await expect(sync(page)).toHaveText('Synchronisé');
+      const legacyPanel = await page.locator('#donnees-synchronisation').count();
+      if (legacyPanel) await expect(sync(page)).toHaveText('Synchronisé');
       for (const width of [320, ...widths, 1024]) {
         await page.setViewportSize({ width, height: 1000 });
         if (widths.includes(width)) await shot(page, phase, `profil-${width}`, `Profil sans pseudo · ${width} × 1 000`);
@@ -229,11 +271,22 @@ export async function writeProfileReview(browser, { origin, baselineRef, directo
       await expect(feedback(page)).toHaveText('Ton pseudo a été enregistré.');
       await shot(page, phase, 'pseudo-confirme', 'Pseudo enregistré');
       await page.locator('#parametres').evaluate(node => node.scrollIntoView({ block: 'start' }));
-      await shot(page, phase, 'parametres', 'Paramètres et synchronisation confirmée');
-      await page.locator('#course-quiz-import').click();
-      await expect(page.locator('.course-quiz-import-dialog')).toBeVisible();
-      await shot(page, phase, 'import', 'Import volontaire des cours et QCM');
-      await page.keyboard.press('Escape');
+      await shot(page, phase, 'parametres', 'Paramètres');
+      if (legacyPanel) {
+        await page.locator('#course-quiz-import').click();
+        await expect(page.locator('.course-quiz-import-dialog')).toBeVisible();
+        await shot(page, phase, 'import', 'Ancien import des cours et QCM');
+        await page.keyboard.press('Escape');
+      } else {
+        await expect.poll(() => page.evaluate(() => window.BpreaAppearance.getSource())).toBe('personal');
+        await openAppearance(page).click();
+        await page.locator('#appearance-color-mode').selectOption('custom');
+        await page.locator('#appearance-hex').fill('#6040d7');
+        await page.locator('#appearance-hex').press('Enter');
+        await expect(page.locator('#appearance-save')).toBeEmpty();
+        await shot(page, phase, 'roue', 'Roue chromatique');
+        await page.keyboard.press('Escape');
+      }
 
       const lesson = 'matiere-organique';
       await page.goto(site + `cours.html?id=${lesson}`);
@@ -243,18 +296,19 @@ export async function writeProfileReview(browser, { origin, baselineRef, directo
       api.restOffline = true;
       await page.locator('#mark-done').uncheck();
       await expect(sync(page)).toContainText('Connexion indisponible');
-      await page.goto(site + 'profil.html#donnees-synchronisation');
+      if (legacyPanel) await page.goto(site + 'profil.html#donnees-synchronisation');
       await expect(sync(page)).toContainText('1 opération en attente');
       await shot(page, phase, 'hors-ligne', 'Hors ligne avec une opération en attente');
       const key = `${accounts.A.id}:${lesson}`, row = api.courses.get(key);
       api.courses.set(key, { ...row, operation_id: '63200000-0000-4000-8000-000000000099', base_revision: row.revision, revision: row.revision + 1 });
       api.restOffline = false;
-      await page.locator('#course-quiz-refresh').click();
+      await page.locator(legacyPanel ? '#course-quiz-refresh' : '[data-course-quiz-retry]').click();
       await expect(sync(page)).toContainText('Conflit');
       await page.locator('.course-quiz-conflict summary').click();
       await shot(page, phase, 'conflit', 'Conflit de cours et résolution');
 
       await page.emulateMedia({ forcedColors: 'active' });
+      if (!legacyPanel) await page.goto(site + 'profil.html#parametres');
       await openAppearance(page).click();
       await expect(page.locator('#appearance-dialog')).toBeVisible();
       await shot(page, phase, 'contraste', 'Dialogue en contraste forcé');
@@ -280,8 +334,15 @@ export async function writeProfileReview(browser, { origin, baselineRef, directo
   await browserZoom(origin, directory, layouts);
   pairs.set('zoom', 'Zoom natif Chromium à 200 %');
   pairs.set('zoom-dialogue', 'Dialogue à 200 %');
-  const sections = [...pairs].map(([key, label]) => `<h2>${label}</h2><div class="pair">${figure(`before-${key}.png`, 'Avant')}${figure(`after-${key}.png`, 'Après')}</div>`).join('');
+  const labels = { before: 'Avant', after: 'Après' };
+  const sections = [...pairs].map(([key, label]) => {
+    const images = phases.map(phase => (`${phase}-${key}.png`))
+      .filter(name => key.startsWith('zoom') || screenshots.has(name));
+    return `<h2>${label}</h2><div class="pair">${images.map(name => figure(name, labels[name.split('-')[0]])).join('')}</div>`;
+  }).join('');
+  const wheels = layouts.filter(row => row.state.startsWith('roue-zoom'))
+    .map(({ phase, state }) => figure(`${phase}-${state}.png`, `${labels[phase]} · ${state.split('-').at(-1)} %`)).join('');
   const buttons = await compareButtons(browser, origin, directory);
-  await writeFile(resolve(directory, 'index.html'), documentMarkup('Mon profil 2027 · comparaisons', `<p>Référence Git ${baselineRef}. Les adresses et données de compte sont fictives. <a href="boutons.html">Comparer les boutons</a>.</p>${sections}`));
+  await writeFile(resolve(directory, 'index.html'), documentMarkup('Mon profil 2027 · comparaisons', `<p>Référence Git ${baselineRef}. Les adresses et données de compte sont fictives. <a href="boutons.html">Comparer les boutons</a>.</p>${sections}${wheels ? `<h2>Roue au zoom natif</h2><div class="pair">${wheels}</div>` : ''}`));
   await writeFile(resolve(directory, 'controles.json'), JSON.stringify({ layouts, buttons }, null, 2) + '\n');
 }

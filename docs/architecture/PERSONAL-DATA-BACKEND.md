@@ -162,7 +162,7 @@ Migration générée par `supabase migration new create_personal_data_backend`, 
 | `botanical_sessions` | PK `(user_id,session_id)` ; `category_id,mode,duration_seconds,is_revision,started_at,total_questions,completed_at` | Métadonnées initiales immuables ; seule la première fin peut compléter une session |
 | `botanical_answers` | PK `(user_id,answer_id)` ; identité de question, session, catégorie, espèce, photo, mode, révision, statut, sélection, correction, durée et date | Résultat terminal immuable ; `answer_id=question_id`, unicité personnelle session/question et FK composite vers la session du même propriétaire |
 | `itk_settings` | PK `user_id` ; `parameters` JSONB avec les huit chaînes auditées | Derniers paramètres, remplaçables. Aucun projet, document généré ou historique de versions |
-| `appearance_preferences` | PK `user_id` ; `season,brightness,client_updated_at` nullable | Choix persistants, remplaçables ; `auto` reste une valeur, interprétée localement |
+| `appearance_preferences` | PK `user_id` ; `season`, `brightness`, `color_mode`, `custom_color` et `client_updated_at` | Choix persistants, remplaçables ; `auto` reste une valeur, interprétée localement |
 
 Toutes les tables ont un `schema_version=1` protégé et un `created_at` serveur. Les quatre tables modifiables ont aussi `operation_id`, `base_revision`, `revision` et `updated_at`. `is_revision` botanique signifie « révision des erreurs » ; `revision` SQL désigne uniquement le compteur de concurrence. Aucun horodatage serveur ne représente rétroactivement une activité de l'appareil.
 
@@ -209,7 +209,7 @@ Toutes les écritures se font avec une session Auth valide du compte propriétai
 | `personal_save_botanical_session` — 6.3.3 | `p_session:jsonb`, `p_operation_id:uuid`, `p_expected_revision:bigint` | Créer les métadonnées ou compléter la première fin ; objet local `id,categoryId,mode,durationSeconds,revision,startedAt,totalQuestions,completedAt` ; `completedAt` absent équivaut à null |
 | `personal_record_botanical_answer` — 6.3.3 | `p_answer:jsonb` | Ajouter l'objet local complet `id,sessionId,questionId,categoryId,speciesId,photoId,mode,revision,status,selectedSpeciesId,correct,elapsedMs,answeredAt` ; `selectedSpeciesId` doit être explicitement null pour timeout/image indisponible |
 | `personal_save_itk` — 6.3.4 | `p_parameters:jsonb`, `p_operation_id:uuid`, `p_expected_revision:bigint` | Remplacer les huit chaînes `crop,variety,cover,area,month,year,soil,water`, sans champs de document généré |
-| `personal_save_appearance` — 6.3.4 | `p_preferences:jsonb`, `p_operation_id:uuid`, `p_expected_revision:bigint` | Objet `version:1,season,brightness`, plus `updatedAt` facultatif ; absence de date source reste null |
+| `personal_save_appearance` — 6.3.4 | `p_preferences:jsonb`, `p_operation_id:uuid`, `p_expected_revision:bigint` | Objet `version:1,season,brightness`, `updatedAt` facultatif et paire `colorMode,customColor` optionnelle. [Contrat et mise en service](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) |
 
 Exemple de requête de décochage, après lecture d'une révision 1 :
 

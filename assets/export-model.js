@@ -1,10 +1,10 @@
-import { TABLES, MAX_BYTES, fail } from './export-sources.js';
+import { TABLES, MAX_BYTES, appearanceColorColumns, fail } from './export-sources.js';
 import { validSettingsReceipt } from './settings-model.js';
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const fields = names => Object.fromEntries(names.split(',').map(key => [key, true]));
 const map = schema => ({ $map: schema });
 const itk = fields('crop,variety,cover,area,month,year,soil,water');
-const appearance = fields('version,season,brightness,updatedAt');
+const appearance = fields('version,season,brightness,updatedAt,colorMode,customColor');
 const question = { ...fields('id,version,unit,chapter,concept,type,prompt,answer,explanation,difficulty,sourceLesson,sourceQuestionIndex'), options: [fields('id,text')], reference: fields('title,url') };
 const answer = fields('answer,correct,answeredAt,training');
 const series = { ...fields('id,unit,week,startedAt'), questions: [question], answers: map({ ...answer, attempts: [answer] }), drafts: map(true), trainingDrafts: map(true) };
@@ -12,7 +12,7 @@ const drill = { version: true, series: map(series) };
 const course = { ...fields('done,score'), legacyQuizScore: fields('score,total'), quizAttempts: [fields('attemptId,score,total,completedAt')] };
 const botanicalSession = fields('id,categoryId,mode,durationSeconds,revision,startedAt,totalQuestions,completedAt');
 const botanicalAnswer = fields('id,sessionId,questionId,categoryId,speciesId,photoId,mode,revision,status,selectedSpeciesId,correct,elapsedMs,answeredAt');
-const sqlSchema = name => ({ ...fields(TABLES[name].fields.join(',')),
+const sqlSchema = name => ({ ...fields([...TABLES[name].fields, ...(TABLES[name].optionalFields || [])].join(',')),
   ...(name === 'drill_series' ? { questions: [question] } : name === 'itk_settings' ? { parameters: itk } : {}) });
 const payload = { ...fields('p_unit,p_week,p_started_at,p_series_id,p_question_id,p_answer,p_answered_at,p_operation_id,p_lesson_id,p_done,p_best_score,p_legacy_score,p_legacy_total,p_expected_revision,p_attempt_id,p_score,p_total,p_completed_at'),
   p_questions: [question], p_parameters: itk, p_preferences: appearance, p_session: botanicalSession };
@@ -55,6 +55,8 @@ export function projectRow(name, row, userId) {
   const spec = TABLES[name];
   if (!object(row) || row[spec.owner] !== userId) fail('ownership');
   if (!spec.fields.every(key => Object.hasOwn(row, key))) fail('invalid');
+  if (name === 'appearance_preferences' && appearanceColorColumns.some(key => Object.hasOwn(row, key)) &&
+    (!appearanceColorColumns.every(key => Object.hasOwn(row, key)) || row.color_mode === null)) fail('invalid');
   const nullable = { profiles: ['pseudo'], course_states: ['best_score', 'legacy_score', 'legacy_total'], botanical_sessions: ['completed_at'], botanical_answers: ['selected_species_id'], appearance_preferences: ['client_updated_at'] }[name] || [];
   if (spec.fields.some(key => row[key] === null && !nullable.includes(key))) fail('invalid');
   return project(row, sqlSchema(name), { omitted: 0, userId });

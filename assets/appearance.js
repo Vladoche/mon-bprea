@@ -1,11 +1,26 @@
 import { getSettingsService } from './settings-service.js';
+import { getAuthService } from './auth-service.js';
+import { initAppearanceColor, defaultColor } from './appearance-color.js';
+import { valueFromRow } from './settings-model.js';
 import { subscribePrivacy } from './privacy-events.js';
 
 const seasonLabels = { spring: 'Printemps', summer: 'Été', autumn: 'Automne', winter: 'Hiver' };
-const timeLabels = { morning: 'matin', day: 'journée', twilight: 'crépuscule', night: 'nuit' };
 const clean = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-const describe = value => `${value?.season === 'auto' ? 'Saison automatique' : seasonLabels[value?.season] || 'Saison inconnue'} · ${value?.brightness === 'auto' ? 'Luminosité automatique' : value?.brightness === 'dark' ? 'Sombre' : 'Clair'}`;
-const keyOf = value => JSON.stringify([value?.season, value?.brightness]);
+const automatic = { version: 1, season: 'auto', brightness: 'auto' };
+const describe = value => [
+  value?.season === 'auto' ? 'Saison automatique' : seasonLabels[value?.season] || 'Saison inconnue',
+  value?.brightness === 'auto' ? 'Luminosité automatique' : value?.brightness === 'dark' ? 'Sombre' : 'Clair',
+  value?.colorMode === 'custom' ? value.customColor : 'Palette saisonnière',
+].join(' · ');
+const keyOf = value => JSON.stringify([value?.season, value?.brightness, value?.colorMode ?? 'seasonal', value?.customColor ?? null]);
+const statusLabels = {
+  pending: 'Synchronisation en attente.',
+  offline: 'Hors ligne. Synchronisation en attente.',
+  conflict: 'Conflit d’apparence à résoudre.',
+  error: 'Synchronisation indisponible. Choix conservés sur cet appareil.',
+  'storage-error': 'Erreur de stockage. Choix non enregistré.',
+  session: 'Identité à vérifier. Choix non enregistré.',
+};
 
 export function initAppearance() {
   const appearance = window.BpreaAppearance;
@@ -20,22 +35,20 @@ export function initAppearance() {
   toggle.setAttribute('aria-describedby', toggleFeedback.id);
   // Keep the initial visual choice while the asynchronous identity is unknown.
   // A click in this interval applies temporarily without writing visitor data.
-  appearance.setSource('blocked', appearance.getPreferences());
+  appearance.setSource('blocked');
 
   const dialog = document.createElement('dialog');
   dialog.id = 'appearance-dialog';
   dialog.className = 'appearance-dialog';
   dialog.setAttribute('aria-labelledby', 'appearance-title');
-  dialog.setAttribute('aria-describedby', 'appearance-description');
   dialog.innerHTML = `
     <form method="dialog" class="appearance-heading">
       <h2 id="appearance-title">Ton apparence</h2>
       <button class="btn btn-surface appearance-close" type="submit" aria-label="Fermer les paramètres d’apparence" autofocus>×</button>
     </form>
-    <p id="appearance-description">Choisis la saison et la luminosité qui te conviennent. Ces deux réglages sont indépendants.</p>
     <div class="appearance-fields">
       <label for="appearance-season">Saison
-        <select id="appearance-season" aria-describedby="appearance-season-help">
+        <select id="appearance-season">
           <option value="auto">Automatique</option>
           <option value="spring">Printemps</option>
           <option value="summer">Été</option>
@@ -43,55 +56,94 @@ export function initAppearance() {
           <option value="winter">Hiver</option>
         </select>
       </label>
-      <p id="appearance-season-help">En automatique : saisons du calendrier de l’hémisphère nord, à partir des 1er mars, juin, septembre et décembre.</p>
       <label for="appearance-brightness">Luminosité
-        <select id="appearance-brightness" aria-describedby="appearance-time-help">
-          <option value="auto">Automatique selon l’heure</option>
+        <select id="appearance-brightness">
+          <option value="auto">Automatique</option>
           <option value="light">Mode clair</option>
           <option value="dark">Mode sombre</option>
         </select>
       </label>
-      <p id="appearance-time-help">Heure locale : matin de 6 h à 10 h, journée de 10 h à 18 h, crépuscule de 18 h à 22 h, nuit de 22 h à 6 h. Ce sont des plages conventionnelles.</p>
+      <label for="appearance-color-mode">Couleurs
+        <select id="appearance-color-mode">
+          <option value="seasonal">Palette saisonnière</option>
+          <option value="custom">Couleur personnalisée</option>
+        </select>
+      </label>
     </div>
-    <p class="appearance-current" id="appearance-current" role="status"></p>
-    <p class="appearance-save" id="appearance-save" role="status">Choix de cet appareil · vérification du mode de sauvegarde…</p>
+    <fieldset id="appearance-color-picker" class="appearance-picker" hidden>
+      <legend>Roue chromatique</legend>
+      <div class="appearance-wheel" aria-hidden="true"><span class="appearance-wheel-cursor"></span></div>
+      <div class="appearance-channels">
+        <label for="appearance-hue">Teinte</label>
+        <input type="range" id="appearance-hue" min="0" max="359" step="1">
+        <label for="appearance-saturation">Saturation</label>
+        <input type="range" id="appearance-saturation" min="0" max="100" step="1">
+        <label for="appearance-value">Luminosité de la couleur</label>
+        <input type="range" id="appearance-value" min="0" max="100" step="1">
+        <label for="appearance-hex">Code hexadécimal</label>
+        <div class="appearance-hex-row">
+          <input type="text" id="appearance-hex" maxlength="7" spellcheck="false" autocomplete="off"
+            autocapitalize="off" aria-describedby="appearance-hex-error">
+          <span class="appearance-swatch" aria-hidden="true"></span>
+        </div>
+        <p id="appearance-hex-error" role="status"></p>
+      </div>
+    </fieldset>
+    <p class="appearance-save" id="appearance-save" role="status"></p>
     <div id="appearance-device" hidden>
-      <p id="appearance-device-help">Tu peux garder ta saison et ta luminosité pour les prochaines pages de ce navigateur. Le retrait laisse le rendu actuel sur cette page.</p>
-      <div class="appearance-sync-actions" role="group" aria-label="Apparence de cet appareil" aria-describedby="appearance-device-help">
+      <div class="appearance-sync-actions">
         <button type="button" class="btn btn-surface" id="appearance-remember">Mémoriser mon apparence sur cet appareil</button>
         <button type="button" class="btn btn-surface" id="appearance-forget" hidden>Retirer l’apparence mémorisée</button>
-        <button type="button" class="btn btn-surface" id="appearance-recall">Reprendre une ancienne apparence</button>
       </div>
     </div>
-    <div class="appearance-sync-actions"><button type="button" class="btn btn-surface" id="appearance-sync-refresh" hidden>Actualiser l’apparence</button><button type="button" class="btn btn-surface" id="appearance-restore" hidden>Utiliser la version du compte</button><button type="button" class="btn btn-surface" id="appearance-import" hidden>Examiner les choix locaux</button></div><div id="appearance-conflicts"></div><p id="appearance-action-message" role="status"></p>
-    <section id="appearance-import-preview" hidden aria-labelledby="appearance-import-title"><h3 id="appearance-import-title">Importer les choix d’apparence</h3><p>Ces choix viennent du mode visiteur de cet appareil. Confirme seulement s’ils t’appartiennent. La source et ses archives restent conservées.</p><p id="appearance-import-values"></p><p id="appearance-import-message" role="status"></p><div class="appearance-sync-actions"><button type="button" class="btn btn-surface btn-surface--accent" id="appearance-import-confirm">Confirmer l’import d’apparence</button><button type="button" class="btn btn-surface" id="appearance-import-cancel">Annuler l’import</button></div></section>`;
+    <div class="appearance-sync-actions">
+      <button type="button" class="btn btn-surface" id="appearance-sync-refresh" hidden>Réessayer la synchronisation</button>
+      <button type="button" class="btn btn-surface" id="appearance-restore" hidden>Utiliser la version du compte</button>
+    </div>
+    <div id="appearance-conflicts"></div>
+    <p id="appearance-action-message" role="status"></p>`;
   document.body.append(dialog);
   const season = dialog.querySelector('#appearance-season');
   const brightness = dialog.querySelector('#appearance-brightness');
   const save = dialog.querySelector('#appearance-save');
   const find = id => dialog.querySelector(`#${id}`);
-  let service, snapshot, source = null, epoch = 0, inFlight = 0, protectedDialog = false, latest = null, preview = null, markup = '', opener = null;
+  const mode = find('appearance-color-mode');
+  let service, snapshot, scope = null, source = null, epoch = 0, inFlight = 0, protectedDialog = false, latest = null, markup = '', opener = null;
+  const picker = initAppearanceColor(dialog, {
+    preview: color => appearance.previewColor(color),
+    commit: color => {
+      if (appearance.getPreferences().customColor === color) appearance.previewColor(null);
+      else change({ customColor: color });
+    },
+  });
   const announce = message => { find('appearance-action-message').textContent = message || ''; };
-  function available() { find('appearance-restore').hidden = !latest || keyOf(latest) === keyOf(appearance.getPreferences()); }
+  function available() {
+    find('appearance-restore').hidden = !dialog.open || !protectedDialog || !latest || inFlight > 0 || keyOf(latest) === keyOf(appearance.getPreferences());
+  }
+  function renderFields(preferences, reset = false) {
+    season.value = preferences.season;
+    brightness.value = preferences.brightness;
+    mode.value = preferences.colorMode ?? 'seasonal';
+    picker.sync(preferences, { reset });
+  }
+  function deviceStatus() {
+    const remembered = appearance.getRemembered();
+    const preferences = appearance.getPreferences();
+    save.textContent = keyOf(preferences) !== keyOf(remembered || automatic) ? 'Choix non mémorisé sur cet appareil.' : '';
+    find('appearance-remember').disabled = keyOf(preferences) === keyOf(remembered || automatic);
+    find('appearance-forget').hidden = !remembered;
+  }
   function update() {
     const preferences = appearance.getPreferences();
     const state = appearance.getState();
     const dark = state.theme === 'dark';
     const device = appearance.getSource() === 'device';
     find('appearance-device').hidden = !device;
-    if (device) {
-      const remembered = appearance.getRemembered();
-      find('appearance-remember').disabled = preferences.season === 'auto' && preferences.brightness === 'auto';
-      find('appearance-forget').hidden = !remembered;
-      save.textContent = !remembered ? 'Choix de cette page.'
-        : keyOf(remembered) === keyOf(preferences) ? 'Apparence mémorisée sur cet appareil.'
-        : 'Choix de cette page. Les prochaines pages reprendront l’apparence mémorisée.';
-    }
-    if (device || !dialog.open || !protectedDialog) { season.value = preferences.season; brightness.value = preferences.brightness; }
+    if (device) deviceStatus();
+    if (!dialog.open || !protectedDialog) renderFields(preferences);
     toggle.querySelector('.theme-icon').innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${dark ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/>' : '<path d="M20.4 15.3A8.5 8.5 0 0 1 8.7 3.6 8.5 8.5 0 1 0 20.4 15.3Z"/>'}</svg>`;
     toggle.setAttribute('aria-label', dark ? 'Activer le mode clair' : 'Activer le mode sombre');
     toggle.title = `${dark ? 'Activer le mode clair' : 'Activer le mode sombre'}${device ? ' · mémoriser sur cet appareil' : ''}`;
-    dialog.querySelector('#appearance-current').textContent = `${seasonLabels[state.season]} · ${timeLabels[state.time]} · mode ${dark ? 'sombre' : 'clair'}`;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
   }
@@ -99,6 +151,7 @@ export function initAppearance() {
     protectedDialog = dialog.open;
     announce('');
     appearance.updatePreferences(patch);
+    renderFields(appearance.getPreferences());
     if (appearance.getSource() === 'blocked') save.textContent = snapshot?.sync.state === 'storage-error'
       ? 'Erreur de stockage : choix temporaire appliqué, non enregistré.'
       : 'Choix temporaire appliqué. Identité à vérifier ; choix non enregistré.';
@@ -109,15 +162,29 @@ export function initAppearance() {
   document.addEventListener('click', event => {
     const open = event.target.closest('#appearance-open');
     if (!open) return;
-    opener = open; protectedDialog = false; update(); dialog.showModal();
+    opener = open;
+    protectedDialog = false;
+    announce('');
+    renderFields(appearance.getPreferences(), true);
+    dialog.showModal();
   });
-  dialog.addEventListener('close', () => { protectedDialog = false; preview = null; find('appearance-import-preview').hidden = true; if (latest && !inFlight) appearance.applyPreferences(latest); if (opener?.isConnected) opener.focus(); });
+  dialog.addEventListener('close', () => {
+    protectedDialog = false;
+    appearance.previewColor(null);
+    if (latest && !inFlight) appearance.applyPreferences(latest);
+    if (opener?.isConnected) opener.focus();
+  });
   season.addEventListener('change', () => change({ season: season.value }));
   brightness.addEventListener('change', () => change({ brightness: brightness.value }));
-  for (const control of [season, brightness]) {
-    control.addEventListener('focus', () => { if (dialog.open) protectedDialog = true; });
-    control.addEventListener('input', () => { if (dialog.open) protectedDialog = true; });
-  }
+  mode.addEventListener('change', () => change({
+    colorMode: mode.value,
+    customColor: appearance.getPreferences().customColor || (mode.value === 'custom' ? defaultColor : null),
+  }));
+  dialog.addEventListener('input', () => { if (dialog.open) protectedDialog = true; }, true);
+  dialog.addEventListener('pointerdown', event => { if (event.target.closest('.appearance-wheel')) protectedDialog = true; }, true);
+  dialog.addEventListener('focusin', event => {
+    if (event.target.matches('input, select') && dialog.open) protectedDialog = true;
+  });
   toggle.addEventListener('click', () => {
     change({ brightness: appearance.getState().theme === 'dark' ? 'light' : 'dark' });
     // This explicit quick choice must survive navigation. Reuse the existing
@@ -136,22 +203,20 @@ export function initAppearance() {
     const error = appearance.forget();
     if (!error) {
       const remember = find('appearance-remember');
-      (remember.disabled ? find('appearance-recall') : remember).focus();
+      (remember.disabled ? brightness : remember).focus();
     }
     announce(error || 'Apparence mémorisée retirée. Le rendu actuel reste sur cette page.');
   });
-  find('appearance-recall').addEventListener('click', () => announce(appearance.recallArchived() || 'Ancienne apparence appliquée à cette page.'));
   const unsubscribePrivacy = subscribePrivacy(phase => {
     if (phase === 'settled') appearance.reloadDevicePreferences();
   });
-  window.addEventListener('pagehide', unsubscribePrivacy, { once: true });
+  window.addEventListener('pagehide', event => { if (!event.persisted) unsubscribePrivacy(); });
   async function persist(value) {
     const current = epoch; inFlight++;
-    save.textContent = 'Choix temporaire appliqué · enregistrement sur cet appareil…';
     try {
       const result = await service.save('appearance', value);
       if (current !== epoch) return;
-      if (result?.error) { save.textContent = `Erreur de stockage : choix temporaire appliqué, non enregistré. ${result.error}`; announce(result.error); }
+      if (result?.error) announce('Choix non enregistré. ' + result.error);
       else { announce(''); renderStatus(snapshot); }
     } catch { if (current === epoch) save.textContent = 'Erreur de stockage : choix temporaire appliqué, non enregistré.'; }
     finally { if (current === epoch) { inFlight = Math.max(0, inFlight - 1); available(); } }
@@ -159,37 +224,20 @@ export function initAppearance() {
   function renderStatus(state) {
     if (!state || state.mode === 'visitor') return;
     const domain = state.sync.domains?.appearance || state.sync;
-    const labels = { loading: 'Chargement des choix personnels…', saving: 'Enregistrement sur cet appareil…', local: 'Choix enregistrés sur cet appareil.', pending: 'Choix enregistrés sur cet appareil · synchronisation en attente.', syncing: 'Synchronisation des choix en cours…', synced: 'Choix synchronisés.', offline: 'Hors ligne · choix enregistrés sur cet appareil, synchronisation en attente.', conflict: 'Conflit d’apparence à résoudre.', error: 'Erreur de synchronisation. Choix conservés sur cet appareil.', 'storage-error': 'Erreur de stockage. Le choix temporaire n’est pas enregistré.', session: 'Identité à vérifier. Les choix personnels sont masqués.' };
-    save.textContent = state.mode === 'personal' && domain.state === 'synced' && !state.view.appearance
-      ? 'Aucun choix d’apparence enregistré sur le compte. Rendu provisoire de cet appareil.' : labels[domain.state] || labels.session;
+    save.textContent = statusLabels[domain.state] || '';
+    find('appearance-sync-refresh').hidden = !['offline', 'error', 'storage-error', 'session'].includes(domain.state);
   }
-  find('appearance-sync-refresh').addEventListener('click', async () => { try { await service.retry(); } catch { announce('Actualisation indisponible. Les choix enregistrés restent conservés.'); } });
-  find('appearance-restore').addEventListener('click', () => { if (latest) { protectedDialog = false; appearance.applyPreferences(latest); available(); } });
-  find('appearance-import').addEventListener('click', async () => {
+  find('appearance-sync-refresh').addEventListener('click', async () => {
     const current = epoch;
-    try {
-      const value = await service.previewImport('appearance');
-      if (epoch !== current) return;
-      preview = value;
-      find('appearance-import-values').textContent = value.value ? describe(value.value) : 'Aucun choix local valide.';
-      find('appearance-import-message').textContent = value.error || (value.divergent ? 'Le compte possède des choix différents. Confirmer les remplacera volontairement.' : 'Aucun envoi avant confirmation.');
-      find('appearance-import-confirm').disabled = !!value.error || value.available === false;
-      find('appearance-import-preview').hidden = false;
-      find('appearance-import-cancel').focus({ preventScroll: true });
-    } catch { if (current === epoch) announce('Impossible de lire les choix locaux. La source reste conservée.'); }
+    try { await service.retry(); }
+    catch { if (current === epoch) announce('Actualisation indisponible. Les choix enregistrés restent conservés.'); }
   });
-  find('appearance-import-cancel').addEventListener('click', () => { preview = null; find('appearance-import-preview').hidden = true; find('appearance-import').focus(); });
-  find('appearance-import-confirm').addEventListener('click', async () => {
-    if (!preview) return;
-    const current = epoch; find('appearance-import-confirm').disabled = true;
-    try {
-      const result = await service.confirmImport(preview);
-      if (epoch !== current) return;
-      if (result?.error) { find('appearance-import-message').textContent = result.error; return; }
-      preview = null; find('appearance-import-preview').hidden = true;
-      announce(result?.replayed ? 'Cet import était déjà accepté. Aucune nouvelle opération.' : 'Import enregistré. La source visiteur et ses archives restent conservées.');
-      find('appearance-import').focus();
-    } catch { if (epoch === current) find('appearance-import-message').textContent = 'Import non enregistré. Réexamine les choix locaux pour réessayer.'; }
+  find('appearance-restore').addEventListener('click', () => {
+    if (!latest) return;
+    protectedDialog = false;
+    appearance.applyPreferences(latest);
+    available();
+    brightness.focus();
   });
   dialog.addEventListener('click', async event => {
     const button = event.target.closest('[data-appearance-resolve]');
@@ -197,31 +245,43 @@ export function initAppearance() {
     const current = epoch; button.disabled = true;
     try {
       const result = await service.resolve(button.dataset.appearanceResolve, button.dataset.choice);
-      if (current === epoch) { announce(result?.error || 'Résolution enregistrée ; ancienne intention archivée.'); if (!result?.error) find('appearance-sync-refresh').focus({ preventScroll: true }); }
-    } finally { if (button.isConnected) button.disabled = false; }
+      if (current === epoch) { announce(result?.error || ''); if (!result?.error) season.focus({ preventScroll: true }); }
+    } catch { if (current === epoch) announce('Choix indisponible. Réessaie dans un instant.'); }
+    finally { if (button.isConnected) button.disabled = false; }
   });
-  getSettingsService().then(value => {
-    service = value;
-    const unsubscribe = service.subscribe(state => {
+  Promise.all([getSettingsService(), getAuthService()]).then(([settings, auth]) => {
+    service = settings;
+    let checkingIdentity = false;
+    const renderSnapshot = state => {
       snapshot = state;
-      const usable = state.mode === 'personal' && state.sync.state !== 'session';
-      const nextSource = `${state.mode}:${state.scope}:${state.sync.state === 'session'}`;
-      if (source !== nextSource) {
-        const changed = source !== null;
-        source = nextSource; epoch++; inFlight = 0; protectedDialog = false; latest = null; preview = null;
-        find('appearance-import-preview').hidden = true; announce('');
-        if (changed && dialog.open) dialog.close();
-        const personalReady = usable && !state.view.error;
-        appearance.setSource(personalReady ? 'personal' : state.mode === 'visitor' ? 'device' : 'blocked',
-          personalReady ? state.view.appearance : appearance.getDevicePreferences(), personalReady ? persist : null);
+      const domain = state.sync.domains?.appearance || state.sync;
+      const usable = !checkingIdentity && state.mode === 'personal' && state.sync.state !== 'session' && !state.view.error;
+      const nextSource = usable ? 'personal' : state.mode === 'visitor' ? 'device' : 'blocked';
+      const confirmed = usable ? state.view.appearance : null;
+      if (source !== nextSource || scope !== state.scope) {
+        const changedIdentity = scope !== null && scope !== state.scope || source !== null && source !== 'blocked' && source !== nextSource;
+        source = nextSource; scope = state.scope; epoch++; inFlight = 0; protectedDialog = false; latest = null;
+        announce('');
+        if (changedIdentity && dialog.open) dialog.close();
+        appearance.setSource(nextSource, confirmed, usable ? persist : null);
+        renderFields(appearance.getPreferences(), true);
       }
-      if (usable && !state.view.error && appearance.getSource() !== 'personal') appearance.setSource('personal', state.view.appearance, persist);
-      latest = usable ? state.view.appearance : null;
-      if (latest && !inFlight && !(dialog.open && protectedDialog) && keyOf(latest) !== keyOf(appearance.getPreferences())) appearance.applyPreferences(latest);
-      renderStatus(state); available();
-      find('appearance-sync-refresh').hidden = state.mode === 'visitor';
-      find('appearance-import').hidden = !usable;
-      const nextMarkup = (state.sync.conflicts || []).filter(item => item.domain === 'appearance').map(item => `<details data-appearance-conflict="${clean(item.id)}"><summary>${item.resolved ? 'Conflit d’apparence archivé' : 'Conflit d’apparence à résoudre'}</summary><p>Choix de cet appareil : ${clean(describe(item.local?.value || item.local))}</p><p>Version du compte : ${clean(describe(item.remote?.value || item.remote))}</p>${item.resolved ? '' : `<div class="appearance-sync-actions"><button type="button" class="btn btn-surface" data-appearance-resolve="${clean(item.id)}" data-choice="remote">Garder la version du compte</button><button type="button" class="btn btn-surface" data-appearance-resolve="${clean(item.id)}" data-choice="local">Utiliser mon choix enregistré sur cet appareil</button></div>`}</details>`).join('');
+      latest = confirmed;
+      const canApply = !inFlight && !(dialog.open && protectedDialog);
+      if (latest && canApply && (appearance.isProvisional() || keyOf(latest) !== keyOf(appearance.getPreferences()))) appearance.applyPreferences(latest);
+      const empty = usable && !latest && domain.state === 'synced';
+      const brightnessHint = latest?.brightness ?? (empty ? (appearance.getRemembered()?.brightness || 'auto') : null);
+      if (empty && canApply) appearance.renderEmptyAccount();
+      if (brightnessHint) auth.rememberAppearanceBrightness(JSON.parse(state.scope)[2], brightnessHint);
+      renderStatus(state);
+      if (state.mode === 'visitor') find('appearance-sync-refresh').hidden = true;
+      available();
+      const nextMarkup = (usable ? state.sync.conflicts || [] : []).filter(item => item.domain === 'appearance' && !item.resolved)
+        .map(item => `<details data-appearance-conflict="${clean(item.id)}"><summary>Conflit d’apparence à résoudre</summary>
+        <p>Choix de cet appareil : ${clean(describe(item.local?.value || item.local))}</p>
+        <p>Version du compte : ${clean(describe(item.remote?.value || valueFromRow('appearance', item.remote)))}</p>
+        <div class="appearance-sync-actions"><button type="button" class="btn btn-surface" data-appearance-resolve="${clean(item.id)}" data-choice="remote">Garder la version du compte</button>
+        <button type="button" class="btn btn-surface" data-appearance-resolve="${clean(item.id)}" data-choice="local">Utiliser mon choix enregistré sur cet appareil</button></div></details>`).join('');
       if (markup !== nextMarkup) {
         const container = find('appearance-conflicts'); const opened = [...container.querySelectorAll('details[open]')].map(node => node.dataset.appearanceConflict);
         const focused = container.contains(document.activeElement) ? document.activeElement : null;
@@ -232,9 +292,22 @@ export function initAppearance() {
         if (focusId) container.querySelector(`[data-appearance-resolve="${CSS.escape(focusId)}"][data-choice="${CSS.escape(focusChoice)}"]`)?.focus({ preventScroll: true });
         else if (summaryId) container.querySelector(`[data-appearance-conflict="${CSS.escape(summaryId)}"] summary`)?.focus({ preventScroll: true });
       }
-    });
-    window.addEventListener('pagehide', unsubscribe, { once: true });
-  }).catch(() => { appearance.setSource('blocked', appearance.getDevicePreferences()); save.textContent = 'Choix temporaire : le service de sauvegarde est indisponible.'; });
+    };
+    const unsubscribe = service.subscribe(renderSnapshot);
+    const lifecycle = new AbortController();
+    window.addEventListener('bprea:appearance-session-change', async () => {
+      checkingIdentity = true;
+      renderSnapshot(service.getState());
+      try { await auth.retry(); } catch { /* The Auth service publishes the outcome. */ }
+      finally {
+        checkingIdentity = false;
+        if (!lifecycle.signal.aborted) renderSnapshot(service.getState());
+      }
+    }, { signal: lifecycle.signal });
+    window.addEventListener('pagehide', event => {
+      if (!event.persisted) { unsubscribe(); lifecycle.abort(); }
+    }, { signal: lifecycle.signal });
+  }).catch(() => { appearance.setSource('blocked'); save.textContent = 'Choix temporaire : le service de sauvegarde est indisponible.'; });
   update();
   document.documentElement.dataset.appearanceReady = 'true';
 }

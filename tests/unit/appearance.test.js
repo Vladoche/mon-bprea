@@ -56,7 +56,6 @@ describe('Résolution de l’apparence', () => {
       const storage = appearanceStorage({ [ARCHIVED]: raw, 'bprea-demo-progress-v1': 'historique' });
       const { api } = appearanceRuntime(storage);
       expect(api.getPreferences()).toMatchObject(auto);
-      expect(api.recallArchived()).toMatch(/Aucune ancienne apparence/);
       api.updatePreferences({ brightness: 'dark' });
       expect(api.remember()).toBeNull();
       expect(storage.getItem(ARCHIVED)).toBe(raw);

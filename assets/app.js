@@ -247,6 +247,10 @@ async function init(){
     try { courseQuizService = await getCourseQuizService(); progressState = courseQuizService.getState(); }
     catch { progressState.view.error = 'La source de progression est indisponible. Les données enregistrées sont conservées.'; }
     progress = progressAvailable() ? progressState.view.progress : {};
+  } else if (page === 'profile') {
+    // Continue draining the learning outbox when visiting the account page.
+    const learning = getCourseQuizService().catch(() => null);
+    window.addEventListener('pagehide', () => { learning.then(service => service?.stop()); }, { once: true });
   }
   ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk:()=>import('./itk.js').then(({ initItk }) => initItk($('#app-main'), icon)),resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
   // Render the expanded footer after the initial page content. Hydrating it
@@ -264,7 +268,6 @@ async function init(){
       // The QCM result owns save announcements; keep the shared notice readable
       // without announcing the same transition twice.
       if (page === 'quiz') { $('#course-quiz-sync-status').removeAttribute('role'); }
-      // The service subscription is independent of the detailed profile panel.
       const unsubscribe = courseQuizService.subscribe(state => {
         if (`${state.mode}:${state.scope}` !== `${progressState.mode}:${progressState.scope}` || state.sync.state === 'session' && progressState.sync.state !== 'session') progressEpoch++;
         progressState = state;
