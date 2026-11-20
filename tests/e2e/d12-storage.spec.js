@@ -87,7 +87,7 @@ test('D12 visiteur neuf : accès limités, révision normale et anecdote masqué
   expect(unexpected).toEqual([]);
 });
 
-test('D12 ancien thème seul : Contact ignore la clé, reprise volontaire en mémoire et retrait sans retour automatique', async ({ page, context }) => {
+test('D12 ancien thème conservé sans reprise automatique, choix volontaire puis retrait', async ({ page, context }) => {
   await page.setViewportSize({ width: 320, height: 690 });
   await observeStorage(page);
   await page.goto(prefix + 'contact.html');
@@ -100,24 +100,27 @@ test('D12 ancien thème seul : Contact ignore la clé, reprise volontaire en mé
   await page.getByRole('button', { name: 'Régler l’apparence' }).click();
   const remember = page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' });
   await expect(remember).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Reprendre une ancienne apparence' })).toHaveCount(0);
   await page.evaluate(() => {
     const dialog = document.querySelector('#appearance-dialog');
     window.addEventListener('bprea:preferences-change', () => {
       const sample = document.createElement('div');
       sample.style.backgroundColor = 'var(--white)';
       dialog.append(sample);
-      window.d12RecallPalette = {
+      window.d12ManualPalette = {
         dialog: getComputedStyle(dialog).backgroundColor,
         expected: getComputedStyle(sample).backgroundColor,
       };
       sample.remove();
     }, { once: true });
   });
-  await page.getByRole('button', { name: 'Reprendre une ancienne apparence' }).press('Enter');
-  const palette = await page.evaluate(() => window.d12RecallPalette);
+  const brightness = page.getByRole('combobox', { name: 'Luminosité', exact: true });
+  await brightness.selectOption('dark');
+  const palette = await page.evaluate(() => window.d12ManualPalette);
   expect(palette.dialog).toBe(palette.expected);
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await expect(page.getByRole('combobox', { name: 'Luminosité' })).toHaveValue('dark');
+  expect(await accesses(page, [appearance, legacyTheme])).toEqual([]);
   expect(await localKeys(page)).toEqual([legacyTheme]);
   await remember.press('Enter');
   const second = await context.newPage();

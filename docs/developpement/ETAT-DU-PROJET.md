@@ -93,9 +93,10 @@ Un build, un E2E local, un check de PR ou une fusion ne publie pas le site.
 Le [workflow actuel](../../.github/workflows/deploy.yml) exige un lancement
 manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
-Le chantier suivant simplifie le profil et qualifie la roue chromatique et
-la continuité clair/sombre. Avant sa mise en service, préparer la migration
-Supabase puis le frontend Pages, avec décision sur la notice. Les
+[La PR #81](https://github.com/Vladoche/mon-bprea/pull/81) simplifie le profil
+et qualifie la roue chromatique et la continuité clair/sombre. Avant sa mise
+en service, préparer la migration Supabase puis le frontend Pages, avec
+décision sur la notice. Les
 [preuves locales et réserves](../validations/VALIDATION-PROFIL-COULEURS-THEME.md)
 portent sur la branche de travail.
 

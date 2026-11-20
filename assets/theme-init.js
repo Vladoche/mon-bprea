@@ -28,8 +28,13 @@
     if (keys.length === 3) return value;
     return keys.length === 5 && validColor(value) ? value : null;
   }
+  let storageReadable = true;
   function readRemembered() {
-    try { return decodeRemembered(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      storageReadable = true;
+      return decodeRemembered(raw);
+    } catch { storageReadable = false; return null; }
   }
 
   function storedSession() {
@@ -44,11 +49,7 @@
         if (key?.startsWith(IDENTITY_KEY)) markers.push(key);
         else if (key?.startsWith(AUTH_KEY) && key.endsWith(suffix)) sessions.push(key);
       }
-      if (!sessions.length) {
-        // Some browsers expose length but deny reads.
-        localStorage.getItem(STORAGE_KEY);
-        return null;
-      }
+      if (!sessions.length) return storageReadable ? null : {};
       if (sessions.length !== 1) return {};
       const key = sessions[0];
       const session = parse(localStorage.getItem(key));

@@ -34,7 +34,7 @@ test('QCM : sélection native, saisie, correction exacte et reset sans écriture
   await open(page);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('QCM du cours');
   await expect(page.locator('.quiz-course-title')).toHaveText(lesson.title);
-  await expect(page.locator('fieldset')).toHaveCount(lesson.quiz.length);
+  await expect(page.locator('#quiz-questions fieldset')).toHaveCount(lesson.quiz.length);
   await expect(page.locator('#check-quiz')).toBeDisabled();
   await expect(page.locator('#quiz-best-detail')).toContainText('Aucun score');
   await expect(page.locator('#quiz-history')).toContainText('Aucune tentative');
@@ -226,7 +226,7 @@ test('QCM : cinq largeurs, longues propositions, nombreuses questions et texte �
     await route.fulfill({ response, body: `${await response.text()}\nlessons[0].quiz = Array.from({length:12}, (_, i) => ({...lessons[0].quiz[i % 3], options: lessons[0].quiz[i % 3].options.map(o => o + ' — proposition synthétique longue à vérifier sur petit écran ' + 'x'.repeat(70))}));` });
   });
   await open(page);
-  await expect(page.locator('fieldset')).toHaveCount(12);
+  await expect(page.locator('#quiz-questions fieldset')).toHaveCount(12);
   for (const large of [false, true]) {
     if (large) await page.addStyleTag({ content: 'html{font-size:200%!important}' });
     for (const width of [320, 390, 768, 1024, 1440]) {
