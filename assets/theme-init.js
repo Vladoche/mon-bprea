@@ -7,7 +7,7 @@
   const seasons = ['auto', 'spring', 'summer', 'autumn', 'winter'];
   const brightnesses = ['auto', 'light', 'dark'];
   const automatic = { version: 1, season: 'auto', brightness: 'auto' };
-  const neutral = { ...automatic, brightness: 'dark' };
+  const neutral = { brightness: 'dark', neutral: true };
   const validHex = value => typeof value === 'string' && /^#[0-9a-f]{6}$/.test(value);
   const validColor = value => (value.colorMode === 'seasonal' && value.customColor === null) ||
     (['seasonal', 'custom'].includes(value.colorMode) && validHex(value.customColor));
@@ -55,7 +55,8 @@
       const session = parse(localStorage.getItem(key));
       const encoded = session.access_token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/');
       const claims = parse(atob(encoded));
-      if (!claims?.sub || session.user?.id !== claims.sub || !/^[0-9a-f-]{36}$/i.test(claims.session_id || '')) return {};
+      if (!/^[0-9a-f-]{36}$/i.test(claims?.sub || '') || session.user?.id !== claims.sub ||
+          !/^[0-9a-f-]{36}$/i.test(claims.session_id || '')) return {};
       const matching = markers.filter(marker => {
         const scope = parse(marker.slice(IDENTITY_KEY.length));
         if (!Array.isArray(scope) || scope.length !== 3 || scope[2] !== mount) return false;
@@ -63,16 +64,22 @@
         catch { return false; }
       });
       const saved = matching.length === 1 ? parse(localStorage.getItem(matching[0])) : null;
-      const brightness = saved?.version === 1 && saved.userId === claims.sub && saved.sessionId === claims.session_id &&
-        brightnesses.includes(saved.brightness) ? saved.brightness : null;
-      return { key, sessionId: claims.session_id, brightness };
+      const recognized = saved?.version === 1 && saved.userId === claims.sub && saved.sessionId === claims.session_id;
+      return { key, userId: claims.sub, sessionId: claims.session_id, marker: recognized ? saved : null };
     } catch { return {}; }
   }
 
-  function bootPreferences(session = storedSession()) {
+  function bootPreferences(session) {
     if (!session) return remembered || automatic;
-    // The early render never reads the account's season, colors or IndexedDB.
-    return session.brightness ? { ...automatic, brightness: session.brightness } : neutral;
+    const hint = session.marker?.appearance;
+    if (brightnesses.includes(hint?.brightness)) {
+      if (hint.colorMode === 'custom' && validHex(hint.customColor)) return hint;
+      if (hint.colorMode === 'seasonal' && seasons.includes(hint.season)) return hint;
+    }
+    // Older markers only carried brightness. Keep that choice while loading
+    // the account's palette, without borrowing any season or visitor color.
+    const brightness = session.marker?.brightness;
+    return brightnesses.includes(brightness) ? { ...neutral, brightness } : neutral;
   }
 
   function getLocalTimePeriod(date) {
@@ -81,14 +88,15 @@
   }
 
   function resolve(preferences, date = new Date()) {
-    const month = date.getMonth();
-    const season = preferences.season === 'auto'
-      ? ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'][month]
-      : preferences.season;
     const time = preferences.brightness === 'auto'
       ? getLocalTimePeriod(date) : preferences.brightness === 'dark' ? 'night' : 'day';
-    return { season, time, theme: time === 'night' ? 'dark' : 'light',
-      ...(preferences.colorMode === 'custom' ? { color: preferences.customColor } : {}) };
+    const theme = time === 'night' ? 'dark' : 'light';
+    if (preferences.colorMode === 'custom' && validHex(preferences.customColor)) return { time, theme, color: preferences.customColor };
+    if (preferences.neutral) return { time, theme, neutral: true };
+    const season = preferences.season === 'auto'
+      ? ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'][date.getMonth()]
+      : preferences.season;
+    return { season, time, theme };
   }
 
   let remembered = readRemembered();
@@ -96,9 +104,9 @@
   let preferences = automatic;
   let source = 'blocked';
   let personalWriter = null;
-  let provisional = bootPreferences();
+  let boundSession = storedSession();
+  let provisional = bootPreferences(boundSession);
   let booting = true;
-  let boundSession = null;
   if (provisional === devicePreferences) { source = 'device'; preferences = devicePreferences; provisional = null; }
   let previewColor = null;
   let state;
@@ -127,13 +135,15 @@
   function refresh(date = new Date()) {
     const value = provisional || preferences;
     const next = resolve(previewColor && value.colorMode === 'custom' ? { ...value, customColor: previewColor } : value, date);
-    if (state && next.color === state.color && next.season === state.season && next.time === state.time && next.theme === state.theme) return;
+    if (state && next.color === state.color && next.season === state.season && next.time === state.time && next.theme === state.theme && next.neutral === state.neutral) return;
     state = next;
     const root = document.documentElement;
-    root.dataset.season = state.season;
+    if (state.season) root.dataset.season = state.season;
+    else delete root.dataset.season;
     root.dataset.time = state.time;
     root.dataset.theme = state.theme;
     if (state.color) root.dataset.colorMode = 'custom';
+    else if (state.neutral) root.dataset.colorMode = 'neutral';
     else delete root.dataset.colorMode;
     setColor(root, state.color);
     window.dispatchEvent(new CustomEvent('bprea:appearance-change', { detail: { ...state } }));
@@ -168,7 +178,7 @@
     remembered = readRemembered();
     if (devicePreferences === (previous || automatic)) devicePreferences = remembered || automatic;
     if (source === 'device') preferences = devicePreferences;
-    if (provisional && booting) provisional = bootPreferences();
+    if (provisional && booting) resume();
     else if (provisional && source === 'personal') {
       const { season, brightness } = remembered || automatic;
       provisional = { ...automatic, season, brightness };
@@ -224,7 +234,7 @@
       source = next === 'personal' ? 'personal' : next === 'blocked' ? 'blocked' : 'device';
       personalWriter = source === 'personal' ? writer : null;
       const session = source !== 'device' ? storedSession() : null;
-      boundSession = source === 'personal' && session?.sessionId ? session : null;
+      boundSession = session;
       booting = source !== 'device' && !value;
       provisional = booting ? bootPreferences(session) : null;
       preferences = source === 'device' ? devicePreferences : {
@@ -250,21 +260,28 @@
   refresh();
   window.setInterval(() => refresh(), 60000);
   function resume() {
-    if (boundSession || provisional && booting) {
-      const session = storedSession();
-      if (boundSession && (session?.sessionId !== boundSession.sessionId || session?.key !== boundSession.key)) {
-        window.BpreaAppearance.setSource('blocked');
-        window.dispatchEvent(new CustomEvent('bprea:appearance-session-change'));
-        return;
-      }
-      if (provisional && booting) provisional = bootPreferences(session);
+    const session = storedSession();
+    if (boundSession?.sessionId && (session?.sessionId !== boundSession.sessionId || session?.userId !== boundSession.userId ||
+        session?.key !== boundSession.key || boundSession.marker && !session.marker)) {
+      window.BpreaAppearance.setSource('blocked');
+      window.dispatchEvent(new CustomEvent('bprea:appearance-session-change'));
+      return;
+    }
+    if (booting && provisional) {
+      boundSession = session;
+      provisional = bootPreferences(session);
+    } else if (session && source === 'device') {
+      window.BpreaAppearance.setSource('blocked');
+      window.dispatchEvent(new CustomEvent('bprea:appearance-session-change'));
+      return;
     }
     refresh();
   }
   window.addEventListener('pageshow', resume);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
   window.addEventListener('storage', event => {
+    if (event.key === null && !(provisional && booting)) resume();
     if (event.key === STORAGE_KEY || event.key === null) reloadDevicePreferences();
-    if (event.key === null || event.key.startsWith(AUTH_KEY)) resume();
+    else if (event.key.startsWith(AUTH_KEY)) resume();
   });
 })();

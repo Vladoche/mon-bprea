@@ -20,7 +20,7 @@ test('roue tactile, réglages clavier, aperçu hexadécimal et retour réversibl
     await page.clock.setFixedTime(day);
     const panel = await openPicker(page);
     const wheel = panel.locator('.appearance-wheel');
-    const mode = panel.getByRole('combobox', { name: 'Couleurs' });
+    const mode = panel.getByRole('combobox', { name: 'Palette de couleurs' });
     const hex = panel.getByRole('textbox', { name: 'Code hexadécimal' });
     await expect(wheel).toBeHidden();
     await mode.selectOption('custom');
@@ -45,26 +45,39 @@ test('roue tactile, réglages clavier, aperçu hexadécimal et retour réversibl
     await hex.fill('#ff00f0');
     await hex.press('Enter');
 
-    const season = panel.getByRole('combobox', { name: 'Saison' });
+    const season = panel.locator('#appearance-season');
     const brightness = panel.getByRole('combobox', { name: 'Luminosité', exact: true });
-    for (const choice of ['spring', 'summer', 'autumn', 'winter']) {
-      await season.selectOption(choice);
-      await expect(page.locator('html')).toHaveAttribute('data-season', choice);
-      await expect.poll(() => active(page)).toBe('#ff00f0');
-    }
+    await expect(season).toBeHidden();
+    await expect(season).toBeDisabled();
+    await expect(page.locator('html')).not.toHaveAttribute('data-season');
+    const background = () => page.locator('body').evaluate(body => getComputedStyle(body).backgroundColor);
+    const daylight = await background();
+    await page.clock.setFixedTime(new Date('2026-12-01T05:15:00Z'));
+    await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pageshow')));
+    await expect(page.locator('html')).toHaveAttribute('data-time', 'morning');
+    await expect(page.locator('html')).not.toHaveAttribute('data-season');
+    expect(await background()).toBe(daylight);
+    await expect.poll(() => active(page)).toBe('#ff00f0');
     await brightness.selectOption('dark');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await panel.screenshot({ path: info.outputPath('roue-mobile-sombre.png') });
     await mode.selectOption('seasonal');
     await expect(wheel).toBeHidden();
+    await expect(season).toBeVisible();
+    await season.selectOption('winter');
     await expect(page.locator('html')).not.toHaveAttribute('data-color-mode', 'custom');
+    await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
+    expect(await page.locator('html').evaluate(node => node.style.getPropertyValue('--appearance-hue'))).toBe('');
     await mode.selectOption('custom');
     await expect(hex).toHaveValue('#ff00f0');
     await panel.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
     await page.reload();
     await expect.poll(() => active(page)).toBe('#ff00f0');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
-    await expect(page.locator('html')).toHaveAttribute('data-season', 'winter');
+    await expect(page.locator('html')).not.toHaveAttribute('data-season');
+    await openPicker(page);
+    await mode.selectOption('seasonal');
+    await expect(season).toHaveValue('winter');
   } finally { await context.close(); }
 });
 
@@ -72,7 +85,7 @@ test('gamme des couleurs, contrastes AA, reflow et couleurs forcées', async ({ 
   await page.clock.setFixedTime(day);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const panel = await openPicker(page);
-  await panel.getByRole('combobox', { name: 'Couleurs' }).selectOption('custom');
+  await panel.getByRole('combobox', { name: 'Palette de couleurs' }).selectOption('custom');
   const checks = await page.evaluate(() => {
     const appearance = window.BpreaAppearance;
     const sample = document.createElement('span');

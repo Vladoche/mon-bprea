@@ -28,8 +28,9 @@ Ce sont des plages conventionnelles, **sans calcul astronomique ni géolocalisat
 
 ## Couleurs personnalisées
 
-Le troisième sélecteur propose **Palette saisonnière** et **Couleur
-personnalisée**. La roue de `appearance-color.js` associe l’angle à la teinte et
+Le sélecteur **Palette de couleurs** propose **Saisonnière** ou
+**Personnalisée**. Seul le réglage actif est affiché, saison ou roue
+chromatique. La roue de `appearance-color.js` associe l’angle à la teinte et
 la distance au centre à la saturation. On peut aussi la régler avec les trois
 curseurs natifs ou le champ hexadécimal. Le glissement affiche un aperçu
 immédiat. Relâcher la roue, valider le code ou terminer un réglage du curseur
@@ -40,16 +41,24 @@ CSS fixent une clarté par rôle et une variante par luminosité. Le thème dér
 ses surfaces, textes, bordures de contrôle, accents et couleurs de graphique
 de ces rôles. Les couleurs fonctionnelles de succès, erreur, avertissement et
 focus restent liées à leur signification. Les curseurs et le code restent
-utilisables en contraste forcé. Le retour à la palette saisonnière garde le
-dernier hexadécimal pour une réactivation ultérieure.
+utilisables en contraste forcé. Chaque mode conserve le dernier réglage
+de l’autre pour une réactivation ultérieure.
 
 ## Modifier les palettes ou les horaires
 
-`assets/style.css` définit les tokens `--color-*`, puis leurs alias historiques (`--bg`, `--white`, `--green`, etc.). Les blocs `data-season` modifient les palettes, les variantes `data-theme="dark"` les adaptent à la lecture nocturne. `data-time` ajuste discrètement les surfaces. Pour une nouvelle couleur, privilégier son rôle (texte, surface, accent, contrôle) plutôt que sa valeur littérale. Les tokens de succès, erreur et avertissement gardent leur signification dans toutes les saisons. Les graphiques utilisent ces tokens et les textes/tableaux existants restent accessibles.
+`assets/style.css` définit les tokens `--color-*` et leurs alias historiques
+(`--bg`, `--white`, `--green`, etc.). Le mode saisonnier utilise `data-season`
+et les teintes horaires de `data-time`. Le mode personnalisé utilise
+`data-color-mode="custom"`, la teinte et la chroma choisies. Les variantes
+`data-theme="dark"` adaptent chaque palette à la lecture nocturne. Les tokens
+fonctionnels de succès, erreur et avertissement gardent leur signification
+dans les deux modes.
 
 Les limites horaires sont regroupées dans `timePeriods`, au début de `assets/theme-init.js`. Le fournisseur `getLocalTimePeriod(date)` est séparé de la résolution saison/luminosité : il pourra être remplacé ultérieurement par des horaires solaires. Adapter ensemble le code et le tableau ci-dessus.
 
-Éviter les transitions prolongées ; `prefers-reduced-motion` désactive les transitions et déplacements concernés. L’impression ITK conserve des surfaces claires.
+La palette s’applique immédiatement à la page. `prefers-reduced-motion`
+désactive les transitions et déplacements des composants concernés.
+L’impression ITK conserve des surfaces claires.
 
 Pour une commande autonome assortie aux entrées du header, utiliser
 `.btn.btn-surface`. La variante `.btn-surface--accent` reprend la surface
@@ -96,37 +105,38 @@ illisible est conservée et son remplacement est refusé.
 
 ## Premier rendu et préférences personnelles
 
-Auparavant, le script pré-CSS appliquait le thème visiteur ou l’heure locale
-puis l’adaptateur asynchrone passait au thème personnel. Un compte sombre
-affichait donc des pixels clairs en journée. Désormais, le script compare la
-portée de montage et la session SDK présente avec le repère local de continuité
-Auth déjà vérifié. Il lit uniquement son indication visuelle
-`auto|light|dark`. Le repère ne reçoit ni jeton, ni saison, ni couleur, ni
-donnée pédagogique supplémentaire. Ce contrôle local sert uniquement au rendu.
+Le script pré-CSS vérifie le montage, le projet, l’identifiant de compte et
+l’identifiant de session SDK à partir du repère local de continuité Auth.
+Ce repère contient seulement les paramètres nécessaires au rendu actif
+(luminosité, mode, saison active ou couleur active). `appearance.js` l’alimente
+depuis le cache personnel ou la préférence synchronisée. Le repère sert
+uniquement au rendu. Appliquer la palette ne provoque aucune écriture réseau.
 
-Une session sans indication concordante et un stockage indisponible commencent
-avec la palette sombre standard. La page reste affichée et utilisable. Une
-session sans compte utilise les préférences visiteur mémorisées ou l’heure
-locale. Sur les pages avec le service Auth, une fois l’identité reconnue,
-`appearance.js` applique le cache personnel cloisonné puis la valeur reçue.
+Une session sans repère concordant et un stockage indisponible commencent avec
+une palette neutre sombre. Un repère historique réutilise sa luminosité le temps
+de retrouver la palette. Sur un navigateur sans session, le site applique les
+préférences visiteur mémorisées ou l’heure locale. Sur les pages avec le service
+Auth, une fois l’identité reconnue, `appearance.js` applique le cache personnel
+cloisonné puis la valeur reçue.
 Un compte dont l’absence de préférences est établie peut reprendre la saison
 et la luminosité du navigateur dans son rendu, avec un modèle éditable
 automatique. Les pages autonomes Contact et Confidentialité restent accessibles
 indépendamment du service de compte. Elles utilisent le réglage visiteur ou
-l’indication pré-CSS de luminosité d’une session reconnue localement.
+la palette pré-CSS d’une session reconnue localement.
 
 `pageshow`, `visibilitychange` et `storage` réévaluent l’heure et la continuité.
 Une session remplacée retire les couleurs précédentes et relance la vérification.
-Sur retour BFCache, le rechargement de sécurité existant conserve la luminosité
-dès le document restauré. La vérification Auth, l’accès IndexedDB et RLS
+Sur retour BFCache, le rechargement de sécurité relit le repère de session.
+La vérification Auth, l’accès IndexedDB et RLS
 continuent d’isoler les préférences par compte. Aucun choix visiteur ne remplit
 automatiquement le compte. Le dialogue protège la saisie en cours et montre
 les problèmes d’enregistrement, la reprise hors ligne et les conflits.
 
 Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise les
-révisions, les formats, les imports et l’ordre de mise en service. Les
-[preuves du correctif](../validations/VALIDATION-PROFIL-COULEURS-THEME.md)
-distinguent capture de pixels, Chromium simulé et backend local réel.
+révisions, les formats, les imports et l’ordre de mise en service. Les tests
+Playwright lisent les pixels du compositeur pendant la vérification Auth et
+la lecture des préférences. Le parcours Supabase local vérifie aussi l’écriture
+de la couleur et les premières images claires et sombres des pages principales.
 
 Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications historiques dans [VALIDATION-LOT5.md](../archives/validations/VALIDATION-LOT5.md).
 

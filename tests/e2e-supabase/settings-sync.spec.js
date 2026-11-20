@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createDrillStudent, configureDrillPage, signInDrill } from '../helpers/drill-local.js';
-import { itkPath, itkParameters, settingsAction, settingsSynced, generateItk, expectItk, chooseAppearance, closeAppearance, settingsRecords } from '../helpers/settings-browser.js';
+import { configureLocalAuthPage } from '../helpers/auth-local.js';
+import { backgroundPixel, preparePaintCapture, recordNavigation } from '../helpers/appearance-paint.js';
+import { itkPath, itkParameters, settingsAction, settingsSynced, generateItk, expectItk, chooseAppearance, closeAppearance, openAppearanceComponent, settingsRecords } from '../helpers/settings-browser.js';
 
 // Only the guarded local fixture provisions accounts. Pedagogical assertions
 // below read PostgreSQL through the fictitious student's actual JWT.
@@ -37,18 +39,19 @@ test('Paramètres réels A : deux appareils, huit valeurs ITK, apparence auto et
     const context = await browser.newContext({ timezoneId: 'Europe/Paris', locale: 'fr-FR' }); contexts.push(context);
     const second = await context.newPage(); await configureDrillPage(second, a.environment); await signIn(second, a);
     stage = 'deuxième appareil'; await expectItk(second, itkParameters);
-    await expect(second.locator('html')).toHaveAttribute('data-season', 'winter'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(second.locator('html')).not.toHaveAttribute('data-season'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
     await expect(second.locator('html')).toHaveAttribute('data-color-mode', 'custom');
     expect(await second.evaluate(() => window.BpreaAppearance.getState().color)).toBe('#ff395c');
     await expect(second.locator('#csv-export')).toHaveCount(0);
-    await chooseAppearance(second, 'auto', 'auto'); await settingsSynced(second); await closeAppearance(second);
+    await openAppearanceComponent(second);
+    await second.locator('#appearance-brightness').selectOption('auto'); await settingsSynced(second); await closeAppearance(second);
     await settingsAction(page, 'retry'); await settingsSynced(page);
     stage = 'mêmes préférences auto, calculs locaux jour et nuit';
     await page.clock.setFixedTime(new Date('2026-10-25T12:00:00.000Z'));
     await second.clock.setFixedTime(new Date('2026-10-25T23:00:00.000Z'));
     await page.evaluate(() => window.BpreaAppearance.refresh()); await second.evaluate(() => window.BpreaAppearance.refresh());
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
-    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'auto', brightness: 'auto', color_mode: 'custom', custom_color: '#ff395c' });
+    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'winter', brightness: 'auto', color_mode: 'custom', custom_color: '#ff395c' });
     stage = 'autre compte sur le même profil';
     await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
@@ -64,6 +67,77 @@ test('Paramètres réels A : deux appareils, huit valeurs ITK, apparence auto et
     expect(await settingsRecords(page)).toHaveLength(2);
   } catch { failure = new Error(`Paramètres Supabase locaux non validés : ${stage}. Aucun jeton ni mot de passe publié.`); }
   finally { await clean(students, contexts, failure); }
+});
+
+test('Premières images personnalisées du compte fictif local, en clair et en sombre', async ({ page }, info) => {
+  test.setTimeout(150000);
+  const students = [];
+  const client = await preparePaintCapture(page, { throttle: false });
+  try {
+    const student = await createDrillStudent();
+    students.push(student);
+    await configureLocalAuthPage(page, student.environment);
+    await signInDrill(page, student);
+    const prefix = '/mon-bprea/';
+    const profile = prefix + 'profil.html#parametres';
+    const color = page.locator('#appearance-hex');
+    const brightness = page.locator('#appearance-brightness');
+    const routes = ['index.html', 'cours.html?id=matiere-organique', 'exercices.html?id=matiere-organique', 'drill.html',
+      'itk.html', 'reconnaissance-plantes.html', 'tableau-de-bord.html'];
+
+    for (const mode of ['dark', 'light']) {
+      await page.goto(profile);
+      await settingsSynced(page);
+      await page.getByRole('button', { name: 'Régler l’apparence' }).click();
+      if (mode === 'dark') {
+        await page.getByLabel('Palette de couleurs').selectOption('custom');
+        await color.fill('#b000ff');
+        await color.press('Enter');
+      }
+      await brightness.selectOption(mode);
+      await settingsSynced(page);
+      await closeAppearance(page);
+      const [saved] = await rows(student, 'appearance_preferences');
+      expect(saved).toMatchObject({ brightness: mode, color_mode: 'custom', custom_color: '#b000ff' });
+      const expectedPixel = async () => {
+        // Each page may layer different surfaces over the shared background.
+        // Compare the first paint to the verified palette on the same page.
+        const pixel = await backgroundPixel(page, client);
+        expect(pixel[2]).toBeGreaterThan(pixel[1]);
+        return pixel;
+      };
+      const pattern = `${student.environment.url}/rest/v1/appearance_preferences?**`;
+      for (const path of routes) {
+        let reading = false;
+        const release = Promise.withResolvers();
+        const delay = async route => {
+          reading = true;
+          await release.promise;
+          await route.continue();
+        };
+        await page.route(pattern, delay);
+        try {
+          await recordNavigation(page, client, info, {
+            name: `${mode}-${path.split('?')[0]}`, mode, expectedPixel, attachFrame: false,
+            navigate: () => page.goto(prefix + path, { waitUntil: 'domcontentloaded' }),
+            whileVisible: async () => {
+              await expect.poll(() => reading).toBe(true);
+              await expect(page.locator('html')).toHaveAttribute('data-color-mode', 'custom');
+              release.resolve();
+              await settingsSynced(page);
+              expect(await page.evaluate(() => window.BpreaAppearance.getState().color)).toBe('#b000ff');
+            },
+          });
+        } finally { release.resolve(); await page.unroute(pattern, delay); }
+      }
+      expect((await rows(student, 'appearance_preferences'))[0]).toEqual(saved);
+    }
+    expect((await rows(student, 'appearance_preferences'))[0])
+      .toMatchObject({ brightness: 'light', color_mode: 'custom', custom_color: '#b000ff' });
+  } finally {
+    // Close the browser page before deleting the dedicated fixture account.
+    await clean(students, [page.context()]);
+  }
 });
 
 test('Paramètres réels B : hors ligne, rechargement et acquittement perdu après commit PostgreSQL', async ({ page }) => {
