@@ -2,6 +2,8 @@
 
 Campagne du 20 novembre 2026, [PR #79](https://github.com/Vladoche/mon-bprea/pull/79).
 La [validation](VALIDATION-RECETTE-FINALE-2027.md) porte les résultats par environnement.
+Les constats ci-dessous datent de cette campagne. La [fiche d’approbation](#fiche-dapprobation)
+consigne la décision prise après la fusion.
 
 | ID | Gravité | Source | Symptôme et impact | Cause | Correctif | Reproduction | Confirmation | Statut |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -72,6 +74,8 @@ droits d’accès, d’effacement et de portabilité, voir les articles 15, 17 e
 
 | Champ | Valeur actuelle |
 | --- | --- |
-| Version et empreinte | V1.2 candidate · `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57` |
-| Décision, date et preuve | En attente d’approbation explicite de l’exploitant |
-| SHA de publication | À sélectionner après revue |
+| Version et empreinte | V1.2 · 20 novembre 2026 · SHA-256 LF `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57` |
+| Décision et origine | **APPROUVÉE** par le responsable du traitement par instruction explicite à Codex. Périmètre limité à la notice. |
+| Enregistrement et preuve | 20 novembre 2026 à **08:27:51 CET** · attestation privée `NOTICE-V12-20261120` · [validation de l’approbation](VALIDATION-APPROBATION-NOTICE-V1-2.md). |
+| Main contenant le texte contrôlé | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` |
+| Publication | **Non autorisée.** SHA à sélectionner sur `main` après intégration du dossier. Opérations PROD et invitations hors périmètre. |

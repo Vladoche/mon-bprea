@@ -2,9 +2,15 @@
 
 **8 novembre 2026. V1.1 approuvée explicitement et publiée ; Auth PROD effectivement servie.** Le texte exact du 08/11 n’a pas changé depuis #50. Après l’échec initial #63, le correctif #51 a été fusionné humainement, puis un nouvel accord explicite a autorisé #64 sur `main` à `3952fd5a98705397bb341dc1fa54e0e8f92979d8`. Le déploiement et les contrôles HTTP/navigateur ont réussi. Le rattachement fournisseur est établi par lecture ciblée et attestation du titulaire : [PF-01 à PF-03](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes). Aucun compte n’a été créé ; activation et persistance avec session restent à qualifier séparément. [Matrice courante](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md).
 
-## Aperçu de la version préparée
+## Version préparée et approuvée
 
-La [source V1.1 du 8 novembre](POLITIQUE-CONFIDENTIALITE-PROJET.md) produit [confidentialite.html](../../confidentialite.html) avec `npm run build:privacy-notice`. `node scripts/build-privacy-notice.mjs --check` compare le rendu versionné au texte et imprime son empreinte SHA-256 avec fins de ligne LF. Cette empreinte lie l’approbation humaine au texte exact ; un changement de texte exige une nouvelle approbation. Le statut d’approbation reste dans cette fiche et la matrice, sans présenter une notice « en préparation » comme une politique validée sur le site. La présence du fichier dans la PR n’autorise pas sa publication.
+La **V1.2 du 20 novembre 2026** a été approuvée par le responsable du traitement
+le même jour à **08:27:51 CET** pour l’empreinte SHA-256 LF
+`097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57`.
+La preuve privée `NOTICE-V12-20261120` est référencée dans la
+[validation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md). Publication 2027 non autorisée.
+
+La [source V1.2](POLITIQUE-CONFIDENTIALITE-PROJET.md) produit [confidentialite.html](../../confidentialite.html) avec `npm run build:privacy-notice`. `node scripts/build-privacy-notice.mjs --check` compare le rendu versionné au texte et imprime son empreinte SHA-256 avec fins de ligne LF. Cette empreinte lie l’approbation humaine au texte exact ; un changement de texte exige une nouvelle approbation. Le statut d’approbation reste dans cette fiche et la matrice, sans présenter une notice « en préparation » comme une politique validée sur le site. La présence du fichier dans la PR n’autorise pas sa publication.
 
 La page publique est statique et autonome : sommaire, liens et contact fonctionnent sans JavaScript ni compte. Elle réutilise les styles et la préférence d’apparence de l’appareil via `theme-init.js`, sans client Auth. Sans JavaScript elle suit le mode système. `npm run preopening:notice` conserve un aperçu privé autonome sans script, marqué comme aperçu non approuvé. Les liens externes n’ouvrent leur destination qu’au clic.
 
@@ -25,12 +31,12 @@ Ces liens sont intégrés dans les sources et la copie de publication locale. Le
 ## Conditions avant publication
 
 1. Données, destinataires, garanties de la cible et circuit manuel vérifiés ; attestation du titulaire et approbation exacte de la V1.1 reçues le 08/11. Réexaminer en cas de changement substantiel. [Preuves fournisseurs](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes).
-2. Vérifier la page finale et l’artefact exact avant fusion. Le constructeur `prepare-pages.py` prend les HTML racine, les types autorisés sous `assets/` et les PDF sous `documents/` ; les sources documentaires, outils et aperçus privés sont exclus. Soumettre la notice, ses réserves et la publication à l’exploitant. Aucune fusion ou publication n’est effectuée sans leurs accords.
+2. Vérifier la page finale et l’artefact exact avant fusion. Le constructeur `prepare-pages.py` prend les HTML racine, les types autorisés sous `assets/` et les PDF sous `documents/` ; les sources documentaires, outils et aperçus privés sont exclus. Après intégration du dossier, revérifier le texte au SHA retenu et soumettre les réserves et la demande de publication à l’exploitant. Aucune fusion ou publication n’est effectuée sans leurs accords.
 3. Contrôler publiquement le rendu, les liens et le contact depuis l’URL finale après publication autorisée, puis consigner version, date et preuve. Pour une collecte ultérieure, la notice doit déjà être disponible et remise avant de recevoir une adresse. L’activation et les invitations ont des autorisations distinctes.
 
 ## Publication Pages avec Auth PROD
 
-Les décisions et preuves ci-dessous concernent la V1.1 du 8 novembre. Pour le texte révisé du profil 2027, utiliser la [fiche d’approbation de la V1.2 candidate](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation).
+Les décisions et preuves ci-dessous concernent la V1.1 du 8 novembre. Pour le texte révisé du profil 2027, utiliser la [fiche d’approbation de la V1.2](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation).
 
 Le [workflow](../../.github/workflows/deploy.yml), **fusionné par #50**, ne se déclenche plus sur push : une fusion ne publie plus Pages. Seul un `workflow_dispatch` sur `main`, avec `publish_auth_production=true` et le SHA-256 LF de la notice expressément approuvée, peut publier. La confirmation est désactivée par défaut. Un lancement exige son autorisation explicite ; aucune fusion par Codex. Les anciens workflows et anciennes versions restent à éviter ; ces contrôles s’appliquent au workflow modifié sur `main`.
 

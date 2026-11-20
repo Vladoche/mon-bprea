@@ -37,13 +37,18 @@ rejeu sont dans la [validation](VALIDATION-RECETTE-FINALE-2027.md) et le
 
 ## Décision, publication et vérification hébergée
 
+Suivi après fusion de #79, actualisé le 20 novembre 2026.
+[Contrôles complémentaires et décision](./VALIDATION-APPROBATION-NOTICE-V1-2.md).
+
 Suivre le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md),
 le [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
 et le [contrat de cache](../architecture/CACHE.md).
 
 | ID · contrôle | Environnement et SHA | Résultat attendu | État | Résultat observé et preuve | Anomalie, gravité et suite |
 | --- | --- | --- | --- | --- | --- |
-| HP-01 · Décision de publication | Décision exploitant, SHA à retenir | Exploitant, date, SHA et empreinte LF du texte approuvé, décision sur les réserves. | Bloqué | V1.2 en attente et publication non autorisée. [Fiche d’approbation](CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). | P1 réglementaire tant que l’approbation de la notice manque. |
+| HP-01a · Approbation de la notice | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` | Décision, date, version et empreinte LF exacte. | Réussi | V1.2 approuvée le 20/11 à 08:27:51 CET, preuve privée `NOTICE-V12-20261120`. [Fiche d’approbation](CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). | Intégrer le dossier dans main. |
+| HP-01b · Décision de publication | Décision exploitant, SHA final à retenir | Intégration, SHA exact, empreinte inchangée, réserves traitées et accord daté. | Bloqué | Publication non autorisée. | Revoir et intégrer la PR d’approbation, puis statuer sur le SHA de main et les réserves. |
+| HP-01c · Sauvegarde et journal | Poste opérateur, lecture locale du 20/11 | Point restaurable frais et journal concordant. | Réussi au relevé | Point applicatif du 18/11 vérifié, échéance le 25/11 à 13:09:16 CET. [Périmètre et preuve](./VALIDATION-APPROBATION-NOTICE-V1-2.md#prérequis-et-réserves). | Revalider à la date du lancement. Auth, Storage, sessions et reprise complète hors preuve. |
 | HP-02 · Paramètres publics Auth | Pages servie `3952fd5`, workflow futur | Revalider cible, URL, clé publishable, callback, invitation et refus d’anonyme. | Bloqué | Les cinq champs de la configuration servie correspondent à la forme attendue. Le dernier relevé opérateur Auth est daté du 18/11. Préflight du prochain workflow et contrôle administratif à réaliser sous mandat. | Recontrôler pour le SHA retenu. |
 | HP-03 · Repli | Pages `3952fd5`, artefacts locaux `3952fd5` et `bacb683` | Dernier SHA, notice, paramètres publics, procédure et répétition locale. | Réussi | Référence identifiée et repli répété localement. La future publication d’un repli requiert son propre accord. [Procédure](../deploiement/PLAN-PUBLICATION-2027.md#retour-arrière-frontend). | Artefact historique du run indisponible par l’API. Reconstitution à partir de Git et paramètres de test. |
 | HP-04 · Workflow Pages | GitHub Pages, SHA futur | Consigner run, conclusion, artefact et SHA réellement servi. | Bloqué | Aucun lancement de la version 2027. | Attendre l’accord de phase A. |
@@ -51,3 +56,4 @@ et le [contrat de cache](../architecture/CACHE.md).
 | HP-06 · Vérification hébergée 2027 | GitHub Pages, SHA futur | Routes et ressources, navigateur neuf et ancien, contact et notice approuvée. | Non commencé | La version 2027 attend encore sa décision de publication. | Exécuter la phase B sous mandat. |
 | HP-07 · Recette hébergée authentifiée | Supabase PROD, SHA futur | Vérifier connexion et persistance uniquement dans le périmètre accordé. | Bloqué | Aucun essai connecté pendant cette mission. La preuve hébergée du 08/11 concerne le seul exploitant. | Autorisation distincte. |
 | HP-08 · Clôture de la campagne | Registre et état projet, SHA futur | Reporter preuves, réserves, dates effectives et décision d’accueil distincte. | Non commencé | État prépublication actualisé. La clôture hébergée suit la décision et les contrôles réels. | À consigner après la phase B éventuelle. |
+| HP-09 · Canal de contact | Artefact local, Pages et dossier opérateur | Accès sans compte et preuve de réception/réponse. | Partiel | Page et lien de messagerie vérifiés. L’essai du 05/11 reste attesté. Les preuves opérationnelles manquent au relevé du dossier privé. | Vérifier les pièces avant lancement. |
