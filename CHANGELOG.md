@@ -9,6 +9,10 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Continuité des palettes entre les pages**. La palette du compte reconnu
+  s’applique avant les feuilles de style. Les modes saisonnier et personnalisé
+  sont exclusifs, avec une luminosité indépendante. [PR #82](https://github.com/Vladoche/mon-bprea/pull/82).
+
 - **Profil simplifié, couleurs personnalisées et continuité clair/sombre**.
   Retrait du panneau cours/QCM et des imports d’apparence du profil.
   Sauvegardes automatiques et reprises contextuelles, roue chromatique et

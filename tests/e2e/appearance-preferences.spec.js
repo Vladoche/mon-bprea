@@ -65,16 +65,19 @@ test('dialogue clavier, choix de page distinct et archives intactes', async ({ p
   };
   await seed(page, histories);
   await page.goto('/mon-bprea/profil.html#parametres');
-  await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
+  await expect(page.locator('#appearance-dialog')).toBeAttached();
   await expect(page.locator('#appearance-save')).toBeEmpty();
   await expect(page.locator('html')).toHaveAttribute('data-season', 'autumn');
   await openAppearance(page).focus();
   await page.keyboard.press('Enter');
   const dialog = dialogFor(page);
   const close = dialog.getByRole('button', { name: 'Fermer les paramètres d’apparence', exact: true });
+  const palette = dialog.getByRole('combobox', { name: 'Palette de couleurs' });
   const season = dialog.getByRole('combobox', { name: 'Saison', exact: true });
   const brightness = dialog.getByRole('combobox', { name: 'Luminosité', exact: true });
   await expect(close).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(palette).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(season).toBeFocused();
   await page.keyboard.press('Tab');
@@ -82,12 +85,16 @@ test('dialogue clavier, choix de page distinct et archives intactes', async ({ p
   await page.keyboard.press('Shift+Tab');
   await expect(season).toBeFocused();
   await page.keyboard.press('Shift+Tab');
+  await expect(palette).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
   await expect(close).toBeFocused();
   await expect(dialog.getByRole('button', { name: /import|ancienne apparence/i })).toHaveCount(0);
   await expect(dialog.locator('#appearance-current, #appearance-season-help, #appearance-time-help')).toHaveCount(0);
   await expect(season).toHaveValue('auto');
   await expect(brightness).toHaveValue('auto');
   await close.focus();
+  await page.keyboard.press('Tab');
+  await expect(palette).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(season).toBeFocused();
   await page.keyboard.press('End');
@@ -110,8 +117,6 @@ test('dialogue clavier, choix de page distinct et archives intactes', async ({ p
       await brightness.selectOption(theme);
       await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
       await brightness.focus();
-      await page.keyboard.press('Tab');
-      await expect(dialog.getByRole('combobox', { name: 'Couleurs' })).toBeFocused();
       await page.keyboard.press('Tab');
       await expect(remember).toBeFocused();
       expect(await remember.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe('none');
@@ -137,7 +142,7 @@ test('auto reste auto pendant les seuils horaires, saisons et changements d’he
   const original = JSON.stringify({ version: 1, season: 'auto', brightness: 'auto' });
   await seed(page, { [ARCHIVED]: original });
   await page.goto('/mon-bprea/profil.html#parametres');
-  await expect(page.locator('html')).toHaveAttribute('data-appearance-ready', 'true');
+  await expect(page.locator('#appearance-dialog')).toBeAttached();
   await expect(page.locator('#appearance-save')).toBeEmpty();
   for (const [instant, season, time, theme] of [
     ['2026-02-28T22:59:00.000Z', 'winter', 'night', 'dark'],

@@ -8,9 +8,8 @@ const seasonLabels = { spring: 'Printemps', summer: 'Été', autumn: 'Automne', 
 const clean = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
 const automatic = { version: 1, season: 'auto', brightness: 'auto' };
 const describe = value => [
-  value?.season === 'auto' ? 'Saison automatique' : seasonLabels[value?.season] || 'Saison inconnue',
+  value?.colorMode === 'custom' ? value.customColor : value?.season === 'auto' ? 'Saison automatique' : seasonLabels[value?.season] || 'Saison inconnue',
   value?.brightness === 'auto' ? 'Luminosité automatique' : value?.brightness === 'dark' ? 'Sombre' : 'Clair',
-  value?.colorMode === 'custom' ? value.customColor : 'Palette saisonnière',
 ].join(' · ');
 const keyOf = value => JSON.stringify([value?.season, value?.brightness, value?.colorMode ?? 'seasonal', value?.customColor ?? null]);
 const statusLabels = {
@@ -47,7 +46,13 @@ export function initAppearance() {
       <button class="btn btn-surface appearance-close" type="submit" aria-label="Fermer les paramètres d’apparence" autofocus>×</button>
     </form>
     <div class="appearance-fields">
-      <label for="appearance-season">Saison
+      <label for="appearance-color-mode">Palette de couleurs
+        <select id="appearance-color-mode">
+          <option value="seasonal">Saisonnière</option>
+          <option value="custom">Personnalisée</option>
+        </select>
+      </label>
+      <label for="appearance-season" id="appearance-season-field">Saison
         <select id="appearance-season">
           <option value="auto">Automatique</option>
           <option value="spring">Printemps</option>
@@ -61,12 +66,6 @@ export function initAppearance() {
           <option value="auto">Automatique</option>
           <option value="light">Mode clair</option>
           <option value="dark">Mode sombre</option>
-        </select>
-      </label>
-      <label for="appearance-color-mode">Couleurs
-        <select id="appearance-color-mode">
-          <option value="seasonal">Palette saisonnière</option>
-          <option value="custom">Couleur personnalisée</option>
         </select>
       </label>
     </div>
@@ -108,6 +107,7 @@ export function initAppearance() {
   const save = dialog.querySelector('#appearance-save');
   const find = id => dialog.querySelector(`#${id}`);
   const mode = find('appearance-color-mode');
+  const seasonField = find('appearance-season-field');
   let service, snapshot, scope = null, source = null, epoch = 0, inFlight = 0, protectedDialog = false, latest = null, markup = '', opener = null;
   const picker = initAppearanceColor(dialog, {
     preview: color => appearance.previewColor(color),
@@ -124,6 +124,7 @@ export function initAppearance() {
     season.value = preferences.season;
     brightness.value = preferences.brightness;
     mode.value = preferences.colorMode ?? 'seasonal';
+    seasonField.hidden = season.disabled = mode.value === 'custom';
     picker.sync(preferences, { reset });
   }
   function deviceStatus() {
@@ -245,7 +246,7 @@ export function initAppearance() {
     const current = epoch; button.disabled = true;
     try {
       const result = await service.resolve(button.dataset.appearanceResolve, button.dataset.choice);
-      if (current === epoch) { announce(result?.error || ''); if (!result?.error) season.focus({ preventScroll: true }); }
+      if (current === epoch) { announce(result?.error || ''); if (!result?.error) mode.focus({ preventScroll: true }); }
     } catch { if (current === epoch) announce('Choix indisponible. Réessaie dans un instant.'); }
     finally { if (button.isConnected) button.disabled = false; }
   });
@@ -270,9 +271,10 @@ export function initAppearance() {
       const canApply = !inFlight && !(dialog.open && protectedDialog);
       if (latest && canApply && (appearance.isProvisional() || keyOf(latest) !== keyOf(appearance.getPreferences()))) appearance.applyPreferences(latest);
       const empty = usable && !latest && domain.state === 'synced';
-      const brightnessHint = latest?.brightness ?? (empty ? (appearance.getRemembered()?.brightness || 'auto') : null);
+      const fallback = appearance.getRemembered() || automatic;
+      const renderHint = latest ?? (empty ? { season: fallback.season, brightness: fallback.brightness } : null);
       if (empty && canApply) appearance.renderEmptyAccount();
-      if (brightnessHint) auth.rememberAppearanceBrightness(JSON.parse(state.scope)[2], brightnessHint);
+      if (renderHint) auth.rememberAppearance(JSON.parse(state.scope)[2], renderHint);
       renderStatus(state);
       if (state.mode === 'visitor') find('appearance-sync-refresh').hidden = true;
       available();
@@ -309,5 +311,4 @@ export function initAppearance() {
     }, { signal: lifecycle.signal });
   }).catch(() => { appearance.setSource('blocked'); save.textContent = 'Choix temporaire : le service de sauvegarde est indisponible.'; });
   update();
-  document.documentElement.dataset.appearanceReady = 'true';
 }

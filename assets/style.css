@@ -4,21 +4,6 @@
 :root {
   color-scheme: light;
   font-synthesis: none;
-  --color-bg-base: #faf7f0;
-  --color-surface: #fffdf8;
-  --color-surface-soft: #f2eee3;
-  --color-text: #342f28;
-  --color-muted: #645f53;
-  --color-border: #ded8cb;
-  --color-control-border: #829880;
-  --color-accent: #286640;
-  --color-accent-hover: #1e5132;
-  --color-accent-soft: #e5efdc;
-  --color-accent-fill: #286640;
-  --color-accent-fill-hover: #1e5132;
-  --color-on-accent: #fff;
-  --color-secondary: #8b6526;
-  --color-cream: #f3efdd;
   --color-focus: #3158b3;
   --color-shadow: 0 14px 40px rgba(36, 50, 35, .055);
   --color-success: #22613b;
@@ -46,12 +31,6 @@
   /* Fondation 2027 : les alias historiques ci-dessous restent le contrat commun. */
   --color-surface-raised: var(--color-surface);
   --color-surface-glass: var(--color-surface);
-  --color-terracotta: #954a32;
-  --color-terracotta-text: #954a32;
-  --color-terracotta-hover: #7d3b28;
-  --color-terracotta-soft: #f4e5dc;
-  --color-on-terracotta: #fffaf5;
-  --color-vegetal: #356149;
   --color-text-subtle: var(--color-muted);
   --space-1: .25rem;
   --space-2: .5rem;
@@ -104,7 +83,30 @@
   --cream: var(--color-cream);
   --shadow: var(--color-shadow);
 }
-:root[data-season="summer"] {
+:root:not([data-color-mode]) {
+  --color-bg-base: #faf7f0;
+  --color-surface: #fffdf8;
+  --color-surface-soft: #f2eee3;
+  --color-text: #342f28;
+  --color-muted: #645f53;
+  --color-border: #ded8cb;
+  --color-control-border: #829880;
+  --color-accent: #286640;
+  --color-accent-hover: #1e5132;
+  --color-accent-soft: #e5efdc;
+  --color-accent-fill: #286640;
+  --color-accent-fill-hover: #1e5132;
+  --color-on-accent: #fff;
+  --color-secondary: #8b6526;
+  --color-cream: #f3efdd;
+  --color-terracotta: #954a32;
+  --color-terracotta-text: #954a32;
+  --color-terracotta-hover: #7d3b28;
+  --color-terracotta-soft: #f4e5dc;
+  --color-on-terracotta: #fffaf5;
+  --color-vegetal: #356149;
+}
+:root:not([data-color-mode])[data-season="summer"] {
   --color-bg-base: #fbf8ef;
   --color-surface: #fffdf7;
   --color-surface-soft: #f6f0df;
@@ -120,7 +122,7 @@
   --color-secondary: #94621b;
   --color-cream: #f8edce;
 }
-:root[data-season="autumn"] {
+:root:not([data-color-mode])[data-season="autumn"] {
   --color-bg-base: #fbf6f0;
   --color-surface: #fffdf9;
   --color-surface-soft: #f5ebe0;
@@ -136,7 +138,7 @@
   --color-secondary: #876127;
   --color-cream: #f7ebd7;
 }
-:root[data-season="winter"] {
+:root:not([data-color-mode])[data-season="winter"] {
   --color-bg-base: #f2f6f7;
   --color-surface: #fcfdfd;
   --color-surface-soft: #eaf0f2;
@@ -153,30 +155,10 @@
   --color-cream: #edece1;
 }
 :root[data-theme="dark"] {
-  --color-terracotta: #a1543b;
-  --color-terracotta-text: #f0b58e;
-  --color-terracotta-hover: #ae5d40;
-  --color-terracotta-soft: #493127;
-  --color-on-terracotta: #fff;
-  --color-vegetal: #a5d5ae;
   --shadow-raised: 0 12px 32px #00000024;
   --shadow-menu: 0 20px 48px #00000040;
 
   color-scheme: dark;
-  --color-bg-base: #121b15;
-  --color-surface: #1b2920;
-  --color-surface-soft: #223429;
-  --color-text: #edf3e9;
-  --color-muted: #bdccbe;
-  --color-border: #3c5140;
-  --color-control-border: #77947b;
-  --color-accent: #b1d99f;
-  --color-accent-hover: #d0edc1;
-  --color-accent-soft: #2a412c;
-  --color-accent-fill: #386843;
-  --color-accent-fill-hover: #43774e;
-  --color-secondary: #e4c98b;
-  --color-cream: #393b29;
   --color-focus: #aac6ff;
   --color-shadow: 0 14px 40px rgba(0, 0, 0, .18);
   --color-success: #b0e5bd;
@@ -201,7 +183,29 @@
   --color-tone-rose: #e9acb8;
   --color-tone-rose-bg: #4d3037;
 }
-:root[data-theme="dark"][data-season="summer"] {
+:root[data-theme="dark"]:not([data-color-mode]) {
+  --color-terracotta: #a1543b;
+  --color-terracotta-text: #f0b58e;
+  --color-terracotta-hover: #ae5d40;
+  --color-terracotta-soft: #493127;
+  --color-on-terracotta: #fff;
+  --color-vegetal: #a5d5ae;
+  --color-bg-base: #121b15;
+  --color-surface: #1b2920;
+  --color-surface-soft: #223429;
+  --color-text: #edf3e9;
+  --color-muted: #bdccbe;
+  --color-border: #3c5140;
+  --color-control-border: #77947b;
+  --color-accent: #b1d99f;
+  --color-accent-hover: #d0edc1;
+  --color-accent-soft: #2a412c;
+  --color-accent-fill: #386843;
+  --color-accent-fill-hover: #43774e;
+  --color-secondary: #e4c98b;
+  --color-cream: #393b29;
+}
+:root[data-theme="dark"]:not([data-color-mode])[data-season="summer"] {
   --color-bg-base: #1c1b11;
   --color-surface: #29291b;
   --color-surface-soft: #343422;
@@ -217,7 +221,7 @@
   --color-secondary: #efc987;
   --color-cream: #423922;
 }
-:root[data-theme="dark"][data-season="autumn"] {
+:root[data-theme="dark"]:not([data-color-mode])[data-season="autumn"] {
   --color-bg-base: #211813;
   --color-surface: #2f241e;
   --color-surface-soft: #3a2d24;
@@ -233,7 +237,7 @@
   --color-secondary: #e4c489;
   --color-cream: #433821;
 }
-:root[data-theme="dark"][data-season="winter"] {
+:root[data-theme="dark"]:not([data-color-mode])[data-season="winter"] {
   --color-bg-base: #121c22;
   --color-surface: #1c2a31;
   --color-surface-soft: #24363e;
@@ -251,8 +255,21 @@
 }
 /* The wheel supplies a hue and an upper chroma bound. The roles retain fixed
    lightness offsets so the raw swatch cannot set a text or control color. */
+:root[data-color-mode="neutral"] {
+  --appearance-hue: 0deg;
+  --appearance-chroma: 0;
+}
+:root:is([data-color-mode="custom"], [data-color-mode="neutral"]) {
+  --color-cream: var(--color-surface-soft);
+  --color-terracotta: var(--color-accent-fill);
+  --color-terracotta-text: var(--color-accent);
+  --color-terracotta-hover: var(--color-accent-fill-hover);
+  --color-terracotta-soft: var(--color-accent-soft);
+  --color-on-terracotta: var(--color-on-accent);
+  --color-vegetal: var(--color-accent);
+}
 @supports (color: oklch(50% 0.1 120)) {
-  :root[data-color-mode="custom"] {
+  :root:is([data-color-mode="custom"], [data-color-mode="neutral"]) {
     --color-bg-base: oklch(96% calc(var(--appearance-chroma) * .12) var(--appearance-hue));
     --color-surface: oklch(99% calc(var(--appearance-chroma) * .07) var(--appearance-hue));
     --color-surface-soft: oklch(93% calc(var(--appearance-chroma) * .20) var(--appearance-hue));
@@ -267,15 +284,8 @@
     --color-accent-fill-hover: oklch(37% var(--appearance-chroma) var(--appearance-hue));
     --color-on-accent: #fff;
     --color-secondary: oklch(42% calc(var(--appearance-chroma) * .76) calc(var(--appearance-hue) + 35deg));
-    --color-cream: var(--color-surface-soft);
-    --color-terracotta: var(--color-accent-fill);
-    --color-terracotta-text: var(--color-accent);
-    --color-terracotta-hover: var(--color-accent-fill-hover);
-    --color-terracotta-soft: var(--color-accent-soft);
-    --color-on-terracotta: var(--color-on-accent);
-    --color-vegetal: var(--color-accent);
   }
-  :root[data-theme="dark"][data-color-mode="custom"] {
+  :root[data-theme="dark"]:is([data-color-mode="custom"], [data-color-mode="neutral"]) {
     --color-bg-base: oklch(20% calc(var(--appearance-chroma) * .16) var(--appearance-hue));
     --color-surface: oklch(25% calc(var(--appearance-chroma) * .20) var(--appearance-hue));
     --color-surface-soft: oklch(30% calc(var(--appearance-chroma) * .26) var(--appearance-hue));
@@ -292,12 +302,45 @@
     --color-secondary: oklch(80% calc(var(--appearance-chroma) * .65) calc(var(--appearance-hue) + 35deg));
   }
 }
+@supports not (color: oklch(50% 0.1 120)) {
+  :root:is([data-color-mode="custom"], [data-color-mode="neutral"]) {
+    --appearance-saturation: calc(var(--appearance-chroma) * 380%);
+    --color-bg-base: hsl(var(--appearance-hue) var(--appearance-saturation) 97%);
+    --color-surface: hsl(var(--appearance-hue) var(--appearance-saturation) 99%);
+    --color-surface-soft: hsl(var(--appearance-hue) var(--appearance-saturation) 94%);
+    --color-text: #252525;
+    --color-muted: #525252;
+    --color-border: #d4d4d4;
+    --color-control-border: #737373;
+    --color-accent: hsl(var(--appearance-hue) var(--appearance-saturation) 29%);
+    --color-accent-hover: hsl(var(--appearance-hue) var(--appearance-saturation) 23%);
+    --color-accent-soft: hsl(var(--appearance-hue) var(--appearance-saturation) 90%);
+    --color-accent-fill: var(--color-accent);
+    --color-accent-fill-hover: var(--color-accent-hover);
+    --color-on-accent: #fff;
+    --color-secondary: var(--color-accent);
+  }
+  :root[data-theme="dark"]:is([data-color-mode="custom"], [data-color-mode="neutral"]) {
+    --color-bg-base: hsl(var(--appearance-hue) var(--appearance-saturation) 10%);
+    --color-surface: hsl(var(--appearance-hue) var(--appearance-saturation) 14%);
+    --color-surface-soft: hsl(var(--appearance-hue) var(--appearance-saturation) 19%);
+    --color-text: #f2f2f2;
+    --color-muted: #cecece;
+    --color-border: #575757;
+    --color-control-border: #a3a3a3;
+    --color-accent: hsl(var(--appearance-hue) var(--appearance-saturation) 82%);
+    --color-accent-hover: hsl(var(--appearance-hue) var(--appearance-saturation) 88%);
+    --color-accent-soft: hsl(var(--appearance-hue) var(--appearance-saturation) 28%);
+    --color-accent-fill: var(--color-accent);
+    --color-accent-fill-hover: var(--color-accent-hover);
+    --color-on-accent: #111;
+  }
+}
 /* Nuances horaires discrètes ; la nuit utilise la palette sombre ci-dessus.
    Le moteur choisit les plages horaires, sans calcul solaire astronomique. */
 @supports (background: color-mix(in srgb, white, black)) {
-  :root[data-time="morning"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 96%, var(--morning-tint, #f4d69a)); }
-  :root[data-time="twilight"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 95%, var(--twilight-tint, #d8966a)); }
-  :root[data-color-mode="custom"] { --morning-tint: var(--color-surface); --twilight-tint: var(--color-accent-soft); }
+  :root:not([data-color-mode])[data-time="morning"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 96%, #f4d69a); }
+  :root:not([data-color-mode])[data-time="twilight"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 95%, #d8966a); }
 }
 
 @supports (background: color-mix(in srgb, white, black)) {
@@ -493,23 +536,6 @@ summary:focus-visible,
 .option.correct { border-color: var(--color-success-line); }
 .option.incorrect { border-color: var(--color-error-line); }
 
-/* Activé après le premier rendu par l'interface d'apparence : le chargement
-   initial reste immédiat, les changements ultérieurs restent discrets. */
-@media (prefers-reduced-motion: no-preference) {
-  html[data-appearance-ready] :is(
-    body, #app-header, footer,
-    .content-panel, .aside-card, .itk-form-panel, .itk-result-panel,
-    .resource-toolbar, .resource-card, .resource-help,
-    .library-filters, .library-card, .library-note,
-    .drill-workspace, .drill-week-strip, .drill-unit-card,
-    .dashboard-panel, .dashboard-metrics, .dashboard-filters,
-    .calendar-board, .calendar-notice, .calendar-dialog,
-    .exam-preparation, .daily-fact
-  ) {
-    transition: background-color .18s ease, color .18s ease, border-color .18s ease;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -518,7 +544,7 @@ summary:focus-visible,
 
 /* L'impression conserve un papier clair, indépendamment des préférences. */
 @media print {
-  html:root, html:root[data-theme], html:root[data-theme][data-season], html:root[data-theme][data-color-mode] {
+  html:root, html:root[data-theme], html:root[data-theme][data-season]:not([data-color-mode]), html:root[data-theme][data-color-mode] {
     color-scheme: light;
     --color-bg-base: #fff;
     --color-bg: #fff;
