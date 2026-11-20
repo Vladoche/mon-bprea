@@ -12,6 +12,7 @@ La version de l’application Windows reste propre à cet outil.
 - **Approbation de la notice V1.2**. Décision du 20 novembre 2026 enregistrée
   pour le texte exact, avec contrôles ciblés du profil et de l’artefact Pages.
   Publication non autorisée.
+  [PR #80](https://github.com/Vladoche/mon-bprea/pull/80) ·
   [Validation](docs/validations/VALIDATION-APPROBATION-NOTICE-V1-2.md).
 
 - **Recette finale de préproduction 2027**. Notice V1.2 candidate et parcours

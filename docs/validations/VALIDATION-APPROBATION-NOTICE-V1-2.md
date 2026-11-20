@@ -18,7 +18,8 @@ Préparation **GO PARTIEL**. Publication **non autorisée**.
 | Portée | Texte exact de la notice uniquement. Déploiement, opérations Supabase PROD, invitations et création ou suppression de compte exclus de la décision. |
 
 Le texte et son HTML figurent sur `main` depuis la fusion de #79.
-La trace documentaire de la décision est proposée dans la PR d’approbation.
+La trace documentaire de la décision est proposée dans la
+[PR #80](https://github.com/Vladoche/mon-bprea/pull/80).
 Le SHA de publication devra être choisi sur `main` après son intégration.
 
 ## Contrôles techniques
@@ -43,8 +44,8 @@ jusqu’au lien de messagerie.
 
 - **Branche cible** `main`. Référence technique contrôlée
   `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458`, notice V1.2 et empreinte
-  ci-dessus. La PR d’approbation porte uniquement des documents. L’onglet
-  Checks de cette PR indique les résultats de sa tête finale.
+  ci-dessus. La PR d’approbation porte uniquement des documents.
+  [Checks de la tête de #80](https://github.com/Vladoche/mon-bprea/pull/80/checks).
 - **Checks de #79** sur `a0074308aefebd146ce54f4d02646d18541df61b` :
   `unit-integration`, `e2e`, `ui-performance-lab` et `supabase-security`
   réussis. Ces workflows de PR n’ont pas exécuté de jobs sur le commit de

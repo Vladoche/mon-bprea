@@ -34,7 +34,7 @@ pas une preuve opérationnelle.
 | Dernier commit vérifié | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` |
 | Dernière PR fusionnée sur main | [#79, recette finale 2027](https://github.com/Vladoche/mon-bprea/pull/79), 20/11/2026 à 07:09:33 UTC. Quatre checks réussis à la tête de la PR. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | [Approbation de la notice V1.2 et préparation de la publication](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md) · [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md) |
+| Chantier en revue | [PR #80, approbation de la notice et préparation de la publication](https://github.com/Vladoche/mon-bprea/pull/80) · [Validation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md) · [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md) |
 | Prochaine action | Revoir et intégrer le dossier d’approbation, contrôler le SHA final et confirmer les prérequis du [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) avant décision. |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
