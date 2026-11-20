@@ -22,7 +22,7 @@ describe('release Pages : préflight en lecture seule et absence de publication 
       const checked = spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs', '--check'], options);
       expect(checked.stderr).toBe('');
       expect(checked.status).toBe(0);
-      expect(checked.stdout).toMatch(/Notice V1\.1 · SHA-256 LF : [a-f0-9]{64}/);
+      expect(checked.stdout).toMatch(/^Notice · SHA-256 LF : [a-f0-9]{64}$/m);
       const built = spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs'], options);
       expect(built.stderr).toBe('');
       expect(built.status).toBe(0);
@@ -71,7 +71,8 @@ print('read-only preflight passed')
     const result = python(`
 from pages_release import notice_sha256, validate_notice_approval
 validate_notice_approval(notice_sha256())
-for approval in ['', 'approved', '0'*64, notice_sha256().upper()]:
+approved_v11 = 'c2b2422b9c3d6b7ec25227f143080782842c4c077f5a1361d4cd36653ad9b8c1'
+for approval in ['', 'approved', '0'*64, notice_sha256().upper(), approved_v11]:
     try: validate_notice_approval(approval)
     except ValueError: pass
     else: raise AssertionError('unapproved notice accepted')

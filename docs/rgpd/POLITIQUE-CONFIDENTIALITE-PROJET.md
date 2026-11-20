@@ -1,6 +1,6 @@
 # Notice de confidentialité de Mon BPREA
 
-Version 1.1 · 8 novembre 2026
+Version 1.2 · 20 novembre 2026
 
 Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour sept adultes au total, dont l’exploitant et six autres participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
 
@@ -34,7 +34,7 @@ Vous pouvez changer l’apparence pour la page en cours ou demander de la mémor
 
 Le générateur d’itinéraire technique (ITK) calcule le calendrier et ses exports sur votre appareil. En visiteur, vous pouvez demander de mémoriser les huit paramètres du dernier calcul, les charger à la demande ou retirer cette mémorisation dans le générateur. Le formulaire et le calendrier affichés restent disponibles après ce retrait. En mode personnel, générer l’itinéraire enregistre les huit paramètres dans les réglages synchronisés du compte.
 
-Les anciennes apparences et les anciens formulaires restent dans leur clé locale d’origine. Les commandes de reprise des anciennes valeurs ou d’examen d’un import dans le compte les consultent à votre demande. L’ancienne date de masquage n’est plus utilisée pour afficher l’anecdote. Le profil permet de rechercher les sauvegardes locales, de les exporter et de les retirer par catégorie, y compris les anciennes.
+Les anciennes apparences et les anciens formulaires restent dans leur clé locale d’origine. Les commandes de reprise des anciennes valeurs ou d’examen d’un import dans le compte les consultent à votre demande. L’ancienne date de masquage n’est plus utilisée pour afficher l’anecdote.
 
 Sur un navigateur connecté, les jetons de session et un repère de continuité aident à retrouver l’accès. Des copies locales par compte conservent la progression et les paramètres, ainsi que les opérations en attente, les conflits et les preuves liées aux imports. L’accès aux données nécessaires à la reprise de session, à la révision ou à la mémorisation locale demandée relève des exemptions fonctionnelles de l’article 82 de la loi Informatique et Libertés. Le site n’intègre ni publicité ni mesure d’audience.
 
@@ -42,9 +42,9 @@ Les versions d’un réglage en conflit restent disponibles pour choisir laquell
 
 L’exploitant surveille le volume des archives de réglages. Avant tout retrait ciblé d’une copie ancienne, il faut vérifier à qui elle appartient et si une opération ou une vérification en dépend encore.
 
-Les copies locales persistent généralement jusqu’à leur retrait ou à un effacement par le navigateur. Se déconnecter met fin à la session sur ce navigateur et conserve la progression. L’effacement local par catégorie se fait depuis le profil sur l’appareil concerné. Il peut laisser un marqueur minimal qui empêche un ancien onglet de recréer les données. Utilisez de préférence votre propre profil de navigateur. Vous pouvez aussi gérer les données du site dans les réglages du navigateur, après avoir vérifié vos exports et ce qui reste à synchroniser.
+Les copies locales persistent généralement jusqu’à leur retrait ou à un effacement par le navigateur. Se déconnecter met fin à la session sur ce navigateur et conserve la progression. L’effacement local avancé par catégorie a été retiré du profil Mon BPREA. Vous pouvez effacer les données du site dans les réglages de votre propre navigateur. Avant de le faire, vérifiez vos copies et ce qui reste à synchroniser, puis fermez les onglets Mon BPREA. Un effacement dans le navigateur peut retirer la session, les préférences et la progression locale, y compris les opérations en attente. Il ne supprime pas les données déjà synchronisées sur le serveur.
 
-Le profil permet de retirer séparément un identifiant de provenance et la sauvegarde visiteur. Retirer l’identifiant peut changer la reconnaissance d’une prochaine tentative. Les données déjà importées et leurs preuves suivent le retrait du cache du compte. Les copies brutes et les empreintes des refus sont exclues de l’export ordinaire du compte. Adressez toute demande concernant une copie potentiellement tierce au responsable afin qu’il vérifie les données concernées.
+Effacer un identifiant local de provenance peut changer la reconnaissance d’un prochain import. Certaines preuves d’import sont conservées dans le cache local du compte. Avant d’effacer des données sur un appareil partagé, contactez le responsable si une copie peut appartenir à une autre personne.
 
 ## Prestataires et transferts
 
@@ -71,13 +71,13 @@ La politique prévoit une sauvegarde applicative chaque semaine, dans un stockag
 
 Les sauvegardes applicatives visent une reprise partielle. Leur disponibilité et leur fraîcheur conditionnent ce qui peut être récupéré. Elles ne permettent pas de recréer à elles seules l’authentification, les mots de passe ou le projet entier. Une donnée restée uniquement sur votre appareil peut être perdue.
 
-L’export JSON du profil fournit une copie des données applicatives disponibles et de certains éléments locaux. Les données du mode visiteur s’exportent séparément. Pour les données d’autres appareils, certains détails internes du compte, les journaux ou les copies brutes, contactez le responsable. Les fichiers téléchargés ou imprimés restent sous votre contrôle.
+L’export JSON en libre-service a été retiré du profil. Pour obtenir une copie des données personnelles qui vous concernent, écrivez au responsable. Il examine les données pertinentes pour votre demande, y compris les sources locales qui peuvent vous être attribuées. Précisez, si nécessaire, l’appareil concerné et si vous révisiez en mode visiteur. Les journaux et certains détails du compte peuvent manquer dans un ancien export JSON. Les fichiers déjà téléchargés et les impressions restent sous votre contrôle et ne peuvent pas être effacés à distance par le responsable.
 
 ## Vos droits et la clôture
 
-Vous pouvez demander l’accès aux données qui vous concernent, leur rectification, leur effacement ou la limitation de leur traitement, selon les conditions du RGPD. Pour les traitements fondés sur l’intérêt légitime, vous pouvez vous opposer pour des raisons tenant à votre situation particulière. Le traitement concerné cesse sauf motif légitime impérieux prévalant sur vos intérêts, droits et libertés, ou nécessité liée à des droits en justice. Les conditions du droit à la portabilité s’apprécient séparément de l’export JSON volontaire.
+Vous pouvez demander l’accès aux données qui vous concernent, leur rectification, leur effacement ou la limitation de leur traitement, selon les conditions du RGPD. Pour les traitements fondés sur l’intérêt légitime, vous pouvez vous opposer pour des raisons tenant à votre situation particulière. Le traitement concerné cesse sauf motif légitime impérieux prévalant sur vos intérêts, droits et libertés, ou nécessité liée à des droits en justice. Le droit d’accès permet de demander une copie des données. Le droit à la portabilité répond à ses propres conditions.
 
-Pour demander la clôture, écrivez au responsable. Il vérifie votre identité de façon proportionnée, vous propose un export et traite la fermeture du compte et la suppression des données actives. Il peut vous accompagner pour retirer les données locales. Les appareils absents, téléchargements, impressions, messages et copies résiduelles des prestataires suivent des circuits distincts. Vous pouvez [adresser une réclamation à la CNIL](https://www.cnil.fr/fr/adresser-une-plainte).
+Pour demander l’effacement ou la clôture de votre compte, écrivez au responsable. Vous pouvez exercer vos droits par ce canal quelle que soit la présence d’une commande dans le profil. Le responsable vérifie votre identité de façon proportionnée, vous propose une copie avant la clôture et traite la fermeture du compte et la suppression des données actives selon la demande. Il peut vous accompagner pour retirer les données locales. Les appareils absents, téléchargements, impressions, sauvegardes techniques, messages et copies résiduelles des prestataires suivent des règles distinctes. Vous pouvez [adresser une réclamation à la CNIL](https://www.cnil.fr/fr/adresser-une-plainte).
 
 ## Évolutions de la notice
 

@@ -13,9 +13,12 @@ const exec = promisify(execFile);
 async function readLocalProfile(id) {
   if (!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id || ''))
     throw new Error('Identifiant de profil fictif invalide.');
+  const project = process.env.SUPABASE_TEST_DOCKER_PROJECT ?? LOCAL_PROJECT;
+  if (project !== LOCAL_PROJECT && !/^mon-bprea-recette[a-z0-9-]{1,45}$/.test(project))
+    throw new Error('Nom de stack de recette invalide.');
   const options = { env: publicProcessEnvironment(process.env), timeout: 10_000, windowsHide: true };
   const docker = async args => (await exec('docker', args, options)).stdout.trim();
-  const container = `supabase_db_${LOCAL_PROJECT}`;
+  const container = `supabase_db_${project}`;
   try {
     const context = process.env.DOCKER_CONTEXT || await docker(['context', 'show']);
     if (!/^[a-z0-9][a-z0-9_.-]*$/i.test(context)) throw new Error();
@@ -27,7 +30,7 @@ async function readLocalProfile(id) {
       '{{json (index .Config.Labels "com.supabase.cli.project")}}', container]));
     const bindings = JSON.parse(await docker([...target, 'inspect', '--format',
       '{{json (index .NetworkSettings.Ports "5432/tcp")}}', container]));
-    if (info !== LOCAL_PROJECT || !bindings?.some(binding => binding.HostPort === '54322')) throw new Error();
+    if (info !== project || !bindings?.some(binding => binding.HostPort === '54322')) throw new Error();
     const found = await docker([...target, 'exec', container, 'psql', '-X', '-qAt', '-U', 'postgres', '-d', 'postgres', '-w',
       '-v', 'ON_ERROR_STOP=1', '-c',
       `begin read only; select exists(select 1 from public.profiles where id = '${id}'::uuid); rollback;`]);
