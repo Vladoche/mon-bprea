@@ -66,12 +66,13 @@ export function applyPrune(inventory, { repository, processes = processSnapshot,
 export const volume = bytes => `${(bytes / 1e6).toFixed(2)} Mo / ${(bytes / 1e9).toFixed(3)} Go`;
 
 export function main(args = process.argv.slice(2), {
-  repository = REPOSITORY, catalog, processes = processSnapshot, write = line => console.log(line),
+  repository = REPOSITORY, catalog, processes = processSnapshot, write = line => console.log(line), buildNames,
 } = {}) {
   if (args.some(arg => !['--apply', '--delivery', '--json'].includes(arg)) || new Set(args).size !== args.length
       || args.includes('--apply') && args.includes('--delivery')) fail('invalid-arguments');
   const apply = args.includes('--apply') || args.includes('--delivery');
   const inventory = inventoryTmp({ repository, catalog, processes: processes() });
+  if (buildNames) inventory.candidates = inventory.candidates.filter(item => buildNames.has(item.name));
   const result = apply ? applyPrune(inventory, { repository, processes }) : null;
   const report = publicReport(inventory, result);
   if (args.includes('--json')) write(JSON.stringify(report, null, 2));

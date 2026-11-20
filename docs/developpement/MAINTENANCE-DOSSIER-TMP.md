@@ -1,15 +1,21 @@
 # Maintenance du dossier local `.tmp`
 
-## Procédure après livraison locale
+## Procédure de clôture
 
-Après une intervention terminée et vérifiée, arrêter ses tests et serveurs, puis exécuter **`npm run delivery:complete`** avant le compte rendu final, avec ou sans commit/PR. Cette commande réutilise le nettoyeur existant ; elle n’exécute ni test, ni commit, ni déploiement.
+Arrêter les tests et serveurs de la tâche, puis appliquer l’[hygiène Git](../../AGENTS.md#hygiène-git-obligatoire) avant le compte rendu. Vérifier les résultats des tests et les états de la PR, de la fusion et du déploiement avant d’utiliser `--confirmed`. La commande vérifie la tête locale sur `origin` via `git ls-remote`. Si la base ou la branche a avancé, actualiser les objets locaux avec `git fetch origin` et refaire le contrôle. La base est `main` par défaut et peut être précisée avec `--base <branche>`.
 
 | Point d’entrée | Effet |
 | --- | --- |
 | `npm run maintenance:tmp` | Simulation en lecture seule, sans créer de fichier ni verrou. |
 | `npm run maintenance:tmp -- --json` | Même simulation, rapport structuré minimisé. |
 | `npm run maintenance:tmp:clean` | Nettoyage sécurisé explicite, équivalent à `npm run maintenance:tmp -- --apply`. |
-| `npm run delivery:complete` | Même nettoyage, suivi de la mesure finale et du contrôle de capacité. Accepte `-- --json`. |
+| `npm run delivery:complete` | Diagnostic Git et mesure de `.tmp` en lecture seule si la livraison reste à confirmer. |
+| `npm run delivery:complete -- --confirmed` | Contrôle de la livraison Git et mesure de `.tmp`. Répéter `--build e2e-Ab1234` pour chaque dossier de build créé par la tâche et à nettoyer. |
+| `npm run delivery:complete -- --confirmed --retire <branche>` | Retrait ciblé depuis un autre checkout. Réserver aux branches de la livraison devenue inutile et à leurs worktrees sous `.tmp/worktrees/`. |
+
+Protéger les données locales avant tout retrait. Le script refuse les opérations Git en cours, un worktree sale même s’il ne contient que des fichiers ignorés, les index qui masquent des fichiers et les liens ou jonctions. Il utilise la suppression Git sans forçage. Si Git conserve la branche locale après retrait du worktree, vérifier l’intégration et le suivi distant avant une reprise. Un worktree géré par Codex se retire depuis l’application, après les mêmes vérifications. Depuis un worktree lié, exécuter aussi `npm run maintenance:tmp` depuis le checkout principal pour mesurer son dossier.
+
+Le mode `--json` de la commande de livraison réserve la sortie standard au rapport `.tmp`. Les diagnostics Git vont sur la sortie d’erreur.
 
 Le plafond est **500 Mo décimaux (500 000 000 octets)** ; les résumés affichent Mo et Go. Tout dépassement indique le volume excédentaire et les dix plus gros groupes conservés, avec leur catégorie et motif. Un dépassement protégé est un avertissement, pas une autorisation de purge ni un échec des tests. Un refus de sécurité ou une suppression incomplète renvoie un code non nul ; le signaler avant de conclure.
 
@@ -20,13 +26,13 @@ Le plafond est **500 Mo décimaux (500 000 000 octets)** ; les résumés affiche
 | **C — Protégée** | Sauvegardes/dumps, preuves, modifications non intégrées, données sensibles ou inconnues : conserver. |
 | **D — Archivage possible** | Historique utile : conserver sur place tant qu’un archivage et sa restauration ne sont pas explicitement qualifiés. Aucun transfert automatique vers GitHub. |
 
-Le nettoyage standard est autorisé pour A après chaque livraison. Les clusters, caches d’outils, copies de source et autres catégories ne deviennent pas supprimables par leur nom, leur âge ou un simple manifeste. Leur éventuel allègement exige une revue ciblée et l’autorisation du périmètre ; le nettoyeur automatique ne les efface pas. Les groupes peuvent combiner A/C ou B/C.
+Le nettoyage de livraison s’applique aux seuls builds A attribués à la tâche et nommés sur la commande. La maintenance manuelle `maintenance:tmp:clean` reste disponible pour une intervention autorisée sur les candidats issus d’une simulation. Les clusters, caches d’outils, copies de source et autres catégories exigent une revue ciblée et l’autorisation du périmètre. Les groupes peuvent combiner A/C ou B/C.
 
 Préserver explicitement `.tmp/lot660e-source-71e3b2fa2c1d/cas-pt409.local.sql`, les préfixes D/E, les preuves de préparation du premier déploiement et `dev-recipe`. M5 est désormais versionnée dans `supabase/migrations/20261106174551_return_conflict_for_personal_revision.sql` ; cette intégration ne vaut pas autorisation de détruire les preuves associées.
 
 Les contrôles de chemins, liens/jonctions, empreintes, PID et verrou exclusif restent obligatoires. La détection Windows utilise CIM et reconnaît tests, serveur, préparation Pages et répétitions natives ; si l’accès système est refusé, exécuter depuis un terminal autorisé, sans désactiver la garde. Ne pas arrêter les outils d’autrui.
 
-Le serveur E2E nettoie déjà son propre build à la fermeture normale. La commande de fin de livraison traite les reliquats admissibles après arrêt des outils ; elle ne s’exécute pas dans un hook `posttest`, qui interviendrait avant la fin de la campagne. Les consignes versionnées dans `AGENTS.md` rendent cette étape obligatoire pour Codex. **Aucun déclencheur universel ne détecte les livraisons humaines sans commit/PR** : l’opérateur appelle ce point d’entrée. Aucun hook Git local ni changement CI n’est requis.
+Le serveur E2E nettoie son propre build à la fermeture normale. La commande de fin de livraison traite les reliquats admissibles après arrêt des outils. `AGENTS.md` déclenche cette étape pour les sessions Codex. Pour une livraison humaine, l’opérateur appelle ce point d’entrée après confirmation.
 
 Dans le compte rendu : volume avant/après, espace réellement libéré, plafond respecté ou causes de dépassement, éventuel refus de nettoyage. Garder un diagnostic utile en cas d’échec et éviter les copies complètes supplémentaires.
 

@@ -70,6 +70,19 @@ describe('maintenance locale de .tmp', () => {
     expect(() => main(['--delivery', '--apply'], options)).toThrow('invalid-arguments');
   });
 
+  test('une livraison ciblée conserve un autre build pourtant admissible', () => {
+    const repo = fixture(), selected = build(repo);
+    const other = join(repo, '.tmp', 'e2e-Xy5678');
+    fs.cpSync(selected, other, { recursive: true });
+    const report = main(['--delivery'], {
+      repository: repo, catalog, processes: () => idle, write: () => {},
+      buildNames: new Set(['e2e-Ab1234']),
+    });
+    expect(report.removedFiles).toBe(3);
+    expect(fs.existsSync(selected)).toBe(false);
+    expect(fs.existsSync(join(other, 'public', 'index.html'))).toBe(true);
+  });
+
   test('un dépassement signale les groupes conservés sans exposer leur nom privé', () => {
     const repo = fixture();
     const privateName = 'synthetic-person@example.invalid';
