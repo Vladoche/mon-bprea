@@ -46,11 +46,19 @@ Justifier la priorité par un impact démontré ou un risque crédible pour l’
 
 **Comprendre → Modifier → Tester → Livrer → Résumer.**
 
-1. Comprendre le résultat attendu, le périmètre, `git status` et les instructions applicables aux fichiers concernés. Lire seulement les sources et documents nécessaires.
+1. Comprendre le résultat attendu et les consignes applicables. Effectuer le contrôle Git de départ avant toute modification.
 2. Effectuer la correction ciblée et autorisée ; préserver les changements préexistants. Demander des précisions seulement si une décision incorrecte ou dangereuse ne peut être évitée avec le contexte disponible.
 3. Vérifier le comportement et la persistance concernés avec les contrôles proportionnés ci-dessous ; corriger les régressions observées avant de conclure.
-4. Livrer un diff limité et vérifiable. Après les contrôles réussis et l’arrêt des processus concernés, exécuter `npm run delivery:complete` avant le compte rendu, même sans commit ni PR. Respecter les autorisations Git et PROD.
+4. Livrer un diff limité et vérifiable, puis appliquer la procédure Git de fin de livraison. Respecter les autorisations Git et PROD.
 5. Résumer le résultat et les seules suites nécessaires, sans nouveau rapport permanent ni numéro de lot automatique.
+
+## Hygiène Git obligatoire
+
+1. **Avant chaque tâche**, exécuter `npm run git:preflight`, lire les diffs indexés et non indexés pertinents, et examiner les fichiers non suivis, les commits locaux sans référence distante, les worktrees (y compris verrouillés ou résiduels) et les opérations Git en cours. Attribuer les restes d’après des preuves : livraison précédente confirmée, travail légitime en cours, changement ancien non intégré, temporaire régénérable ou origine inconnue. La présence d’un commit uniquement en local impose sa conservation. Ne jamais interrompre ou reprendre une opération d’une autre session.
+2. **Isoler la tâche** sur une branche dédiée depuis le SHA d’une référence distante vérifiée (par défaut `origin/main` après `git fetch origin`, ou vérification de la tête distante). Si le répertoire principal est modifié ou occupé, créer un worktree propre dans `.tmp/worktrees/` ou utiliser un worktree géré par Codex. Réutiliser le worktree dédié à une tâche reprise si sa provenance est établie. Préserver le répertoire principal et exclure des commits et PR tous les changements étrangers.
+3. **Confirmer la livraison** après revue du diff, vérifications applicables, commits identifiés et présence de ces commits sur le dépôt distant. Vérifier le statut de la PR et de sa fusion, ainsi que le déploiement (réussi, en attente, échoué ou sans objet selon le mandat). Une PR ouverte peut être livrée pour revue dès que sa tête distante et ses vérifications sont confirmées. Un commit uniquement local, une vérification échouée ou une étape requise bloquée restent à signaler avec le travail conservé.
+4. **Clore la tâche** après arrêt de ses outils. Avant le compte rendu, lancer `npm run delivery:complete`. Si la livraison est confirmée, ajouter `-- --confirmed` et fournir les noms des seuls builds régénérables générés par la tâche avec `--build`. La commande vérifie la présence des commits sur le distant, l’écart à la base, l’état du checkout et le plafond de 500 Mo. Dans un worktree lié, contrôler aussi le volume du `.tmp` principal par simulation. Si un contrôle est bloqué, conserver et signaler la cause.
+5. **Retirer les ressources devenues inutiles** de la tâche confirmée. Depuis un autre checkout stable, appeler `npm run delivery:complete -- --confirmed --retire <branche>` pour la branche locale et son worktree dédié, si leur état est vérifié et si la tâche n’en a plus besoin. Pour un worktree géré par Codex, utiliser son mécanisme d’archivage seulement après les mêmes vérifications et en présence des seules données prévues. Conserver les worktrees et branches des autres tâches, les commits exclusifs, ainsi que tous les fichiers non suivis ou ignorés de provenance incertaine, secrets, configurations locales, sauvegardes et preuves. Aucun nettoyage global, forcé ou déduit de l’âge.
 
 ## Maintenance documentaire à chaque livraison significative
 
@@ -74,7 +82,8 @@ Utiliser **Node.js 24 LTS** et `npm ci`. Les commandes se lancent depuis la raci
 | Installer les outils et Chromium | `npm ci`, puis `npx playwright install chromium` |
 | Tests unitaires et d’intégration | `npm test` ; ciblage : `npm test -- tests/unit/dashboard-stats.test.js` |
 | Développement interactif | `npm run test:watch` |
-| Fin de livraison locale vérifiée | `npm run delivery:complete` : nettoyage sécurisé, mesure et contrôle du plafond de 500 Mo |
+| Début de tâche | `npm run git:preflight` puis revue des diffs |
+| Fin de livraison confirmée | `npm run delivery:complete -- --confirmed` et options de [maintenance](docs/developpement/MAINTENANCE-DOSSIER-TMP.md) |
 | Parcours navigateur | `npm run test:e2e` ; ciblage : `npm run test:e2e -- tests/e2e/critical-paths.spec.js` |
 | Vérifier le SDK navigateur verrouillé | `npm run build:auth-sdk`, puis `git diff --exit-code -- assets/vendor/supabase.js` |
 | Auth/RLS réels, stack locale dédiée préparée | `npm run test:supabase`, `npm run test:drill:supabase`, `npm run test:personal:supabase`, `npm run test:e2e:supabase` |
@@ -115,12 +124,12 @@ Utiliser **Node.js 24 LTS** et `npm ci`. Les commandes se lancent depuis la raci
 | Sauvegardes, données sensibles ou origine inconnue | Conserver ; appliquer une décision spécifique et vérifier la restauration avant tout retrait autorisé d’une copie redondante. Aucun effacement fondé sur l’âge seul. |
 
 - Ne pas supprimer les fichiers d’une autre intervention, d’un outil actif ou une preuve indispensable. Ne pas lancer de nettoyage en parallèle des tests.
-- Après chaque livraison locale réussie, `npm run delivery:complete` est obligatoire : seuls les artefacts connus et régénérables qualifiés par le nettoyeur sont autorisés en permanence. Mentionner brièvement l’espace libéré, le volume restant et les éventuels blocages.
+- À la clôture, appliquer l’hygiène Git ci-dessus. Après livraison confirmée, le nettoyeur n’intervient que sur les builds de la tâche qui passent les contrôles existants. Mentionner brièvement l’espace libéré, le volume restant et les éventuels blocages.
 - `npm run maintenance:tmp` simule ; `npm run maintenance:tmp:clean` nettoie selon la même liste blanche. Sans vérification des processus ou en présence de tests actifs, conserver et signaler le refus ; ne pas contourner la garde.
 - Au-delà de 500 Mo, identifier les groupes protégés ; le plafond n’autorise aucune suppression supplémentaire. Préserver notamment le prototype M5 et les preuves de déploiement encore nécessaires.
 - Pour un nettoyage important hors de cette liste blanche : inventaire, espace récupérable estimé et validation explicite si le périmètre n’est pas déjà autorisé ; contrôler les chemins résolus et exclure liens/jonctions.
 - Suivre la [politique existante](docs/developpement/MAINTENANCE-DOSSIER-TMP.md). `npm run maintenance:tmp` simule sans supprimer ; examiner son résultat avant toute application autorisée. Ne pas étendre son périmètre par une purge manuelle.
-- Le point d’entrée npm et ces consignes couvrent les sessions Codex ; aucun déclencheur universel ne détecte toutes les livraisons humaines. Ne pas prétendre à un nettoyage automatique si la commande n’a pas été exécutée.
+- Ces consignes déclenchent la procédure à la fin des tâches Codex. Pour une livraison humaine, lancer le même point d’entrée après confirmation.
 
 ## Format attendu des comptes rendus
 

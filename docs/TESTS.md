@@ -33,11 +33,11 @@ Pendant le développement, exécuter la suite liée au risque modifié. Réserve
 | Répéter un scénario observé | `npm run test:e2e -- tests/e2e/settings-sync.spec.js --grep "panne API" --repeat-each=3 --workers=2` |
 | Auth désactivée, sans stack | `npm run test:e2e -- tests/e2e/auth.spec.js` |
 | Validation locale complète | `npm test`, puis `npm run test:e2e`, puis `npm run build:auth-sdk` et `git diff --exit-code -- assets/vendor/supabase.js` |
-| Fin de livraison locale vérifiée, processus arrêtés | `npm run delivery:complete` |
+| Fin de livraison confirmée, processus arrêtés | `npm run delivery:complete -- --confirmed` |
 
 La sélection par titre doit afficher au moins un test exécuté. Les tests Vitest vérifient calculs et persistance dans `tests/unit/` et `tests/integration/`. Les parcours Chromium autonomes sont dans `tests/e2e/`, les fixtures synthétiques dans `tests/fixtures/` et les helpers partagés dans `tests/helpers/`. Les suites utilisant HTTP simulé ou fake-indexeddb ne prouvent pas Auth/RLS. Playwright MCP reste une exploration et une vérification visuelle manuelle distincte de la suite CI.
 
-La maintenance utilise des répertoires synthétiques dans `tests/integration/tmp-maintenance.test.js`. `npm run maintenance:tmp` simule sans supprimer ; `maintenance:tmp:clean` et `delivery:complete` appliquent la liste blanche et les gardes de processus. Ne pas lancer le nettoyage pendant les tests. Un refus de garde, une preuve protégée ou un dépassement de plafond reste à signaler. Voir la [politique de maintenance](developpement/MAINTENANCE-DOSSIER-TMP.md).
+La maintenance utilise des répertoires synthétiques dans `tests/integration/tmp-maintenance.test.js`. `tests/integration/git-delivery.test.js` vérifie les garde-fous Git avec un dépôt distant local. `npm run maintenance:tmp` simule et `delivery:complete -- --confirmed` applique la liste blanche et les gardes de processus aux builds attribués à la tâche. Ne pas lancer le nettoyage pendant les tests. Signaler les refus de garde, les preuves protégées et les dépassements de plafond. Voir la [politique de maintenance](developpement/MAINTENANCE-DOSSIER-TMP.md).
 
 ## Déterminisme et isolation
 
@@ -142,7 +142,7 @@ Le workflow [Publier le site BPREA](../.github/workflows/deploy.yml) reste disti
 
 ## Avant une pull request
 
-Vérifier les parcours affectés et les données réellement conservées, les chemins relatifs sous `/mon-bprea/`, les pages Auth/callback et l’artefact public si concernés. Pour une interface modifiée, contrôler ordinateur/mobile, clavier, mode sombre et préférences. Exécuter les contrôles proportionnés, `git diff --check`, puis `npm run delivery:complete` après l’arrêt des processus concernés.
+Vérifier les parcours affectés et les données réellement conservées, les chemins relatifs sous `/mon-bprea/`, les pages Auth/callback et l’artefact public si concernés. Pour une interface modifiée, contrôler ordinateur/mobile, clavier, mode sombre et préférences. Exécuter les contrôles proportionnés, `git diff --check`, puis la [procédure de clôture](developpement/MAINTENANCE-DOSSIER-TMP.md) après l’arrêt des processus concernés.
 
 Résumer les contrôles exécutés, leurs résultats et les limites dans la PR. Déclarer toute vérification impossible avec sa cause. Aucun seuil global de couverture ni nouveau rapport permanent n’est imposé pour une petite correction.
 
