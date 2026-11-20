@@ -10,6 +10,19 @@ La [validation](VALIDATION-RECETTE-FINALE-2027.md) porte les résultats par envi
 | R27-03 | P2 | Fixture des liens Auth manuels et réserves PR5 | Les trois tests manuels avaient besoin du nom Docker canonique, déjà réservé par des volumes locaux. | Nom du conteneur figé dans la seule lecture de profil de la fixture. | La fixture accepte le nom borné d’une stack de recette neuve. Elle vérifie toujours le moteur Docker local, le label et le port avant la lecture. | Le diagnostic de #78 identifie les trois parcours concernés et l’adaptation locale alors nécessaire. | Rejeu avec `SUPABASE_TEST_DOCKER_PROJECT` sur le conteneur fictif. La CI conserve le nom canonique. | Correctif de test uniquement. |
 | R27-04 | P2 | PR #78 et laboratoire de performances | Les interactions du catalogue synthétique à 600 fiches peuvent dépasser leur budget. | Le scénario de charge dépasse déjà certains seuils sur la version de référence. | Mesure comparative sur catalogue officiel, puis fixture de charge. | Rejouer le laboratoire avec et sans `--large-catalog`. | Chiffres et périmètre dans la [validation](VALIDATION-RECETTE-FINALE-2027.md#performance). | Réserve de capacité suivie dans la validation. |
 | R27-05 | P2 | Répétition de mise à niveau locale | Une navigation sans rechargement réutilise l’ancien HTML du profil, dont les commandes diffèrent. | L’en-tête de cache du banc conserve l’HTML déjà visité. Les URL versionnées s’appliquent au chargement du document. | Inscrire la revalidation du document dans la recette et la procédure de publication. | Ouvrir le profil de la version publiée, servir le candidat sur la même origine, puis revenir au profil sans rechargement. | Après rechargement, profil 2027 et références du candidat. File historique confirmée sur la stack locale. | Limite de cache documentée. |
+| R27-06 | P2 | Rejeu Chromium Windows | Le premier contrôle de bordure QCM obtient 2,68:1 au lieu du minimum de 3:1. | La trace n’a aucune réponse pour la feuille de styles dédiée, alors que les autres CSS ont répondu. L’origine de cette perte isolée reste indéterminée. | Diagnostic de chargement de la feuille et confirmation de la palette sur l’artefact. | En bloquant seulement cette feuille dans la fixture, on retrouve exactement 2,68:1. | La feuille chargée donne 5,17:1. Seize rejeux ciblés du contrôle des huit palettes réussissent. | Incident de recette, absent des rejeux ciblés. |
+
+## Diagnostic du contraste QCM
+
+Au rejeu Windows de la suite, la trace Playwright donne le statut `-1` pour
+`course-quiz-page.css?v=e2e-lot5-1` et 200 pour les autres feuilles. La
+case radio est cochée. Le diagnostic local retrouve le style générique
+(bordure `#829880`, fond `#f2eee3`) en bloquant seulement cette requête.
+Avec la feuille dédiée servie, la même option cochée utilise une bordure
+`#954a32` sur fond `#f4e5dc`. Le rejeu `--repeat-each=16 --workers=2`
+du scénario de contraste vérifie les huit palettes et leurs états.
+La trace et les captures du défaut sont conservées avec les résultats
+locaux synthétiques.
 
 ## Notice V1.2 candidate — modifications soumises à approbation
 

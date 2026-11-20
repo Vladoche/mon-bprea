@@ -34,7 +34,7 @@ conservent le détail par paragraphe et la [fiche d’approbation](CORRECTIONS-P
 | Contrôle | Résultat et portée |
 | --- | --- |
 | Installation et unité/intégration | `npm ci` sous Node 24. `npm test -- --maxWorkers=2` : **680 réussis, 1 ignoré, 0 échec** au rejeu final du code candidat. L’échec de la première passe attendait l’ancien libellé du générateur. Le test vérifie désormais la sortie et le rejet de l’ancienne empreinte. |
-| Chromium standard | `npm run test:e2e -- --workers=2` : **250 réussis**. Parcours visiteurs, données synthétiques, transports simulés et artefact isolé. Le check GitHub `e2e` complète la qualification du SHA de livraison. |
+| Chromium standard | Première passe Windows, **250 réussis**. Au rejeu local du candidat, **249 réussis et 1 échec** lié à la feuille de styles du QCM non reçue. Le contrôle de contraste a ensuite réussi **16 fois sur 16**. Le check GitHub `e2e` couvre l’ensemble de la suite à la tête de livraison. [Diagnostic](CORRECTIONS-PREPUBLICATION-2027.md#diagnostic-du-contraste-qcm). |
 | SDK et notice | SDK Supabase 2.118.0 reconstruit avec diff vide. Génération et `--check` sans dépendances npm dans la fixture d’intégration. V1.1 refusée comme empreinte de la V1.2. |
 | Constructeur Pages | Build à version fixe répété. Tests du préflight sans requête PROD, des cinq champs publics, des ressources manquantes, des chemins, des exclusions et du scanner de secrets connus. |
 | pgTAP local | **414 assertions** dans cinq fichiers, toutes réussies. |
@@ -178,7 +178,8 @@ locales et ne mesure pas l’INP des participants.
 exercé. Le P1 de cohérence du profil est corrigé dans le candidat.
 La couverture navigateur et aides techniques comporte les réserves ci-dessus.
 Les défauts P2 concernent les performances de la fixture de charge et la
-revalidation d’un ancien HTML.
+revalidation d’un ancien HTML. L’incident isolé de chargement de feuille de
+styles est documenté avec son diagnostic et ses rejeux.
 
 **Statut d’autorisation : PUBLICATION NON AUTORISÉE.** La V1.2 attend
 l’approbation. La recette ne déclenche aucune fusion, publication ni mutation
