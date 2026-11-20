@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `21689d3b1861c9f7a215b51e3814e392f95efbff` |
-| Dernière PR fusionnée sur main | [#78, PR5 lot 2](https://github.com/Vladoche/mon-bprea/pull/78), 19/11/2026 à 21:15:11 UTC. Refonte graphique 2027 achevée. |
+| Dernier commit vérifié | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` |
+| Dernière PR fusionnée sur main | [#79, recette finale 2027](https://github.com/Vladoche/mon-bprea/pull/79), 20/11/2026 à 07:09:33 UTC. Quatre checks réussis à la tête de la PR. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | [Recette finale, PR #79](https://github.com/Vladoche/mon-bprea/pull/79) · [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md) |
-| Prochaine action | Revoir la recette, les réserves et la [notice V1.2 candidate](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). Confirmer les prérequis du [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) avant décision. |
+| Chantier en revue | [Approbation de la notice V1.2 et préparation de la publication](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md) · [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md) |
+| Prochaine action | Revoir et intégrer le dossier d’approbation, contrôler le SHA final et confirmer les prérequis du [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) avant décision. |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné.** Main inclut tous les lots graphiques 2027 jusqu’à l’harmonisation #78.
+**Code fusionné.** Main inclut les lots graphiques jusqu’à #78 et la recette de préproduction #79, dont la notice V1.2 et son rendu.
 **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
@@ -71,20 +71,21 @@ La tête `b4f0a4c` du [profil simplifié #77](https://github.com/Vladoche/mon-bp
 a passé Qualité et Sécurité Auth/RLS. Les quatre checks de #78 ont réussi sur
 `293e7645b15fc8f4e54577dcd5d1e39945352fa2`.
 [Validation PR5 lot 2](../validations/VALIDATION-UI-2027-PR5-LOT2.md) ·
-[Checks de la recette finale](https://github.com/Vladoche/mon-bprea/pull/79/checks).
+Les quatre [checks de la recette finale #79](https://github.com/Vladoche/mon-bprea/pull/79/checks)
+ont réussi sur `a0074308aefebd146ce54f4d02646d18541df61b`.
 
 **Code publié** et **production vérifiée** restent distincts :
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `21689d3b1861c9f7a215b51e3814e392f95efbff` |
+| Dernier commit main relevé | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
-| Écart main/publication | **Présent**, dont la refonte UX/UI 2027 |
+| Écart main/publication | **100 commits**, dont la refonte UX/UI 2027, le profil simplifié et la notice V1.2 |
 | Recette hébergée | 08/11 : parcours sans compte, puis cours/QCM/Drill et persistance de l’exploitant sur deux navigateurs ; [preuve](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#recette-du-seul-compte-exploitant--8-novembre-2026) |
-| Lecture publique du 20/11 | Neuf routes HTTP 200 avec `?v=3952fd5…`. Notice V1.1 et configuration publique `enabled: true`, `environment: production`. Lecture sans session. |
-| Publication 2027 | **Publication non autorisée.** La notice V1.2 est en attente d’approbation explicite. La recette hébergée 2027 attend un mandat. |
+| Lecture publique du 20/11 | Neuf routes HTTP 200 pendant la recette #79. Relecture pendant la qualification V1.2 : Contact et notice répondent en HTTP 200. La notice servie reste la V1.1 avec `?v=3952fd5…`. |
+| Publication 2027 | **Publication non autorisée.** Notice V1.2 approuvée le 20/11/2026 à 08:27:51 CET, attestation privée `NOTICE-V12-20261120`. La recette hébergée authentifiée requiert son propre mandat. [Empreinte et décision](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). |
 
 Le fichier `assets/auth-config.json` **versionné reste désactivé**. L’artefact
 Pages utilise une configuration publique PROD générée et validée séparément.
@@ -153,7 +154,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
   **25 novembre à 13:09:16 CET**. Le dépassement a commencé le 15 novembre
   à 21:48:37 CET, après le point du 8 novembre. L’alerte Admin 2.1 commence à
   132 h et le renouvellement à 144 h. Deux générations utiles et revue de
-  rétention ordinaire à 14 jours. [Routine et preuve](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo).
+  rétention ordinaire à 14 jours. Archive et journal concordants au
+  [contrôle local du 20/11](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md#prérequis-et-réserves).
+  [Routine et preuve](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#sauvegarde-hebdomadaire-et-rpo).
 - **Reprise et clôture** : restauration applicative partielle qualifiée ; Auth,
   Storage, configuration et données non synchronisées exclus. Reprise Auth/service
   hébergé et RTO non démontrés. Circuit de clôture qualifié sur données fictives
@@ -166,10 +169,9 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir la [recette finale #79](https://github.com/Vladoche/mon-bprea/pull/79) et
-   décider sur le texte V1.2 exact. Les réserves portent sur le catalogue de
-   charge synthétique, les navigateurs et aides techniques non recettés et les
-   contrôles d’exploitation à refaire au moment de la décision.
+1. Revoir et intégrer le [dossier d’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md).
+   Statuer sur les réserves de performance du catalogue synthétique, de Safari
+   et de lecteur d’écran natif avant la décision de publication.
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).

@@ -2,19 +2,22 @@
 
 **20 novembre 2026 · Publication non autorisée.** La
 [recette de préproduction](../validations/VALIDATION-RECETTE-FINALE-2027.md)
-porte le verdict technique. Ce plan prépare une décision ultérieure de
-l’exploitant. Le [registre Pages](EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
+porte le verdict de la campagne initiale. La
+[validation de l’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md)
+porte les contrôles complémentaires et le relevé de référence. Ce plan prépare
+une décision ultérieure de l’exploitant. Le [registre Pages](EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
 reste la source des publications effectives.
 
 ## Phase A — Décision préalable
 
 | Prérequis | État et preuve à obtenir avant lancement |
 | --- | --- |
-| Version et revue | Revoir la [PR #79](https://github.com/Vladoche/mon-bprea/pull/79) et la [checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md). Vérifier ses quatre checks à la tête finale, puis les autorisations et le résultat de la fusion éventuelle. Retenir ensuite le **SHA complet effectivement sur main**, contrôler le diff depuis le SHA qualifié et rejouer les vérifications affectées. |
-| Notice | Faire approuver le texte V1.2 exact, fournir l’empreinte LF calculée sur ce SHA et consigner la date et la décision. La [fiche d’approbation](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation) est en attente. Prévoir l’information des personnes concernées avant application des changements importants. |
-| Sauvegarde et journal | Revalider le dernier point restaurable, son manifeste, le journal des effacements, les dépendances et l’âge sur le poste de l’exploitant. Le point applicatif des dix tables du **18/11/2026 à 13:09:16 CET** a été restauré à **13:09:41 CET** et arrive à échéance le **25/11/2026 à 13:09:16 CET**. Un point plus récent ou un journal courant requiert sa propre preuve. Auth, Storage, sessions et données uniquement locales restent hors périmètre du point applicatif. [Qualification datée](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md). |
+| Version et revue | [PR #79](https://github.com/Vladoche/mon-bprea/pull/79) fusionnée sur `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` ; quatre checks réussis à sa tête finale. Vérifier la tête et l’intégration de la PR d’approbation, puis retenir le **SHA complet effectivement sur main**. Contrôler le diff depuis la référence qualifiée et rejouer les vérifications affectées. [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md). |
+| Notice | **V1.2 approuvée** le 20/11/2026 à 08:27:51 CET, preuve privée `NOTICE-V12-20261120`. Recalculer l’empreinte sur le SHA final et la comparer à celle de la [fiche d’approbation](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). Informer les personnes concernées avant application des changements importants. |
+| Sauvegarde et journal | Revalider le dernier point restaurable, son manifeste, le journal des effacements, les dépendances et l’âge sur le poste de l’exploitant. Le point applicatif des dix tables du **18/11/2026 à 13:09:16 CET** a été restauré à **13:09:41 CET** et arrive à échéance le **25/11/2026 à 13:09:16 CET**. Leur concordance a été vérifiée en local le 20/11 à 08:30 CET. Refaire le contrôle au lancement. [Relevé](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md#prérequis-et-réserves). Auth, Storage, sessions et données uniquement locales restent hors périmètre du point applicatif. [Qualification datée](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md). |
 | Paramètres et accès | Relire le projet PROD autorisé et ses réglages dans le runbook, les deux variables publiques Actions, l’origine HTTPS et le callback exact. Le dernier contrôle opérateur daté du 18/11 reste une preuve historique. Le plafond de sept comptes, invitations en attente comprises, relève du circuit administratif. [Contrat Auth](../architecture/AUTHENTIFICATION.md). |
 | Liens individuels et droits | Admin 2.2 est qualifié pour le renouvellement local sur le même UUID. Le réglage PROD à 86 400 s et le renouvellement réel requièrent un mandat distinct. Confirmer le circuit de récupération et le traitement assisté des droits. La suppression depuis le binaire PROD reste bloquée. [Qualification Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md) · [Circuit droits](../rgpd/PROCEDURE-DEMANDES-ET-INCIDENTS-PROJET.md). |
+| Canal de contact | L’accès public et le lien de messagerie ont été vérifiés. Relire les preuves opérateur de maîtrise, protection, récupération, consultation et réception/réponse qui manquent au relevé local du 20/11. [Dossier opérateur et contact](EXPLOITATION-PRIVEE-SIX-ADULTES.md#dossier-opérateur-et-contact). |
 | Repli et réserves | Vérifier les conditions du repli ci-dessous, l’état du site réellement servi et le traitement des réserves. Préparer les parcours hébergés et le compte de l’exploitant si leur exercice est explicitement autorisé. |
 | Accord | L’exploitant date son accord sur le SHA de `main`, l’empreinte approuvée, le périmètre de recette connectée et la fenêtre de lancement. Consigner aussi la décision distincte d’accueil et d’invitations. |
 
@@ -24,7 +27,9 @@ reste la source des publications effectives.
    le [workflow Pages](../../.github/workflows/deploy.yml) est actif avec
    l’environnement `github-pages`. Contrôler le rendu avec
    `node scripts/build-privacy-notice.mjs --check`. Si `main` a bougé,
-   faire confirmer la nouvelle référence avant tout lancement.
+   comparer les changements à la version qualifiée, recalculer l’empreinte LF
+   et rejouer les contrôles affectés. Faire confirmer le nouveau SHA avant
+   tout lancement ; un autre texte requiert sa propre approbation.
 2. Dans **Actions → Publier le site BPREA → Run workflow**, choisir **main**
    et fournir `publish_auth_production=true` et
    `approved_notice_sha256=<empreinte LF du texte approuvé>`.
