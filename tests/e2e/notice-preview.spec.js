@@ -9,7 +9,7 @@ test.use({ javaScriptEnabled: false });
 
 for (const width of [320, 390, 1280]) {
   for (const colorScheme of ['light', 'dark']) {
-    test(`aperçu V1.1 sans JavaScript, ${width}px ${colorScheme}`, async ({ page }, testInfo) => {
+    test(`aperçu de la notice sans JavaScript, ${width}px ${colorScheme}`, async ({ page }, testInfo) => {
       await page.setViewportSize({ width, height: 900 });
       await page.emulateMedia({ colorScheme });
       await page.route('**/*', route => route.abort());
@@ -18,11 +18,11 @@ for (const width of [320, 390, 1280]) {
       page.on('request', request => requests.push(new URL(request.url()).pathname));
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notice de confidentialité de Mon BPREA');
-      await expect(page.getByRole('note')).toContainText('Les modifications et la publication restent à approuver');
-      await expect(page.locator('main')).toContainText('Version 1.1 · 8 novembre 2026');
+      await expect(page.getByRole('note')).toContainText('La publication requiert un accord distinct');
+      await expect(page.locator('main')).toContainText('Version 1.2 · 20 novembre 2026');
       await expect(page.locator('main')).toContainText('Vladimir Fouillade');
       await expect(page.locator('main')).toContainText('peut rester dans le navigateur après un échec');
-      await expect(page.locator('main')).toContainText('Les copies brutes et les empreintes des refus sont exclues');
+      await expect(page.locator('main')).toContainText('Certaines preuves d’import sont conservées dans le cache local du compte');
       await expect(page.locator('script, iframe, form')).toHaveCount(0);
       await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', 'noindex,nofollow');
       await expect(page.getByRole('link', { name: 'vladimir.fouillade@hotmail.fr' }))

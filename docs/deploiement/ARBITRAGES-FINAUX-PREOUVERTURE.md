@@ -8,6 +8,8 @@ Au 16 novembre, les portes préparatoires ont des preuves du 8 novembre : notice
 
 Restent à traiter selon mandat : fraîcheur actuelle de sauvegarde à contrôler par l’opérateur, décisions d’ouverture/invitations individuelles, publication du code fusionné si autorisée et recettes résiduelles (récupération réelle, réseau contrôlé, isolation A/B hébergée non qualifiées). Les limites de reprise Auth/hébergée et de suppression PROD dans Admin V1.2 ne sont pas levées.
 
+La [fiche d’approbation de la notice V1.2](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation) et le [plan 2027](PLAN-PUBLICATION-2027.md) portent les décisions propres à la prochaine publication.
+
 ## Liste historique du 6 novembre
 
 Les étapes ci-dessous décrivent la préparation d’alors, sans réouvrir les portes résolues ni donner une nouvelle autorisation.

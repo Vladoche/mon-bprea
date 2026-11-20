@@ -11,13 +11,13 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification Git/PR et chantier local le **19 novembre 2026**.
-  Le registre Pages conserve le relevé du **16 novembre à 13:10 UTC**.
+- Dernière vérification Git/PR et lecture publique Pages le **20 novembre 2026**.
+  La recette de préproduction 2027 est consignée dans la [validation](../validations/VALIDATION-RECETTE-FINALE-2027.md).
   Les lectures PROD et contrôles Windows du 18 novembre figurent dans la
   [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
 - Sources : `git fetch origin`, code de `origin/main`, [PR GitHub](https://github.com/Vladoche/mon-bprea/pulls?q=is%3Apr),
   [historique Pages](https://github.com/Vladoche/mon-bprea/actions/workflows/deploy.yml),
-  checks des têtes finales #58–#61, registre Pages, contrôles Auth/SQL en lecture
+  checks des têtes de PR, HTTP public Pages, contrôles Auth/SQL en lecture
   seule et qualification Windows datée.
 
 Ce fichier porte l’état actuel ; le [changelog](../../CHANGELOG.md) porte les
@@ -31,11 +31,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit | `2dbe4336690a50684bc52e54b65081961e1b9482` |
-| Dernière PR fusionnée sur main | [#77](https://github.com/Vladoche/mon-bprea/pull/77), 19/11/2026 à 15:36:45 UTC |
+| Dernier commit | `21689d3b1861c9f7a215b51e3814e392f95efbff` |
+| Dernière PR fusionnée sur main | [#78, PR5 lot 2](https://github.com/Vladoche/mon-bprea/pull/78), 19/11/2026 à 21:15:11 UTC. Refonte graphique 2027 achevée. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | **Harmonisation graphique 2027**, lot 2 de PR5. [PR #78](https://github.com/Vladoche/mon-bprea/pull/78) · [Validation](../validations/VALIDATION-UI-2027-PR5-LOT2.md) |
-| Prochaine action | Revoir le dernier lot graphique, puis effectuer la [recette finale indépendante](../validations/CHECKLIST-RECETTE-FINALE-2027.md) après fusion. Côté exploitation, décider du réglage Auth PROD à 86 400 secondes, de sa vérification et du renouvellement réel. |
+| Chantier en revue | [Recette finale, PR #79](https://github.com/Vladoche/mon-bprea/pull/79) · [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md) |
+| Prochaine action | Revoir la recette, les réserves et la [notice V1.2 candidate](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). Confirmer les prérequis du [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) avant décision. |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -55,7 +55,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné** : main inclut les lots graphiques jusqu’au profil #77.
+**Code fusionné.** Main inclut tous les lots graphiques 2027 jusqu’à l’harmonisation #78.
 **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
@@ -68,21 +68,23 @@ Les [rapports PR1](../validations/VALIDATION-UI-2027-PR1.md),
 Les quatre checks de la [refonte botanique #74](https://github.com/Vladoche/mon-bprea/pull/74/checks)
 ont réussi sur `daadf53`. La [validation du lot 4](../validations/VALIDATION-UI-2027-PR4-LOT4.md) conserve les résultats détaillés.
 La tête `b4f0a4c` du [profil simplifié #77](https://github.com/Vladoche/mon-bprea/pull/77/checks)
-a passé Qualité et Sécurité Auth/RLS. L’interface d’harmonisation de PR5 lot 2
-est évaluée dans sa [validation propre](../validations/VALIDATION-UI-2027-PR5-LOT2.md).
+a passé Qualité et Sécurité Auth/RLS. Les quatre checks de #78 ont réussi sur
+`293e7645b15fc8f4e54577dcd5d1e39945352fa2`.
+[Validation PR5 lot 2](../validations/VALIDATION-UI-2027-PR5-LOT2.md) ·
+[Checks de la recette finale](https://github.com/Vladoche/mon-bprea/pull/79/checks).
 
 **Code publié** et **production vérifiée** restent distincts :
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `2dbe4336690a50684bc52e54b65081961e1b9482` |
+| Dernier commit main relevé | `21689d3b1861c9f7a215b51e3814e392f95efbff` |
 | Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
 | Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
 | Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
 | Écart main/publication | **Présent**, dont la refonte UX/UI 2027 |
 | Recette hébergée | 08/11 : parcours sans compte, puis cours/QCM/Drill et persistance de l’exploitant sur deux navigateurs ; [preuve](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#recette-du-seul-compte-exploitant--8-novembre-2026) |
-| Lecture publique du 16/11 | Accueil : ressources `?v=3952fd5…` ; configuration servie : `enabled: true`, `environment: production`. Ce relevé HTTP limité ne constitue pas une recette connectée |
-| Publication des PR UX/UI 2027 | **Non publiée selon le dernier workflow et le relevé HTTP** |
+| Lecture publique du 20/11 | Neuf routes HTTP 200 avec `?v=3952fd5…`. Notice V1.1 et configuration publique `enabled: true`, `environment: production`. Lecture sans session. |
+| Publication 2027 | **Publication non autorisée.** La notice V1.2 est en attente d’approbation explicite. La recette hébergée 2027 attend un mandat. |
 
 Le fichier `assets/auth-config.json` **versionné reste désactivé**. L’artefact
 Pages utilise une configuration publique PROD générée et validée séparément.
@@ -107,7 +109,7 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 | Générateur ITK | Interface 2027 fusionnée dans #72, génération, CSV, impression et réglages personnels | Repère pédagogique sans prescription | [Validation du générateur](../validations/VALIDATION-UI-2027-PR4-LOT2.md) |
 | Ressources | Bibliothèque, filtres et aperçus de cours et d’UC harmonisés dans #73 | Références éditoriales à entretenir | [Validation de la bibliothèque](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
 | Reconnaissance botanique | Refonte 2027 fusionnée dans #74. Photothèque enrichie intégrée dans #76 | 24 plantes et série Légumineuses sur main | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
-| Mon profil | Compte, paramètres, export/restauration et retrait local ; #59/#60 | Retrait local distinct d’une clôture serveur | [Auth](../architecture/AUTHENTIFICATION.md) |
+| Mon profil | Compte, paramètres et suivi des cours/QCM depuis #77 | Copie et effacement via le contact officiel dans le frontend 2027 | [Auth](../architecture/AUTHENTIFICATION.md) |
 | Apparence | Icône clair/sombre, dialogue dans Profil → Paramètres ; #59 | Mémorisation appareil volontaire ; anciennes clés conservées | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
 | Authentification | Activation sur invitation, connexion et récupération assistée ; #49–#51 | Inscription publique/anonyme fermées ; pas de récupération réelle ni isolation A/B PROD recettées | [Auth](../architecture/AUTHENTIFICATION.md) |
@@ -164,12 +166,16 @@ manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
 ## F — Prochaines actions
 
-1. Revoir [PR5 lot 2, harmonisation finale](../validations/VALIDATION-UI-2027-PR5-LOT2.md), dont les captures comparatives. Après fusion, suivre la [checklist de recette indépendante](../validations/CHECKLIST-RECETTE-FINALE-2027.md).
+1. Revoir la [recette finale #79](https://github.com/Vladoche/mon-bprea/pull/79) et
+   décider sur le texte V1.2 exact. Les réserves portent sur le catalogue de
+   charge synthétique, les navigateurs et aides techniques non recettés et les
+   contrôles d’exploitation à refaire au moment de la décision.
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
-3. Décider séparément d’une publication du code fusionné, puis appliquer le
-   workflow autorisé, consigner son SHA et effectuer une recette hébergée ciblée.
+3. Recontrôler le point de reprise et les paramètres Auth, décider sur le SHA
+   exact, puis suivre le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md)
+   si l’exploitant autorise la publication et sa recette hébergée.
 4. Obtenir les décisions individuelles et d’ouverture nécessaires après la
    qualification technique.
 
