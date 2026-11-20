@@ -11,6 +11,7 @@ La version de l’application Windows reste propre à cet outil.
 
 - **Hygiène Git après livraison**. Inventaire au démarrage, isolation des tâches
   et contrôle du distant avant le nettoyage des builds et worktrees de la tâche.
+  [PR #83](https://github.com/Vladoche/mon-bprea/pull/83).
 
 - **Continuité des palettes entre les pages**. La palette du compte reconnu
   s’applique avant les feuilles de style. Les modes saisonnier et personnalisé
