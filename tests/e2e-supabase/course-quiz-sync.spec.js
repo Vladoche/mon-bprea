@@ -6,7 +6,7 @@ import { LOCAL_SITE } from '../helpers/auth-local.js';
 import { lessons } from '../../assets/content.js';
 import { learningDocument } from '../fixtures/personal-data.js';
 import { personalRecords, authIdentity } from '../helpers/personal-browser.js';
-import { openCourseQuizSettings, refreshCourseQuiz as refresh } from '../helpers/course-quiz-browser.js';
+import { courseQuizAction, refreshCourseQuiz as refresh } from '../helpers/course-quiz-browser.js';
 
 // All identity and SQL assertions use the existing guarded, ephemeral local
 // fixture. No fabricated Auth response or privileged pedagogical assertion.
@@ -144,7 +144,6 @@ test('Cours réel : conflit CAS et tentative parfaite conservée indépendamment
     expect((await sqlRows(student, 'course_states'))[0].done).toBe(false);
     const document = (await records(page))[0]; expect(document.conflicts.some(item => !item.resolved)).toBe(true);
     stage = 'résolution volontaire sur nouvelle révision';
-    await openCourseQuizSettings(page);
     await page.locator('.course-quiz-conflict').first().locator('summary').click();
     await page.getByRole('button', { name: 'Conserver mon choix', exact: true }).click(); await synced(page);
     const final = (await sqlRows(student, 'course_states'))[0]; expect(final.done).toBe(true); expect(final.revision).toBe(2);
@@ -155,7 +154,7 @@ test('Cours réel : conflit CAS et tentative parfaite conservée indépendamment
   if (failure) throw failure;
 });
 
-test('Import réel volontaire : manifeste de positions, doublons légitimes et source intacte', async ({ page }) => {
+test('Reprise réelle via le service : manifeste de positions, doublons légitimes et source intacte', async ({ page }) => {
   test.setTimeout(90000);
   let student; let stage = 'historique synthétique local'; let failure;
   const raw = JSON.stringify(learningDocument);
@@ -168,13 +167,13 @@ test('Import réel volontaire : manifeste de positions, doublons légitimes et s
     }, raw);
     await signIn(page, student, quizUrl); await expect(page.locator('#quiz-history li')).toHaveCount(0);
     expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(0);
-    stage = 'prévisualisation puis annulation';
-    await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
-    await expect(page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' })).toContainText('appareil');
-    await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click();
+    stage = 'aperçu en lecture seule de la source';
+    const preview = await courseQuizAction(page, 'previewImport');
+    expect(preview).toMatchObject({ available: true, summary: { attempts: 2 } });
     expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(0);
-    stage = 'confirmation explicite'; await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
-    await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await synced(page);
+    stage = 'confirmation explicite via le service';
+    expect((await courseQuizAction(page, 'confirmImport', preview)).error).toBeNull();
+    await synced(page);
     await page.goto(quizUrl); await synced(page); await expect(page.locator('#quiz-history li')).toHaveCount(2);
     const attempts = await sqlRows(student, 'quiz_attempts'); expect(attempts).toHaveLength(2);
     expect(new Set(attempts.map(item => item.attempt_id)).size).toBe(2);
@@ -183,9 +182,8 @@ test('Import réel volontaire : manifeste de positions, doublons légitimes et s
     ]);
     const before = (await records(page))[0]; expect(before.imports).toHaveLength(1);
     stage = 'rechargement et nouvel essai de la même source'; await page.reload(); await synced(page);
-    await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click();
-    const confirm = page.getByRole('button', { name: 'Confirmer l’import', exact: true });
-    if (await confirm.isEnabled()) await confirm.click(); else await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click();
+    const repeated = await courseQuizAction(page, 'previewImport');
+    expect((await courseQuizAction(page, 'confirmImport', repeated)).replayed).toBe(true);
     await refresh(page); expect(await sqlRows(student, 'quiz_attempts')).toHaveLength(2);
     const after = (await records(page))[0]; expect(after.imports).toEqual(before.imports);
     expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe(raw);

@@ -131,21 +131,17 @@ test('compte A/B : reprise datée, cache hors ligne et historique visiteur prés
   expect(await page.evaluate(key => localStorage.getItem(key), progressKey)).toBe(raw);
 });
 
-test('profil : commandes cours/QCM et ancre Paramètres avec apparence conservée', async ({ page }, testInfo) => {
+test('profil : paramètres, assistance et aucun panneau de synchronisation', async ({ page }, testInfo) => {
   const api = createCourseQuizAPI(); await api.install(page.context(), 'A', null, prefix);
-  await page.goto(prefix + 'profil.html#parametres'); await synced(page);
+  await page.goto(prefix + 'profil.html#parametres');
   const settings = page.locator('#parametres');
-  const sync = page.locator('#donnees-synchronisation');
-  await expect(sync.getByRole('heading', { name: 'Données et synchronisation', exact: true })).toBeVisible();
-  await expect(sync.getByRole('button', { name: 'Actualiser la progression', exact: true })).toBeVisible();
-  await expect(sync.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true })).toBeVisible();
-  await sync.getByRole('button', { name: 'Actualiser la progression', exact: true }).click(); await synced(page);
+  await expect(page.locator('#donnees-synchronisation, [data-course-quiz-settings]')).toHaveCount(0);
   await settings.getByRole('button', { name: 'Régler l’apparence' }).click();
   await expect(page.locator('#appearance-dialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(settings.getByRole('button', { name: 'Régler l’apparence' })).toBeFocused();
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await capture(sync, 'pr2-profile-data-sync.png', testInfo);
+  await capture(settings, 'profil-parametres.png', testInfo);
   for (const width of [320, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 1000 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Profil ${width}px`).toBe(true);
@@ -154,7 +150,7 @@ test('profil : commandes cours/QCM et ancre Paramètres avec apparence conservé
   await page.setViewportSize({ width: 320, height: 1000 });
   const profileReflow = await page.evaluate(() => ({ width: innerWidth, total: document.documentElement.scrollWidth, overflow: [...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 1).map(node => ({ tag: node.tagName, class: node.className, text: node.textContent.slice(0, 80), width: node.getBoundingClientRect().width })).slice(0, 10) }));
   expect(profileReflow.total, JSON.stringify(profileReflow)).toBeLessThanOrEqual(profileReflow.width);
-  expect(await sync.locator('#course-quiz-refresh').evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(26);
+  expect(await settings.getByRole('button').evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(26);
   for (const file of ['index.html', 'mes-cours.html', 'uc.html?id=uc3', 'cours.html?id=matiere-organique', 'exercices.html?id=matiere-organique']) {
     await page.goto(prefix + file); await synced(page);
     await expect(page.locator('.course-quiz-panel, .course-quiz-actions')).toHaveCount(0);
@@ -162,7 +158,7 @@ test('profil : commandes cours/QCM et ancre Paramètres avec apparence conservé
   }
 });
 
-test('échec de sauvegarde : message contextuel, données conservées et lien de gestion', async ({ page }, testInfo) => {
+test('échec de sauvegarde : message contextuel, données conservées et lien d’assistance', async ({ page }, testInfo) => {
   const api = createCourseQuizAPI(); await api.install(page.context(), 'A', null, prefix);
   await page.addInitScript(() => {
     const put = IDBObjectStore.prototype.put;
@@ -177,7 +173,7 @@ test('échec de sauvegarde : message contextuel, données conservées et lien de
   await page.locator('#check-quiz').click();
   await expect(page.locator('#quiz-result [role="alert"]')).toContainText('Erreur de sauvegarde');
   await expect(page.locator('.course-quiz-notice')).toBeVisible();
-  await expect(page.locator('.course-quiz-notice a')).toHaveAttribute('href', 'profil.html#donnees-synchronisation');
+  await expect(page.locator('.course-quiz-notice a')).toHaveAttribute('href', 'contact.html');
   await expect(page.locator('.course-quiz-panel')).toHaveCount(0);
   await expect(page.locator('#quiz-history li')).toHaveCount(0);
   expect(api.attempts.size).toBe(0);

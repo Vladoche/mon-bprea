@@ -77,13 +77,45 @@ Les parcours d’[export](EXPORT-DONNEES-PERSONNELLES.md), de [restauration](RES
 
 Le défaut `assets/auth-config.json` reste désactivé. Aucune migration/RLS/RPC ni configuration hébergée n’est modifiée. Les essais réels utilisent exclusivement la stack locale éphémère et les comptes fictifs gardés par `tests/helpers/auth-local.js`. DEV et PROD ne sont pas des cibles de recette de ce lot. Les prérequis et décisions d’ouverture sont suivis dans l’[état du projet](../developpement/ETAT-DU-PROJET.md), sans autorisation déduite des anciens numéros de lots.
 
-## Emplacement des commandes depuis PR2
+## Commandes contextuelles
 
-Le panneau `profil.html#donnees-synchronisation` regroupe l’actualisation,
-l’import confirmé de l’historique visiteur et la résolution des conflits. Les
-pages pédagogiques gèrent leurs abonnements, sauvegardes automatiques et
-notices d’attention. L’import visiteur utilise uniquement les cours et QCM
-locaux autorisés après confirmation. [Validation PR5 lot 1](../validations/VALIDATION-UI-2027-PR5-LOT1.md).
+Le profil lance la synchronisation automatiquement en arrière-plan.
+Les pages qui utilisent la progression montrent un message en cas d’attente,
+de panne ou de conflit. Ces notices permettent de relancer une sauvegarde ou
+de départager les versions d’un cours au moment où c’est utile. Une demande
+d’assistance reste possible pour un conflit d’identifiant de tentative ou une
+opération refusée. Le panneau de profil et ses commandes de relecture,
+d’import, d’archives et d’information sur le cache ont été retirés de
+l’interface. Les manifestes et sources existants restent disponibles.
+
+## Récupération assistée
+
+Passer par [Contact et assistance](../../contact.html). Vérifier que la
+personne contrôle le profil de navigateur d’origine, que la source lui
+appartient, qu’elle consent à la reprise et que le bon compte est vérifié
+sur la page pédagogique de ce navigateur. Travailler sur place ou en partage
+d’écran. Garder l’historique brut, les jetons et les données d’autres personnes
+dans le navigateur. En cas de doute sur l’attribution, conserver la source et
+s’arrêter à l’aperçu. Une source absente n’est pas recréée.
+
+Une personne compétente peut accéder aux méthodes de service existantes dans
+le navigateur concerné. Depuis une page Mes cours ou QCM, importer
+`assets/course-quiz-service.js` avec la même URL de version que le module
+`assets/app.js`, puis appeler `getCourseQuizService()`. Contrôler que
+`getState()` indique un mode personnel et un cache disponible. Appeler
+`previewImport()` et vérifier uniquement son résumé, ses avertissements et
+`available` avec le titulaire. Aucune écriture n’est nécessaire à cette étape.
+Après son accord explicite, transmettre le même objet à `confirmImport()`
+dans la même page, attendre la synchronisation et vérifier les tentatives et
+cours concernés depuis l’interface. La confirmation vérifie à nouveau la
+portée, la provenance, la source et la lecture distante. Un refus laisse la
+source intacte. Éviter un changement de compte, un effacement du navigateur
+ou une copie brute dans le chat pendant l’assistance.
+
+Pour l’apparence, préférer la ressaisie dans les réglages. Le service
+`settings-service.js` garde `previewImport('appearance')` et
+`confirmImport(aperçu)` pour une récupération autorisée avec les mêmes
+contrôles. Les imports ITK et botanique conservent leurs parcours distincts.
 
 ## Présentation QCM 2027 — PR3 lot 2
 

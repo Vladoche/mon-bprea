@@ -397,7 +397,31 @@ try {
       appearanceInput({ p_preferences: { version: 1, season: 'summer', brightness: 'auto' }, p_expected_revision: 2 }));
     assert.equal(own.appearance_preferences.revision, 3);
     assert.deepEqual((await rpc(a, 'personal_save_appearance', initialAppearance, 'conflict')).row, own.appearance_preferences);
-    assert.deepEqual(await one(a, 'appearance_preferences'), own.appearance_preferences);
+    const { color_mode, custom_color, ...legacy } = await one(a, 'appearance_preferences');
+    assert.deepEqual(legacy, own.appearance_preferences);
+    assert.equal(color_mode, 'seasonal');
+    assert.equal(custom_color, null);
+  });
+
+  await check('Apparence : palette personnalisée, CAS, rejeu exact et écriture historique sans écraser la couleur', async () => {
+    const custom = { ...appearancePreferences, colorMode: 'custom', customColor: '#ff00ff' };
+    const saved = appearanceInput({ p_preferences: custom, p_expected_revision: 3 });
+    const created = await rpc(a, 'personal_save_appearance', saved, 'updated');
+    assert.equal(created.row.color_mode, 'custom');
+    assert.equal(created.row.custom_color, '#ff00ff');
+    assert.deepEqual((await rpc(a, 'personal_save_appearance', saved, 'replayed')).row, created.row);
+    await rpc(a, 'personal_save_appearance', { ...saved, p_preferences: { ...custom, customColor: '#000000' } }, 'conflict');
+    await rpc(a, 'personal_save_appearance', appearanceInput({ p_preferences: custom, p_expected_revision: 3 }), 'conflict');
+
+    const legacy = appearanceInput({ p_preferences: { ...appearancePreferences, season: 'winter' }, p_expected_revision: 4 });
+    const legacyResult = await rpc(a, 'personal_save_appearance', legacy, 'updated');
+    assert.equal(Object.hasOwn(legacyResult.row, 'color_mode'), false);
+    assert.deepEqual((await rpc(a, 'personal_save_appearance', legacy, 'replayed')).row, legacyResult.row);
+    assert.equal((await one(a, 'appearance_preferences')).custom_color, custom.customColor);
+    const seasonal = appearanceInput({ p_preferences: { ...custom, colorMode: 'seasonal' }, p_expected_revision: 5 });
+    own.appearance_preferences = (await rpc(a, 'personal_save_appearance', seasonal, 'updated')).row;
+    assert.equal(own.appearance_preferences.color_mode, 'seasonal');
+    assert.equal(own.appearance_preferences.custom_color, custom.customColor);
   });
 
   await check('Apparence : versions, valeurs, date invalide et rendu calculé non admis comme préférences', async () => {
@@ -405,6 +429,9 @@ try {
       { version: 2 }, { version: '1' }, { season: 'unknown' }, { brightness: 'night' },
       { updatedAt: 'infinity' }, { updatedAt: '2026-02-30T12:00:00Z' },
       { theme: 'dark' }, { time: 'night' }, { unrecognizedPreferencesArchive: ['preserved-locally'] },
+      { colorMode: 'custom' }, { customColor: '#000000' }, { colorMode: 'custom', customColor: null },
+      { colorMode: 'custom', customColor: '#FFF' }, { colorMode: 'rainbow', customColor: '#ffffff' },
+      { colorMode: 'seasonal', customColor: ['#ffffff'] },
       { season: 'x'.repeat(5000) },
     ]) rejected(await a.client.rpc('personal_save_appearance', appearanceInput({ p_preferences: { ...appearancePreferences, ...patch }, p_expected_revision: own.appearance_preferences.revision })), 'Préférence invalide');
     assert.deepEqual(await one(a, 'appearance_preferences'), own.appearance_preferences);
@@ -443,7 +470,7 @@ try {
       course_states: { done: false, base_revision: 1, operation_id: randomUUID() },
       botanical_sessions: { completed_at: '2026-10-21T12:05:00Z', base_revision: 1, operation_id: randomUUID() },
       itk_settings: { parameters: itkParameters, base_revision: 1, operation_id: randomUUID() },
-      appearance_preferences: { season: 'winter', base_revision: 1, operation_id: randomUUID() },
+      appearance_preferences: { season: 'winter', color_mode: 'custom', custom_color: '#000000', base_revision: 1, operation_id: randomUUID() },
       quiz_attempts: { score: 0 }, botanical_answers: { correct: false },
     };
     for (const [self, neighbor] of [[a, b], [b, a]]) for (const table of tables) {

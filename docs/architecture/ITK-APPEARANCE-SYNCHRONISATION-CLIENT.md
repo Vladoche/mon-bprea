@@ -1,6 +1,6 @@
 # ITK et apparence — synchronisation personnelle (lot 6.3.4)
 
-Ce client clôture le périmètre fonctionnel 6.3 en consommant les deux singletons du [backend 6.3.1](PERSONAL-DATA-BACKEND.md). Il ne crée aucun document ITK et ne modifie ni SQL, RPC, RLS, privilèges de profil, catalogue ou moteur pédagogique. Les [preuves exécutées](../archives/validations/VALIDATION-LOT6-3-4.md) distinguent les tests applicatifs des recettes PostgreSQL/Auth réelles. Le [bilan 6.3](../archives/validations/BILAN-LOT6-3.md) couvre aussi les domaines antérieurs.
+Ce client clôture le périmètre fonctionnel 6.3 en consommant les deux singletons du [backend 6.3.1](PERSONAL-DATA-BACKEND.md). Les réglages ne créent aucun document ITK. La personnalisation chromatique étend le singleton d’apparence et son RPC dans une migration distincte. Les [preuves exécutées](../archives/validations/VALIDATION-LOT6-3-4.md) distinguent les tests applicatifs des recettes PostgreSQL/Auth réelles. Le [bilan 6.3](../archives/validations/BILAN-LOT6-3.md) couvre aussi les domaines antérieurs.
 
 ## Architecture et sources
 
@@ -10,7 +10,8 @@ Les deux domaines partagent `settings-model.js`, `settings-store.js`, `settings-
 | --- | --- |
 | `bprea-demo-itk-v1` | Dernier formulaire visiteur : huit chaînes, sans date ni identité de projet |
 | `bprea-demo-appearance-v1` | Choix visiteur v1, champs inconnus et archives éventuelles |
-| `bprea-demo-theme-v1` | Ancienne chaîne brute clair/sombre ; reprise seulement en absence du document v1 |
+| `bprea-demo-theme-v1` | Ancienne chaîne clair/sombre conservée |
+| `bprea-demo-appearance-device-v1` | Mémorisation volontaire du visiteur, avec ou sans choix chromatique |
 | IndexedDB `mon-bprea-settings-personal-v1`, store `accounts` | Dernières valeurs personnelles fiables, lignes serveur, opérations, dépendances, conflits, imports et dernière réconciliation |
 
 La clé personnelle est la sérialisation de `[environnement, origineSupabase, UUIDAuth]`. Les caches ne sont jamais sélectionnés par e-mail ni à partir d’une variable CSS. Aucun JWT n’est conservé dans IndexedDB. Les clés historiques restent intactes lors de la connexion, de l’import et de la déconnexion.
@@ -21,7 +22,17 @@ La clé personnelle est la sérialisation de `[environnement, origineSupabase, U
 
 Les replis utilisés pour afficher un ancien formulaire ne valident jamais son document d’origine. Un import invalide explique son refus et conserve la source. Les années du contrat sont fixes : le passage du temps ne rend pas une valeur 2028 invalide et ne justifie aucune modification SQL. Une future interface proposant des années au-delà de 2033 nécessitera une évolution distincte du contrat ; ce lot ne la réalise pas.
 
-`personal_save_appearance(p_preferences,p_operation_id,p_expected_revision)` reçoit `{version:1,season,brightness}` et éventuellement `updatedAt`. Les saisons sont `auto|spring|summer|autumn|winter`, les luminosités `auto|light|dark`. Une date source absente reste absente ; aucune date legacy n’est inventée. Les archives/champs inconnus sont conservés dans la source d’import, pas envoyés comme champs RPC.
+`personal_save_appearance(p_preferences,p_operation_id,p_expected_revision)`
+reçoit `{version:1,season,brightness}` et éventuellement `updatedAt`.
+Les saisons sont `auto|spring|summer|autumn|winter` et les luminosités
+`auto|light|dark`. Les champs `colorMode` et `customColor` sont fournis
+ensemble. `colorMode` vaut `seasonal` ou `custom`. `customColor` est un
+hexadécimal `#rrggbb` en minuscules, ou `null` en palette saisonnière.
+La palette saisonnière peut garder la dernière couleur saisie. Les requêtes
+historiques conservent le chromatisme déjà stocké lors d’une édition et
+reçoivent leur forme de réponse d’origine. Les dates et charges historiques
+restent inchangées. Les réponses et lectures nouvelles vérifient aussi les
+champs chromatiques pour les intentions qui les renseignent.
 
 Les RPC retournent `{status,row}` avec `inserted|updated|replayed|conflict`. Le client contrôle propriétaire, schéma, types, UUID, contenu et base/révision attendue avant confirmation. Une réponse incohérente n’acquitte rien. Une erreur de lecture n’est jamais interprétée comme un singleton absent.
 
@@ -37,11 +48,11 @@ Les singletons SQL gardent leur dernier reçu. Une opération acceptée puis rem
 
 ## Initialisation du thème et choix automatiques
 
-`theme-init.js` reste un script classique synchrone avant CSS. Il applique immédiatement les préférences locales de l’appareil ou les valeurs automatiques, sans attente réseau. Ce rendu provisoire n’est pas une préférence personnelle vérifiée. L’adaptateur asynchrone de `appearance.js` attend l’identité Auth puis applique seulement le cache de cette identité et les valeurs réconciliées. Une identité absente/rejetée retire les préférences privées de la vue ; un autre compte ne reçoit jamais le cache précédent.
-
-L’API `window.BpreaAppearance` reste compatible avec ses consommateurs. Pour un compte vide, le rendu provisoire peut conserver les choix de l’appareil mais le modèle personnel éditable commence en `auto/auto` : aucun choix visiteur n’est importé ni présenté comme confirmé. Le service distingue modification utilisateur et application d’une valeur reçue, afin de ne pas enregistrer à nouveau une préférence lors d’une réconciliation. Les événements visuels ne créent aucune opération réseau. Les minuteurs et retours sur la page recalculent uniquement le rendu.
-
-`auto` reste `auto` sur Supabase et dans le cache personnel. Saison civile, heure locale, changements d’heure et plages matin/jour/crépuscule/nuit sont résolus séparément sur chaque appareil par les règles existantes de [THEMES.md](THEMES.md). Les attributs `data-season`, `data-time`, `data-theme` sont dérivés ; aucun UUID, token ni identité ne figure dans les données CSS. Deux appareils de jour et de nuit peuvent donc afficher des thèmes différents avec les mêmes préférences.
+Le [contrat de rendu](THEMES.md#premier-rendu-et-préférences-personnelles)
+décrit l’indication visuelle pré-CSS, sa portée et les cas provisoires.
+`auto` reste une préférence sur Supabase et dans le cache personnel.
+La résolution horaire, les attributs CSS et le rendu chromatique sont
+calculés sur chaque appareil. Leur application ne crée aucune opération.
 
 ## Formulaires, messages et imports volontaires
 
@@ -64,9 +75,40 @@ locaux et le choix d’une version en conflit restent des actions explicites.
 
 `itk-personal-ui.js` suit séparément la valeur chargée, le formulaire modifié et la dernière valeur disponible du compte. Une récupération tardive ne touche pas une saisie active, son focus, le résultat calculé ni les exports. Le bouton de restauration charge explicitement les paramètres ; il ne génère aucun calendrier. Un changement de compte retire en revanche les valeurs et résultats privés du compte quitté.
 
-Le dialogue d’apparence conserve ses contrôles et le focus pendant les publications ordinaires. Ses messages distinguent choix temporaire, sauvegarde locale, attente, confirmation distante et erreur. « Synchronisé » exige une confirmation réelle. Le générateur peut calculer malgré un échec de persistance et annonce alors que ses paramètres ne sont pas sauvegardés.
+Le dialogue d’apparence conserve ses contrôles et le focus pendant les
+publications ordinaires. Il signale l’attente, le hors-ligne, les conflits et
+les erreurs. La résolution d’un conflit reste volontaire.
 
-Chaque domaine possède son aperçu et sa confirmation d’import. L’aperçu montre des paramètres lisibles, indique la provenance visiteur et la divergence avec le compte. La confirmation exige une lecture distante fraîche et une source inchangée ; un changement depuis l’aperçu invalide la décision. Le manifeste conserve source brute et preuve d’acceptation par domaine. Répéter une confirmation du même import ne crée pas une nouvelle opération. Aucun import ne résulte de la connexion. Un document inconnu ou invalide est conservé et refusé sans correction silencieuse ; le rendu courant n’est jamais une source d’import.
+L’ITK garde son aperçu et sa confirmation d’import. L’apparence historique reste
+dans ses clés et manifestes. Les services de lecture et de confirmation restent
+disponibles pour une assistance ciblée. Aucun import ne résulte de la connexion.
+Une valeur connue peut être saisie de nouveau depuis le dialogue. Voir la
+[procédure d’assistance](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md#récupération-assistée)
+pour les vérifications avant toute récupération sur un compte.
+
+## Mise en service et repli
+
+1. Confirmer la cible et l’état des migrations, disposer d’un point restaurable
+   et appliquer, après accord d’exploitation, la
+   [migration additive](../../supabase/migrations/20261120092557_appearance_custom_colors.sql).
+   Elle ajoute `color_mode` et `custom_color` avec palette saisonnière par
+   défaut, sans UPDATE des données existantes. Conserver l’historique des
+   révisions, les grants usuels et les politiques RLS de propriétaire.
+2. Vérifier les lectures, les charges historiques et chromatiques et les
+   révisions CAS, puis publier le frontend selon le
+   [plan Pages](../deploiement/PLAN-PUBLICATION-2027.md). Auth et données réelles
+   restent soumis à leur recette autorisée. Le frontend sait lire l’ancien
+   schéma si la colonne manque. La synchronisation chromatique a besoin du RPC
+   migré. Une opération chromatique prématurée reste en attente avec sa charge
+   d’origine et repart quand le nouveau schéma est disponible. L’ITK continue
+   à se synchroniser pendant cette attente.
+3. Pour un repli du frontend après les premières écritures chromatiques,
+   conserver une version du client qui comprend les nouvelles valeurs et
+   l’outbox. Le JavaScript antérieur préserve un cache de format inconnu, mais
+   peut rendre les paramètres de ce cache indisponibles. Garder les nouvelles
+   colonnes et le RPC compatible lors du repli. Toute annulation SQL exige
+   une nouvelle migration et une stratégie de préservation des couleurs.
+   Éviter les effacements de caches et la réécriture des opérations en attente.
 
 ## Identité, réseau et limites
 

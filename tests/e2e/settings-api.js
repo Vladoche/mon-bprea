@@ -5,11 +5,15 @@ export const settingsOrigin = 'https://settings.invalid';
 const instant = '2026-10-25T10:00:00.000Z';
 const owner = request => { try { return JSON.parse(Buffer.from(request.headers().authorization.split('.')[1], 'base64url')).sub; } catch { return null; } };
 export function settingsRow(domain, value, userId, operationId, base = 0) {
-  return { user_id: userId, ...(domain === 'itk' ? { parameters: value } : { season: value.season, brightness: value.brightness, client_updated_at: value.updatedAt ?? null }), operation_id: operationId, base_revision: base, revision: base + 1, schema_version: 1, created_at: instant, updated_at: instant };
+  const fields = domain === 'itk' ? { parameters: value } : {
+    season: value.season, brightness: value.brightness, client_updated_at: value.updatedAt ?? null,
+    color_mode: value.colorMode ?? 'seasonal', custom_color: value.customColor ?? null,
+  };
+  return { user_id: userId, ...fields, operation_id: operationId, base_revision: base, revision: base + 1, schema_version: 1, created_at: instant, updated_at: instant };
 }
 export function createSettingsAPI() {
   const rows = { itk: new Map(), appearance: new Map() }, sent = [];
-  const api = { rows, sent, restOffline: false, authOffline: false, loseAck: null, holdRead: null };
+  const api = { rows, sent, restOffline: false, authOffline: false, loseAck: null, holdRead: null, holdUser: null, oldAppearanceSchema: false };
   api.install = async (context, account = 'A', sources = {}, siteUrl = 'http://127.0.0.1:4173/mon-bprea/') => {
     const key = `bprea-auth-settings.invalid-${new URL(siteUrl).pathname}`;
     if (account || Object.keys(sources).length) await context.addInitScript(({ session, sources, key }) => {
@@ -25,7 +29,10 @@ export function createSettingsAPI() {
       if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
       if (url.pathname.startsWith('/auth/')) {
         if (api.authOffline) return route.abort('failed');
-        if (url.pathname.endsWith('/user')) return respond(Object.values(accounts).some(item => item.id === uid) ? sessionFor(uid === accounts.A.id ? 'A' : 'B').user : { code: 'bad_jwt' }, uid ? 200 : 401);
+        if (url.pathname.endsWith('/user')) {
+          if (api.holdUser) await api.holdUser(uid);
+          return respond(Object.values(accounts).some(item => item.id === uid) ? sessionFor(uid === accounts.A.id ? 'A' : 'B').user : { code: 'bad_jwt' }, uid ? 200 : 401);
+        }
         if (url.pathname.endsWith('/token')) { const body = request.postDataJSON(); return respond(sessionFor(body.email?.includes('course-b') || body.refresh_token?.endsWith('-B') ? 'B' : 'A')); }
         if (url.pathname.endsWith('/logout')) return route.fulfill({ status: 204 });
       }
@@ -37,21 +44,30 @@ export function createSettingsAPI() {
         const domain = table === 'itk_settings' ? 'itk' : table === 'appearance_preferences' ? 'appearance' : null;
         if (!domain) return respond([]);
         if (url.searchParams.get('user_id') !== `eq.${uid}`) throw new Error('Singleton reads require the verified owner');
+        if (domain === 'appearance' && api.oldAppearanceSchema && url.searchParams.get('select')?.includes('color_mode'))
+          return respond({ code: '42703', message: 'Schema synthétique sans couleur' }, 400);
         if (api.holdRead) await api.holdRead(domain);
-        const row = rows[domain].get(uid); return respond(row ? [row] : []);
+        const row = rows[domain].get(uid);
+        return respond(row ? [domain === 'appearance' && !url.searchParams.get('select')?.includes('color_mode') ? oldRow(row) : row] : []);
       }
       const domain = url.pathname.endsWith('/personal_save_itk') ? 'itk' : url.pathname.endsWith('/personal_save_appearance') ? 'appearance' : null;
       if (!domain) return respond({ code: 'PGRST202' }, 404);
       const body = request.postDataJSON(); sent.push({ domain, uid, body });
       const value = body[domain === 'itk' ? 'p_parameters' : 'p_preferences'];
       const previous = rows[domain].get(uid), candidate = settingsRow(domain, value, uid, body.p_operation_id, body.p_expected_revision);
-      const equal = domain === 'itk' ? JSON.stringify(previous?.parameters) === JSON.stringify(value) : previous?.season === value.season && previous?.brightness === value.brightness && previous?.client_updated_at === (value.updatedAt ?? null);
-      if (previous?.operation_id === body.p_operation_id) return respond({ status: equal && previous.base_revision === body.p_expected_revision ? 'replayed' : 'conflict', row: previous });
-      if ((previous?.revision || 0) !== body.p_expected_revision) return respond({ status: 'conflict', row: previous || null });
+      const legacy = domain === 'appearance' && !Object.hasOwn(value, 'colorMode');
+      if (legacy && previous) Object.assign(candidate, { color_mode: previous.color_mode, custom_color: previous.custom_color });
+      const rowForClient = row => row ? legacy ? oldRow(row) : row : null;
+      const equal = domain === 'itk' ? JSON.stringify(previous?.parameters) === JSON.stringify(value) :
+        ['season', 'brightness', 'client_updated_at', 'color_mode', 'custom_color'].every(key => previous?.[key] === candidate[key]);
+      if (previous?.operation_id === body.p_operation_id) return respond({ status: equal && previous.base_revision === body.p_expected_revision ? 'replayed' : 'conflict', row: rowForClient(previous) });
+      if ((previous?.revision || 0) !== body.p_expected_revision) return respond({ status: 'conflict', row: rowForClient(previous) });
       rows[domain].set(uid, candidate);
       if (api.loseAck === domain) { api.loseAck = null; return route.abort('failed'); }
-      return respond({ status: previous ? 'updated' : 'inserted', row: candidate });
+      return respond({ status: previous ? 'updated' : 'inserted', row: rowForClient(candidate) });
     });
   };
   return api;
 }
+
+function oldRow({ color_mode, custom_color, ...row }) { return row; }

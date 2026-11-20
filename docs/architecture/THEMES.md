@@ -1,6 +1,6 @@
 # Apparence dynamique
 
-Le header commun propose une **icône clair/sombre** (`#theme-toggle`), sans bouton Apparence. Elle force la luminosité choisie sans modifier la saison. En visiteur, son clic mémorise ce choix sur l’appareil pour les prochaines pages ; l’infobulle l’explique et un statut accessible annonce le résultat. Les réglages complets sont dans **Mon profil → Paramètres → Régler l’apparence** (`profil.html#parametres`, bouton `#appearance-open`). Le dialogue `#appearance-dialog` conserve le clavier natif (Tab, Maj+Tab, Échap), la fermeture et le retour au contrôle d’ouverture. Les changements visuels sont immédiats ; sélectionner **Automatique selon l’heure** rétablit les ambiances horaires.
+Le header commun propose une **icône clair/sombre** (`#theme-toggle`), sans bouton Apparence. Elle force la luminosité sans modifier la saison ni les couleurs. En visiteur, son clic mémorise ce choix sur l’appareil pour les prochaines pages ; l’infobulle l’explique et un statut accessible annonce le résultat. Les réglages complets sont dans **Mon profil → Paramètres → Régler l’apparence** (`profil.html#parametres`, bouton `#appearance-open`). Le dialogue `#appearance-dialog` conserve le clavier natif (Tab, Maj+Tab, Échap), la fermeture et le retour au contrôle d’ouverture. Les changements visuels sont immédiats ; sélectionner **Automatique** sous Luminosité rétablit les ambiances horaires.
 
 | Contexte | Chemin et sauvegarde |
 | --- | --- |
@@ -26,11 +26,28 @@ La luminosité automatique suit l’heure locale du navigateur :
 
 Ce sont des plages conventionnelles, **sans calcul astronomique ni géolocalisation**. Un contrôle chaque minute et au retour sur la page actualise les ambiances sans rechargement. Un onglet suspendu retrouve l’apparence actuelle lorsqu’il redevient visible. Le mode clair manuel conserve l’ambiance de journée ; le mode sombre manuel conserve celle de nuit. La saison reste indépendante.
 
+## Couleurs personnalisées
+
+Le troisième sélecteur propose **Palette saisonnière** et **Couleur
+personnalisée**. La roue de `appearance-color.js` associe l’angle à la teinte et
+la distance au centre à la saturation. On peut aussi la régler avec les trois
+curseurs natifs ou le champ hexadécimal. Le glissement affiche un aperçu
+immédiat. Relâcher la roue, valider le code ou terminer un réglage du curseur
+enregistre le choix par le mécanisme courant.
+
+La couleur sRGB fournit une teinte et une chroma OKLCH plafonnée. Les tokens
+CSS fixent une clarté par rôle et une variante par luminosité. Le thème dérive
+ses surfaces, textes, bordures de contrôle, accents et couleurs de graphique
+de ces rôles. Les couleurs fonctionnelles de succès, erreur, avertissement et
+focus restent liées à leur signification. Les curseurs et le code restent
+utilisables en contraste forcé. Le retour à la palette saisonnière garde le
+dernier hexadécimal pour une réactivation ultérieure.
+
 ## Modifier les palettes ou les horaires
 
 `assets/style.css` définit les tokens `--color-*`, puis leurs alias historiques (`--bg`, `--white`, `--green`, etc.). Les blocs `data-season` modifient les palettes, les variantes `data-theme="dark"` les adaptent à la lecture nocturne. `data-time` ajuste discrètement les surfaces. Pour une nouvelle couleur, privilégier son rôle (texte, surface, accent, contrôle) plutôt que sa valeur littérale. Les tokens de succès, erreur et avertissement gardent leur signification dans toutes les saisons. Les graphiques utilisent ces tokens et les textes/tableaux existants restent accessibles.
 
-Les limites horaires sont regroupées dans `timePeriods`, au début de `assets/theme-init.js`. Le fournisseur `getLocalTimePeriod(date)` est séparé de la résolution saison/luminosité : il pourra être remplacé ultérieurement par des horaires solaires. Adapter ensemble le code, le tableau ci-dessus et le texte d’aide de `assets/appearance.js`.
+Les limites horaires sont regroupées dans `timePeriods`, au début de `assets/theme-init.js`. Le fournisseur `getLocalTimePeriod(date)` est séparé de la résolution saison/luminosité : il pourra être remplacé ultérieurement par des horaires solaires. Adapter ensemble le code et le tableau ci-dessus.
 
 Éviter les transitions prolongées ; `prefers-reduced-motion` désactive les transitions et déplacements concernés. L’impression ITK conserve des surfaces claires.
 
@@ -61,31 +78,59 @@ compare les surfaces et les états interactifs en clair et sombre.
 
 Le script classique `assets/theme-init.js` s’exécute **avant les feuilles de style**, sur toutes les pages, pour appliquer les attributs HTML avant le premier rendu. Le navigateur doit naturellement avoir reçu la nouvelle page et le script pour bénéficier du nouveau thème.
 
-La préférence d’appareil volontaire utilise **`bprea-demo-appearance-device-v1`**. Le format accepté a exactement trois champs :
+La préférence volontaire utilise `bprea-demo-appearance-device-v1`.
+Les anciens documents à trois champs restent des palettes saisonnières.
+Un choix chromatique enregistre les deux champs complémentaires.
 
 ```json
-{"version":1,"season":"autumn","brightness":"dark"}
+{"version":1,"season":"autumn","brightness":"dark","colorMode":"custom","customColor":"#6052ce"}
 ```
 
-Les saisons sont `auto`, `spring`, `summer`, `autumn`, `winter` ; les luminosités `auto`, `light`, `dark`. Sans mémorisation valide, le modèle commence en `auto`/`auto`. Le clic lune/soleil du header appelle la mémorisation existante en visiteur : la navigation, le rechargement et les autres onglets retrouvent ce choix dès le script avant CSS, sans nouvelle clé. Les sélecteurs du dialogue restent des choix de page ; **Mémoriser mon apparence sur cet appareil** permet de les garder explicitement. **Retirer l’apparence mémorisée** retire cette seule clé, en gardant le rendu courant. Le choix tout automatique ne nécessite pas de mémorisation.
+Le clic lune/soleil mémorise en visiteur. Dans le dialogue, l’aperçu est
+temporaire jusqu’à **Mémoriser mon apparence sur cet appareil**.
+**Retirer l’apparence mémorisée** retire cette seule copie et conserve le rendu
+de la page. Les anciennes clés `bprea-demo-appearance-v1` et
+`bprea-demo-theme-v1` restent conservées. Les commandes de reprise d’ancienne
+apparence et d’import ont quitté le dialogue. Une mémorisation inconnue ou
+illisible est conservée et son remplacement est refusé.
 
-Les anciennes clés `bprea-demo-appearance-v1` et `bprea-demo-theme-v1` sont préservées, sans reprise silencieuse. **Reprendre une ancienne apparence** applique explicitement une valeur lisible à la page courante ; une mémorisation séparée est nécessaire pour les prochaines pages. Une valeur d’appareil illisible n’est pas écrasée par le bouton de mémorisation ; l’erreur est signalée. Si le stockage est bloqué, le rendu temporaire reste possible mais sa conservation n’est pas garantie.
+## Premier rendu et préférences personnelles
 
-Les événements `storage` sur la clé d’appareil relisent les choix mémorisés, sans remplacer un choix temporaire actif. `window.BpreaAppearance` expose résolution, lecture, mise à jour, mémorisation/retrait/reprise et sélection de source. Les événements `bprea:appearance-change` et `bprea:preferences-change` actualisent l’interface ; ils n’écrivent pas dans les clés pédagogiques.
+Auparavant, le script pré-CSS appliquait le thème visiteur ou l’heure locale
+puis l’adaptateur asynchrone passait au thème personnel. Un compte sombre
+affichait donc des pixels clairs en journée. Désormais, le script compare la
+portée de montage et la session SDK présente avec le repère local de continuité
+Auth déjà vérifié. Il lit uniquement son indication visuelle
+`auto|light|dark`. Le repère ne reçoit ni jeton, ni saison, ni couleur, ni
+donnée pédagogique supplémentaire. Ce contrôle local sert uniquement au rendu.
 
-## Préférences personnelles (lot 6.3.4)
+Une session sans indication concordante et un stockage indisponible commencent
+avec la palette sombre standard. La page reste affichée et utilisable. Une
+session sans compte utilise les préférences visiteur mémorisées ou l’heure
+locale. Sur les pages avec le service Auth, une fois l’identité reconnue,
+`appearance.js` applique le cache personnel cloisonné puis la valeur reçue.
+Un compte dont l’absence de préférences est établie peut reprendre la saison
+et la luminosité du navigateur dans son rendu, avec un modèle éditable
+automatique. Les pages autonomes Contact et Confidentialité restent accessibles
+indépendamment du service de compte. Elles utilisent le réglage visiteur ou
+l’indication pré-CSS de luminosité d’une session reconnue localement.
 
-Le stockage d’appareil décrit ci-dessus reste celui du visiteur. Dans un environnement Auth configuré, `settings-service.js` sélectionne le cache IndexedDB isolé par environnement, origine Supabase et UUID vérifié, puis consomme `personal_save_appearance`. Aucun choix visiteur ne remplit automatiquement un compte. Le fichier public versionné reste désactivé ; la configuration de l’artefact Pages est distincte, voir l’[état du projet](../developpement/ETAT-DU-PROJET.md).
+`pageshow`, `visibilitychange` et `storage` réévaluent l’heure et la continuité.
+Une session remplacée retire les couleurs précédentes et relance la vérification.
+Sur retour BFCache, le rechargement de sécurité existant conserve la luminosité
+dès le document restauré. La vérification Auth, l’accès IndexedDB et RLS
+continuent d’isoler les préférences par compte. Aucun choix visiteur ne remplit
+automatiquement le compte. Le dialogue protège la saisie en cours et montre
+les problèmes d’enregistrement, la reprise hors ligne et les conflits.
 
-Le script classique applique un rendu provisoire de l’appareil avant CSS, sans réseau. Un compte sans préférence garde provisoirement ce rendu ; son modèle personnel éditable reste automatique jusqu’à un choix explicite. L’adaptateur `appearance.js` vérifie ensuite la source et applique les préférences du bon compte. `window.BpreaAppearance` conserve ses méthodes historiques et ajoute `setSource`, `applyPreferences` et `getSource`. Appliquer une valeur reçue ne rappelle jamais le mécanisme de sauvegarde ; les événements visuels et les minuteurs ne produisent pas d’opérations réseau. Les changements de stockage visiteur sont ignorés pendant l’usage personnel.
-
-Les préférences `auto` restent `auto` en cache et sur Supabase. Les attributs HTML restent dérivés localement, sans identifiant personnel. Le dialogue préserve une sélection active pendant la réconciliation et propose d’utiliser explicitement la version du compte. Les messages distinguent choix temporaire, transaction locale, attente, confirmation distante et erreur de stockage. Les conflits restent conservés et leur résolution exige une action volontaire. L’import v1 ou legacy reconnu possède son aperçu et sa confirmation séparés.
-
-Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise CAS, retry exact, import et limites des caches non chiffrés. Les [preuves 6.3.4](../archives/validations/VALIDATION-LOT6-3-4.md) distinguent captures synthétiques et PostgreSQL réel.
+Le [contrat ITK/apparence](ITK-APPEARANCE-SYNCHRONISATION-CLIENT.md) précise les
+révisions, les formats, les imports et l’ordre de mise en service. Les
+[preuves du correctif](../validations/VALIDATION-PROFIL-COULEURS-THEME.md)
+distinguent capture de pixels, Chromium simulé et backend local réel.
 
 Voir aussi [ANECDOTES.md](ANECDOTES.md), [CACHE.md](CACHE.md) et les vérifications historiques dans [VALIDATION-LOT5.md](../archives/validations/VALIDATION-LOT5.md).
 
-Les parcours d’accès et la présentation 2027 sont qualifiés dans [PR1](../validations/VALIDATION-UI-2027-PR1.md) et [PR2](../validations/VALIDATION-UI-2027-PR2.md). Les contrats de préférences ne sont pas modifiés par cette maintenance documentaire.
+Les parcours d’accès et la présentation 2027 sont qualifiés dans [PR1](../validations/VALIDATION-UI-2027-PR1.md) et [PR2](../validations/VALIDATION-UI-2027-PR2.md).
 
 Correction de navigation du 16/11/2026 : le bouton du header ne gardait auparavant
 le choix que sur la page. La régression est reproduite avant correction puis

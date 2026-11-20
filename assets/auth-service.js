@@ -88,6 +88,10 @@ export function createAuthService(client, { configurationError, siteUrl, environ
   }
   const service = {
     getState: () => state,
+    rememberAppearanceBrightness(userId, brightness) {
+      if (['authenticated', 'offline'].includes(state.status) && state.user?.id === userId)
+        marker.rememberBrightness(localSession, userId, brightness);
+    },
     // Non-secret identity generation. Changes on sign-out/sign-in, including A→B→A.
     getIdentityVersion: () => revision,
     async getExportIdentity() {

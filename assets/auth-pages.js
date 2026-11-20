@@ -1,8 +1,6 @@
 import { getAuthService } from './auth-service.js';
 import { validateCredentials, validatePassword, validatePseudo } from './auth-validation.js';
 import { renderBreadcrumbs } from './breadcrumbs.js';
-import { getCourseQuizService } from './course-quiz-service.js';
-import { initCourseQuizPanel } from './course-quiz-ui.js';
 
 const controllers = new WeakMap();
 const restoreHandlers = new WeakSet();
@@ -183,7 +181,6 @@ export async function initAuthPage(root = document.querySelector('#app-main')) {
 }
 
 const profileChecking = '<p role="status">Vérification de la session…</p>';
-const courseQuizChecking = '<p role="status">Vérification de la sauvegarde des cours et QCM…</p>';
 const connectLink = '<a class="btn btn-surface" href="connexion.html">Connexion</a>';
 const profileAccountMarkup = `
   <dl class="profile-details">
@@ -209,8 +206,6 @@ function initProfilePage(root) {
   const controller = new AbortController();
   const { signal } = controller;
   const account = root.querySelector('[data-profile-account]');
-  const syncRoot = root.querySelector('[data-course-quiz-settings]');
-  let disposeSync = () => {};
   let unsubscribeAuth = () => {};
   root.querySelector('[data-profile-breadcrumb]').innerHTML = renderBreadcrumbs('profile');
   root.querySelector('#appearance-open').disabled = !document.getElementById('appearance-dialog');
@@ -218,10 +213,8 @@ function initProfilePage(root) {
   const dispose = () => {
     controller.abort();
     unsubscribeAuth();
-    disposeSync();
     document.getElementById('appearance-dialog')?.close();
     account.innerHTML = profileChecking;
-    syncRoot.innerHTML = courseQuizChecking;
   };
   window.addEventListener('pagehide', dispose, { once: true, signal });
   // Recreate the Auth and settings subscribers together on a cached return.
@@ -234,13 +227,6 @@ function initProfilePage(root) {
     if (!signal.aborted) unsubscribeAuth = initProfileAccount(account, service, signal);
   }).catch(() => {
     if (!signal.aborted) account.innerHTML = '<h3>Connexion indisponible</h3><p role="alert">Le service de compte ne peut pas être chargé. Recharge la page pour réessayer.</p>';
-  });
-  getCourseQuizService().then(sync => {
-    if (signal.aborted) { sync.stop(); return; }
-    const disposePanel = initCourseQuizPanel(syncRoot, sync);
-    disposeSync = () => { disposePanel(); sync.stop(); };
-  }).catch(() => {
-    if (!signal.aborted) syncRoot.innerHTML = '<p role="status">La sauvegarde des cours et QCM est indisponible. Recharge la page pour réessayer.</p>';
   });
   return dispose;
 }

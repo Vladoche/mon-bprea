@@ -7,6 +7,7 @@
 #app-header .header-in{position:relative;display:flex;align-items:center;gap:24px;width:calc(100% - 40px);min-height:82px;padding:14px 0}
 .brand{display:inline-flex;align-items:center;gap:11px;flex-shrink:0;text-decoration:none}
 .brand-symbol{display:grid;place-items:center;width:44px;height:44px;flex-shrink:0;border:1px solid #ffffff66;border-radius:14px;background:linear-gradient(145deg,#bd744d,var(--color-terracotta));color:var(--color-on-terracotta);box-shadow:0 3px 8px #7d42251a}
+[data-color-mode="custom"] .brand-symbol{background:var(--control-pill-accent)}
 .brand-copy{display:flex;flex-direction:column;gap:3px;line-height:1.2}
 .brand-copy b{font-size:24px;font-weight:800;letter-spacing:-.055em;color:var(--text)}
 .brand-dot{color:var(--color-terracotta-text)}

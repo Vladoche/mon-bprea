@@ -144,13 +144,14 @@ L’icône clair/sombre du header est indépendante des menus. Elle reste access
 
 ## Compatibilité et validation
 
-Les URL existantes, paramètres de cours/UC et filtres documentaires sont conservés. Le libellé **Exercices hebdomadaires** désigne `drill.html` sans changer les séries, calculs, identifiants ou clés. Les commandes détaillées des cours et QCM se trouvent dans `profil.html#donnees-synchronisation`. Les autres domaines conservent leurs contrôles sur leurs pages.
+Les URL existantes, paramètres de cours/UC et filtres documentaires sont conservés. Le libellé **Exercices hebdomadaires** désigne `drill.html` sans changer les séries, calculs, identifiants ou clés. Les notices des cours et QCM proposent les reprises et résolutions dans les pages pédagogiques qui utilisent ces données.
 
-Les trois sections de Profil portent des ancres présentes dans le document.
-Le header relie **Informations du compte** et **Paramètres**. Les notices des
-cours et QCM mènent directement à **Données et synchronisation**. En bas du
-profil, **Contact et assistance** et **Confidentialité** donnent accès au
-canal de demande et aux informations sur les droits.
+Le profil contient **Informations du compte**, **Paramètres** et
+**Assistance et confidentialité**. Le header relie les deux premières sections.
+Les liens **Contact et assistance** et **Confidentialité** donnent accès au
+canal de demande et aux informations sur les droits. Le
+[contrat cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md#récupération-assistée)
+décrit la reprise d’un historique visiteur avec assistance.
 
 Le frontend reste statique ; le mode personnel utilise le backend configuré et les services de synchronisation existants. Le menu ne lit ni n’écrit la progression. Les cartes et la synthèse utilisent les sources visiteur/personnelles vérifiées par leurs services, avec les limites et confirmations distantes décrites dans les contrats.
 

@@ -249,11 +249,55 @@
   --color-secondary: #dfc38d;
   --color-cream: #3a392a;
 }
+/* The wheel supplies a hue and an upper chroma bound. The roles retain fixed
+   lightness offsets so the raw swatch cannot set a text or control color. */
+@supports (color: oklch(50% 0.1 120)) {
+  :root[data-color-mode="custom"] {
+    --color-bg-base: oklch(96% calc(var(--appearance-chroma) * .12) var(--appearance-hue));
+    --color-surface: oklch(99% calc(var(--appearance-chroma) * .07) var(--appearance-hue));
+    --color-surface-soft: oklch(93% calc(var(--appearance-chroma) * .20) var(--appearance-hue));
+    --color-text: oklch(25% calc(var(--appearance-chroma) * .16) var(--appearance-hue));
+    --color-muted: oklch(43% calc(var(--appearance-chroma) * .28) var(--appearance-hue));
+    --color-border: oklch(85% calc(var(--appearance-chroma) * .24) var(--appearance-hue));
+    --color-control-border: oklch(56% calc(var(--appearance-chroma) * .38) var(--appearance-hue));
+    --color-accent: oklch(41% var(--appearance-chroma) var(--appearance-hue));
+    --color-accent-hover: oklch(35% var(--appearance-chroma) var(--appearance-hue));
+    --color-accent-soft: oklch(90% calc(var(--appearance-chroma) * .34) var(--appearance-hue));
+    --color-accent-fill: oklch(43% var(--appearance-chroma) var(--appearance-hue));
+    --color-accent-fill-hover: oklch(37% var(--appearance-chroma) var(--appearance-hue));
+    --color-on-accent: #fff;
+    --color-secondary: oklch(42% calc(var(--appearance-chroma) * .76) calc(var(--appearance-hue) + 35deg));
+    --color-cream: var(--color-surface-soft);
+    --color-terracotta: var(--color-accent-fill);
+    --color-terracotta-text: var(--color-accent);
+    --color-terracotta-hover: var(--color-accent-fill-hover);
+    --color-terracotta-soft: var(--color-accent-soft);
+    --color-on-terracotta: var(--color-on-accent);
+    --color-vegetal: var(--color-accent);
+  }
+  :root[data-theme="dark"][data-color-mode="custom"] {
+    --color-bg-base: oklch(20% calc(var(--appearance-chroma) * .16) var(--appearance-hue));
+    --color-surface: oklch(25% calc(var(--appearance-chroma) * .20) var(--appearance-hue));
+    --color-surface-soft: oklch(30% calc(var(--appearance-chroma) * .26) var(--appearance-hue));
+    --color-text: oklch(95% calc(var(--appearance-chroma) * .10) var(--appearance-hue));
+    --color-muted: oklch(80% calc(var(--appearance-chroma) * .18) var(--appearance-hue));
+    --color-border: oklch(39% calc(var(--appearance-chroma) * .32) var(--appearance-hue));
+    --color-control-border: oklch(61% calc(var(--appearance-chroma) * .45) var(--appearance-hue));
+    --color-accent: oklch(82% calc(var(--appearance-chroma) * .78) var(--appearance-hue));
+    --color-accent-hover: oklch(90% calc(var(--appearance-chroma) * .58) var(--appearance-hue));
+    --color-accent-soft: oklch(35% calc(var(--appearance-chroma) * .42) var(--appearance-hue));
+    --color-accent-fill: oklch(72% calc(var(--appearance-chroma) * .91) var(--appearance-hue));
+    --color-accent-fill-hover: oklch(80% calc(var(--appearance-chroma) * .83) var(--appearance-hue));
+    --color-on-accent: #111;
+    --color-secondary: oklch(80% calc(var(--appearance-chroma) * .65) calc(var(--appearance-hue) + 35deg));
+  }
+}
 /* Nuances horaires discrètes ; la nuit utilise la palette sombre ci-dessus.
    Le moteur choisit les plages horaires, sans calcul solaire astronomique. */
 @supports (background: color-mix(in srgb, white, black)) {
-  :root[data-time="morning"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 96%, #f4d69a); }
-  :root[data-time="twilight"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 95%, #d8966a); }
+  :root[data-time="morning"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 96%, var(--morning-tint, #f4d69a)); }
+  :root[data-time="twilight"] { --color-bg: color-mix(in srgb, var(--color-bg-base) 95%, var(--twilight-tint, #d8966a)); }
+  :root[data-color-mode="custom"] { --morning-tint: var(--color-surface); --twilight-tint: var(--color-accent-soft); }
 }
 
 @supports (background: color-mix(in srgb, white, black)) {
@@ -426,29 +470,18 @@
 .course-quiz-notice p{margin:var(--space-1) 0}
 .course-quiz-notice #course-quiz-sync-status{color:var(--color-warning)}
 .course-quiz-notice .ui-link{display:inline-flex;align-items:center;min-height:var(--control-height);max-width:100%}
-.course-quiz-panel{border:1px solid var(--line);border-radius:12px;background:var(--white);padding:16px 20px;font-size:12px;overflow-wrap:anywhere}
-.course-quiz-panel p{margin:5px 0;line-height:1.65}
-#course-quiz-sync-status{font-weight:750;color:var(--green)}
-#course-quiz-sync-detail,#course-quiz-cache-info{color:var(--muted)}
+#course-quiz-sync-status{font-weight:750}
 .course-quiz-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
-.course-quiz-actions .btn{font-size:12px;white-space:normal;text-align:center}
-.course-quiz-panel details{margin-top:12px}
-.course-quiz-panel summary{cursor:pointer;font-weight:650}
+.course-quiz-actions .btn{white-space:normal;text-align:center}
+.course-quiz-notice summary{cursor:pointer;font-weight:650}
+.course-quiz-notice :is([data-course-quiz-conflicts]:empty, [data-course-quiz-feedback]:empty){display:none}
 .course-quiz-conflict{border:1px solid var(--color-warning-line);background:var(--color-warning-bg);border-radius:9px;padding:12px;color:var(--color-warning)}
-.course-quiz-import-dialog{width:min(600px,calc(100vw - 32px));max-height:calc(100dvh - 40px);overflow:auto;padding:25px;border:1px solid var(--line);border-radius:15px;background:var(--white);color:var(--text);box-shadow:var(--shadow);font-size:13px;overflow-wrap:anywhere}
-.course-quiz-import-dialog::backdrop{background:var(--color-backdrop)}
-.course-quiz-import-dialog h2{font-size:23px;margin:0 0 15px}
-.course-quiz-import-dialog p{line-height:1.7}
-.course-quiz-import-summary{border-block:1px solid var(--line);padding:10px 0}
-.course-quiz-import-summary>div{display:flex;gap:20px;justify-content:space-between;padding:7px 0}
-.course-quiz-import-summary dd{font-weight:800;margin:0}
 .quiz-history-panel{border-top:1px solid var(--line);padding-top:24px;margin-top:28px}
 .quiz-history-panel h2{font-size:21px;margin:0 0 8px}
 .quiz-history-panel p{font-size:12px;color:var(--muted)}
 .quiz-attempt-list{padding-left:22px;max-height:400px;overflow:auto}
 .quiz-attempt-list li{font-size:13px;line-height:1.7;margin:8px 0;padding-left:4px}
 .quiz-attempt-list time{display:block;font-size:12px;color:var(--muted)}
-@media(max-width:525px){.course-quiz-panel{padding:14px 16px}.course-quiz-actions{align-items:stretch;flex-direction:column}.course-quiz-actions .btn{width:100%}.course-quiz-import-dialog{padding:20px}.course-quiz-import-dialog h2{font-size:20px}}
 :root .library-search:focus-within,
 :root .library-layout summary:focus-visible,
 :root .library-associated summary:focus-visible,
@@ -485,7 +518,7 @@ summary:focus-visible,
 
 /* L'impression conserve un papier clair, indépendamment des préférences. */
 @media print {
-  html:root, html:root[data-theme], html:root[data-theme][data-season] {
+  html:root, html:root[data-theme], html:root[data-theme][data-season], html:root[data-theme][data-color-mode] {
     color-scheme: light;
     --color-bg-base: #fff;
     --color-bg: #fff;
@@ -499,6 +532,7 @@ summary:focus-visible,
     --color-accent-hover: #173d2b;
     --color-accent-soft: #eef3ed;
     --color-accent-fill: #234e3a;
+    --color-on-accent: #fff;
     --color-secondary: #785317;
     --color-cream: #f5f2e7;
     --color-shadow: none;

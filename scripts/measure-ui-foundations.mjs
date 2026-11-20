@@ -289,7 +289,7 @@ try {
     for (const phase of ['before', 'after']) for (const key of profileMetricKeys)
       results.medians[phase][key] = median(results[phase].map(run => run[key]));
     results.methodology.baselineRef = baselineRef;
-    results.methodology.profile = 'Same synthetic student and HTTP fixture. Profile form and synced appearance status from navigation to second frame. Dialog and input from trusted events to second frame; saving measured through the acknowledged message.';
+    results.methodology.profile = 'Same synthetic student and HTTP fixture. Profile form and personal appearance from navigation to second frame. Dialog and input from trusted events to second frame; saving measured through the acknowledged message.';
     // Run the two-version gallery for the profile refactor even when subsequent
     // PRs use a base that already contains the new profile.
     await writeProfileReview(browser, { origin, baselineRef, directory: resolve(dirname(output), 'profile-review') });

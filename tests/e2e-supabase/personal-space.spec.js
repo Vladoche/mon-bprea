@@ -1,4 +1,3 @@
-import { openCourseQuizSettings } from '../helpers/course-quiz-browser.js';
 import { test, expect } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { createDrillStudent, configureDrillPage, signInDrill, DRILL_LOCAL_URL } from '../helpers/drill-local.js';
@@ -217,7 +216,8 @@ test('Espace personnel r√©el : conflits cours, ITK, apparence et botanique isol√
     await page.locator('#itk-conflicts').getByRole('button', { name: 'Garder la version du compte', exact: true }).click();
     await openAppearanceComponent(page); await page.locator('#appearance-conflicts summary').last().click();
     await page.locator('#appearance-conflicts').getByRole('button', { name: 'Garder la version du compte', exact: true }).click(); await closeAppearance(page); await settingsSynced(page);
-    await openCourseQuizSettings(page); await expect(page.locator('#course-quiz-sync-status')).toContainText('Conflit'); await page.locator('.course-quiz-conflict summary').last().click();
+    await page.goto(coursePath);
+    await expect(page.locator('#course-quiz-sync-status')).toContainText('Conflit'); await page.locator('.course-quiz-conflict summary').last().click();
     await page.locator('.course-quiz-conflict').getByRole('button', { name: 'Garder la version du compte', exact: true }).click(); await courseSynced(page);
     await page.goto(botanicalPath); await expect(page.locator('#botanical-sync-status')).toContainText('Conflit'); await page.locator('.botanical-conflict summary').last().click();
     await page.locator('.botanical-conflict').getByRole('button', { name: 'Garder la version du compte', exact: true }).click(); await botanicalSynced(page);

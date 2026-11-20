@@ -5,7 +5,7 @@ import { mkdir } from 'node:fs/promises';
 import { lessons } from '../../assets/content.js';
 import { accounts, createCourseQuizAPI } from './course-quiz-api.js';
 import { makeSeries, answerFor } from '../fixtures/drill.js';
-import { openCourseQuizSettings, refreshCourseQuiz as refresh } from '../helpers/course-quiz-browser.js';
+import { courseQuizAction, refreshCourseQuiz as refresh } from '../helpers/course-quiz-browser.js';
 
 const lesson = lessons[0];
 const course = `/cours.html?id=${lesson.id}`;
@@ -103,33 +103,29 @@ test('le changement A vers B masque résultats et réponses en cours puis restit
   expect(new Set([...api.attempts.values()].map(item => item.user_id)).size).toBe(2);
 });
 
-test('import volontaire : prévisualisation, annulation et manifeste réutilisé sans toucher la source', async ({ page }) => {
+test('reprise de l’historique par le service sur confirmation explicite', async ({ page }) => {
   const oldAttempt = { score: 2, total: 3, completedAt: '2026-10-20T10:00:00.000Z' };
   const raw = JSON.stringify({ [lesson.id]: { done: false, score: 3, legacyQuizScore: { score: 3, total: 3 }, quizAttempts: [oldAttempt,oldAttempt], unknown: 'conservé', quizScoreArchive: ['illlisible'] }, progressArchive: ['ancienne source'] });
   const api = createCourseQuizAPI(); await api.install(page.context(),'A',raw);
   await page.goto(quiz); await synced(page); await expect(page.locator('#quiz-history li')).toHaveCount(0); expect(api.attempts.size).toBe(0);
   const provenance = () => page.evaluate(() => localStorage.getItem('bprea-demo-progress-provenance-v1'));
   expect(await provenance()).toBeNull();
-  const open = async () => { await openCourseQuizSettings(page); await page.getByRole('button', { name: 'Importer l’historique de cet appareil', exact: true }).click(); };
-  await open(); const dialog = page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' });
-  await expect(dialog).toContainText('Elle peut appartenir à quelqu’un d’autre.');
-  await expect(dialog).toContainText('Tentatives QCM exploitables');
+  const preview = await courseQuizAction(page, 'previewImport');
+  expect(preview).toMatchObject({ available: true, summary: { attempts: 2 } });
   expect(await provenance()).toBeNull();
-  await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click(); expect(api.attempts.size).toBe(0);
-  expect(await provenance()).toBeNull();
-  await open(); await capture(page,'import-desktop-light');
-  await page.setViewportSize({ width: 390, height: 844 }); await capture(page,'import-mobile-light');
-  await page.getByRole('dialog', { name: 'Importer les cours et QCM locaux' }).getByRole('button', { name: 'Annuler', exact: true }).click(); await setTheme(page,'dark'); await open(); await capture(page,'import-mobile-dark');
-  await page.setViewportSize({ width: 1280, height: 900 }); await capture(page,'import-desktop-dark');
-  await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click(); await synced(page);
+  expect(api.attempts.size).toBe(0);
+  const result = await courseQuizAction(page, 'confirmImport', preview);
+  expect(result.error).toBeNull();
+  await synced(page);
   const confirmedId = await provenance();
   expect(confirmedId).toMatch(/^[0-9a-f-]{36}$/i);
   await page.goto(quiz); await synced(page);
   await expect(page.locator('#quiz-history li')).toHaveCount(2); expect(api.attempts.size).toBe(2);
   expect(await provenance()).toBe(confirmedId);
   const ids = await page.locator('#quiz-history li').evaluateAll(rows => rows.map(row => row.dataset.attemptId)); expect(new Set(ids).size).toBe(2);
-  await page.reload(); await synced(page); await open(); await page.getByRole('button', { name: 'Confirmer l’import', exact: true }).click();
-  await expect(page.locator('#course-quiz-action-message')).toContainText('déjà enregistré');
+  await page.reload(); await synced(page);
+  const repeated = await courseQuizAction(page, 'previewImport');
+  expect((await courseQuizAction(page, 'confirmImport', repeated)).replayed).toBe(true);
   await page.goto(quiz); await synced(page);
   await expect(page.locator('#quiz-history li')).toHaveCount(2); expect(api.attempts.size).toBe(2);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe(raw);
@@ -146,8 +142,7 @@ test('conflit explicite, focus stable et choix conservé avec nouvel UUID sur mo
   const key = `${accounts.A.id}:${lesson.id}`, row = api.courses.get(key);
   api.courses.set(key, { ...row, operation_id: '63200000-0000-4000-8000-000000000099', base_revision: row.revision, revision: row.revision + 1 });
   api.restOffline = false;
-  await openCourseQuizSettings(page);
-  await page.getByRole('button', { name: 'Actualiser la progression', exact: true }).click();
+  await page.getByRole('button', { name: 'Réessayer la sauvegarde', exact: true }).click();
   await expect(page.locator('#course-quiz-sync-status')).toContainText('Conflit');
   const details = page.locator('.course-quiz-conflict'); await details.locator('summary').click();
   await capture(page,'conflict-mobile-dark');
@@ -157,7 +152,7 @@ test('conflit explicite, focus stable et choix conservé avec nouvel UUID sur mo
   await page.setViewportSize({ width: 390, height: 844 });
   const choice = page.getByRole('button', { name: 'Conserver mon choix', exact: true }); await choice.focus();
   await choice.click(); await synced(page);
-  await expect(page.getByRole('button', { name: 'Actualiser la progression', exact: true })).toBeFocused();
+  await expect(page.locator('#app-main')).toBeFocused();
   const updates = api.sent.filter(item => item.url.endsWith('/personal_save_course'));
   expect(updates.at(-1).body.p_operation_id).not.toBe(updates.at(-2).body.p_operation_id);
   await page.goto(course); await synced(page); await expect(page.locator('#mark-done')).not.toBeChecked();

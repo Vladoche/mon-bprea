@@ -74,6 +74,28 @@ test('paramètres : panne API, changements successifs, reload et retry strict sa
   expect(api.rows.appearance.get(accounts.A.id)).toMatchObject({ season: 'auto', brightness: 'auto' });
 });
 
+test('backend historique : la couleur attend la migration pendant que l’ITK se synchronise', async ({ page }) => {
+  const api = createSettingsAPI();
+  api.oldAppearanceSchema = true;
+  await api.install(page.context());
+  await page.goto(itkPath);
+  await settingsSynced(page);
+  const preference = { version: 1, season: 'auto', brightness: 'dark', colorMode: 'custom', customColor: '#aa44cc' };
+  const { operationId } = await settingsAction(page, 'save', 'appearance', preference);
+  await expect.poll(async () => (await settingsAction(page, 'state')).sync.domains.appearance.pending).toBe(1);
+  await generateItk(page);
+  await expect.poll(() => api.rows.itk.get(accounts.A.id)?.parameters).toEqual(itkParameters);
+  expect(api.sent.filter(request => request.domain === 'appearance')).toHaveLength(0);
+
+  api.oldAppearanceSchema = false;
+  await settingsAction(page, 'retry');
+  await settingsSynced(page);
+  expect(api.sent.filter(request => request.domain === 'appearance').map(request => request.body)).toEqual([
+    { p_preferences: preference, p_operation_id: operationId, p_expected_revision: 0 },
+  ]);
+  expect(api.rows.appearance.get(accounts.A.id)?.custom_color).toBe('#aa44cc');
+});
+
 test('apparence : préférences auto conservées, clavier et rendu local jour/nuit', async ({ page, browser }) => {
   const api = createSettingsAPI(); await api.install(page.context());
   const context = await browser.newContext({ baseURL: 'http://127.0.0.1:4173/', timezoneId: 'Europe/Paris', locale: 'fr-FR' }); await api.install(context);

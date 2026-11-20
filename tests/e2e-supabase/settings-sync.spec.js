@@ -27,13 +27,19 @@ test('Paramètres réels A : deux appareils, huit valeurs ITK, apparence auto et
     const a = await createDrillStudent(), b = await createDrillStudent(); students.push(a, b);
     await configureDrillPage(page, a.environment); await signIn(page, a);
     stage = 'paramètres ITK et apparence enregistrés'; await generateItk(page); await settingsSynced(page);
-    await chooseAppearance(page, 'winter', 'dark'); await settingsSynced(page); await closeAppearance(page);
+    await chooseAppearance(page, 'winter', 'dark');
+    await page.locator('#appearance-color-mode').selectOption('custom');
+    await page.locator('#appearance-hex').fill('#ff395c');
+    await page.locator('#appearance-hex').press('Enter');
+    await settingsSynced(page); await closeAppearance(page);
     expect((await rows(a, 'itk_settings'))[0].parameters).toEqual(itkParameters);
-    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'winter', brightness: 'dark' });
+    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'winter', brightness: 'dark', color_mode: 'custom', custom_color: '#ff395c' });
     const context = await browser.newContext({ timezoneId: 'Europe/Paris', locale: 'fr-FR' }); contexts.push(context);
     const second = await context.newPage(); await configureDrillPage(second, a.environment); await signIn(second, a);
     stage = 'deuxième appareil'; await expectItk(second, itkParameters);
     await expect(second.locator('html')).toHaveAttribute('data-season', 'winter'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
+    await expect(second.locator('html')).toHaveAttribute('data-color-mode', 'custom');
+    expect(await second.evaluate(() => window.BpreaAppearance.getState().color)).toBe('#ff395c');
     await expect(second.locator('#csv-export')).toHaveCount(0);
     await chooseAppearance(second, 'auto', 'auto'); await settingsSynced(second); await closeAppearance(second);
     await settingsAction(page, 'retry'); await settingsSynced(page);
@@ -42,12 +48,13 @@ test('Paramètres réels A : deux appareils, huit valeurs ITK, apparence auto et
     await second.clock.setFixedTime(new Date('2026-10-25T23:00:00.000Z'));
     await page.evaluate(() => window.BpreaAppearance.refresh()); await second.evaluate(() => window.BpreaAppearance.refresh());
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light'); await expect(second.locator('html')).toHaveAttribute('data-theme', 'dark');
-    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'auto', brightness: 'auto' });
+    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'auto', brightness: 'auto', color_mode: 'custom', custom_color: '#ff395c' });
     stage = 'autre compte sur le même profil';
     await page.locator('header').getByRole('button', { name: 'Afficher les sous-rubriques de Mon profil', exact: true }).click();
     await page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true }).click();
     await signIn(page, b); expect((await settingsAction(page, 'state')).view.itk).toBeNull();
     expect((await settingsAction(page, 'state')).view.appearance).toBeNull();
+    await expect(page.locator('html')).not.toHaveAttribute('data-color-mode', 'custom');
     for (const table of ['itk_settings', 'appearance_preferences']) {
       expect(await rows(b, table)).toEqual([]);
       const foreign = await b.client.from(table).select('*').eq('user_id', a.userId); expect(foreign.error).toBeNull(); expect(foreign.data).toEqual([]);
@@ -67,9 +74,15 @@ test('Paramètres réels B : hors ligne, rechargement et acquittement perdu apr�
     const outage = route => route.abort('failed'), pattern = `${a.environment.url}/rest/v1/**`;
     await page.route(pattern, outage); stage = 'modifications successives hors ligne';
     await generateItk(page, { ...itkParameters, area: '200' });
-    await chooseAppearance(page, 'summer', 'dark'); await chooseAppearance(page, 'winter', 'dark'); await chooseAppearance(page, 'auto', 'auto'); await closeAppearance(page);
+    await chooseAppearance(page, 'summer', 'dark'); await chooseAppearance(page, 'winter', 'dark'); await chooseAppearance(page, 'auto', 'auto');
+    await page.locator('#appearance-color-mode').selectOption('custom');
+    await page.locator('#appearance-hex').fill('#00df95');
+    await page.locator('#appearance-hex').press('Enter');
+    await closeAppearance(page);
+    await expect.poll(async () => (await settingsAction(page, 'state')).view.appearance?.customColor).toBe('#00df95');
     await expect(page.locator('#itk-sync-status')).toContainText(/ligne|attente/i);
     const before = (await settingsRecords(page))[0]; await page.reload(); await expectItk(page, { ...itkParameters, area: '200' });
+    await expect.poll(() => page.evaluate(() => window.BpreaAppearance.getState().color)).toBe('#00df95');
     const after = (await settingsRecords(page))[0]; expect(after.operations.map(item => item.id)).toEqual(before.operations.map(item => item.id));
     stage = 'reprise avec perte après commit'; await page.unroute(pattern, outage);
     const sent = [], rpc = '**/rest/v1/rpc/personal_save_itk';
@@ -77,7 +90,7 @@ test('Paramètres réels B : hors ligne, rechargement et acquittement perdu apr�
     await page.route(rpc, lose); await settingsAction(page, 'retry');
     await expect.poll(() => sent.length).toBeGreaterThanOrEqual(2); await settingsSynced(page); expect(sent[0]).toEqual(sent[1]);
     expect(await rows(a, 'itk_settings')).toHaveLength(1); expect((await rows(a, 'itk_settings'))[0].parameters.area).toBe('200');
-    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'auto', brightness: 'auto' });
+    expect((await rows(a, 'appearance_preferences'))[0]).toMatchObject({ season: 'auto', brightness: 'auto', color_mode: 'custom', custom_color: '#00df95' });
     await page.unroute(rpc, lose); await settingsAction(page, 'retry'); await settingsSynced(page);
     expect((await rows(a, 'itk_settings'))[0].revision).toBe(2);
   } catch { failure = new Error(`Reprise des paramètres locaux non validée : ${stage}.`); }

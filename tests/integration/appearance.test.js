@@ -25,12 +25,12 @@ describe('Préférences et chargement synchrone du thème', () => {
     expect(storage.snapshot()).toMatchObject(history);
   });
 
-  it('reprend les anciens modes clair et sombre en mémoire et conserve les originaux après retrait', () => {
+  it('conserve les anciens modes clair et sombre après une nouvelle mémorisation puis son retrait', () => {
     for (const brightness of ['light', 'dark']) {
       const storage = appearanceStorage({ ...history, [LEGACY]: brightness });
       const { api, document } = appearanceRuntime(storage);
       expect(api.getPreferences().brightness).toBe('auto');
-      expect(api.recallArchived()).toBeNull();
+      api.updatePreferences({ brightness });
       expect(api.getPreferences()).toMatchObject({ version: 1, season: 'auto', brightness });
       expect(document.documentElement.dataset.theme).toBe(brightness);
       expect(storage.getItem(KEY)).toBeNull();

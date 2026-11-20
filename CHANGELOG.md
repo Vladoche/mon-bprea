@@ -9,6 +9,12 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Profil simplifié, couleurs personnalisées et continuité clair/sombre**.
+  Retrait du panneau cours/QCM et des imports d’apparence du profil.
+  Sauvegardes automatiques et reprises contextuelles, roue chromatique et
+  préférences synchronisables après migration. La luminosité d’une session
+  déjà vérifiée est reprise avant CSS. [Validation](docs/validations/VALIDATION-PROFIL-COULEURS-THEME.md).
+
 - **Approbation de la notice V1.2**. Décision du 20 novembre 2026 enregistrée
   pour le texte exact, avec contrôles ciblés du profil et de l’artefact Pages.
   Publication non autorisée.

@@ -23,6 +23,17 @@ describe('copie personnelle : projection de confidentialité', () => {
   it('refuse une ligne étrangère même si le serveur la renvoie', () => {
     expect(() => projectRow('quiz_attempts', serverRows(B).quiz_attempts[0], A)).toThrow('ownership');
   });
+  it('garde les couleurs dans la copie serveur, locale et visiteur avec la compatibilité historique', () => {
+    const [row] = serverRows(A).appearance_preferences;
+    const custom = { version: 1, season: 'auto', brightness: 'auto', colorMode: 'custom', customColor: '#00c599' };
+    const modern = { ...row, color_mode: custom.colorMode, custom_color: custom.customColor };
+    expect(projectRow('appearance_preferences', row, A)).toEqual(row);
+    expect(projectRow('appearance_preferences', modern, A)).toEqual(modern);
+    const doc = emptySettingsDocument(scope);
+    queueSettings(doc, 'appearance', custom, () => uuid(7));
+    expect(projectLocal('settings', doc, scope).data.operations[0].payload.p_preferences).toEqual(custom);
+    expect(projectVisitor('rememberedAppearance', custom).data).toEqual(custom);
+  });
   it('lit le vrai format Drill, brouillons/entraînements, outbox et conflit sans secret arbitraire', () => {
     const doc = emptyPersonalDocument(scope);
     personalChange(doc, 'ensureSeries', ['uc3', '2026-W43', questions, stamp], () => uuid(1));

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { courseQuizAction } from '../helpers/course-quiz-browser.js';
 import { accounts, apiOrigin, createCourseQuizAPI, sessionFor } from './course-quiz-api.js';
 
 test.use({ channel: 'chromium', launchOptions: { ignoreDefaultArgs: ['--disable-back-forward-cache'] } });
@@ -10,7 +11,7 @@ const input = page => account(page).getByLabel('Pseudo (facultatif)', { exact: t
 const submit = page => account(page).getByRole('button', { name: 'Enregistrer le pseudo' });
 const saveMessage = page => account(page).locator('#profile-pseudo-message');
 const currentPseudo = page => account(page).locator('[data-current-pseudo]');
-const removed = '.data-export, .data-restore, .data-erasure, [data-export-prepare], [data-export-download], [data-export-device], [data-restore-file], [data-restore-preview], [data-restore-confirm], [data-erase-dialog], [data-erase-resume], #closure-heading, [data-closure-form]';
+const removed = '.data-export, .data-restore, .data-erasure, [data-export-prepare], [data-export-download], [data-export-device], [data-restore-file], [data-restore-preview], [data-restore-confirm], [data-erase-dialog], [data-erase-resume], #closure-heading, [data-closure-form], #donnees-synchronisation, [data-course-quiz-settings]';
 
 async function expectNoMaintenance(page) {
   await expect(page.locator(removed)).toHaveCount(0);
@@ -42,7 +43,7 @@ test('Profil confirmé, sauvegarde et aide. Les anciens outils ne sont jamais mo
   await expect(account(page).locator('[data-email]')).toHaveText(accounts.A.email);
   await expect(account(page).locator('[data-created]')).toHaveText('25 octobre 2026');
   await expect(currentPseudo(page)).toHaveText('Aucun pseudo');
-  await expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
+  await expect.poll(async () => (await courseQuizAction(page, 'getState')).sync.state).toBe('synced');
   expect(api.sent).toEqual([]);
   expect(api.profileRequests.every(request => request.method === 'GET')).toBe(true);
   await expectNoMaintenance(page);
@@ -84,7 +85,7 @@ test('Visiteur : apparence et cours publics, accès direct aux anciens fragments
   await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
   await page.getByRole('combobox', { name: 'Saison', exact: true }).selectOption('spring');
   await page.getByRole('button', { name: 'Mémoriser mon apparence sur cet appareil' }).click();
-  await expect(page.locator('#appearance-save')).toContainText('mémorisée sur cet appareil');
+  await expect(page.locator('#appearance-action-message')).toContainText('mémorisée pour les prochaines pages');
   await page.keyboard.press('Escape');
   await expect(opener).toBeFocused();
   await expectNoMaintenance(page);
@@ -225,14 +226,13 @@ test('La lecture et la sauvegarde tardives d’A ne peuvent pas repeindre B', as
   await expect(input(page)).toHaveValue('Changement de B');
 });
 
-test('Les trois ancres restent accessibles au clavier pendant le rendu', async ({ page, context }) => {
+test('Les deux ancres restent accessibles au clavier pendant le rendu', async ({ page, context }) => {
   const api = createCourseQuizAPI();
   await api.install(context, 'A', null, prefix);
   await page.setViewportSize({ width: 390, height: 680 });
   for (const [id, heading] of [
     ['informations-compte', 'Informations du compte'],
     ['parametres', 'Paramètres'],
-    ['donnees-synchronisation', 'Données et synchronisation'],
   ]) {
     await page.goto(`${profile}#${id}`);
     await expect(page.locator(`#${id}`)).toBeFocused();
@@ -240,15 +240,15 @@ test('Les trois ancres restent accessibles au clavier pendant le rendu', async (
     await expect(input(page)).toBeVisible();
   }
   await page.keyboard.press('Tab');
-  await expect(page.locator('#course-quiz-refresh')).toBeFocused();
+  await expect(page.locator('#appearance-open')).toBeFocused();
 });
 
-test('Une opération d’un autre onglet reste visible sans déplacer le focus du pseudo', async ({ page, context }) => {
+test('Une opération d’un autre onglet se synchronise sans déplacer le focus du pseudo', async ({ page, context }) => {
   const api = createCourseQuizAPI();
   await api.install(context, 'A', null, prefix);
   await page.goto(profile);
-  const status = page.locator('#course-quiz-sync-status');
-  await expect(status).toHaveText('Synchronisé');
+  const sync = async () => (await courseQuizAction(page, 'getState')).sync;
+  await expect.poll(async () => (await sync()).state).toBe('synced');
   const course = await context.newPage();
   await course.goto(`${prefix}cours.html?id=matiere-organique`);
   await expect(course.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
@@ -257,12 +257,12 @@ test('Une opération d’un autre onglet reste visible sans déplacer le focus d
 
   api.restOffline = true;
   await course.locator('#mark-done').check();
-  await expect(status).toContainText('1 opération en attente');
+  await expect.poll(async () => (await sync()).pending).toBe(1);
   await expect(input(page)).toHaveValue('Saisie en cours');
   await expect(input(page)).toBeFocused();
   api.restOffline = false;
-  await page.locator('#course-quiz-refresh').click();
-  await expect(status).toHaveText('Synchronisé');
+  await page.evaluate(() => dispatchEvent(new Event('online')));
+  await expect.poll(async () => (await sync()).state).toBe('synced');
   expect(api.courses.get(`${accounts.A.id}:matiere-organique`)?.done).toBe(true);
   await expect(input(page)).toHaveValue('Saisie en cours');
 });
@@ -277,7 +277,7 @@ test('Retour BFCache natif : efface A à la sortie, revérifie B et recrée les 
   });
   await page.goto(profile);
   await expect(account(page).locator('[data-email]')).toHaveText(accounts.A.email);
-  await expect(page.locator('#course-quiz-sync-status')).toHaveText('Synchronisé');
+  await expect.poll(async () => (await courseQuizAction(page, 'getState')).sync.state).toBe('synced');
   await page.waitForLoadState('networkidle');
   await page.evaluate(() => {
     addEventListener('pagehide', event => {
@@ -301,5 +301,5 @@ test('Retour BFCache natif : efface A à la sortie, revérifie B et recrée les 
   expect(await page.evaluate(() => sessionStorage.getItem('test-profile-restored'))).toBe('true');
   await page.getByRole('button', { name: 'Régler l’apparence' }).click();
   await expect(page.getByRole('dialog', { name: 'Ton apparence' })).toBeVisible();
-  await expect(page.locator('#appearance-save')).toContainText('Aucun choix d’apparence enregistré sur le compte.');
+  await expect(page.locator('#appearance-save')).toBeEmpty();
 });

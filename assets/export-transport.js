@@ -12,16 +12,21 @@ export function createExportTransport(client, auth, userId) {
         if (page >= 1001) fail('volume');
         const verified = await auth.verifiedSession(userId);
         if (!active() || verified.userId !== userId) fail('identity');
-        let query = client.from(name).select(spec.fields.join(',')).eq(spec.owner, userId).limit(100);
-        if (spec.time) {
-          query = query.order(spec.time, { ascending: true }).order(spec.key, { ascending: true });
-          if (cursor) query = query.or(`${spec.time}.gt.${quoted(cursor[spec.time])},and(${spec.time}.eq.${quoted(cursor[spec.time])},${spec.key}.gt.${quoted(cursor[spec.key])})`);
-        } else {
-          query = query.order(spec.key, { ascending: true });
-          if (cursor) query = query.gt(spec.key, cursor[spec.key]);
-        }
-        const result = await query.retry(false).setHeader('Authorization', `Bearer ${verified.accessToken}`)
-          .abortSignal(AbortSignal.any([signal, AbortSignal.timeout(15000)]));
+        const readPage = fields => {
+          let query = client.from(name).select(fields.join(',')).eq(spec.owner, userId).limit(100);
+          if (spec.time) {
+            query = query.order(spec.time, { ascending: true }).order(spec.key, { ascending: true });
+            if (cursor) query = query.or(`${spec.time}.gt.${quoted(cursor[spec.time])},and(${spec.time}.eq.${quoted(cursor[spec.time])},${spec.key}.gt.${quoted(cursor[spec.key])})`);
+          } else {
+            query = query.order(spec.key, { ascending: true });
+            if (cursor) query = query.gt(spec.key, cursor[spec.key]);
+          }
+          return query.retry(false).setHeader('Authorization', `Bearer ${verified.accessToken}`)
+            .abortSignal(AbortSignal.any([signal, AbortSignal.timeout(15000)]));
+        };
+        let result = await readPage([...spec.fields, ...(spec.optionalFields || [])]);
+        if (spec.optionalFields && result.error?.code === '42703' && active() && !signal.aborted)
+          result = await readPage(spec.fields);
         if (!active() || signal.aborted) fail('cancelled');
         if (result.error) fail([401, 403].includes(result.status) || [401, 403].includes(result.error.status) || ['42501', 'PGRST301', 'PGRST303'].includes(result.error.code) ? 'identity' : 'api');
         if (!Array.isArray(result.data)) fail('invalid');
