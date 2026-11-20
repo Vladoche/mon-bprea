@@ -20,12 +20,16 @@ export async function seedPersonalTables(student, quizCount) {
   await rpc(student, 'personal_save_botanical_session', { p_session: session, p_operation_id: randomUUID(), p_expected_revision: 0 });
   await rpc(student, 'personal_record_botanical_answer', { p_answer: botanicalAnswer(session) });
   await rpc(student, 'personal_save_itk', { p_parameters: itkParameters, p_operation_id: randomUUID(), p_expected_revision: 0 });
-  await rpc(student, 'personal_save_appearance', { p_preferences: { version: 1, season: 'auto', brightness: 'auto' }, p_operation_id: randomUUID(), p_expected_revision: 0 });
+  await rpc(student, 'personal_save_appearance', {
+    p_preferences: { version: 1, season: 'auto', brightness: 'auto', colorMode: 'custom', customColor: '#624bcf' },
+    p_operation_id: randomUUID(), p_expected_revision: 0,
+  });
 }
 export async function readPersonalTables(student) {
   await student.refresh(); const data = {};
   for (const [name, spec] of Object.entries(TABLES)) {
-    const result = await student.client.from(name).select(spec.fields.join(',')).eq(spec.owner, student.userId).order(spec.key);
+    const fields = [...spec.fields, ...(spec.optionalFields || [])].join(',');
+    const result = await student.client.from(name).select(fields).eq(spec.owner, student.userId).order(spec.key);
     if (result.error) throw new Error('Relecture personnelle locale refusée.'); data[name] = result.data;
   }
   return data;
