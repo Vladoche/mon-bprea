@@ -9,6 +9,11 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Mon parcours BPREA**. Le Profil permet de déclarer les UC suivies, la dispense
+  d’UC1, les UCARE, les épreuves et leurs échéances. Les choix et le brouillon
+  sont isolés par compte, avec synchronisation explicite et contrôle des révisions.
+  La notice V1.4 est candidate. [PR #86](https://github.com/Vladoche/mon-bprea/pull/86) · [Architecture](docs/architecture/ARCHITECTURE.md#mon-parcours-bprea).
+
 - **Audit technique et chargement des rubriques**. Chargement des modules
   selon la page avec état de reprise, sauvegardes de cours isolées après un
   changement de compte, synthèse Drill relue au retour et après une panne,

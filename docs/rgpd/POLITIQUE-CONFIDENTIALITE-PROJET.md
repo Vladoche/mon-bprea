@@ -1,6 +1,6 @@
 # Notice de confidentialité de Mon BPREA
 
-Version 1.3 · 20 novembre 2026
+Version 1.4 · 21 novembre 2026
 
 Mon BPREA est un outil gratuit et facultatif de révision, indépendant de l’établissement. Les pages pédagogiques sont publiques. L’espace personnel est prévu pour dix adultes au total, dont l’exploitant et neuf participants invités individuellement. Les résultats sont privés, sans notation officielle, transmission aux formateurs ni publicité.
 
@@ -14,6 +14,8 @@ La participation est volontaire et se fait uniquement sur invitation personnelle
 
 Les données proviennent de vos saisies et exercices, des calculs de résultats et des identifiants techniques générés par le service. Un compte utilise votre adresse, un identifiant de compte, des données de session et un profil minimal avec un pseudo facultatif. Il peut synchroniser les cours, réponses, tentatives, scores et préférences, ainsi que les derniers paramètres de génération d’itinéraire technique. Pour importer des données du mode visiteur dans votre compte, vous examinez d’abord la source locale puis confirmez l’import. Pour les cours et QCM et pour la botanique, un identifiant local de provenance peut être créé à la confirmation. Il aide à éviter les doublons et peut rester dans le navigateur après un échec. Seul l’enregistrement de l’import dans le cache du compte confirme son acceptation locale. Sur un appareil partagé, vérifiez que la sauvegarde vous appartient.
 
+Le profil permet aussi d’enregistrer vos unités suivies, une éventuelle dispense d’UC1, les UCARE choisies, les épreuves présentées et les indications de session ou de date d’examen. Ces informations restent attachées à votre compte et servent à préparer la personnalisation de votre calendrier et de vos révisions. Une date saisie par vos soins est indicative. Les modifications sont conservées dans un brouillon de ce navigateur et transmises au serveur à votre demande d’enregistrement, dès que la connexion le permet.
+
 ## Finalités et base juridique
 
 Mon BPREA s’appuie sur l’intérêt légitime (article 6, paragraphe 1, point f du RGPD) pour les traitements nécessaires à ces cinq finalités, dans le périmètre décrit ici.
@@ -21,7 +23,7 @@ Mon BPREA s’appuie sur l’intérêt légitime (article 6, paragraphe 1, point
 - **R01 — Accès et sécurité du compte.** Permettre la connexion sur invitation, la reprise de session et la récupération de l’accès individuel.
 - **R02 — Profil minimal.** Rattacher les données au bon compte et afficher le pseudo que vous avez choisi, si vous en renseignez un.
 - **R03 — Progression personnelle.** Retrouver les réponses, exercices réalisés et résultats descriptifs pour aider à la révision. Aucun score n’entraîne de décision automatique ayant un effet significatif sur vous.
-- **R04 — Préférences.** Retrouver l’apparence choisie et les derniers paramètres utiles à la génération d’un itinéraire technique.
+- **R04 — Préférences.** Retrouver l’apparence choisie, les derniers paramètres utiles à la génération d’un itinéraire technique et les choix du parcours BPREA.
 - **R05 — Fonctionnement et sécurité.** Faire fonctionner le site, protéger les accès et diagnostiquer les erreurs ou incidents.
 
 Lorsqu’une obligation légale impose une opération, par exemple répondre à une demande d’exercice de droits, cette obligation fonde l’opération concernée. Les prestataires décrivent séparément les traitements qu’ils déterminent eux-mêmes.

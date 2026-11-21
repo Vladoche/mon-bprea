@@ -33,11 +33,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit vérifié | `131d2f006e3b80c9f2580888a423af6c096c8e97` |
-| Dernière PR fusionnée sur main | [#84, Admin 2.3 et capacité](https://github.com/Vladoche/mon-bprea/pull/84), 20/11/2026 à 22:55:22 UTC. Cinq checks réussis sur `5e6900c`. |
+| Dernier commit vérifié | `60f4ff6da54d96894a67375e7a5d8cf28e6c1333` |
+| Dernière PR fusionnée sur main | [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), 21/11/2026 à 16:44:14 UTC. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
 | Notice | V1.2 approuvée dans [#80](https://github.com/Vladoche/mon-bprea/pull/80) et servie sur Pages. V1.3 candidate sur `main` dans [#84](https://github.com/Vladoche/mon-bprea/pull/84). |
-| Chantier en revue | Audit technique du lot B [#85](https://github.com/Vladoche/mon-bprea/pull/85), [corrections, mesures et matrice du lot C](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md). |
+| Chantier prioritaire | [Mon parcours BPREA](../architecture/ARCHITECTURE.md#mon-parcours-bprea), dans les paramètres du Profil. [PR #86](https://github.com/Vladoche/mon-bprea/pull/86). |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -175,11 +175,11 @@ gardent la portée de leur recette locale.
 
 ## F — Prochaines actions
 
-1. Revoir les corrections du lot B et utiliser la [matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c) pour cibler le lot C. Suivre les réserves du catalogue synthétique, de Safari et du lecteur d’écran natif.
+1. Revoir Mon parcours BPREA, valider les référentiels UCARE et sessions puis préparer le calendrier personnalisé. Le lot C de consolidation de tests est reporté. [Matrice du lot B](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c).
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
-3. Qualifier un point de reprise au schéma courant, recontrôler les paramètres Auth et statuer sur l’empreinte de la notice V1.3. Le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md) fixe les contrôles et décisions utiles au prochain cycle.
+3. Qualifier un point de reprise au schéma courant, recontrôler les paramètres Auth et statuer sur l’empreinte de la notice candidate applicable au prochain périmètre. Le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md) fixe les contrôles et décisions utiles au prochain cycle.
 4. Obtenir les décisions individuelles et d’ouverture nécessaires après la
    qualification technique.
 

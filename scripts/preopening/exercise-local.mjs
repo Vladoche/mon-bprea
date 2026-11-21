@@ -10,7 +10,7 @@ import { publicProcessEnvironment } from '../dev-recipe/contract.mjs';
 import { protectDirectory, createPrivate } from '../dev-recipe/private-files.mjs';
 import { POLICY, digest, requireThat } from './preflight.mjs';
 import { localPgTarget, makeManifest, verifyBackup, checkDirectory, currentSchemaHash } from './backup.mjs';
-import { serverRows, A, B } from '../../tests/fixtures/export.js';
+import { serverRows, stamp, A, B } from '../../tests/fixtures/export.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const extension = process.platform === 'win32' ? '.exe' : '';
@@ -44,7 +44,8 @@ export async function exercise(pgBin) {
   const sql = (database, input) => tool('psql', [...localPgTarget({ host: '127.0.0.1', port, database }), '-X', '--set=ON_ERROR_STOP=1', '--tuples-only', '--no-align', '--quiet'], input).trim();
   const bootstrap = `create schema auth; create table auth.users(id uuid primary key);
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
-    grant usage on schema auth to authenticated,anon; grant execute on function auth.uid() to authenticated,anon;`;
+    create function auth.role() returns text language sql stable as $$ select nullif(current_setting('request.jwt.claim.role',true),'') $$;
+    grant usage on schema auth to authenticated,anon; grant execute on function auth.uid(),auth.role() to authenticated,anon;`;
   let started = false, stopped = false;
   try {
     tool('initdb', ['--pgdata', cluster, '--username=postgres', '--auth=trust', '--encoding=UTF8', '--no-locale']);
@@ -69,6 +70,10 @@ export async function exercise(pgBin) {
       const rows = serverRows(user), seriesId = `655b000${index}-0000-4000-8000-000000000001`;
       rows.drill_series[0].id = seriesId; delete rows.drill_series[0].series_key;
       rows.drill_answers[0].series_id = seriesId; rows.drill_training_attempts[0].series_id = seriesId;
+      rows.parcours_preferences.push({
+        user_id: user, preferences: { version: 1, uc1: 'attending', units: [], ucare: [], exams: ['uc1'], assignments: {} },
+        operation_id: user, base_revision: 0, revision: 1, schema_version: 1, created_at: stamp, updated_at: stamp,
+      });
       for (const [table, values] of Object.entries(rows)) {
         if (table === 'profiles') continue; // créé par le vrai trigger de migration
         for (const row of values) {
@@ -138,8 +143,10 @@ export async function exercise(pgBin) {
     const status = verifyBackup(directory, manifest, evidence, { now: new Date().toISOString(), projectRef: manifest.projectRef, schemaHash, ledgerHash, protectionChecked: true });
     createPrivate(directory, 'backup-verification.json', status);
     assert.equal(status.reasons.length, 0);
-    createPrivate(directory, 'result.json', { syntheticOnly: true, restoredTables: 10, rowsBeforeReconciliation: 20, deletedTargetRows: 10, otherRowsPreserved: 10, nativeAuthApiTested: false, realRlsTested: false, status });
-    return { syntheticOnly: true, restoredTables: 10, rowsBeforeReconciliation: 20, deletedTargetRows: 10, otherRowsPreserved: 10,
+    createPrivate(directory, 'result.json', { syntheticOnly: true, restoredTables: POLICY.tables.length, rowsBeforeReconciliation: POLICY.tables.length * 2,
+      deletedTargetRows: POLICY.tables.length, otherRowsPreserved: POLICY.tables.length, nativeAuthApiTested: false, realRlsTested: false, status });
+    return { syntheticOnly: true, restoredTables: POLICY.tables.length, rowsBeforeReconciliation: POLICY.tables.length * 2,
+      deletedTargetRows: POLICY.tables.length, otherRowsPreserved: POLICY.tables.length,
       nativeAuthApiTested: false, realRlsTested: false, completeAuthRecovery: false };
   } catch (error) {
     createPrivate(directory, 'failure.json', { syntheticOnly: true, message: error.message, stack: error.stack });

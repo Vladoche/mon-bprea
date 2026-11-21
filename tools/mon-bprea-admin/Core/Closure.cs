@@ -80,7 +80,7 @@ public static class ClosureContract
 {
     public static IReadOnlyList<string> Tables { get; } = Array.AsReadOnly(new[] {
         "profiles", "drill_series", "drill_answers", "drill_training_attempts", "course_states", "quiz_attempts",
-        "botanical_sessions", "botanical_answers", "itk_settings", "appearance_preferences" });
+        "botanical_sessions", "botanical_answers", "itk_settings", "appearance_preferences", "parcours_preferences" });
     // Canonical signatures include both sides, column order, validation and
     // cascade. Counting eleven alone cannot satisfy this contract.
     internal static readonly string[] ForeignKeys = [
@@ -94,7 +94,8 @@ public static class ClosureContract
         "botanical_answers(user_id)->auth.users(id):cascade:valid",
         "botanical_answers(user_id,session_id)->public.botanical_sessions(user_id,session_id):cascade:valid",
         "itk_settings(user_id)->auth.users(id):cascade:valid",
-        "appearance_preferences(user_id)->auth.users(id):cascade:valid"
+        "appearance_preferences(user_id)->auth.users(id):cascade:valid",
+        "parcours_preferences(user_id)->auth.users(id):cascade:valid"
     ];
     public static string TargetHash(string email) => Hash(AdminContract.Project + "\0" + AdminContract.NormalizeEmail(email));
     public static string Hash(string text) => Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(text)));
@@ -126,7 +127,7 @@ public static class ClosureContract
         "Toute restauration reste isolée et réconciliée avec le journal courant ; son ancienne preuve doit être renouvelée après modification du journal.";
     public static string HolderResponse(ClosureReceipt receipt) =>
         $"Référence de clôture : {receipt.OperationId:D}. État : {receipt.Description}. " +
-        (receipt.ActiveDataVerified ? "L’absence de votre identité Auth et de vos données actives dans les dix tables a été contrôlée. " : "Les contrôles restent incomplets ; aucune confirmation globale d’effacement. ") +
+        (receipt.ActiveDataVerified ? "L’absence de votre identité Auth et de vos données actives dans toutes les tables applicatives a été contrôlée. " : "Les contrôles restent incomplets ; aucune confirmation globale d’effacement. ") +
         "Copies résiduelles et exceptions : [à préciser]. Appareils absents : [à préciser]. Prochaine revue et échéances : [à compléter]. " +
         "Ce modèle doit être relu et complété par l’exploitant ; aucun message n’a été envoyé.";
 }

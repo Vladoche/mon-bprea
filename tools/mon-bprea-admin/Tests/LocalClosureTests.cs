@@ -42,7 +42,7 @@ internal static partial class Program
         var targetId = await lookup.GetStringAsync(new Uri(origin, "/target"));
         var request = new ClosureRequest("LOCAL-NATIVE-CSHARP-12", DateTimeOffset.UtcNow.AddMinutes(-1), new(true,true,true,true,true,true,true,true,true));
         var preparation = await session.PrepareClosureAsync(inventory.Accounts.Single(a => a.Id == targetId), request);
-        Check("real local preparation complete", preparation.CanConfirm && preparation.Counts.Count == 10 && preparation.Counts.Values.All(n => n > 0));
+        Check("real local preparation complete", preparation.CanConfirm && preparation.Counts.Count == ClosureContract.Tables.Count && preparation.Counts.Values.All(n => n > 0));
         var plan = preparation.AuthorizedPlan!;
         var receipt = await session.ExecuteClosureAsync(plan, plan.ConfirmationText);
         Check("C# native HTTP deletion plus actual PostgreSQL postchecks", receipt.ActiveDataVerified && receipt.Status == ClosureStatus.ActiveDataVerifiedDeleted);

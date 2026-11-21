@@ -10,6 +10,6 @@
   "serviceClosesOn": "2027-06-30",
   "hostedDeletionTarget": "2027-07-30",
   "backup": { "frequencyDays": 7, "maximumAgeHours": 168, "warningAgeHours": 144, "completeAuthRecovery": false },
-  "tables": ["profiles", "drill_series", "drill_answers", "drill_training_attempts", "course_states", "quiz_attempts", "botanical_sessions", "botanical_answers", "itk_settings", "appearance_preferences"],
+  "tables": ["profiles", "drill_series", "drill_answers", "drill_training_attempts", "course_states", "quiz_attempts", "botanical_sessions", "botanical_answers", "itk_settings", "appearance_preferences", "parcours_preferences"],
   "excludedBackupScopes": ["auth", "storage", "vault", "project-settings", "secrets", "browser-caches", "unsynced-data", "provider-logs"]
 }

@@ -47,7 +47,7 @@ public sealed partial class WindowsPrivateStore : IClosureStore
             ["accountId"] = plan.Account.Id, ["targetHash"] = TargetHash(plan.Account.Email),
             ["projectRef"] = Project, ["userId"] = plan.Account.Id,
             ["reference"] = plan.Request.Reference, ["decidedAt"] = now.ToString("O"), ["identityChecked"] = true,
-            ["scope"] = "auth-and-ten-tables", ["status"] = "pending/uncertain",
+            ["scope"] = "auth-and-application-tables", ["status"] = "pending/uncertain",
             ["backupReferences"] = new JsonArray(plan.Evidence.BackupReference),
             ["previousLedgerHash"] = plan.LedgerHash,
             ["residuals"] = new JsonArray("backups-reconcile-before-restore", "jwt-until-expiry", "devices-and-downloads"),

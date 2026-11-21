@@ -17,7 +17,7 @@ it('deux passes concordantes, aucune écriture, vérification avant chaque tél�
   const read = vi.fn(async () => serverRows(A)), f = fixture({ read }); let file;
   await f.service.prepareAccount(); expect(f.service.getState().status).toBe('ready'); expect(read).toHaveBeenCalledTimes(2);
   await f.service.downloadAccount(text => { file = JSON.parse(text); });
-  expect(file.data.identity.id).toBe(A); expect(Object.keys(file.data.server)).toHaveLength(10);
+  expect(file.data.identity.id).toBe(A); expect(Object.keys(file.data.server)).toHaveLength(11);
   expect(f.auth.getExportIdentity).toHaveBeenCalledTimes(3);
   expect(await f.service.downloadAccount(() => { throw new Error('second download'); })).toBe(false); f.service.stop();
 });
@@ -33,7 +33,7 @@ it('échec API et hors ligne ne produisent aucun fichier, compléments indisponi
   const deliver = vi.fn(); await f.service.downloadAccount(deliver); expect(deliver).not.toHaveBeenCalled(); f.service.stop();
   const g = fixture({ local: async () => { throw Object.assign(new Error(), { code: 'blocked' }); } });
   await g.service.prepareAccount(); expect(g.service.getState()).toMatchObject({ status: 'ready', exportStatus: 'partial' });
-  expect(g.service.getState().coverage.filter(c => c.status === 'blocked')).toHaveLength(4); g.service.stop();
+  expect(g.service.getState().coverage.filter(c => c.status === 'blocked')).toHaveLength(5); g.service.stop();
   const h = fixture(); h.switch(A, 'offline'); await h.service.prepareAccount(); expect(h.service.getState().status).toBe('identity'); h.service.stop();
 });
 it('A→B→A, annulation, refus Auth final et réponses tardives invalident les données préparées', async () => {

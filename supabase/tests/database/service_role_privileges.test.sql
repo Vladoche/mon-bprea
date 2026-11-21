@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
-select plan(27);
+select plan(30);
 
 select ok(not has_table_privilege('service_role', 'public.' || name,
     'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER,MAINTAIN')
@@ -10,7 +10,7 @@ select ok(not has_table_privilege('service_role', 'public.' || name,
     'SELECT,INSERT,UPDATE,REFERENCES'), 'Pas de droits de table ou de colonne : ' || name)
 from (values ('profiles'), ('drill_series'), ('drill_answers'), ('drill_training_attempts'),
   ('course_states'), ('quiz_attempts'), ('botanical_sessions'), ('botanical_answers'),
-  ('itk_settings'), ('appearance_preferences')) as tables(name);
+  ('itk_settings'), ('appearance_preferences'), ('parcours_preferences')) as tables(name);
 
 select ok(not has_function_privilege('service_role', p.oid, 'EXECUTE'),
   'Pas de droit EXECUTE : ' || n.nspname || '.' || p.proname)
@@ -20,7 +20,7 @@ where n.nspname = 'bprea_private'
   or (n.nspname = 'public' and p.proname in (
     'drill_create_series', 'drill_record_answer', 'drill_record_training',
     'personal_save_course', 'personal_record_quiz', 'personal_save_botanical_session',
-    'personal_record_botanical_answer', 'personal_save_itk', 'personal_save_appearance'))
+    'personal_record_botanical_answer', 'personal_save_itk', 'personal_save_appearance', 'personal_save_parcours'))
 order by n.nspname, p.proname;
 
 select ok(not has_schema_privilege('service_role', 'bprea_private', 'USAGE,CREATE'),

@@ -72,7 +72,7 @@ export function createExportService({ auth, configuration, readLocal = readScope
         publish('validating');
         const finalIdentity = await auth.getExportIdentity();
         if (!active(job, id, version) || finalIdentity.id !== id) fail('identity');
-        const coverage = Object.entries(TABLES).map(([name, spec]) => ({ source: name, inventory: spec.inventory, status: 'included', count: settled.server[name].length }));
+        const coverage = Object.entries(TABLES).map(([name, spec]) => ({ source: name, inventory: spec.inventory, status: settled.server[name] ? 'included' : 'unavailable', count: settled.server[name]?.length }));
         coverage.push(...settled.browser.coverage, { source: 'Auth API', inventory: 'A01', status: 'limited', reason: 'Champs identité autorisés seulement. Métadonnées arbitraires, sessions/secrets, journaux et sauvegardes exclus ; procédure de confiance à définir.' });
         prepared = envelope({ kind: 'account', environment: config.environment, supabaseOrigin: new URL(config.url).origin, userId: id },
           { identity: finalIdentity, server: settled.server, personalLocal: settled.browser.data }, coverage, now());

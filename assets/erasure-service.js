@@ -4,12 +4,13 @@ import { validatePersonalDocument as validateBotanical } from './botanical-sync-
 import { validateSettingsDocument } from './settings-model.js';
 import { readScopedRecord } from './personal-idb.js';
 import { changeErasureScope } from './erasure-store.js';
+import { validateParcoursDocument } from './parcours-service.js';
 import { CACHES, VISITOR_SOURCES } from './export-sources.js';
 import { publishPrivacy } from './privacy-events.js';
 
-export const PERSONAL_ERASURE = Object.freeze({ drill: 'Exercices Drill', courses: 'Cours et QCM', botanical: 'Botanique', itk: 'Paramètres ITK', appearance: 'Apparence' });
+export const PERSONAL_ERASURE = Object.freeze({ drill: 'Exercices Drill', courses: 'Cours et QCM', botanical: 'Botanique', itk: 'Paramètres ITK', appearance: 'Apparence', parcours: 'Parcours BPREA' });
 const error = code => Object.assign(new Error(code), { code });
-const validators = { drill: validatePersonalDocument, courses: validateCourses, botanical: validateBotanical, settings: validateSettingsDocument };
+const validators = { drill: validatePersonalDocument, courses: validateCourses, botanical: validateBotanical, settings: validateSettingsDocument, parcours: validateParcoursDocument };
 const settingsKeys = 'version,scope,values,remote,operations,conflicts,imports,archives,archivedCount,lastReconciledAt'.split(',');
 export async function privacyLock(run) {
   if (!globalThis.navigator?.locks) throw error('locking');
@@ -67,7 +68,7 @@ export function createErasureService({ auth, configuration, storage = globalThis
         const operations = record?.operations ?? [];
         const selectedOps = group.group === 'settings' ? operations.filter(op => group.domains.includes(op.domain)) : operations;
         summary.push({ source: group.domains.map(key => PERSONAL_ERASURE[key]).join(' / '),
-          present: record !== null, pending: selectedOps.filter(op => op.state !== 'confirmed').length,
+          present: record !== null, pending: selectedOps.filter(op => op.state !== 'confirmed').length + Number(Boolean(record?.draft?.requested)),
           details: 'Brouillons, conflits, archives, imports et copies distantes du cache sélectionné seront retirés. Les données uniquement locales ne sont pas récupérables sur le serveur.' +
             (group.group === 'settings' && group.domains.length === 1 ? ' Le cache partagé des paramètres sera suspendu, y compris l’autre domaine, qui reste conservé.' : '') });
       }

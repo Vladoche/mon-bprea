@@ -28,6 +28,10 @@ export function createExportTransport(client, auth, userId) {
         if (spec.optionalFields && result.error?.code === '42703' && active() && !signal.aborted)
           result = await readPage(spec.fields);
         if (!active() || signal.aborted) fail('cancelled');
+        if (spec.optionalTable && ['PGRST205', '42P01'].includes(result.error?.code) && page === 0) {
+          break;
+        }
+        data[name] = rows;
         if (result.error) fail([401, 403].includes(result.status) || [401, 403].includes(result.error.status) || ['42501', 'PGRST301', 'PGRST303'].includes(result.error.code) ? 'identity' : 'api');
         if (!Array.isArray(result.data)) fail('invalid');
         if (!result.data.length) break; // Continue even after a short/capped page.
@@ -42,7 +46,6 @@ export function createExportTransport(client, auth, userId) {
         }
         progress(name, rows.length);
       }
-      data[name] = rows;
     }
     return data;
   };

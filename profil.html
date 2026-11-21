@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="assets/auth.css" />
   <link rel="stylesheet" href="assets/appearance.css" />
   <link rel="stylesheet" href="assets/profile.css" />
+  <link rel="stylesheet" href="assets/parcours.css" />
   <noscript><style>.profile-layout{display:none}</style></noscript>
   <script type="module" src="assets/app.js"></script>
 </head>
@@ -35,7 +36,11 @@
       <div class="profile-side">
         <section class="profile-card" id="parametres" aria-labelledby="profile-settings-title" tabindex="-1">
           <h2 id="profile-settings-title">Paramètres</h2>
-          <button id="appearance-open" class="btn btn-surface" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" disabled>Régler l’apparence</button>
+          <div class="profile-settings-actions">
+            <button id="appearance-open" class="btn btn-surface" type="button" aria-haspopup="dialog" aria-controls="appearance-dialog" disabled>Régler l’apparence</button>
+            <button id="parcours-open" class="btn btn-surface" type="button" aria-expanded="false" aria-controls="mon-parcours" aria-describedby="parcours-state" disabled>Configurer mon parcours BPREA</button>
+          </div>
+          <p class="profile-parcours-state" id="parcours-state">À configurer</p>
         </section>
         <aside class="profile-help" aria-labelledby="profile-help-title">
           <h2 id="profile-help-title">Assistance et confidentialité</h2>
@@ -47,6 +52,100 @@
         </aside>
       </div>
     </div>
+    <section class="profile-card parcours" id="mon-parcours" aria-labelledby="parcours-title" hidden>
+      <header class="parcours-header">
+        <div class="parcours-title">
+          <span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M2 9l10-5 10 5-10 5L2 9z M6 11v5c3 3 9 3 12 0v-5 M22 9v6"/></svg></span>
+          <div>
+            <h2 id="parcours-title" tabindex="-1">Mon parcours BPREA</h2>
+            <p>Configure les unités, les UCARE et les sessions que tu présentes.</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-surface parcours-close" data-parcours-close aria-label="Fermer le parcours">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 4l16 16M20 4 4 20"/></svg>
+        </button>
+      </header>
+      <p data-parcours-access role="status" aria-atomic="true"></p>
+      <a class="ui-link" data-parcours-connect href="connexion.html" hidden>Se connecter</a>
+      <form data-parcours-form hidden>
+        <div class="parcours-columns">
+          <fieldset class="parcours-fields" aria-label="Choix de formation et d’examen">
+              <section class="parcours-section" aria-labelledby="parcours-uc1">
+                <span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M12 21v-9m0 3C5 15 3 11 3 6c6 0 9 3 9 8m0 1c0-7 3-10 9-10 0 6-3 9-9 9"/></svg></span>
+                <div><h3 id="parcours-uc1">UC 1</h3><p>Indique si tu suis l’UC1 ou si tu en es dispensé.</p></div>
+                <div class="parcours-controls">
+                  <div role="radiogroup" aria-labelledby="parcours-uc1" class="parcours-options parcours-options--stack">
+                    <label class="parcours-choice"><input type="radio" name="parcours-uc1" value="unknown" checked>Non renseigné</label>
+                    <label class="parcours-choice"><input type="radio" name="parcours-uc1" value="attending">Je passe l’UC1</label>
+                    <label class="parcours-choice"><input type="radio" name="parcours-uc1" value="exempt">Je suis dispensé de l’UC1</label>
+                  </div>
+                  <p data-parcours-exempt hidden>Le futur calendrier pourra remplacer les cours d’UC1 par les périodes de stage prévues dans l’emploi du temps officiel.</p>
+                  <details class="parcours-followed">
+                    <summary>Autres UC suivies</summary>
+                    <div class="parcours-options" role="group" aria-label="Autres UC suivies" data-parcours-units></div>
+                  </details>
+                </div>
+              </section>
+              <section class="parcours-section" aria-labelledby="parcours-ucare">
+                <span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M2 8l10-5 10 5-10 5-10-5zm0 5l10 5 10-5m-20 5 10 5 10-5"/></svg></span>
+                <div><h3 id="parcours-ucare">Mes UCARE</h3><p>Sélectionne les UCARE que tu suis.</p></div>
+                <div class="parcours-controls">
+                  <div class="parcours-options" role="group" aria-labelledby="parcours-ucare" data-parcours-ucare></div>
+                  <p data-parcours-ucare-message></p>
+                </div>
+              </section>
+              <section class="parcours-section" aria-labelledby="parcours-exams">
+                <span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8 5H5a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3 M8 3h8v4H8z M8 14l3 3 5-5"/></svg></span>
+                <div><h3 id="parcours-exams">Mes épreuves</h3><p>Coche les unités que tu présentes effectivement.</p></div>
+                <div class="parcours-controls">
+                  <div class="parcours-options" role="group" aria-labelledby="parcours-exams" aria-describedby="parcours-uc1-warning" data-parcours-exams></div>
+                  <p class="parcours-warning" id="parcours-uc1-warning" data-parcours-uc1-warning role="status" hidden>Tu as indiqué une dispense d’UC1 et sélectionné son épreuve. Vérifie ces deux choix.</p>
+                </div>
+              </section>
+              <section class="parcours-section" aria-labelledby="parcours-sessions">
+                <span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M4 5h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z M3 10h18 M8 3v4m8-4v4"/></svg></span>
+                <div><h3 id="parcours-sessions">Mes sessions d’examen</h3><p>Associe une session ou une date indicative à chaque épreuve.</p></div>
+                <div class="parcours-controls">
+                  <p data-parcours-no-exam>Sélectionne d’abord une épreuve.</p>
+                  <div data-parcours-dates hidden>
+                    <div class="parcours-date-fields">
+                      <div><label for="parcours-exam">Épreuve</label><select id="parcours-exam"></select></div>
+                      <div><label for="parcours-session">Session officielle</label><select id="parcours-session" aria-describedby="parcours-session-help"></select></div>
+                      <div><label for="parcours-date">Date personnelle</label><input id="parcours-date" type="date" min="0001-01-01" max="9999-12-31" aria-describedby="parcours-date-help parcours-date-error" /></div>
+                    </div>
+                    <p id="parcours-session-help"></p>
+                    <p id="parcours-date-help">Date indicative, sans confirmation administrative.</p>
+                    <p class="parcours-warning" id="parcours-date-error" role="status" hidden>Saisis une date valide.</p>
+                  </div>
+                </div>
+              </section>
+          </fieldset>
+          <aside class="parcours-preview" aria-labelledby="parcours-preview-title">
+            <svg class="parcours-sprout" viewBox="0 0 200 65" fill="none" aria-hidden="true">
+              <path d="M5 56c34-16 66-12 94 0 32-23 61-23 96-4M43 63c37-21 75-26 120-13M108 47l38 17M130 42l46 20" stroke="currentColor" opacity=".45" stroke-width="1.45"/>
+              <path d="M102 54c-1-15-1-29 4-43m-4 27c-8-14-17-15-27-16 4 12 13 16 27 16m4-6c13-2 21-8 24-22-10 1-21 7-24 22m-3-9c-9-3-13-10-9-21 9 5 12 12 9 21" fill="currentColor" fill-opacity=".18" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+            <h3 id="parcours-preview-title">Aperçu de mon parcours</h3>
+            <p data-parcours-preview-state></p>
+            <dl>
+              <div><dt><span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M2 9l10-5 10 5-10 5L2 9z M6 11v5c3 3 9 3 12 0v-5 M22 9v6"/></svg></span><span>UC1</span></dt><dd data-parcours-summary-uc1></dd></div>
+              <div><dt><span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M2 8l10-5 10 5-10 5-10-5zm0 5l10 5 10-5m-20 5 10 5 10-5"/></svg></span><span>UCARE</span></dt><dd data-parcours-summary-ucare></dd></div>
+              <div><dt><span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M8 5H5a1 1 0 0 0-1 1v15a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3 M8 3h8v4H8z M8 14l3 3 5-5"/></svg></span><span>Épreuves</span></dt><dd data-parcours-summary-exams></dd></div>
+              <div><dt><span class="parcours-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><path d="M4 5h16a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z M3 10h18 M8 3v4m8-4v4"/></svg></span><span>Examens</span></dt><dd data-parcours-summary-dates></dd></div>
+            </dl>
+          </aside>
+        </div>
+        <div class="parcours-action-row">
+          <p>Ces choix serviront à personnaliser ton calendrier et tes révisions.</p>
+          <button class="btn btn-surface btn-surface--accent" type="submit" data-parcours-save><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 3h13l3 3v15H4z M8 3v6h8V3 M8 21v-8h8v8"/></svg>Enregistrer mon parcours</button>
+        </div>
+        <p data-parcours-message class="auth-message parcours-feedback" role="status" aria-atomic="true"></p>
+        <div class="parcours-conflict-actions">
+          <button type="button" class="btn btn-surface" data-parcours-overwrite hidden>Enregistrer mes choix sur cette version</button>
+          <button type="button" class="btn btn-surface" data-parcours-recover hidden>Utiliser la version synchronisée</button>
+        </div>
+      </form>
+    </section>
   </main>
   <footer id="app-footer"><div class="wrap footer-in"><a href="contact.html">Contact et assistance</a><a href="confidentialite.html">Confidentialité</a></div></footer>
 </body>

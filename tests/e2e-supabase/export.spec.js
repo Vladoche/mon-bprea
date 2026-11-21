@@ -16,7 +16,7 @@ async function copy(page) {
   const pending = page.waitForEvent('download'); await page.locator('[data-export-download]').click();
   return JSON.parse(await readFile(await (await pending).path(), 'utf8'));
 }
-test('Export réel : dix tables, pagination, caches en attente, RLS A/B et session perdue', async ({ page }) => {
+test('Export réel : onze tables, pagination, caches en attente, RLS A/B et session perdue', async ({ page }) => {
   test.setTimeout(150000); const students = []; let stage = 'comptes éphémères', failure;
   try {
     const a = await createDrillStudent(); students.push(a); const b = await createDrillStudent(); students.push(b);
@@ -50,7 +50,7 @@ test('Export réel : dix tables, pagination, caches en attente, RLS A/B et sessi
     await stopOrdinarySync(page);
     const fileA = await copy(page);
     expect(fileA.data.identity.id === a.userId).toBe(true);
-    expect(Object.keys(fileA.data.server).length === 10).toBe(true); expect(fileA.data.server.quiz_attempts.length === 205).toBe(true);
+    expect(Object.keys(fileA.data.server).length === 11).toBe(true); expect(fileA.data.server.quiz_attempts.length === 205).toBe(true);
     expect(fileA.data.server.course_states[0].done === false).toBe(true);
     expect(fileA.data.personalLocal.courses.operations.some(op => op.payload.p_lesson_id === 'export-local-uniquement')).toBe(true);
     expect(JSON.stringify(fileA).includes(b.userId)).toBe(false);

@@ -107,10 +107,10 @@ describe('contact et clôture préparés sans identité ou opération inventée'
     const value = input(2);
     return { ...value, userId: account(2).id, confirmUserId: account(2).id, identityChecked: true, requestConfirmed: true, exportOffered: true,
       sessionsPlan: 'native-delete-refresh-expiry-check', cachesPlan: 'assisted-per-device', backupsPlan: 'reconcile-before-restore', failurePlan: 'stop-read-state-no-blind-retry',
-      inventory: { ...value.inventory, dependenciesChecked: true, cascadeCount: 11, storageObjectsForTarget: 0, targetRows: Object.fromEntries(POLICY.tables.map(t => [t, 1])) } };
+      inventory: { ...value.inventory, dependenciesChecked: true, cascadeCount: 12, storageObjectsForTarget: 0, targetRows: Object.fromEntries(POLICY.tables.map(t => [t, 1])) } };
   };
   it('prépare une seule cible UUID et bloque les erreurs d’identité, dépendances et reprise incertaine', () => {
-    expect(closurePreflight(closure(), now).tablesChecked).toBe(10);
+    expect(closurePreflight(closure(), now).tablesChecked).toBe(POLICY.tables.length);
     for (const mutate of [v => { v.confirmUserId = account(1).id; }, v => { v.identityChecked = false; },
       v => { delete v.inventory.targetRows.profiles; }, v => { v.inventory.storageObjectsForTarget = 1; },
       v => { v.inventory.cascadeCount = 10; }, v => { v.previousResult = 'uncertain'; },
@@ -125,7 +125,7 @@ describe('contact et clôture préparés sans identité ou opération inventée'
     ['demande non confirmée', v => { v.requestConfirmed = false; }, 'identity_or_request'],
     ['export non proposé', v => { v.exportOffered = false; }, 'identity_or_request'],
     ['inventaire périmé', v => { v.inventory.observedAt = '2026-11-05T11:54:59.000Z'; }, 'stale_evidence'],
-    ['dépendance supplémentaire', v => { v.inventory.cascadeCount = 12; }, 'dependencies_or_storage'],
+    ['dépendance supplémentaire', v => { v.inventory.cascadeCount = POLICY.tables.length + 2; }, 'dependencies_or_storage'],
     ['résultat déjà confirmé', v => { v.previousResult = 'confirmed-deleted'; }, 'uncertain_read_before_retry'],
     ['réponse perdue', v => { v.previousResult = 'uncertain'; }, 'uncertain_read_before_retry'],
   ])('clôture opérateur refusée : %s', (_, mutate, code) => {

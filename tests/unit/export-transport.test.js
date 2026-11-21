@@ -24,7 +24,7 @@ function fixture(size, alter = () => {}) {
 it.each([0, 1, 100, 101, 251])('lit %i tentatives et une dernière page vide sans perdre les microsecondes', async size => {
   const f = fixture(size), result = await f.run();
   expect(result.quiz_attempts).toHaveLength(size);
-  expect(Object.keys(result)).toHaveLength(10);
+  expect(Object.keys(result)).toHaveLength(11);
   expect(f.reads.filter(q => q.table === 'quiz_attempts')).toHaveLength(Math.ceil(size / 100) + 1);
   expect(f.reads.every(q => q.headers.Authorization === 'Bearer test-only-pinned-A' && q.eq[1] === A && !q.columns.includes('*'))).toBe(true);
 });

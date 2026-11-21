@@ -33,12 +33,12 @@ async function cachedCourse(page, action) {
     return { mode: service.getState().mode, error: service.getState().view.error };
   }, action);
 }
-test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT résiduel/outbox hors ligne et reprise', async ({ page, browser }) => {
+test('Recette C — Clôture réelle après copie : cascades applicatives, B intact, JWT résiduel/outbox hors ligne et reprise', async ({ page, browser }) => {
   test.setTimeout(150000); const students = []; let secondContext, stage = 'comptes fictifs', failure, closureHttp;
   page.on('response', response => { if (response.url().endsWith('/functions/v1/close-account')) closureHttp = response.status(); });
   try {
     const a = await createDrillStudent(); students.push(a); const b = await createDrillStudent(); students.push(b);
-    stage = 'dix tables sous JWT étudiants'; await seedPersonalTables(a, 3); await seedPersonalTables(b, 2);
+    stage = 'onze tables sous JWT étudiants'; await seedPersonalTables(a, 3); await seedPersonalTables(b, 2);
     const beforeA = await readPersonalTables(a), beforeB = await readPersonalTables(b);
     expect(Object.values(beforeA).every(rows => rows.length > 0)).toBe(true);
     const session = (await a.client.auth.getSession()).data.session;
@@ -71,7 +71,7 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     await page.locator('[data-export-prepare]').click(); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
     const downloading = page.waitForEvent('download'); await page.locator('[data-export-download]').click();
     const copyPath = await (await downloading).path(), copyText = await readFile(copyPath, 'utf8'), copy = JSON.parse(copyText);
-    expect(copy.sourceScope.userId === a.userId && Object.keys(copy.data.server).length === 10).toBe(true);
+    expect(copy.sourceScope.userId === a.userId && Object.keys(copy.data.server).length === 11).toBe(true);
     // SQL snapshot orders by identity; export uses creation time + identity for
     // some histories. Compare the same rows, retaining every field and value.
     for (const [name, spec] of Object.entries(TABLES)) {
@@ -102,7 +102,7 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     await expect(page.locator('[data-closure-status]')).toContainText('n’est pas confirmée');
     await page.locator('[data-closure-retry]').click(); await expect(page.locator('[data-closure-status]')).toContainText('Suppression serveur confirmée');
     await expect(page.locator('[data-closure-status]')).toContainText('Nettoyage local non effectué');
-    stage = 'absence Auth et des dix tables vérifiée avec ancien JWT';
+    stage = 'absence Auth et des onze tables vérifiée avec ancien JWT';
     const claims = JSON.parse(Buffer.from(token.split('.')[1], 'base64url'));
     expect(claims.exp * 1000 > Date.now()).toBe(true);
     const old = createClient(a.environment.url, a.environment.publishableKey, { auth: { persistSession: false, autoRefreshToken: false }, global: { headers: { Authorization: `Bearer ${token}` } } });
@@ -145,7 +145,7 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
     expect((await cachedCourse(second, 'state')).mode).toBe('visitor');
     await expect(second.locator('#course-quiz-sync-status')).toContainText('visiteur');
     await expect(second.locator('#mark-done')).not.toBeChecked();
-    stage = 'dix tables toujours absentes et B inchangé après retour réseau';
+    stage = 'onze tables toujours absentes et B inchangé après retour réseau';
     for (const [name, spec] of Object.entries(TABLES)) {
       const result = await old.from(name).select(spec.owner).eq(spec.owner, a.userId); expect(result.error === null && result.data.length === 0).toBe(true);
     }
@@ -159,7 +159,7 @@ test('Recette C — Clôture réelle après copie : dix cascades, B intact, JWT 
   }
 });
 
-test('Clôture assistée native — préflight unitaire, dix cascades, refresh refusé et autre participant préservé', async () => {
+test('Clôture assistée native — préflight unitaire, cascades applicatives, refresh refusé et autre participant préservé', async () => {
   test.setTimeout(120000);
   const students = []; let a, attempted = false, confirmedAbsent = false, stage = 'fixtures isolées', failure;
   try {
@@ -196,15 +196,15 @@ test('Clôture assistée native — préflight unitaire, dix cascades, refresh r
       inventory: { projectRef: 'mon-bprea-lot6-1-local', observedAt: now, complete: true, publicSignup: false, anonymousSignIn: false,
         // Participants synthétiques représentant la procédure future ; distincts des fictifs DEV réservés à D.
         accounts,
-        dependenciesChecked: true, cascadeCount: 11, storageObjectsForTarget: 0,
+        dependenciesChecked: true, cascadeCount: 12, storageObjectsForTarget: 0,
         targetRows: Object.fromEntries(POLICY.tables.map(name => [name, beforeA[name].length])) },
       userId: a.userId, confirmUserId: a.userId, identityChecked: true, requestConfirmed: true, exportOffered: true, previousResult: 'none',
       sessionsPlan: 'native-delete-refresh-expiry-check', cachesPlan: 'assisted-per-device', backupsPlan: 'reconcile-before-restore', failurePlan: 'stop-read-state-no-blind-retry',
     };
     stage = 'préflight de la seule cible';
-    expect(closurePreflight(plan, now).tablesChecked).toBe(10);
+    expect(closurePreflight(plan, now).tablesChecked).toBe(POLICY.tables.length);
     createPrivate(dossier, 'closure.json', plan);
-    expect(run(['closure', basename(dossier)], now).tablesChecked).toBe(10);
+    expect(run(['closure', basename(dossier)], now).tablesChecked).toBe(POLICY.tables.length);
     // Export fictif préparé en mémoire ; aucun contenu pédagogique conservé comme preuve.
     const exportCopy = structuredClone(beforeA);
     expect(isDeepStrictEqual(exportCopy, beforeA)).toBe(true);
@@ -223,7 +223,7 @@ test('Clôture assistée native — préflight unitaire, dix cascades, refresh r
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
       global: { headers: { Authorization: `Bearer ${session.access_token}` } },
     });
-    stage = 'dix tables et autre participant';
+    stage = 'onze tables et autre participant';
     for (const [name, spec] of Object.entries(TABLES)) {
       const result = await old.from(name).select(spec.owner).eq(spec.owner, a.userId);
       expect(result.error === null && result.data.length === 0).toBe(true);
@@ -231,7 +231,7 @@ test('Clôture assistée native — préflight unitaire, dix cascades, refresh r
     expect(isDeepStrictEqual(await readPersonalTables(b), beforeB)).toBe(true);
     createPrivate(dossier, 'deletions.json', [{ syntheticOnly: true, reference: 'P0-13-SYNTHETIC-A',
       projectRef: plan.target.projectRef, userId: a.userId, decidedAt: receivedAt, verifiedAt: new Date().toISOString(),
-      scope: 'auth-and-ten-tables', auth: 'absent', tables: Object.fromEntries(POLICY.tables.map(t => [t, 0])),
+      scope: 'auth-and-application-tables', auth: 'absent', tables: Object.fromEntries(POLICY.tables.map(t => [t, 0])),
       residuals: ['absent-device-cache', 'download-held-by-holder'], affectedCopies: [],
       nextAction: 'assisted-device-review', reviewDueAt: new Date(Date.now() + 86400000).toISOString() }]);
     createPrivate(dossier, 'response.json', { syntheticOnly: true, reference: 'P0-13-SYNTHETIC-A',

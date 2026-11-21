@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { questions, stamp } from '../fixtures/export.js';
 import { botanicalSession, botanicalAnswer, itkParameters } from '../fixtures/personal-data.js';
+import { emptyParcours } from '../../assets/parcours-model.js';
 import { TABLES } from '../../assets/export-sources.js';
 
 async function rpc(student, name, body) {
@@ -22,6 +23,10 @@ export async function seedPersonalTables(student, quizCount) {
   await rpc(student, 'personal_save_itk', { p_parameters: itkParameters, p_operation_id: randomUUID(), p_expected_revision: 0 });
   await rpc(student, 'personal_save_appearance', {
     p_preferences: { version: 1, season: 'auto', brightness: 'auto', colorMode: 'custom', customColor: '#624bcf' },
+    p_operation_id: randomUUID(), p_expected_revision: 0,
+  });
+  await rpc(student, 'personal_save_parcours', {
+    p_user_id: student.userId, p_preferences: { ...emptyParcours(), uc1: 'attending' },
     p_operation_id: randomUUID(), p_expected_revision: 0,
   });
 }

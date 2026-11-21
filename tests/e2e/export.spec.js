@@ -35,12 +35,12 @@ async function switchAccount(page, name) {
     if (auth.getState().user?.id !== id) throw new Error('Identité fictive incorrecte');
   }, accounts[name]);
 }
-test('copie réelle JSON téléchargée : dix tables, 205 tentatives, secrets exclus et clavier/mobile', async ({ page }) => {
+test('copie réelle JSON téléchargée : onze tables, 205 tentatives, secrets exclus et clavier/mobile', async ({ page }) => {
   const api = createExportAPI(); await api.install(page.context()); await openMaintenanceFixture(page);
   await prepare(page); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
   await captures(page, 'pret');
   const file = await download(page);
-  expect(Object.keys(file.data.server)).toHaveLength(10); expect(file.data.server.quiz_attempts).toHaveLength(205);
+  expect(Object.keys(file.data.server)).toHaveLength(11); expect(file.data.server.quiz_attempts).toHaveLength(205);
   expect(file.data.server.course_states[0].done).toBe(false); expect(file.data.server.botanical_answers[0].selected_species_id).toBeNull();
   expect(file.data.server.appearance_preferences[0].season).toBe('auto'); expect(file.data.identity.id).toBe(accounts.A.id);
   const text = JSON.stringify(file); for (const forbidden of ['MUST_NEVER_EXPORT', 'access_token', 'refresh_token', accounts.B.id]) expect(text.includes(forbidden)).toBe(false);
