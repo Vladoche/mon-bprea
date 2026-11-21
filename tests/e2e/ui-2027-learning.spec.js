@@ -207,20 +207,25 @@ test('PR3 : compte connecté, sauvegarde en erreur puis reprise sans succès fic
   await expect(page.locator('[data-learning-source]')).toHaveText('Progression de ton compte');
 });
 
-test('PR3 : un retour de sauvegarde de A ne modifie pas B après changement d’époque', async ({ page }) => {
+test('une sauvegarde tardive de A ne déverrouille pas la sauvegarde de B', async ({ page }) => {
   const api = await personal(page); await scene(page); await synced(page);
   await page.evaluate(async () => {
     const service = await (await import('/mon-bprea/assets/course-quiz-service.js?v=e2e-lot5-1')).getCourseQuizService();
     const save = service.setCourseDone;
+    let initial = true;
     service.setCourseDone = async (...args) => {
+      if (!initial) {
+        await new Promise(resolve => { window.releaseCourseSaveB = resolve; });
+        return save(...args);
+      }
+      initial = false;
       const result = await save(...args);
-      window.saveCompleted = true;
-      await new Promise(resolve => { window.releaseCourseSave = resolve; });
+      await new Promise(resolve => { window.releaseCourseSaveA = resolve; });
       return result;
     };
   });
   await page.locator('#mark-done').check();
-  await page.waitForFunction(() => window.saveCompleted);
+  await page.waitForFunction(() => window.releaseCourseSaveA);
   await expect(page.locator('#mark-done')).toBeDisabled();
   await page.evaluate(async email => {
     const auth = await (await import('/mon-bprea/assets/auth-service.js?v=e2e-lot5-1')).getAuthService();
@@ -229,9 +234,22 @@ test('PR3 : un retour de sauvegarde de A ne modifie pas B après changement d’
   await synced(page);
   await expect(page.locator('#mark-done')).not.toBeChecked();
   await expect(page.locator('#mark-done')).toBeEnabled();
-  await page.evaluate(() => window.releaseCourseSave());
-  await expect(page.locator('#done-state')).toHaveText('Pas encore terminé');
+  await page.locator('#mark-done').check();
+  await page.waitForFunction(() => window.releaseCourseSaveB);
+  await page.evaluate(async () => {
+    window.releaseCourseSaveA();
+    const { getCourseQuizService } = await import('/mon-bprea/assets/course-quiz-service.js?v=e2e-lot5-1');
+    const service = await getCourseQuizService();
+    await service.retry();
+  });
+  await expect(page.locator('#mark-done')).toBeDisabled();
+  await expect(page.locator('#done-state')).toHaveText('Enregistrement sur cet appareil…');
   expect([...api.courses.values()].filter(row => row.user_id === accounts.B.id)).toHaveLength(0);
+  await page.evaluate(() => window.releaseCourseSaveB());
+  await synced(page);
+  await expect(page.locator('#mark-done')).toBeChecked();
+  await expect(page.locator('#mark-done')).toBeEnabled();
+  expect(api.courses.get(`${accounts.B.id}:matiere-organique`).done).toBe(true);
 });
 
 test('PR3 : cinq largeurs, texte 200 %, tableaux isolés et ordre mobile', async ({ page }) => {
