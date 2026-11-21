@@ -9,6 +9,10 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Audit technique et chargement des rubriques**. Chargement des modules
+  selon la page avec état de reprise, sauvegardes de cours isolées après un
+  changement de compte, synthèse Drill relue au retour et après une panne,
+  recherche et focus conservés dans la bibliothèque. [Mesures et matrice E2E](docs/validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md).
 - **Admin Windows 2.3 et capacité de dix comptes**. Décision du 20 novembre
   2026, avec une place exploitant et neuf places participantes. Inventaire Auth
   complet exigé dans les circuits de création et places restantes affichées dans

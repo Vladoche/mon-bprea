@@ -32,6 +32,8 @@ Les sources éditables de navigation, événements, ressources, questions Drill,
 
 Les statistiques du Tableau de bord et la synthèse de S’exercer partagent les premières réponses Drill validées. Le taux global est pondéré par le nombre d’exercices réalisés. Les questions non réalisées, les tentatives QCM et les entraînements Drill ne doivent pas être mélangés. Les contrats de domaine précisent les dates et les limites d’interprétation.
 
+Le démarrage conserve un header commun et charge les modules spécialisés à l’ouverture de leur rubrique. L’Apparence prépare toujours le thème avant les feuilles de style. Si le module d’une rubrique est indisponible, la navigation reste utilisable et le contenu peut être rechargé. S’exercer relit sa source après un retour navigateur et relance le service de synchronisation pour une lecture personnelle en erreur.
+
 ## Stockage et conservation des données
 
 | Stockage | Données et invariants |
