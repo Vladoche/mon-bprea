@@ -12,7 +12,7 @@ const localTables = {
 const mutable = name => ['course_states', 'botanical_sessions', 'itk_settings', 'appearance_preferences'].includes(name);
 export const emptyCounts = () => ({ recoverable: 0, present: 0, local: 0, server: 0, pending: 0, conflict: 0, ignored: 0, blocked: 0 });
 export function summarize(items) {
-  const groups = Object.fromEntries(['drill', 'courses', 'quiz', 'botanical', 'itk', 'appearance', 'local', 'profile'].map(group => [group, emptyCounts()]));
+  const groups = Object.fromEntries(['drill', 'courses', 'quiz', 'botanical', 'itk', 'appearance', 'parcours', 'local', 'profile'].map(group => [group, emptyCounts()]));
   const total = emptyCounts();
   for (const item of items) { groups[item.group][item.state]++; total[item.state]++; }
   return { groups, total };
@@ -29,8 +29,11 @@ function candidates(file) {
     }
     all.set(key, { name, row, operation: operation || old?.operation || null });
   }
-  for (const [name, rows] of Object.entries(file.data.server)) for (const row of rows) add(name, row);
+  for (const [name, rows] of Object.entries(file.data.server)) {
+    if (name !== 'parcours_preferences') for (const row of rows) add(name, row);
+  }
   for (const [domain, document] of Object.entries(file.data.personalLocal)) {
+    if (domain === 'parcours') continue;
     for (const [kind, name] of Object.entries(localTables[domain])) {
       const values = document.remote[kind];
       for (const row of domain === 'settings' ? values ? [values] : [] : values) add(name, row);
@@ -48,6 +51,7 @@ function supplements(file, rows) {
   const items = [];
   const block = reason => items.push({ group: 'local', state: 'blocked', reason });
   for (const [domain, source] of Object.entries(file.data.personalLocal)) {
+    if (domain === 'parcours') continue;
     for (const name of ['imports', 'conflicts', 'archives', 'excludedArchives']) for (const _ of source[name] || []) block('descriptor');
     for (const op of source.operations) if (!['pending', 'confirmed'].includes(op.state)) block('suspended_operation');
     if (domain === 'drill') for (const series of Object.values(source.drill.series)) {
@@ -75,7 +79,7 @@ export function planRestore(file, current, { scope, userId, at }) {
     const snapshot = current.local[domain];
     let document, reason = snapshot?.status !== 'available' ? 'local_unavailable' : snapshot.privacy !== null ? 'privacy' : null;
     if (!reason) try { document = structuredClone(snapshot.document || adapter.empty(scope)); adapter.validate(document, scope); } catch { reason = 'local_invalid'; }
-    domains[domain] = { document, reason, actions: [], hasCurrentIntents: document?.operations.some(op => op.state !== 'confirmed'), expected: canonical(snapshot?.document ?? null) };
+    domains[domain] = { document, reason, actions: [], hasCurrentIntents: document?.operations?.some(op => op.state !== 'confirmed'), expected: canonical(snapshot?.document ?? null) };
   }
   for (const candidate of rows) {
     const { name, row } = candidate, domain = tableDomain(name), group = tableGroup(name);
@@ -139,6 +143,33 @@ export function planRestore(file, current, { scope, userId, at }) {
       item.state = 'recoverable';
     } catch (error) { target.document = before; target.actions.length = actionCount; item.reason = ['series_uuid', 'revision', 'parent', 'missing_operation', 'dependency', 'current_local'].includes(error.code) ? error.code : 'incompatible'; }
   }
+  // A recovered parcours is always presented as a local draft for a separate
+  // review and save. Never replay its exported operation UUID automatically.
+  const parcoursSource = file.data.personalLocal.parcours;
+  const archive = file.data.server.parcours_preferences?.[0] ?? parcoursSource?.remote;
+  const restored = parcoursSource?.draft?.value ?? archive?.preferences;
+  if (restored) {
+    const target = domains.parcours;
+    const liveRows = current.server?.parcours_preferences;
+    const live = liveRows?.[0] ?? null;
+    const item = { group: 'parcours', state: 'blocked', reason: target.reason || 'server_unavailable' };
+    items.push(item);
+    if (!target.reason && liveRows) {
+      const local = target.document;
+      const same = row => canonical(row?.preferences) === canonical(restored);
+      const diverged = row => row && !same(row) && (!parcoursSource?.draft || !archive ||
+        canonical(archive.preferences) !== canonical(row.preferences));
+      if (local.draft || diverged(live) || diverged(local.remote)) {
+        item.state = 'conflict'; item.reason = 'divergent';
+      } else if (same(live)) {
+        item.state = 'present'; item.reason = 'present';
+      } else {
+        item.state = 'recoverable'; item.reason = 'draft';
+        target.actions.push({ type: 'parcoursDraft', value: restored, live,
+          token: parcoursSource?.draft?.token ?? archive.operation_id, item });
+      }
+    }
+  }
   // Drafts never become operations; only absent keys on an identical, currently
   // existing SQL snapshot can be filled. A consumed draft stays consumed.
   const source = file.data.personalLocal.drill;
@@ -164,7 +195,11 @@ export function planRestore(file, current, { scope, userId, at }) {
 export function applyActions(document, actions, server, userId, at) {
   const before = structuredClone(document);
   for (const action of actions) {
-    if (action.type === 'hydrate') hydrate(document, action.name, action.row, server, userId, at);
+    if (action.type === 'parcoursDraft') {
+      document.observed = true;
+      document.remote = action.live;
+      document.draft = { value: action.value, token: action.token, base: action.live?.revision ?? 0, requested: false };
+    } else if (action.type === 'hydrate') hydrate(document, action.name, action.row, server, userId, at);
     else if (action.type === 'queue') {
       // Dependencies hydrated while planning must be read from the same live
       // snapshot here; no whole planned document is ever assigned over a record.
@@ -183,5 +218,5 @@ export function applyActions(document, actions, server, userId, at) {
     }
   }
   const first = actions.find(action => action.name || action.candidate);
-  if (actions.length) ensurePreserved(before, document, first ? tableDomain(first.name || first.candidate.name) : 'drill');
+  if (actions.length && actions[0].type !== 'parcoursDraft') ensurePreserved(before, document, first ? tableDomain(first.name || first.candidate.name) : 'drill');
 }

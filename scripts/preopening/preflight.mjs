@@ -105,13 +105,13 @@ export function closurePreflight(input, now) {
   requireThat(input.inventory.accounts.find(a => a.id === input.userId).state !== 'uncertain', 'uncertain_read_before_retry');
   requireThat(input.identityChecked === true && input.requestConfirmed === true && input.exportOffered === true, 'identity_or_request');
   requireThat(['none', 'verified-no-mutation'].includes(input.previousResult), 'uncertain_read_before_retry');
-  requireThat(input.inventory.dependenciesChecked === true && input.inventory.cascadeCount === 11
+  requireThat(input.inventory.dependenciesChecked === true && input.inventory.cascadeCount === POLICY.tables.length + 1
     && input.inventory.storageObjectsForTarget === 0, 'dependencies_or_storage');
   requireThat(Object.keys(input.inventory.targetRows || {}).sort().join() === [...POLICY.tables].sort().join()
-    && Object.values(input.inventory.targetRows).every(n => Number.isSafeInteger(n) && n >= 0), 'ten_tables');
+    && Object.values(input.inventory.targetRows).every(n => Number.isSafeInteger(n) && n >= 0), 'application_tables');
   requireThat(input.sessionsPlan === 'native-delete-refresh-expiry-check' && input.cachesPlan === 'assisted-per-device'
     && input.backupsPlan === 'reconcile-before-restore' && input.failurePlan === 'stop-read-state-no-blind-retry', 'residual_plans');
   return { status: 'PRÉFLIGHT HORS LIGNE CONFORME — AUCUNE SUPPRESSION AUTORISÉE', ...expected,
     targetChecked: true, tablesChecked: POLICY.tables.length, snapshotHash: digest(input),
-    requires: ['separate_hosted_authorization', 'fresh_target_check', 'native_admin_delete_one_uuid', 'postcheck_auth_ten_tables_other_accounts', 'jwt_window_caches_backups_followup'] };
+    requires: ['separate_hosted_authorization', 'fresh_target_check', 'native_admin_delete_one_uuid', 'postcheck_auth_application_tables_other_accounts', 'jwt_window_caches_backups_followup'] };
 }

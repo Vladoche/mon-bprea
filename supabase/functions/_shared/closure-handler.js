@@ -1,6 +1,6 @@
 // Server only. No browser import, SQL mutation or retained deletion ledger.
 export const CLOSURE_TABLES = Object.freeze(['profiles', 'drill_series', 'drill_answers', 'drill_training_attempts',
-  'course_states', 'quiz_attempts', 'botanical_sessions', 'botanical_answers', 'itk_settings', 'appearance_preferences']);
+  'course_states', 'quiz_attempts', 'botanical_sessions', 'botanical_answers', 'itk_settings', 'appearance_preferences', 'parcours_preferences']);
 const encoder = new TextEncoder(), decoder = new TextDecoder();
 const denied = code => Object.assign(new Error(code), { code });
 const base64 = bytes => btoa(String.fromCharCode(...bytes)).replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');

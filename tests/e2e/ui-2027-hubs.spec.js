@@ -164,7 +164,7 @@ test('profil : paramètres, assistance et aucun panneau de synchronisation', asy
   await page.setViewportSize({ width: 320, height: 1000 });
   const profileReflow = await page.evaluate(() => ({ width: innerWidth, total: document.documentElement.scrollWidth, overflow: [...document.querySelectorAll('main *')].filter(node => node.getBoundingClientRect().right > innerWidth + 1).map(node => ({ tag: node.tagName, class: node.className, text: node.textContent.slice(0, 80), width: node.getBoundingClientRect().width })).slice(0, 10) }));
   expect(profileReflow.total, JSON.stringify(profileReflow)).toBeLessThanOrEqual(profileReflow.width);
-  expect(await settings.getByRole('button').evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(26);
+  expect(await settings.getByRole('button', { name: 'Régler l’apparence' }).evaluate(node => parseFloat(getComputedStyle(node).fontSize))).toBeGreaterThanOrEqual(26);
   for (const file of ['index.html', 'mes-cours.html', 'uc.html?id=uc3', 'cours.html?id=matiere-organique', 'exercices.html?id=matiere-organique']) {
     await page.goto(prefix + file); await synced(page);
     await expect(page.locator('.course-quiz-panel, .course-quiz-actions')).toHaveCount(0);

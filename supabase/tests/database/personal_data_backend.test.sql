@@ -125,13 +125,13 @@ select ok(exists(select 1 from pg_index i where i.indexrelid=to_regclass('public
   ) expected(name,table_name,columns);
 select is((select count(*)::integer from pg_trigger where not tgisinternal and tgenabled='O' and tgname in
   ('course_states_guard','quiz_attempts_guard','botanical_sessions_guard','botanical_answers_guard','itk_settings_guard','appearance_preferences_guard')),6,'Six guards actifs sur écritures directes et RPC');
-select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'personal\_%' escape '\'),6,'Six RPC métier seulement');
+select is((select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'personal\_%' escape '\'),7,'Sept RPC métier seulement');
 select ok(to_regprocedure(signature) is not null,'Signature RPC exacte présente : '||signature)
   from unnest(array[
     'public.personal_save_course(text,boolean,bigint,bigint,bigint,uuid,bigint)',
     'public.personal_save_botanical_session(jsonb,uuid,bigint)','public.personal_save_itk(jsonb,uuid,bigint)',
     'public.personal_save_appearance(jsonb,uuid,bigint)','public.personal_record_quiz(uuid,text,bigint,bigint,timestamptz)',
-    'public.personal_record_botanical_answer(jsonb)'
+    'public.personal_record_botanical_answer(jsonb)', 'public.personal_save_parcours(uuid,jsonb,uuid,bigint)'
   ]) signature;
 select ok(not p.prosecdef and p.provolatile='v' and p.proconfig=array['search_path=""'], 'RPC invoker à search_path vide : '||p.proname)
   from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and p.proname like 'personal\_%' escape '\';

@@ -1,4 +1,7 @@
 // Explicit contracts: never SELECT *, enumerate accounts, or serialize SDK state.
+export const PARCOURS_DB = 'mon-bprea-parcours-personal-v1';
+export const PARCOURS_TABLE = 'parcours_preferences';
+export const parcoursColumns = 'user_id,preferences,operation_id,revision,updated_at';
 export const MAX_BYTES = 20 * 1024 * 1024;
 export const MAX_ROWS = 100000;
 export const appearanceColorColumns = Object.freeze(['color_mode', 'custom_color']);
@@ -17,10 +20,11 @@ export const TABLES = Object.freeze({
     ...table('user_id,season,brightness,client_updated_at,operation_id,base_revision,revision,schema_version,created_at,updated_at', 'user_id', 'P03'),
     optionalFields: appearanceColorColumns,
   },
+  [PARCOURS_TABLE]: { ...table(parcoursColumns, 'user_id', 'P07'), optionalTable: true },
 });
 export const CACHES = Object.freeze({
   drill: 'mon-bprea-drill-personal-v1', courses: 'mon-bprea-course-quiz-personal-v1',
-  botanical: 'mon-bprea-botanical-personal-v1', settings: 'mon-bprea-settings-personal-v1',
+  botanical: 'mon-bprea-botanical-personal-v1', settings: 'mon-bprea-settings-personal-v1', parcours: PARCOURS_DB,
 });
 export const VISITOR_SOURCES = Object.freeze({
   drill: { key: 'bprea-demo-drill-v1', label: 'Exercices Drill', inventory: 'D01' },

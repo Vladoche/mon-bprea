@@ -126,7 +126,7 @@ public static class AdminMessages
         "credential" => "Gestionnaire d’identifiants Windows indisponible ou entrée non conforme. Aucune clé affichée ni enregistrée dans un fichier.",
         "closure_request" => "Clôture refusée : référence interne, date et neuf attestations nouvelles requises. Export demandé : traitement et remise vérifiés.",
         "closure_target" => "Clôture refusée : identité inconnue, restreinte ou hors périmètre participant. Le compte exploitant est protégé par UUID vérifié.",
-        "closure_evidence" => "Clôture bloquée : preuves techniques absentes ou divergentes (exploitant, dix tables, onze FK, Storage, permissions ou témoins). Aucune case ne remplace ces lectures.",
+        "closure_evidence" => "Clôture bloquée : preuves techniques absentes ou divergentes (exploitant, tables applicatives, clés étrangères, Storage, permissions ou témoins). Aucune case ne remplace ces lectures.",
         "closure_backup" => "Clôture suspendue : sauvegarde/restauration non vérifiable, plus de 168 h ou journal courant modifié. Ne remplacez jamais le journal par un ancien snapshot.",
         "closure_uncertain" => "Résultat de clôture incertain. Aucune répétition ; inspection non destructive et journal privé requis.",
         "key" => "Clé administrative moderne absente ou invalide. Utilisez une clé sb_secret_ du seul projet PROD.",

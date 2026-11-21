@@ -16,6 +16,7 @@ export function serverRows(userId = A, attempts = 1) {
     botanical_sessions: [{ user_id: userId, session_id: 'session-1', category_id: 'petits-fruits', mode: 'discovery', duration_seconds: 30, is_revision: true, started_at: stamp, total_questions: 1, completed_at: null, ...tech }],
     botanical_answers: [{ user_id: userId, answer_id: 'question-1', session_id: 'session-1', question_id: 'question-1', category_id: 'petits-fruits', species_id: 'fraisier', photo_id: 'photo-1', mode: 'discovery', is_revision: true, status: 'skipped_image', selected_species_id: null, correct: false, elapsed_ms: 0, answered_at: stamp, schema_version: 1, created_at: stamp }],
     itk_settings: [{ user_id: userId, parameters, ...tech }],
+    parcours_preferences: [],
     appearance_preferences: [{ user_id: userId, season: 'auto', brightness: 'auto', client_updated_at: null, ...tech }],
   };
   return result;

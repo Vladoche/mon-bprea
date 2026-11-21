@@ -6,14 +6,14 @@ select no_plan();
 
 select ok(exists(select 1 from pg_constraint where conrelid=('public.'||name)::regclass and confrelid='auth.users'::regclass
   and contype='f' and confdeltype='c' and convalidated), 'Cascade Auth validée : '||name)
-  from unnest(array['profiles','drill_series','course_states','quiz_attempts','botanical_sessions','botanical_answers','itk_settings','appearance_preferences']) name;
+  from unnest(array['profiles','drill_series','course_states','quiz_attempts','botanical_sessions','botanical_answers','itk_settings','appearance_preferences','parcours_preferences']) name;
 select ok(exists(select 1 from pg_constraint where conrelid=('public.'||child)::regclass and confrelid=('public.'||parent)::regclass
   and contype='f' and confdeltype='c' and convalidated and array_length(conkey,1)>1), 'Cascade composite : '||child)
   from (values ('drill_answers','drill_series'),('drill_training_attempts','drill_answers'),('botanical_answers','botanical_sessions')) edges(child,parent);
 select ok(not has_table_privilege('authenticated','public.'||name,'DELETE'), 'Aucun DELETE étudiant : '||name)
-  from unnest(array['profiles','drill_series','drill_answers','drill_training_attempts','course_states','quiz_attempts','botanical_sessions','botanical_answers','itk_settings','appearance_preferences']) name;
+  from unnest(array['profiles','drill_series','drill_answers','drill_training_attempts','course_states','quiz_attempts','botanical_sessions','botanical_answers','itk_settings','appearance_preferences','parcours_preferences']) name;
 select ok(not exists(select 1 from pg_trigger where not tgisinternal and tgrelid=('public.'||name)::regclass and (tgtype::integer & 8)=8), 'Aucun guard ne bloque la cascade : '||name)
-  from unnest(array['profiles','drill_series','drill_answers','drill_training_attempts','course_states','quiz_attempts','botanical_sessions','botanical_answers','itk_settings','appearance_preferences']) name;
+  from unnest(array['profiles','drill_series','drill_answers','drill_training_attempts','course_states','quiz_attempts','botanical_sessions','botanical_answers','itk_settings','appearance_preferences','parcours_preferences']) name;
 
 insert into auth.users (id,email) values
   ('64030000-0000-4000-8000-000000000001','closure-a@example.invalid'),

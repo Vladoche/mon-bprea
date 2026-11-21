@@ -6,6 +6,7 @@ import { emptyPersonalDocument as drillDocument, personalChange } from '../../as
 import { emptyPersonalDocument as courseDocument, mutateCourse } from '../../assets/course-quiz-model.js';
 import { emptyPersonalDocument as botanicalDocument, recordPersonalSession } from '../../assets/botanical-sync-model.js';
 import { emptySettingsDocument, queueSettings } from '../../assets/settings-model.js';
+import { emptyParcoursDocument } from '../../assets/parcours-service.js';
 import { questions, stamp, uuid, parameters } from '../fixtures/export.js';
 import { botanicalSession } from '../fixtures/personal-data.js';
 import { stopOrdinarySync } from '../helpers/export-browser.js';
@@ -30,6 +31,7 @@ async function seed(page) {
     recordPersonalSession(docs.botanical, botanicalSession(`recette-${name}`), next);
     queueSettings(docs.settings, 'itk', parameters, next);
     queueSettings(docs.settings, 'appearance', { version: 1, season: 'auto', brightness: 'dark' }, next);
+    docs.parcours = { ...emptyParcoursDocument(key), observed: true };
     records[name] = docs;
   }
   await page.evaluate(async ({ records, caches }) => {
@@ -80,7 +82,7 @@ test('Recette A : copie téléchargée puis effacement ciblé, B/autres domaines
   await page.locator('[data-export-prepare]').click(); await expect(page.locator('[data-export-status]')).toContainText('Copie prête');
   const pending = page.waitForEvent('download'); await page.locator('[data-export-download]').click();
   const download = await pending, filePath = await download.path(), fileText = await readFile(filePath, 'utf8'), file = JSON.parse(fileText);
-  expect(Object.keys(file.data.server)).toHaveLength(10); expect(Object.keys(file.data.personalLocal)).toHaveLength(4);
+  expect(Object.keys(file.data.server)).toHaveLength(11); expect(Object.keys(file.data.personalLocal)).toHaveLength(5);
   expect(file.status).toBe('partial'); expect(file.data.personalLocal.courses.operations).toHaveLength(1);
   expect(file.coverage.find(item => item.source === CACHES.courses).status).toBe('limited');
   for (const excluded of [accounts.B.id, 'ARCHIVE_PRIVEE_EXCLUE', 'access_token', 'refresh_token']) expect(fileText).not.toContain(excluded);

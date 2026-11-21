@@ -202,7 +202,7 @@ public sealed partial class AutomaticPrivateStore : ISimplePrivateStore
             entries.Add(JsonSerializer.SerializeToElement(new { version = 4, type = "closure", operationId = id, project = target.Project,
                 projectRef = target.IsLocal ? "synthetic-admin-v2" : target.Project,
                 userId = accountId, targetHash = record.TargetHash, status = "pending/uncertain", recordedAt = now,
-                scope = "auth-and-ten-tables", backupReferences = new[] { backupReference },
+                scope = "auth-and-application-tables", backupReferences = new[] { backupReference },
                 residuals = new[] { "backups-reconcile-before-restore", "jwt-until-expiry", "devices-and-downloads" },
                 nextAction = "postcheck-and-residual-review", reviewDueAt = now.AddDays(1) }));
             var fresh = RecordPath(id, "ledger.new"); Write(fresh, JsonSerializer.SerializeToUtf8Bytes(entries, Json));

@@ -7,12 +7,12 @@ import { emptyPersonalDocument as botanical } from '../../assets/botanical-sync-
 import { A, B, uuid, questions, serverRows, stamp } from '../fixtures/export.js';
 const scope = JSON.stringify(['development', 'https://export.invalid', A]);
 describe('copie personnelle : projection de confidentialité', () => {
-  it('conserve les dix tables, dates microsecondes, null, false, erreurs et tentatives distinctes', () => {
+  it('conserve les onze tables, dates microsecondes, null, false, erreurs et tentatives distinctes', () => {
     const raw = serverRows(A, 2), server = {};
     for (const [table, rows] of Object.entries(raw)) server[table] = rows.map(row => projectRow(table, { ...row, access_token: 'NO_EXPORT' }, A));
     const file = envelope({ kind: 'account', userId: A }, { server }, [{ source: 'server', status: 'included' }], stamp);
     const parsed = JSON.parse(serializeExport(file));
-    expect(Object.keys(parsed.data.server)).toHaveLength(10);
+    expect(Object.keys(parsed.data.server)).toHaveLength(11);
     expect(parsed.data.server.course_states[0]).toMatchObject({ done: false, legacy_score: 0 });
     expect(parsed.data.server.appearance_preferences[0]).toMatchObject({ season: 'auto', client_updated_at: null });
     expect(parsed.data.server.quiz_attempts).toHaveLength(2);

@@ -192,7 +192,7 @@ public sealed partial class SimpleAdminSession : IDisposable
                 ClosureContract.ValidateEvidence(post, selected, after, ledger, clock.GetUtcNow(), after: true);
                 if (post.OperatorId != e.OperatorId || post.WitnessDigest != e.WitnessDigest || !post.BackupsReconciled) throw new AdminException("closure_evidence");
                 var result = new SimpleResult(id, "Compte supprimé · contrôles des données actives terminés",
-                    "Les dix tables, les sessions et le stockage ont été contrôlés. Les copies de sauvegarde restent identifiées pour réconciliation. Les anciens accès peuvent subsister jusqu’à expiration. "
+                    "Les tables applicatives, les sessions et le stockage ont été contrôlés. Les copies de sauvegarde restent identifiées pour réconciliation. Les anciens accès peuvent subsister jusqu’à expiration. "
                     + (callSucceeded ? "" : "La réponse de suppression a été perdue ; l’absence a ensuite été vérifiée."), [], clock.GetUtcNow());
                 store.Complete(result); return result;
             }

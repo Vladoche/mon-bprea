@@ -1,4 +1,5 @@
-import { TABLES, MAX_BYTES, appearanceColorColumns, fail } from './export-sources.js';
+import { TABLES, MAX_BYTES, appearanceColorColumns, PARCOURS_TABLE, fail } from './export-sources.js';
+import { parcoursRow, validateParcoursDocument } from './parcours-service.js';
 import { validSettingsReceipt } from './settings-model.js';
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const fields = names => Object.fromEntries(names.split(',').map(key => [key, true]));
@@ -54,6 +55,7 @@ export function project(value, schema, context = { omitted: 0 }, depth = 0) {
 export function projectRow(name, row, userId) {
   const spec = TABLES[name];
   if (!object(row) || row[spec.owner] !== userId) fail('ownership');
+  if (name === PARCOURS_TABLE) return parcoursRow(row, userId);
   if (!spec.fields.every(key => Object.hasOwn(row, key))) fail('invalid');
   if (name === 'appearance_preferences' && appearanceColorColumns.some(key => Object.hasOwn(row, key)) &&
     (!appearanceColorColumns.every(key => Object.hasOwn(row, key)) || row.color_mode === null)) fail('invalid');
@@ -64,6 +66,11 @@ export function projectRow(name, row, userId) {
 export function projectLocal(domain, document, scope, { allowMapKeys = false } = {}) {
   if (!object(document) || document.scope !== scope) fail('ownership');
   if (document.version !== 1) fail('future');
+  if (domain === 'parcours') {
+    const data = validateParcoursDocument(document, scope);
+    const extra = (value, projected) => value && projected ? Object.keys(value).filter(key => !Object.hasOwn(projected, key)).length : 0;
+    return { data, omitted: extra(document, data) + extra(document.remote, data.remote) + extra(document.draft, data.draft) };
+  }
   if (!Array.isArray(document.operations) || !Array.isArray(document.conflicts)) fail('invalid');
   if (domain === 'drill' && (!object(document.drill) || document.drill.version !== 1 || !object(document.drill.series)) ||
       domain === 'courses' && (!object(document.courses) || !object(document.attempts)) ||

@@ -6,6 +6,8 @@ import { readScopedRecord } from '../../assets/personal-idb.js';
 import { createPersonalRepository, personalScope } from '../../assets/drill-personal-store.js';
 import { createCourseQuizRepository } from '../../assets/course-quiz-store.js';
 import { createBotanicalRepository } from '../../assets/botanical-personal-store.js';
+import { createParcoursRepository } from '../../assets/parcours-service.js';
+import { emptyParcours } from '../../assets/parcours-model.js';
 import { createSettingsRepository } from '../../assets/settings-store.js';
 import { mutateCourse } from '../../assets/course-quiz-model.js';
 import { queueSettings } from '../../assets/settings-model.js';
@@ -28,7 +30,7 @@ function fixture(options = {}) {
   const service = createErasureService({ ...f, configuration: config, indexedDB, storage, exclusive: run => run(), ...options });
   return { ...f, indexedDB, storage, service };
 }
-const factories = { drill: createPersonalRepository, courses: createCourseQuizRepository, botanical: createBotanicalRepository, settings: createSettingsRepository };
+const factories = { drill: createPersonalRepository, courses: createCourseQuizRepository, botanical: createBotanicalRepository, settings: createSettingsRepository, parcours: createParcoursRepository };
 it('cache initialement absent : crée seulement la barrière, aucune recréation implicite au chargement suivant', async () => {
   const f = fixture(); await f.service.prepare({ personal: ['drill'] });
   expect((await f.service.execute({ confirmed: true })).status).toBe('complete');
@@ -42,17 +44,21 @@ async function fill(f, domain, key = scope(A)) {
   await repo.change(saved => {
     if (domain === 'courses') mutateCourse(saved, 'uc1-sol', false);
     if (domain === 'settings') { queueSettings(saved, 'itk', parameters); queueSettings(saved, 'appearance', { version: 1, season: 'auto', brightness: 'dark' }); }
+    if (domain === 'parcours') {
+      saved.draft = { token: crypto.randomUUID(), requested: true, base: null, value: { ...emptyParcours(), uc1: 'exempt' } };
+      return;
+    }
     saved.lastReconciledAt = '2026-10-27T12:00:00Z';
   });
   return repo;
 }
-it('efface A dans les quatre caches, conserve B, autre environnement/projet et toutes les clés visiteur/Auth', async () => {
+it('efface A dans les cinq caches, conserve B, autre environnement/projet et toutes les clés visiteur/Auth', async () => {
   const f = fixture(); const originals = [];
   f.storage.setItem('bprea-demo-drill-v1', 'visiteur'); f.storage.setItem('bprea-auth-sdk', 'session');
   for (const domain of Object.keys(CACHES)) for (const key of [scope(A), scope(B), scope(A).replace('development', 'production'), scope(A).replace('fixture.invalid', 'other.invalid')]) {
     const repo = await fill(f, domain, key); originals.push({ domain, key, document: await repo.read(), repo });
   }
-  const summary = await f.service.prepare({ personal: ['drill', 'courses', 'botanical', 'itk', 'appearance'] });
+  const summary = await f.service.prepare({ personal: ['drill', 'courses', 'botanical', 'itk', 'appearance', 'parcours'] });
   expect(summary.find(item => item.source === 'Cours et QCM').pending).toBe(1);
   expect((await f.service.execute({ confirmed: true })).status).toBe('complete');
   for (const item of originals) {

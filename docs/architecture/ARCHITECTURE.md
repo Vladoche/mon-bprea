@@ -141,3 +141,43 @@ En visiteur, la clé existante `bprea-demo-progress-v1` reste utilisée. Les cha
 Les clés `bprea-demo-itk-v1` et `bprea-demo-theme-v1` restent indépendantes. Le calendrier ne modifie aucune donnée utilisateur. En visiteur, aucun résultat n’est envoyé au serveur et le stockage reste propre au navigateur et à l’adresse du site. Dans un compte configuré, cours et QCM sont disponibles sur un autre appareil après confirmation distante ; une panne conserve les opérations sur l’appareil en attente de reprise. Si l’espace local est indisponible ou saturé, le QCM signale que la tentative ne peut pas être conservée. L’historique grandit au fil des corrections, sans purge automatique.
 
 Les parcours vérifiés et les limites de la vérification sont consignés dans [VALIDATION-LOT1.md](../archives/validations/VALIDATION-LOT1.md).
+
+## Mon parcours BPREA
+
+Dans le Profil, le bouton des paramètres ouvre un panneau de pleine largeur. Le
+statut associé reflète la dernière version synchronisée connue. Un parcours est
+configuré si le statut UC1 est renseigné, une épreuve au moins est sélectionnée,
+chaque épreuve a une date indicative ou une session active, et les choix respectent
+le minimum d’UCARE éventuellement défini. Une dispense et une épreuve UC1
+simultanées restent modifiables et signalées comme incohérentes.
+
+[Le référentiel JSON v1](../../assets/parcours-catalogue.json) démarre avec les
+deux listes vides. Dans `ucare`, chaque entrée contient `id`, `label`, `active` et
+éventuellement `description` et `group`. `ucareMinimum` vaut `null` en l’absence de
+règle. Dans `sessions`, chaque entrée contient `id`, `examId`, `label`, `date` au
+format ISO civil et `active`. Réutiliser les identifiants stables et désactiver
+une entrée retirée. Le clavier et le récapitulatif gardent les sélections
+existantes quand un référentiel change. Les UCARE de formation ont leurs propres
+identifiants, distincts des emplacements d’épreuve `ucare1` et `ucare2`.
+
+[La migration](../../supabase/migrations/20261121171000_create_parcours_preferences.sql)
+ajoute un instantané JSON v1 par UUID. `assignments` associe à l’identifiant
+d’épreuve une référence de session et/ou une date personnelle. Un
+désélectionnement préserve ces indications pour une reprise éventuelle. Pour
+personnaliser le calendrier, lire l’instantané avec
+[`createParcoursTransport`](../../assets/parcours-service.js), filtrer sur les
+épreuves sélectionnées et rapprocher les références des entrées officielles.
+Les futures affectations de groupes, reports, rattrapages et périodes de stage
+pourront s’appuyer sur ces identifiants et sur le statut UC1.
+
+Le cache IndexedDB garde le dernier instantané lu, le brouillon local et
+l’éventuelle demande d’enregistrement. La révision attendue empêche le remplacement
+silencieux d’une version plus récente. Une demande peut être rejouée avec le
+même identifiant d’opération. Seul un résultat serveur validé confirme la
+synchronisation. Les copies de compte incluent l’instantané et le brouillon.
+La reprise assistée d’une archive de parcours produit un brouillon sur le
+même compte et exige ensuite un enregistrement explicite. Le droit d’effacement
+couvre le cache local et la cascade Auth. La sauvegarde opérateur doit couvrir
+le nouveau schéma avant toute mise en service du parcours. La
+[notice candidate](../rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) doit être validée
+pour ce périmètre.

@@ -32,7 +32,7 @@ try {
   a = await createDrillStudent(); b = await createDrillStudent();
   const environment = a.environment;
   assert.equal(environment.url, 'http://127.0.0.1:54321');
-  stage='populate ten tables'; await seedPersonalTables(a,1); await seedPersonalTables(b,1);
+  stage='populate application tables'; await seedPersonalTables(a,1); await seedPersonalTables(b,1);
   const beforeB = await readPersonalTables(b);
   const oldSession = (await a.client.auth.getSession()).data.session;
   const snapshotStartedAt = new Date().toISOString();
@@ -92,9 +92,9 @@ try {
           from pg_constraint k join pg_class c on c.oid=k.conrelid join pg_namespace n on n.oid=c.relnamespace join pg_class rc on rc.oid=k.confrelid join pg_namespace rn on rn.oid=rc.relnamespace
           where k.contype='f' and (n.nspname='public' or rn.nspname='public' or rn.nspname='auth' and rc.relname='users' and n.nspname not in ('auth','storage'))
         ) s`));
-        const permissions=read(`select count(*)=10 and bool_and(c.relrowsecurity and not has_table_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') and not has_table_privilege('service_role',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r'`)==='t'
+        const permissions=read(`select count(*)=${POLICY.tables.length} and bool_and(c.relrowsecurity and not has_table_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') and not has_table_privilege('service_role',c.oid,'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER')) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relkind='r'`)==='t'
           && read(`select not has_column_privilege('authenticated','public.profiles','id','UPDATE') and not has_table_privilege('authenticated','public.profiles','INSERT,DELETE') and has_column_privilege('authenticated','public.profiles','pseudo','UPDATE')`)==='t'
-          && read(`select count(*) from pg_policies where schemaname='public'`)==='24';
+          && read(`select count(*) from pg_policies where schemaname='public'`)=== '27';
         const storage = read(`select to_regclass('storage.objects') is not null`)==='t' ? Number(read(`select count(*) from storage.objects where owner_id=${quote(a.userId)}`)) : 0;
         const orphans=POLICY.tables.reduce((sum,t)=>sum+Number(read(`select count(*) from public.${t} d left join auth.users u on u.id=d.${t==='profiles'?'id':'user_id'} where u.id is null`)),0);
         writeFileSync(join(directory,`technical-evidence-${input.ledgerHash==='postcheck'?'after':'before'}.synthetic.json`),JSON.stringify({fks,permissions,storage,orphans,rows:counts(a.userId)}));

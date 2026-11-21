@@ -10,10 +10,12 @@ import { createCourseQuizTransport } from './course-quiz-transport.js';
 import { createBotanicalTransport } from './botanical-sync-transport.js';
 import { createSettingsTransport } from './settings-transport.js';
 import { createScopedRepository } from './personal-idb.js';
+import { emptyParcoursDocument, validateParcoursDocument } from './parcours-service.js';
 import { CACHES } from './export-sources.js';
 import { canonical, failRestore } from './restore-model.js';
 
 export const adapters = {
+  parcours: { empty: emptyParcoursDocument, validate: validateParcoursDocument },
   drill: { empty: drillStore.emptyPersonalDocument, validate: drillStore.validatePersonalDocument, prepare: drill.prepareNextOperation, acknowledge: drill.acknowledgeOperation, transport: createDrillTransport },
   courses: { empty: courses.emptyPersonalDocument, validate: courses.validatePersonalDocument, prepare: courses.prepareNextOperation, acknowledge: courses.acknowledgeOperation, transport: createCourseQuizTransport },
   botanical: { empty: botanical.emptyPersonalDocument, validate: botanical.validatePersonalDocument, prepare: botanical.prepareNextOperation, acknowledge: botanical.acknowledgeOperation, transport: createBotanicalTransport },

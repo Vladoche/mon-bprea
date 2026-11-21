@@ -74,7 +74,7 @@ export function validateServer(server, userId) {
       for (const field of ['id', 'operation_id', 'series_id', 'attempt_id']) if (Object.hasOwn(row, field)) check(validUUID(row[field]), 'uuid');
       if (name === 'profiles') check(row.pseudo === null || typeof row.pseudo === 'string' && [...row.pseudo].length <= 40);
     }
-    if (['profiles', 'itk_settings', 'appearance_preferences'].includes(name)) check(rows.length <= 1, 'duplicate');
+    if (['profiles', 'itk_settings', 'appearance_preferences', 'parcours_preferences'].includes(name)) check(rows.length <= 1, 'duplicate');
   }
   const drill = { series: server.drill_series || [], answers: server.drill_answers || [], training: server.drill_training_attempts || [] };
   remoteDocument(drill, userId);
@@ -89,6 +89,11 @@ export function validateServer(server, userId) {
 function localDocument(domain, source, scope) {
   check(record(source) && source.scope === scope, 'ownership');
   check(source.version === 1, 'version');
+  if (domain === 'parcours') {
+    const projected = projectLocal(domain, source, scope);
+    check(projected.omitted === 0 && canonical(projected.data) === canonical(source));
+    return source;
+  }
   const { excludedArchives, ...rest } = source;
   const projected = projectLocal(domain, { ...rest, importArchives: excludedArchives || [] }, scope, { allowMapKeys: true });
   check(projected.omitted === 0 && canonical(projected.data) === canonical(source));
@@ -167,7 +172,7 @@ export function parseRestore(text) {
     validateServer(file.data.server, s.userId);
     keys(file.data.personalLocal, Object.keys(CACHES), []);
     for (const [domain, source] of Object.entries(file.data.personalLocal)) localDocument(domain, source, scope);
-    check(Array.isArray(file.coverage) && file.coverage.length > 0 && file.coverage.length <= 15);
+    check(Array.isArray(file.coverage) && file.coverage.length > 0 && file.coverage.length <= Object.keys(TABLES).length + Object.keys(CACHES).length + 1);
     const seen = new Set(), known = [...Object.keys(TABLES), ...Object.values(CACHES), 'Auth API'];
     for (const item of file.coverage) {
       keys(item, ['source', 'inventory', 'status', 'count', 'excludedFields', 'reason'], ['source', 'status']);

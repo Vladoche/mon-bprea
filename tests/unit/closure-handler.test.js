@@ -20,7 +20,7 @@ function fixture() {
   const prepare = async () => (await (await request({ action: 'prepare', password: 'correct-password', confirmation: 'SUPPRIMER' })).json()).receipt;
   return { api, users, request, prepare, time: value => { time += value; } };
 }
-it('contrat de dix tables, réauthentification puis retrait A seulement et retry idempotent sans deuxième suppression', async () => {
+it('contrat des tables applicatives, réauthentification puis retrait A seulement et retry idempotent sans deuxième suppression', async () => {
   expect(CLOSURE_TABLES).toEqual(Object.keys(TABLES));
   const f = fixture(), beforeB = structuredClone(f.users.get(B)), receipt = await f.prepare();
   expect(f.users.has(A)).toBe(true); expect(f.api.deleteUser).not.toHaveBeenCalled();

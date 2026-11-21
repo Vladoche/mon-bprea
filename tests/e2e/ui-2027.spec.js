@@ -151,7 +151,7 @@ test('compte : trois destinations, paramètres, captures et déconnexion sans pe
   await expect(nav(page).getByRole('link', { name: 'Connexion', exact: true })).toBeVisible();
   await expect(page.locator('header').getByRole('button', { name: 'Déconnexion', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('bprea-demo-progress-v1'))).toBe(saved);
-  await expect(page.locator('header')).not.toContainText(accounts.A.email);
+  await expect(page.locator('#app-header')).not.toContainText(accounts.A.email);
 });
 
 test('compte : vérification discrète et identité hors ligne conservée', async ({ page }) => {

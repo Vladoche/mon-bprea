@@ -224,7 +224,13 @@ function initProfilePage(root) {
   }
 
   getAuthService().then(service => {
-    if (!signal.aborted) unsubscribeAuth = initProfileAccount(account, service, signal);
+    if (signal.aborted) return;
+    unsubscribeAuth = initProfileAccount(account, service, signal);
+    import('./parcours-ui.js').then(({ initParcours }) => {
+      if (!signal.aborted) initParcours(root, service, signal);
+    }).catch(() => {
+      if (!signal.aborted) root.querySelector('#parcours-state').textContent = 'Le parcours est temporairement indisponible.';
+    });
   }).catch(() => {
     if (!signal.aborted) account.innerHTML = '<h3>Connexion indisponible</h3><p role="alert">Le service de compte ne peut pas être chargé. Recharge la page pour réessayer.</p>';
   });

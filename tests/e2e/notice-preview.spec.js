@@ -19,7 +19,7 @@ for (const width of [320, 390, 1280]) {
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('Notice de confidentialité de Mon BPREA');
       await expect(page.getByRole('note')).toContainText('La publication requiert un accord distinct');
-      await expect(page.locator('main')).toContainText('Version 1.3 · 20 novembre 2026');
+      await expect(page.locator('main')).toContainText('Version 1.4 · 21 novembre 2026');
       await expect(page.locator('main')).toContainText('Vladimir Fouillade');
       await expect(page.locator('main')).toContainText('peut rester dans le navigateur après un échec');
       await expect(page.locator('main')).toContainText('Certaines preuves d’import sont conservées dans le cache local du compte');
