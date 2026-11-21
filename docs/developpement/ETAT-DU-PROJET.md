@@ -37,7 +37,7 @@ pas une preuve opérationnelle.
 | Dernière PR fusionnée sur main | [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), 21/11/2026 à 16:44:14 UTC. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
 | Notice | V1.2 approuvée dans [#80](https://github.com/Vladoche/mon-bprea/pull/80) et servie sur Pages. V1.3 candidate sur `main` dans [#84](https://github.com/Vladoche/mon-bprea/pull/84). |
-| Chantier prioritaire | [Mon parcours BPREA](../architecture/ARCHITECTURE.md#mon-parcours-bprea), dans les paramètres du Profil. |
+| Chantier prioritaire | [Mon parcours BPREA](../architecture/ARCHITECTURE.md#mon-parcours-bprea), dans les paramètres du Profil. [PR #86](https://github.com/Vladoche/mon-bprea/pull/86). |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
