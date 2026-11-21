@@ -2,6 +2,8 @@
 
 Campagne du 21 novembre 2026. Référence `origin/main` `131d2f006e3b80c9f2580888a423af6c096c8e97`, vérifiée après `git fetch origin`. Site observé en HTTP 200 avec les ressources de `47aff29763763fd3be0b16b60f90e5c8f1048508`, huit commits derrière la référence auditée. Les PR #82, #83 et #84 sont fusionnées et avaient respectivement quatre, cinq et cinq checks réussis à leur dernière tête. [Publication Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527) · [#82](https://github.com/Vladoche/mon-bprea/pull/82/checks) · [#83](https://github.com/Vladoche/mon-bprea/pull/83/checks) · [#84](https://github.com/Vladoche/mon-bprea/pull/84/checks).
 
+La branche `codex/audit-technique-lot-b` est proposée pour revue dans la [PR #85](https://github.com/Vladoche/mon-bprea/pull/85). Les [checks de la PR](https://github.com/Vladoche/mon-bprea/pull/85/checks) donnent l’état de la CI sur sa tête courante.
+
 ## Périmètre et constats
 
 La revue couvre **12 domaines**, les 19 documents HTML, 76 fichiers JavaScript applicatifs hors SDK, 21 feuilles de style et 7 banques ou configurations JSON. L’inventaire des dépendances, des points d’entrée HTML et des appels différés a été complété par la lecture des services de domaine et de leurs scénarios de panne. Le graphe public examiné ne contient pas de cycle. Plusieurs implémentations de synchronisation suivent un cycle similaire et appliquent des règles de réconciliation distinctes. Aucun regroupement de ces services n’a été nécessaire pour les corrections.

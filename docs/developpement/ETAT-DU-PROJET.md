@@ -37,7 +37,7 @@ pas une preuve opérationnelle.
 | Dernière PR fusionnée sur main | [#84, Admin 2.3 et capacité](https://github.com/Vladoche/mon-bprea/pull/84), 20/11/2026 à 22:55:22 UTC. Cinq checks réussis sur `5e6900c`. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
 | Notice | V1.2 approuvée dans [#80](https://github.com/Vladoche/mon-bprea/pull/80) et servie sur Pages. V1.3 candidate sur `main` dans [#84](https://github.com/Vladoche/mon-bprea/pull/84). |
-| Chantier en revue | Audit technique du lot B, [corrections, mesures et matrice du lot C](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md). |
+| Chantier en revue | Audit technique du lot B [#85](https://github.com/Vladoche/mon-bprea/pull/85), [corrections, mesures et matrice du lot C](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md). |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
