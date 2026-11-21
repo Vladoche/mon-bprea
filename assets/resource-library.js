@@ -7,6 +7,7 @@ const collator = new Intl.Collator('fr', { sensitivity: 'base', numeric: true })
 const controllers = new WeakMap();
 const fileChecks = new Map();
 const fileStatuses = new Map();
+const queryLimit = 300;
 const emptyFilters = () => ({ query: '', unit: '', theme: '', type: '', lesson: '', chapter: '', organization: '', sort: 'title-asc' });
 const dates = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 const dateLabel = value => dates.format(new Date(`${value}T12:00:00Z`));
@@ -220,7 +221,7 @@ export async function initResources(root, { reload = false } = {}) {
         <label for="resource-search">Rechercher une ressource</label>
         <div class="library-search">
           ${icon('search')}
-          <input type="search" id="resource-search" aria-describedby="resource-search-help" placeholder="Titre, thème, organisme…" autocomplete="off" />
+          <input type="search" id="resource-search" maxlength="${queryLimit}" aria-describedby="resource-search-help" placeholder="Titre, thème, organisme…" autocomplete="off" />
         </div>
         <p class="library-search-help" id="resource-search-help">La recherche porte sur les descriptions des ressources, pas sur le contenu des PDF.</p>
       </div>
@@ -273,7 +274,7 @@ export async function initResources(root, { reload = false } = {}) {
   function readQuery() {
     const params = new URLSearchParams(location.search);
     filters = emptyFilters();
-    filters.query = (params.get('q') || '').slice(0, 300);
+    filters.query = (params.get('q') || '').slice(0, queryLimit);
     let discarded = false;
     for (const select of selects) {
       const key = select.dataset.resourceFilter || 'sort';
@@ -308,11 +309,17 @@ export async function initResources(root, { reload = false } = {}) {
     activeFilters.hidden = active === 0;
     activeFilters.textContent = `${active} filtre${active > 1 ? 's actifs' : ' actif'}`;
     if (results.length !== shown.length || results.some((resource, index) => resource !== shown[index])) {
-      const opened = new Set([...grid.querySelectorAll('.library-record[open]')].map(record => record.closest('article').id));
-      grid.innerHTML = results.map(resource => resourceCard(resource, catalog)).join('');
-      for (const card of grid.children) {
-        if (opened.has(card.id)) card.querySelector('.library-record').open = true;
+      const focused = grid.contains(document.activeElement) ? document.activeElement : null;
+      const previousCards = new Map(shown.map((resource, index) => [resource, grid.children[index]]));
+      const newCards = document.createElement('template');
+      newCards.innerHTML = results.filter(resource => !previousCards.has(resource))
+        .map(resource => resourceCard(resource, catalog)).join('');
+      const orderedCards = document.createDocumentFragment();
+      for (const resource of results) {
+        orderedCards.append(previousCards.get(resource) || newCards.content.firstElementChild);
       }
+      grid.replaceChildren(orderedCards);
+      if (focused?.isConnected) focused.focus({ preventScroll: true });
       hydrateFiles(grid, results);
       shown = results;
     }
@@ -336,7 +343,11 @@ export async function initResources(root, { reload = false } = {}) {
   form.addEventListener('submit', event => event.preventDefault(), { signal });
   form.addEventListener('reset', event => { event.preventDefault(); reset(); }, { signal });
   root.querySelector('[data-resource-reset]').addEventListener('click', reset, { signal });
-  search.addEventListener('input', () => { filters.query = search.value; writeQuery(true); refresh(); }, { signal });
+  search.addEventListener('input', () => {
+    filters.query = search.value.slice(0, queryLimit);
+    writeQuery(true);
+    refresh();
+  }, { signal });
   selects.forEach(select => select.addEventListener('change', () => {
     const key = select.dataset.resourceFilter || 'sort';
     filters[key] = select.value;

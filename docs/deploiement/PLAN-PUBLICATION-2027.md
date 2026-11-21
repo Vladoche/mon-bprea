@@ -1,6 +1,7 @@
 # Plan de publication Mon BPREA 2027
 
-**20 novembre 2026 · Publication non autorisée.** La
+**21 novembre 2026.** La refonte 2027 et la notice V1.2 sont servies par Pages #67.
+Ce plan s’applique au prochain cycle et à la future décision sur la V1.3 candidate. La
 [recette de préproduction](../validations/VALIDATION-RECETTE-FINALE-2027.md)
 porte le verdict de la campagne initiale. La
 [validation de l’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md)
@@ -12,7 +13,7 @@ reste la source des publications effectives.
 
 | Prérequis | État et preuve à obtenir avant lancement |
 | --- | --- |
-| Version et revue | [PR #79](https://github.com/Vladoche/mon-bprea/pull/79) fusionnée sur `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` ; quatre checks réussis à sa tête finale. Vérifier la tête et l’intégration de la PR d’approbation, puis retenir le **SHA complet effectivement sur main**. Contrôler le diff depuis la référence qualifiée et rejouer les vérifications affectées. [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md). |
+| Version et revue | Consulter le [SHA vérifié et les changements fusionnés](../developpement/ETAT-DU-PROJET.md). Retenir le **SHA complet effectivement sur main**, vérifier les checks et comparer avec le SHA publié dans le registre Pages. Rejouer les vérifications affectées. [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md). |
 | Notice | **V1.3 candidate** avec le plafond corrigé. L’approbation de la [V1.2](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md) couvre son texte exact. Enregistrer l’approbation de l’empreinte V1.3 sur le SHA de livraison avant toute publication. Informer les personnes concernées avant application des changements importants. |
 | Sauvegarde et journal | Revalider le dernier point restaurable, son manifeste, le journal des effacements, les dépendances et l’âge sur le poste de l’exploitant. Le point applicatif des dix tables du **18/11/2026 à 13:09:16 CET** a été restauré à **13:09:41 CET** et arrive à échéance le **25/11/2026 à 13:09:16 CET**. Leur concordance a été vérifiée en local le 20/11 à 08:30 CET. Refaire le contrôle au lancement. [Relevé](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md#prérequis-et-réserves). Auth, Storage, sessions et données uniquement locales restent hors périmètre du point applicatif. [Qualification datée](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md). |
 | Paramètres et accès | Relire le projet PROD autorisé et ses réglages dans le runbook, les deux variables publiques Actions, l’origine HTTPS et le callback exact. Le dernier contrôle opérateur daté du 18/11 reste une preuve historique. Le plafond de dix comptes, invitations en attente comprises, relève du circuit administratif. [Contrat Auth](../architecture/AUTHENTIFICATION.md). |

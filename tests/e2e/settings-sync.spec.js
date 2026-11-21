@@ -102,6 +102,8 @@ test('apparence : préférences auto conservées, clavier et rendu local jour/nu
   const second = await context.newPage(); await second.clock.install({ time: new Date('2026-10-25T23:00:00.000Z') });
   try {
     await page.goto(itkPath); await settingsSynced(page); await chooseAppearance(page, 'winter', 'dark'); await settingsSynced(page);
+    await expect(page.locator('#appearance-remember')).toBeHidden();
+    await expect(page.locator('#appearance-forget')).toBeHidden();
     await page.locator('#appearance-season').focus(); await page.locator('#appearance-season').press('Home'); await page.locator('#appearance-season').press('Enter');
     await page.locator('#appearance-season').selectOption('auto'); await page.locator('#appearance-brightness').focus(); await page.locator('#appearance-brightness').selectOption('auto'); await settingsSynced(page);
     await expect(page.locator('#appearance-brightness')).toBeFocused(); await closeAppearance(page);

@@ -11,7 +11,7 @@ pour les espaces personnels ; application opérateur Windows .NET/WinForms.
 - Site public : [Mon BPREA](https://vladoche.github.io/mon-bprea/).
 - Périmètre : cours, QCM, exercices hebdomadaires, statistiques, calendrier,
   outils ITK/documentaires/botaniques et données personnelles synchronisées.
-- Dernière vérification Git/PR et lecture publique Pages le **20 novembre 2026**.
+- Dernière vérification Git/PR et lecture publique Pages le **21 novembre 2026**.
   La recette de préproduction 2027 est consignée dans la [validation](../validations/VALIDATION-RECETTE-FINALE-2027.md).
   Les lectures PROD et contrôles Windows du 18 novembre figurent dans la
   [qualification de la première invitation](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md).
@@ -33,11 +33,11 @@ pas une preuve opérationnelle.
 | Repère | État vérifié |
 | --- | --- |
 | Branche de référence | `origin/main` |
-| Dernier commit vérifié | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` |
-| Dernière PR fusionnée sur main | [#79, recette finale 2027](https://github.com/Vladoche/mon-bprea/pull/79), 20/11/2026 à 07:09:33 UTC. Quatre checks réussis à la tête de la PR. |
+| Dernier commit vérifié | `131d2f006e3b80c9f2580888a423af6c096c8e97` |
+| Dernière PR fusionnée sur main | [#84, Admin 2.3 et capacité](https://github.com/Vladoche/mon-bprea/pull/84), 20/11/2026 à 22:55:22 UTC. Cinq checks réussis sur `5e6900c`. |
 | Jalons récents | Admin V1–V1.2 (#56–#58), fondations 2027 (#59), accueil/hubs (#60), fidélité visuelle et navigation PR2b/PR2c (#61), suivi documentaire (#62), UC/lecture PR3 lot 1 (#63), persistance clair/sombre (#64), QCM PR3 lot 2 (#65), Drill PR3 lot 3 (#66) |
-| Chantier en revue | [PR #80, approbation de la notice et préparation de la publication](https://github.com/Vladoche/mon-bprea/pull/80) · [Validation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md) · [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md) |
-| Prochaine action | Revoir et intégrer le dossier d’approbation, contrôler le SHA final et confirmer les prérequis du [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) avant décision. |
+| Notice | V1.2 approuvée dans [#80](https://github.com/Vladoche/mon-bprea/pull/80) et servie sur Pages. V1.3 candidate sur `main` dans [#84](https://github.com/Vladoche/mon-bprea/pull/84). |
+| Chantier en revue | Audit technique du lot B [#85](https://github.com/Vladoche/mon-bprea/pull/85), [corrections, mesures et matrice du lot C](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md). |
 
 Le lot 1 modernise uniquement les pages UC et la lecture ; il est désormais
 fusionné sur main. Les contenus pédagogiques, données et contrats de
@@ -57,7 +57,7 @@ restent distinctes d’une publication du frontend.
 
 ## C — Fusion, validation et publication
 
-**Code fusionné.** Main inclut les lots graphiques jusqu’à #78 et la recette de préproduction #79, dont la notice V1.2 et son rendu.
+**Code fusionné.** Main inclut la refonte 2027, la recette #79, le profil avec couleurs personnalisées (#81), la continuité des palettes (#82), l’hygiène Git (#83) et Admin 2.3 avec la notice V1.3 candidate (#84).
 **Code testé** : les têtes finales #59–#61, #63, #64 et #65
 ont les quatre checks `unit-integration`, `e2e`, `ui-performance-lab` et
 `supabase-security` réussis ; ces résultats qualifient ces têtes de PR, sans
@@ -80,14 +80,12 @@ ont réussi sur `a0074308aefebd146ce54f4d02646d18541df61b`.
 
 | Information | Valeur |
 | --- | --- |
-| Dernier commit main relevé | `bb3514efecbc4edd85b7e3f3fde90bb5d69ed458` |
-| Dernier déploiement réussi | 08/11/2026, job terminé à **15:34:30 UTC** |
-| Commit publié | `3952fd5a98705397bb341dc1fa54e0e8f92979d8` |
-| Workflow de publication | [Pages #64, exécution 42495467393](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393), `workflow_dispatch`, succès |
-| Écart main/publication | **100 commits**, dont la refonte UX/UI 2027, le profil simplifié et la notice V1.2 |
-| Recette hébergée | 08/11 : parcours sans compte, puis cours/QCM/Drill et persistance de l’exploitant sur deux navigateurs ; [preuve](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#recette-du-seul-compte-exploitant--8-novembre-2026) |
-| Lecture publique du 20/11 | Neuf routes HTTP 200 pendant la recette #79. Relecture pendant la qualification V1.2 : Contact et notice répondent en HTTP 200. La notice servie reste la V1.1 avec `?v=3952fd5…`. |
-| Publication 2027 | **Publication non autorisée.** Notice V1.2 approuvée le 20/11/2026 à 08:27:51 CET, attestation privée `NOTICE-V12-20261120`. La recette hébergée authentifiée requiert son propre mandat. [Empreinte et décision](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation). |
+| Dernier déploiement réussi | 20/11/2026, job terminé à **15:27:11 UTC** |
+| Commit publié | `47aff29763763fd3be0b16b60f90e5c8f1048508` |
+| Workflow de publication | [Pages #67, exécution 44763339527](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), `workflow_dispatch`, succès |
+| Écart main/publication | **8 commits**, comprenant l’hygiène Git et Admin 2.3 avec la notice V1.3 candidate |
+| Lecture publique du 21/11 | Accueil et notice en HTTP 200, ressources du SHA publié et notice V1.2. Vérification limitée aux réponses publiques. [Registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages). |
+| Recette hébergée connectée | La dernière preuve détaillée d’un parcours exploitant reste datée du 08/11, sur Pages #64. [Cours/QCM/Drill et persistance](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#recette-du-seul-compte-exploitant--8-novembre-2026). |
 
 Le fichier `assets/auth-config.json` **versionné reste désactivé**. L’artefact
 Pages utilise une configuration publique PROD générée et validée séparément.
@@ -95,12 +93,11 @@ Un build, un E2E local, un check de PR ou une fusion ne publie pas le site.
 Le [workflow actuel](../../.github/workflows/deploy.yml) exige un lancement
 manuel autorisé sur main ; voir le registre pour la procédure et la recette.
 
-[La PR #81](https://github.com/Vladoche/mon-bprea/pull/81) simplifie le profil
-et qualifie la roue chromatique et la continuité clair/sombre. Avant sa mise
-en service, préparer la migration Supabase puis le frontend Pages, avec
-décision sur la notice. Les
-[preuves locales et réserves](../validations/VALIDATION-PROFIL-COULEURS-THEME.md)
-portent sur la branche de travail.
+Les publications #66 et #67 comprennent les évolutions du profil et de la
+palette de [#81](https://github.com/Vladoche/mon-bprea/pull/81) et
+[#82](https://github.com/Vladoche/mon-bprea/pull/82). Les
+[preuves du profil](../validations/VALIDATION-PROFIL-COULEURS-THEME.md)
+gardent la portée de leur recette locale.
 
 ## D — Modules
 
@@ -108,11 +105,11 @@ portent sur la branche de travail.
 
 | Module | État / dernier jalon majeur | Limites importantes | Référence |
 | --- | --- | --- | --- |
-| Navigation et accueil | Header/footer 2027, accueil panoramique ; #59–#61 | Refonte non publiée ; reprise seulement depuis une activité datée fiable | [Navigation](../architecture/NAVIGATION.md) |
+| Navigation et accueil | Header/footer 2027, accueil panoramique ; #59–#61 | Reprise seulement depuis une activité datée fiable | [Navigation](../architecture/NAVIGATION.md) |
 | Mes cours | Sept UC/UCARE, progression réelle, anecdote après les UC ; #60 | Cours disponibles dans la seule UC 03 | [Architecture](../architecture/ARCHITECTURE.md) |
 | Pages UC | Chapitres ouverts, cartes et unités vides modernisés ; #63 | Refonte fusionnée ; cours dans la seule UC 03 | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
 | Lecture des cours | Sommaire interne et mise en page de lecture ; #63 | Quatre cours illustratifs UC 03, complétion et persistance conservées | [Validation PR3](../validations/VALIDATION-UI-2027-PR3-LOT1.md) |
-| QCM | Présentation 2027 PR3 lot 2 fusionnée #65, contrats historiques conservés | Refonte non publiée ; anciens scores sans date non transformés en activité récente | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
+| QCM | Présentation 2027 PR3 lot 2 fusionnée #65, contrats historiques conservés | La reprise datée repose sur les tentatives historisées | [Cours/QCM](../architecture/COURSE-QUIZ-SYNCHRONISATION-CLIENT.md) |
 | Drill | Dix nouveaux exercices par UC/semaine, brouillons et entraînements séparés | Banque surtout UC 03 ; séries précédentes non bloquantes | [Mode Drill](../architecture/MODE-DRILL.md) |
 | Tableau de bord | Présentation 2027 fusionnée en PR3 lot 4 (#69), statistiques Drill et synthèse partagée | Les indicateurs portent sur les premières réponses validées. [Validation du lot 4](../validations/VALIDATION-UI-2027-PR3-LOT4.md) | [Dashboard](../architecture/DASHBOARD.md) |
 | Calendrier | Interface 2027 fusionnée dans #71, événements civils et liens directs | Banque de dates vide ; aucune date de formation inventée | [Validation du calendrier](../validations/VALIDATION-UI-2027-PR4-LOT1.md) |
@@ -123,7 +120,7 @@ portent sur la branche de travail.
 | Apparence | Icône clair/sombre, dialogue dans Profil → Paramètres ; #59 | Mémorisation appareil volontaire ; anciennes clés conservées | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
 | Authentification | Activation sur invitation, connexion et récupération assistée ; #49–#51 | Inscription publique/anonyme fermées ; pas de récupération réelle ni isolation A/B PROD recettées | [Auth](../architecture/AUTHENTIFICATION.md) |
-| Admin Windows | 2.1 fusionnée (#68) avec reprise de l’historique et sauvegarde restaurée. Renouvellement des invitations expirées fusionné en 2.2 (#70) | Exécutable non signé. Suppression PROD bloquée | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
+| Admin Windows | 2.3 fusionnée (#84), inventaire complet, dix comptes dont neuf participants. Renouvellement des invitations expirées depuis 2.2 (#70) | Exécutable non signé. Suppression PROD bloquée | [Guide Admin](../../tools/mon-bprea-admin/README.md) |
 
 ## E — Sécurité et exploitation
 
@@ -178,15 +175,11 @@ portent sur la branche de travail.
 
 ## F — Prochaines actions
 
-1. Revoir et intégrer le [dossier d’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md).
-   Statuer sur les réserves de performance du catalogue synthétique, de Safari
-   et de lecteur d’écran natif avant la décision de publication.
+1. Revoir les corrections du lot B et utiliser la [matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c) pour cibler le lot C. Suivre les réserves du catalogue synthétique, de Safari et du lecteur d’écran natif.
 2. Décider du réglage Auth PROD et de sa vérification, puis du renouvellement
    réel de l’invitation bloquée dans le cadre de la
    [validation Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
-3. Recontrôler le point de reprise et les paramètres Auth, décider sur le SHA
-   exact, puis suivre le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md)
-   si l’exploitant autorise la publication et sa recette hébergée.
+3. Qualifier un point de reprise au schéma courant, recontrôler les paramètres Auth et statuer sur l’empreinte de la notice V1.3. Le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md) fixe les contrôles et décisions utiles au prochain cycle.
 4. Obtenir les décisions individuelles et d’ouverture nécessaires après la
    qualification technique.
 

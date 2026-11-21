@@ -106,6 +106,32 @@ test('de l’accueil à une ressource filtrée, puis consultation, téléchargem
   await expect(card(page)).toBeVisible();
 });
 
+test('la recherche conserve les mêmes critères et résultats après rechargement', async ({ page }) => {
+  await setCatalog(page, [libraryPdf]);
+  await page.goto(path);
+  const visibleQuery = ' '.repeat(300);
+  await search(page).fill(`${visibleQuery}introuvable`);
+  await expect(search(page)).toHaveValue(visibleQuery);
+  await expect(count(page)).toHaveText('1 ressource sur 1');
+  expect(new URL(page.url()).searchParams.get('q')).toBe(visibleQuery);
+  await page.reload();
+  await expect(search(page)).toHaveValue(visibleQuery);
+  await expect(count(page)).toHaveText('1 ressource sur 1');
+});
+
+test('retour au tri précédent : le document consulté reste ouvert et ciblé au clavier', async ({ page }) => {
+  await setCatalog(page, [libraryPdf, librarySheet]);
+  await page.goto(path);
+  await filter(page, 'sort').selectOption('title-desc');
+  const summary = card(page).locator('summary');
+  await summary.press('Enter');
+  await expect(summary).toBeFocused();
+  await page.goBack();
+  await expect(filter(page, 'sort')).toHaveValue('title-asc');
+  await expect(card(page).locator('details')).toHaveJSProperty('open', true);
+  await expect(summary).toBeFocused();
+});
+
 test('liens de thème et d’UC, aperçus réels et absence d’association', async ({ page }) => {
   await page.goto(path);
   const official = card(page, 'fiche-demo');

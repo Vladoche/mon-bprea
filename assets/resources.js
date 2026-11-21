@@ -210,6 +210,7 @@ export function filterResources(resources, { query = '', unit = '', theme = '', 
     if (type && resource.type !== type) return false;
     if (selectedTheme && !resource.themes.some(value => searchable(value) === selectedTheme)) return false;
     if (selectedOrganization && searchable(resource.organization) !== selectedOrganization) return false;
+    if (!tokens.length) return true;
     const haystack = searchable([resource.title, resource.description, resource.organization, ...resource.keywords, ...resource.themes].join(' '));
     return tokens.every(token => haystack.includes(token));
   });

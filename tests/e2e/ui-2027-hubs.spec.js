@@ -34,6 +34,9 @@ test('accueil : trois vrais cours, actions distinctes et captures clair/sombre',
   await expect(page.locator('#exam-preparation, .daily-fact, .course-quiz-panel')).toHaveCount(0);
   await expect(page.locator('main')).not.toContainText('Productions animales');
   expect(requests.some(path => /daily-fact|exam-preparation|calendar-events/.test(path))).toBe(false);
+  for (const file of ['auth-pages.js', 'botanical.js', 'calendar.js', 'dashboard.js', 'drill.js', 'resource-library.js']) {
+    expect(requests).not.toContain(`${prefix}assets/${file}`);
+  }
   expect(await page.locator('.home-garden img').evaluate(img => img.complete && img.naturalWidth > 0)).toBe(true);
   for (const [width, device] of [[1440, 'desktop'], [390, 'mobile']]) {
     await page.setViewportSize({ width, height: 1000 });
@@ -46,6 +49,17 @@ test('accueil : trois vrais cours, actions distinctes et captures clair/sombre',
   expect(await cards.first().evaluate(node => getComputedStyle(node).outlineStyle)).not.toBe('none');
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/mon-bprea\/cours\.html\?id=matiere-organique$/);
+});
+
+test('un module de rubrique indisponible laisse la navigation et permet de recharger', async ({ page }) => {
+  let fail = true;
+  await page.route('**/assets/calendar.js*', route => fail ? route.abort() : route.continue());
+  await page.goto(`${prefix}calendrier.html`);
+  await expect(page.locator('main [role="alert"]')).toContainText('Recharge la page pour réessayer.');
+  await expect(page.getByRole('navigation', { name: 'Navigation principale' })).toBeVisible();
+  fail = false;
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Calendrier de formation', exact: true })).toBeVisible();
 });
 
 test('Mes cours : sept UC exactes, progression réelle, anecdote unique et source conservée', async ({ page }, testInfo) => {

@@ -4,7 +4,6 @@ import { readDashboardData } from './dashboard-data.js';
 import { createDashboardModel } from './dashboard-stats.js';
 import { getParisWeek } from './drill-engine.js';
 import { DRILL_STORAGE_KEY } from './drill-store.js';
-import { getDrillSyncService } from './drill-sync-service.js';
 import { learningOverview } from './learning-overview.js';
 
 const clean = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
@@ -95,7 +94,7 @@ function weeklySummary(now, snapshot) {
   // Four weeks is the shortest supported model window; only the current one is shown.
   const model = createDashboardModel(readDashboardData(snapshot), { period: '4', now });
   const week = model.weeks.find(item => item.id === currentWeek.id);
-  const heading = `<div class="hub-section-heading"><div><span class="eyebrow">TON ACTIVITÉ DE RÉVISION</span><h2 id="hub-weekly-heading">Cette semaine</h2><p>Du ${dateLabel(currentWeek.start)} au ${dateLabel(currentWeek.end)} · ${clean(currentWeek.id)} · Europe/Paris</p></div></div>`;
+  const heading = `<div class="hub-section-heading"><div><span class="eyebrow">TON ACTIVITÉ DE RÉVISION</span><h2 id="hub-weekly-heading" tabindex="-1">Cette semaine</h2><p>Du ${dateLabel(currentWeek.start)} au ${dateLabel(currentWeek.end)} · ${clean(currentWeek.id)} · Europe/Paris</p></div></div>`;
   if (model.error) {
     return `${heading}<div class="hub-status hub-status-warning"><h3>La synthèse n’est pas disponible</h3><p>${clean(model.error)}</p><button class="btn btn-surface" type="button" data-refresh-week>Réessayer la lecture</button></div>`;
   }
@@ -113,6 +112,7 @@ export function initPracticeHub(root) {
   root.innerHTML = `${intro('practice', 'S’exercer', 'Une série pour aujourd’hui, des repères pour la suite. Entraîne-toi à ton rythme.', 'METTRE SES CONNAISSANCES EN PRATIQUE')}<section class="wrap hub-practice-start" aria-label="Commencer ou reprendre une série">${linkCard({ href: 'drill.html', title: 'Exercices hebdomadaires', description: 'Dix exercices par UC chaque semaine. Commence une série ou retrouve celles déjà entamées : les semaines précédentes restent accessibles.', symbol: 'exercise', action: 'Ouvrir les exercices', primary: true, kicker: 'PRÊT POUR UNE SÉRIE ?' })}</section><section class="wrap hub-weekly" aria-labelledby="hub-weekly-heading"><div id="hub-weekly-content" aria-live="polite" aria-atomic="false"></div></section><section class="wrap hub-practice-grid" aria-label="Résultats et organisation">${linkCard({ href: 'tableau-de-bord.html', title: 'Tableau de bord', description: 'Retrouve tes résultats et les notions à retravailler à partir de tes réponses enregistrées.', symbol: 'chart', action: 'Consulter mes résultats' })}${linkCard({ href: 'calendrier.html', title: 'Calendrier', description: 'Organise tes révisions avec ton emploi du temps et les périodes d’examen.', symbol: 'calendar', action: 'Ouvrir le calendrier' })}</section>`;
   const summary = root.querySelector('#hub-weekly-content');
   let lastMarkup = '';
+  let retrying = false;
   function refresh() {
     if (!root.isConnected) return;
     const markup = weeklySummary(new Date(), snapshot);
@@ -121,8 +121,29 @@ export function initPracticeHub(root) {
       lastMarkup = markup;
     }
   }
-  root.addEventListener('click', event => {
-    if (event.target.closest('[data-refresh-week]')) refresh();
+  root.addEventListener('click', async event => {
+    const button = event.target.closest('[data-refresh-week]');
+    if (!button || retrying) return;
+    if (!service) {
+      if (snapshot.sync.state !== 'loading') location.reload();
+      return;
+    }
+    const restoreFocus = document.activeElement === button;
+    retrying = true;
+    button.disabled = true;
+    try {
+      if (snapshot.mode !== 'visitor') await service.retry();
+    } catch { /* Keep the unavailable state and allow another attempt. */ }
+    finally {
+      retrying = false;
+      if (!signal.aborted) {
+        button.disabled = false;
+        refresh();
+        if (restoreFocus && document.activeElement === document.body) {
+          (summary.querySelector('[data-refresh-week]') || summary.querySelector('h2')).focus({ preventScroll: true });
+        }
+      }
+    }
   }, { signal });
   window.addEventListener('storage', event => {
     if (event.key === DRILL_STORAGE_KEY || event.key === null) refresh();
@@ -132,14 +153,22 @@ export function initPracticeHub(root) {
   }, { signal });
   const timer = window.setInterval(() => { if (!document.hidden) refresh(); }, 60000);
   signal.addEventListener('abort', () => window.clearInterval(timer), { once: true });
-  getDrillSyncService().then(value => {
+  import('./drill-sync-service.js').then(({ getDrillSyncService }) => getDrillSyncService()).then(value => {
     if (signal.aborted) { value.stop(); return; }
     service = value;
     const unsubscribe = service.subscribe(state => { snapshot = state; refresh(); });
     signal.addEventListener('abort', () => { unsubscribe(); service.stop(); }, { once: true });
-  }).catch(() => { snapshot = { mode: 'blocked', sync: { state: 'session' } }; refresh(); });
-  window.addEventListener('pagehide', () => controller.abort(), { once: true });
-  window.addEventListener('pageshow', event => { if (event.persisted) location.reload(); }, { signal });
+  }).catch(() => {
+    if (!signal.aborted) { snapshot = { mode: 'blocked', sync: { state: 'session' } }; refresh(); }
+  });
+  window.addEventListener('pagehide', event => {
+    controller.abort();
+    if (!event.persisted) return;
+    if (snapshot.mode === 'personal') summary.replaceChildren();
+    // The pagehide signal has stopped the service. Keep the back/forward
+    // restoration listener alive so the page verifies the source again.
+    window.addEventListener('pageshow', () => location.reload(), { once: true });
+  }, { once: true, signal });
   refresh();
 }
 

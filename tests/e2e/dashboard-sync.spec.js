@@ -19,7 +19,7 @@ function personal(state = 'synced', { count = 2, account = 'A', history = false 
     sync: { state, pending: state === 'pending' ? 2 : 0,
       conflicts: state === 'conflict' ? [{ resolved: false }] : [], error: null } };
 }
-async function mount(page, snapshot, query = '') {
+async function installDrillFixture(page, snapshot) {
   await page.clock.install({ time: now });
   await page.route('**/assets/drill-sync-service.js*', route => route.fulfill({ contentType: 'text/javascript', body: `
     const listeners = new Set(); let state = ${JSON.stringify(snapshot)};
@@ -38,11 +38,27 @@ async function mount(page, snapshot, query = '') {
       stop() { listeners.clear(); }
     }; }
   ` }));
+}
+async function mount(page, snapshot, query = '') {
+  await installDrillFixture(page, snapshot);
   await page.goto(`/tableau-de-bord.html${query}`);
   await expect(page.locator('#dashboard-sync-status')).not.toContainText('Chargement de la session');
 }
 const completed = page => page.locator('.dashboard-metrics > div').filter({ has: page.locator('dt', { hasText: 'Exercices réalisés' }) }).locator('dd');
 const emit = (page, snapshot) => page.evaluate(value => window.dashboardFixture.emit(value), snapshot);
+
+test('S’exercer relance la lecture personnelle après une panne de stockage', async ({ page }) => {
+  const unavailable = personal('storage-error');
+  unavailable.view = { ...emptyView, error: 'Erreur de stockage synthétique' };
+  await installDrillFixture(page, unavailable);
+  await page.goto('/s-exercer.html');
+  await expect(page.locator('#hub-weekly-content')).toContainText('Erreur de stockage synthétique');
+  await page.evaluate(next => { window.dashboardFixture.next = next; }, personal());
+  await page.getByRole('button', { name: 'Réessayer la lecture' }).press('Enter');
+  await expect(page.locator('.hub-weekly-metrics dd').first()).toHaveText('2');
+  await expect(page.getByRole('heading', { name: 'Cette semaine' })).toBeFocused();
+  expect(await page.evaluate(() => window.dashboardFixture.retries)).toBe(1);
+});
 
 test('cache personnel, attente et conflits restent comptés ; un réessai récupère les nouvelles réponses', async ({ page }) => {
   await mount(page, personal('pending'));

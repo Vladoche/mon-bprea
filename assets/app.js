@@ -1,26 +1,32 @@
 import { units, lessons } from './content.js';
-import { initResources, initCourseResources, initUnitResources } from './resource-library.js';
-import { initCalendar } from './calendar.js';
-import { getCourseQuizService } from './course-quiz-service.js';
 import { initCourseQuizNotice } from './course-quiz-ui.js';
 import { renderQuizPage, renderQuizResult, quizSaveStatus } from './course-quiz-page.js';
 import { validAttempt } from './course-quiz-model.js';
-import { initDrill } from './drill.js';
-import { initDashboard } from './dashboard.js';
 import { initNavigation } from './navigation.js';
-import { renderBreadcrumbs } from './breadcrumbs.js';
 import { renderUnit, renderCourse, initCourseReading } from './learning-pages.js';
 import { learningOverview } from './learning-overview.js';
 import { initHome, initCourseHub, initPracticeHub, initToolsHub, updateLearningOverview } from './section-hubs.js';
 import { initAppearance } from './appearance.js';
-import { initBotanical } from './botanical.js';
 import { initFooter } from './footer.js';
-import { initAuthPage } from './auth-pages.js';
+
+const loadAuthPage = () => import('./auth-pages.js').then(module => module.initAuthPage);
+const pageLoaders = {
+  itk: () => import('./itk.js').then(({ initItk }) => root => initItk(root, icon)),
+  resources: () => import('./resource-library.js').then(module => module.initResources),
+  calendar: () => import('./calendar.js').then(module => module.initCalendar),
+  drill: () => import('./drill.js').then(module => module.initDrill),
+  dashboard: () => import('./dashboard.js').then(module => module.initDashboard),
+  botanical: () => import('./botanical.js').then(module => module.initBotanical),
+  'auth-login': loadAuthPage,
+  'auth-reset': loadAuthPage,
+  'auth-callback': loadAuthPage,
+  profile: loadAuthPage,
+};
+const startCourseQuiz = () => import('./course-quiz-service.js').then(({ getCourseQuizService }) => getCourseQuizService());
 
 const params = new URLSearchParams(location.search);
 const $ = (selector, root=document) => root.querySelector(selector);
 const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
-const BASE = './';
 let progress = {};
 let courseQuizService;
 let progressState = { mode: 'blocked', scope: null, view: { progress: {}, error: 'Vérification de la source des cours et QCM…' }, sync: { state: 'loading' } };
@@ -29,9 +35,6 @@ let refreshProgressUI = () => {};
 const progressAvailable = () => progressState.mode !== 'blocked' && !progressState.view.error && progressState.sync.state !== 'session';
 const progressSource = () => progressState.mode === 'personal' ? 'Historique personnel du compte' : 'Historique local de cet appareil';
 const clean = value => String(value).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
-const unitUrl = id => `uc.html?id=${encodeURIComponent(id)}`;
-const lessonUrl = id => `cours.html?id=${encodeURIComponent(id)}`;
-const quizUrl = id => `exercices.html?id=${encodeURIComponent(id)}`;
 const isDone = id => !!progress[id]?.done;
 const pct = (a,b) => b ? Math.round(a/b*100) : 0;
 
@@ -66,17 +69,24 @@ function header() {
   document.title = `${title} · Mon BPREA`;
 }
 function home() { initHome($('#app-main')); }
+function showAssociatedResourceError(root) {
+  root.innerHTML = '<p class="library-notice" role="alert">Les ressources associées sont indisponibles. Recharge la page pour réessayer ou ouvre la <a href="ressources.html">bibliothèque documentaire</a>.</p>';
+}
 function unit() {
   const u = units.find(item => item.id === params.get('id')) || units[2];
   $('#app-main').innerHTML = renderUnit(u, lessons, icon);
-  initUnitResources($('#unit-resources'), u);
+  const resources = $('#unit-resources');
+  import('./resource-library.js').then(({ initUnitResources }) => initUnitResources(resources, u))
+    .catch(() => showAssociatedResourceError(resources));
 }
 function course() {
   const l = lessons.find(item => item.id === params.get('id')) || lessons[0];
   const u = units.find(item => item.id === l.unit);
   $('#app-main').innerHTML = renderCourse(l, u, lessons, icon);
   initCourseReading($('#app-main'));
-  initCourseResources($('#course-resources'), l);
+  const resources = $('#course-resources');
+  import('./resource-library.js').then(({ initCourseResources }) => initCourseResources(resources, l))
+    .catch(() => showAssociatedResourceError(resources));
   const checkbox = $('#mark-done');
   let savingCourse = false, requestedDone = null, savingEpoch = null;
   refreshProgressUI = () => {
@@ -96,8 +106,8 @@ function course() {
     checkbox.disabled = true;
     $('#done-state').textContent = 'Enregistrement sur cet appareil…';
     const result = await courseQuizService.setCourseDone(l.id, requestedDone);
-    savingCourse = false;
     if (epoch !== progressEpoch) return;
+    savingCourse = false;
     refreshProgressUI();
     if (result.error) $('#done-state').textContent = `Erreur de sauvegarde : ${result.error}`;
     if (restoreFocus && [document.body,checkbox].includes(document.activeElement)) checkbox.focus({ preventScroll: true });
@@ -212,16 +222,19 @@ function quizzes() {
   });
   retry.addEventListener('click', () => { if (!saving) { reset(); refreshProgressUI(); $('input',form)?.focus({ preventScroll: true }); } });
 }
-function dashboard(){
-  const root=$('#app-main');
-  return initDashboard(root).catch(()=>{
-    const panel=document.createElement('section');
-    panel.className='wrap dashboard-empty';
-    panel.setAttribute('role','alert');
-    const title=document.createElement('h1');title.textContent='Tableau de bord indisponible';
-    const message=document.createElement('p');message.textContent='La source des résultats ne peut pas être vérifiée. Recharge la page pour réessayer. Les données enregistrées sont conservées.';
-    panel.append(title,message);root.replaceChildren(panel);
-  });
+function showPageError(root, page) {
+  const dashboard = page === 'dashboard';
+  const panel = document.createElement('section');
+  panel.className = dashboard ? 'wrap dashboard-empty' : 'page-top wrap';
+  panel.setAttribute('role', 'alert');
+  const title = document.createElement('h1');
+  title.textContent = dashboard ? 'Tableau de bord indisponible' : 'Page indisponible';
+  const message = document.createElement('p');
+  message.textContent = dashboard
+    ? 'La source des résultats ne peut pas être vérifiée. Recharge la page pour réessayer. Les données enregistrées sont conservées.'
+    : 'Le contenu ne peut pas être chargé. Recharge la page pour réessayer.';
+  panel.append(title, message);
+  root.replaceChildren(panel);
 }
 function updateProgressElements() {
   const available = progressAvailable();
@@ -241,18 +254,29 @@ function updateProgressElements() {
 async function init(){
   header();
   const page=document.body.dataset.page;
+  const main = $('#app-main');
   const usesProgress = ['home', 'courses', 'uc', 'course', 'quiz'].includes(page);
   if (usesProgress) {
-    $('#app-main').innerHTML = '<section class="page-top wrap"><h1>Chargement des cours et QCM</h1><p role="status">Vérification de la source de progression…</p></section>';
-    try { courseQuizService = await getCourseQuizService(); progressState = courseQuizService.getState(); }
+    main.innerHTML = '<section class="page-top wrap"><h1>Chargement des cours et QCM</h1><p role="status">Vérification de la source de progression…</p></section>';
+    try { courseQuizService = await startCourseQuiz(); progressState = courseQuizService.getState(); }
     catch { progressState.view.error = 'La source de progression est indisponible. Les données enregistrées sont conservées.'; }
     progress = progressAvailable() ? progressState.view.progress : {};
   } else if (page === 'profile') {
     // Continue draining the learning outbox when visiting the account page.
-    const learning = getCourseQuizService().catch(() => null);
+    const learning = startCourseQuiz().catch(() => null);
     window.addEventListener('pagehide', () => { learning.then(service => service?.stop()); }, { once: true });
   }
-  ({home,courses:()=>initCourseHub($('#app-main')),practice:()=>initPracticeHub($('#app-main')),tools:()=>initToolsHub($('#app-main')),uc:unit,course,quiz:quizzes,itk:()=>import('./itk.js').then(({ initItk }) => initItk($('#app-main'), icon)),resources:()=>initResources($('#app-main')),calendar:()=>initCalendar($('#app-main')),drill:()=>initDrill($('#app-main')),dashboard,botanical:()=>initBotanical($('#app-main')),'auth-login':()=>initAuthPage(),'auth-reset':()=>initAuthPage(),'auth-callback':()=>initAuthPage(),profile:()=>initAuthPage()}[page]||home)();
+  if (Object.hasOwn(pageLoaders, page)) {
+    try {
+      const render = await pageLoaders[page]();
+      // Start the page shell before the footer, including on modules with a
+      // later asynchronous read of their own data.
+      Promise.resolve(render(main)).catch(() => showPageError(main, page));
+    } catch { showPageError(main, page); }
+  } else {
+    const render = { home, courses: initCourseHub, practice: initPracticeHub, tools: initToolsHub, uc: unit, course, quiz: quizzes }[page] || home;
+    render(main);
+  }
   // Render the expanded footer after the initial page content. Hydrating it
   // before the course source resolves briefly filled the viewport with footer
   // links, then displaced the whole surface when the page became available.
