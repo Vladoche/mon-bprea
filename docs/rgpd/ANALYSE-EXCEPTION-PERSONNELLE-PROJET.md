@@ -1,8 +1,8 @@
 # Activité personnelle ou RGPD applicable — analyse ciblée
 
-**5 novembre 2026, lot 6.5.5.D. Choix du cadre RGPD approuvé par l’exploitant.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA-SIX-ADULTES.md). Sept comptes confirmés, exploitant et six autres adultes, adultes invités, service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
+**5 novembre 2026, lot 6.5.5.D. Choix du cadre RGPD approuvé par l’exploitant.** D02/D09 sont actées dans le [cadrage courant](CADRAGE-MON-BPREA.md). L’analyse portait alors sur sept places, exploitant et six autres adultes invités, dans un service personnel volontaire, gratuit, non commercial et indépendant jusqu'au 30 juin 2027.
 
-La décision du 20 novembre porte le plafond à dix comptes (exploitant inclus). Le choix du cadre RGPD demeure celui de D01. [Cadrage actualisé](CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté).
+La décision du 20 novembre porte le plafond à dix comptes (exploitant inclus). Le choix du cadre RGPD demeure celui de D01. [Cadrage actualisé](CADRAGE-MON-BPREA.md#périmètre-acté).
 
 ## Sources officielles et portée
 

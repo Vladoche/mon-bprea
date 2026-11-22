@@ -1,5 +1,17 @@
 # Authentification et profils — lot 6.1
 
+## Contrat courant
+
+L’espace personnel est accessible par invitation administrative. La création
+autonome de comptes et l’authentification anonyme restent fermées. Le
+[cadrage](../rgpd/CADRAGE-MON-BPREA.md#périmètre-acté) fixe le plafond administratif.
+Le [guide Admin Windows](../../tools/mon-bprea-admin/README.md) décrit les
+actions opérateur et l’[état du projet](../developpement/ETAT-DU-PROJET.md)
+les preuves datées de la cible hébergée. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
+porte la configuration publique effectivement servie.
+
+## Historique des réglages et qualifications
+
 **PROD configurée le 8 novembre 2026, après accord explicite de l’exploitant.** Projet `oqoqrxwfbkhtpksqimgd`, Mon BPREA PROD, région `eu-central-1`, organisation Free avec un seul membre Owner. Auth 2.197.0 disponible. Les réglages suivants ont été enregistrés puis relus dans le Dashboard ; l’API publique `/auth/v1/settings` confirme également la fermeture des inscriptions, l’absence d’anonyme/autre fournisseur et la confirmation e-mail.
 
 | Paramètre PROD | Valeur vérifiée |
@@ -14,9 +26,9 @@
 
 Les deux pages HTTPS ont répondu 200 sans redirection. Les deux tests négatifs expressément autorisés, exécutés une seule fois à 08:06 UTC avec le SDK verrouillé et des données synthétiques, ont répondu HTTP 422 : `signup_disabled` et `anonymous_provider_disabled`. Avant et après, SQL confirme zéro compte, identité, session et profil, et les dix tables métier vides. Aucun lien administratif réel, invitation ou envoi SMTP ; aucune migration ni publication Pages. Le changement sécurisé d’e-mail reste actif ; `secure_password_change` et l’exigence du mot de passe courant restent désactivés, sans modification dans ce mandat. Le minimum de 12 caractères est relu dans la configuration ; aucun compte PROD n’a été créé pour tester un changement de mot de passe.
 
-L’[exécuteur PROD distinct](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md#exécuteur-prod-séparé) est préparé pour une utilisation ultérieure individuellement autorisée ; les outils locaux gardent leurs verrous. La configuration publique PROD préparée dans `.tmp/prod-auth-20261108/auth-config.production.json` a été reconnue par `/auth/v1/settings` en lecture le 8 novembre ; aucun compte ni jeton créé. La copie locale de publication active Auth avec ces cinq paramètres, sans changer le défaut `assets/auth-config.json` désactivé. Le workflow proposé exige une publication manuelle, la cible PROD exacte et l’approbation de la notice ; [paramètres et procédure](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#publication-pages-avec-auth-prod). La publication, la recette invitée hébergée et l’ouverture restent à autoriser et qualifier selon la [matrice](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md).
+L’[exécuteur PROD distinct](../deploiement/INVITATIONS-ET-RECUPERATION-MANUELLES.md#exécuteur-prod-séparé) est préparé pour une utilisation ultérieure individuellement autorisée ; les outils locaux gardent leurs verrous. La configuration publique PROD préparée dans `.tmp/prod-auth-20261108/auth-config.production.json` a été reconnue par `/auth/v1/settings` en lecture le 8 novembre ; aucun compte ni jeton créé. La copie locale de publication active Auth avec ces cinq paramètres, sans changer le défaut `assets/auth-config.json` désactivé. À ce stade du 8 novembre, la publication, la recette invitée et l’ouverture restaient des décisions distinctes. Les publications ultérieures figurent au registre Pages.
 
-**Admin V2, 17 novembre 2026, non fusionné :** l’application Windows propose
+**Qualification Admin V2 du 17 novembre 2026, code fusionné via #67 :** l’application Windows propose
 création, récupération et suppression avec configuration du poste intégrée et
 clé mémorisée automatiquement dans le coffre Windows. Les liens et résultats
 sensibles sont protégés par DPAPI ; les journaux durables restent partagés avec
@@ -43,7 +55,7 @@ Le lot 6.3.2 réutilise cette même frontière Auth pour la [synchronisation per
 
 Le lot 6.2.2 réutilise ce service pour la [synchronisation personnelle du Drill](DRILL-SYNCHRONISATION-CLIENT.md), avec vérification de session avant chaque accès distant et JWT fixé par requête. Il ajoute un état `offline` limité à une identité locale déjà vérifiée (UUID/session_id correspondants), sans autorisation distante ; toute identité incertaine masque le cache. La déconnexion invalide immédiatement les vues et requêtes, puis appelle le SDK, sans effacer la progression. Les profils et RLS restent inchangés ; le flux d’invitation courant est décrit ci-dessous.
 
-Le frontend reste un site statique servi par GitHub Pages. Supabase Auth gère les comptes invités et les sessions ; PostgreSQL protège les profils avec des privilèges de colonnes et des politiques RLS. Les cours et outils restent publics. Les exercices, le Tableau de bord, les ITK, les préférences et les historiques botaniques ne sont pas synchronisés dans ce lot.
+Dans le lot initial 6.1, Supabase Auth gérait les comptes invités et les sessions. PostgreSQL protégeait le profil par privilèges de colonnes et RLS. Les cours et outils restaient publics. Pour les synchronisations livrées depuis, voir les [contrats par domaine](ARCHITECTURE.md#stockage-et-conservation-des-données).
 
 La configuration publique versionnée est **désactivée**. Aucun secret administratif ni client actif n’est fourni par le dépôt ; la référence publique PROD sert aux contrôles de cible de l’exécuteur. La présence du code et des tests ne vaut pas validation hébergée. Les opérations initiales et blocages historiques sont consignés dans [VALIDATION-LOT6-1.md](../archives/validations/VALIDATION-LOT6-1.md) ; le suivi courant figure en tête de ce document et dans la matrice de préouverture. L’ouverture aux participants exige toujours une validation explicite et les prérequis applicables.
 

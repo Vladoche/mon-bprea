@@ -1,5 +1,10 @@
 # Données personnelles — architecture et contrat backend du lot 6.3.1
 
+Ce contrat décrit le socle du lot 6.3.1. Pour le périmètre implémenté depuis,
+consulter les [contrats de synchronisation](ARCHITECTURE.md#stockage-et-conservation-des-données),
+le [contrat Parcours](ARCHITECTURE.md#mon-parcours-bprea) et les
+[migrations versionnées](../../supabase/migrations/).
+
 Ce lot prépare exclusivement le modèle PostgreSQL, sa sécurité et les contrats des futurs clients. Aucun adaptateur de synchronisation cours/QCM, botanique, ITK ou apparence n'est ajouté au site. Les clés locales, les calculs pédagogiques et le défaut Auth public désactivé restent inchangés. DEV et PROD ne sont pas des cibles de test ou de migration de ce lot.
 
 ## 1. Audit préalable : faits observés dans le dépôt

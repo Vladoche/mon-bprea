@@ -1,5 +1,10 @@
 # Reprise de la recette DEV — lot 6.5.4.C
 
+**Référence historique de campagne.** Ce runbook conserve les conditions du run DEV repris jusqu’au 4 novembre 2026 et les étapes restées sans mandat.
+L’[état du projet](../developpement/ETAT-DU-PROJET.md) porte les priorités
+actuelles. Toute nouvelle opération hébergée exige un mandat et une vérification
+de sa cible.
+
 **4 novembre 2026 — C2 exécutée et fermée : correctif JSON validé contre DEV au frontend local 5c910b748fae0b7747c8192424e7ecd49c86a520.** T03/T08/T10/T12 réussis ; expiration JWT T11 **NON EXÉCUTÉE**, report choisi explicitement par l'exploitant. [Bilan actuel, SHA et preuves](../archives/validations/VALIDATION-LOT6-5-4C.md). Compteurs cumulés **3/3 liens, 29/60 Auth, 104/140 tentatives** ; **36 lignes** conservées (26 A/10 B). Aucun nouveau compte/lien, nettoyage, déploiement ou changement Auth/RLS.
 
 ## État actuel à conserver

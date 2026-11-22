@@ -1,14 +1,15 @@
 # Décisions et preuves encore nécessaires avant ouverture privée
 
-**6 novembre 2026 · lot 6.5.5.G.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu du 5 novembre](../rgpd/RECU-ARBITRAGES-2026-11-05.md). D12 est approuvée dans le périmètre recetté par D, E et F. La capacité examinée le 6 novembre était de sept comptes. Le [cadrage du 20 novembre](../rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté) fixe dix comptes, dont un exploitant et neuf participants. [Reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md).
+**6 novembre 2026 · lot 6.5.5.G.** Le cadre RGPD, le responsable, les bases R01–R05, le contact, le screening et les durées de conservation sont consignés dans le [reçu du 5 novembre](../rgpd/RECU-ARBITRAGES-2026-11-05.md). D12 est approuvée dans le périmètre recetté par D, E et F. La capacité examinée le 6 novembre était de sept comptes. Le [cadrage du 20 novembre](../rgpd/CADRAGE-MON-BPREA.md#périmètre-acté) fixe dix comptes, dont un exploitant et neuf participants. [Reçu D12](../rgpd/RECU-ARBITRAGE-D12-2026-11-06.md), [matrice des quinze P0](PLAN-PREOUVERTURE-PRIVEE.md).
 
 ## Actions actuelles
 
-Au 16 novembre, les portes préparatoires ont des preuves du 8 novembre : notice V1.1 publiée, rattachement fournisseur, premier compte, sauvegarde applicative et circuit de clôture qualifiés dans leurs périmètres. Ne pas les redemander comme s’ils n’avaient jamais été réalisés. L’[état du projet](../developpement/ETAT-DU-PROJET.md) centralise le code, la publication et les limites ; la [matrice](PLAN-PREOUVERTURE-PRIVEE.md) conserve les décisions.
-
-Restent à traiter selon mandat : fraîcheur actuelle de sauvegarde à contrôler par l’opérateur, décisions d’ouverture/invitations individuelles, publication du code fusionné si autorisée et recettes résiduelles (récupération réelle, réseau contrôlé, isolation A/B hébergée non qualifiées). Les limites de reprise Auth/hébergée et de suppression PROD dans Admin V1.2 ne sont pas levées.
-
-La [fiche d’approbation de la notice V1.2](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation) et le [plan 2027](PLAN-PUBLICATION-2027.md) portent les décisions propres à la prochaine publication.
+Les preuves préparatoires du 8 novembre gardent le périmètre de leur campagne.
+Avant l’accueil des participants, suivre le
+[chemin de préouverture](PLAN-PREOUVERTURE-PRIVEE.md#chemin-indispensable-avant-ouverture)
+et les [prochaines actions](../developpement/ETAT-DU-PROJET.md#f--prochaines-actions).
+Le [plan de publication](PLAN-PUBLICATION-2027.md) porte les décisions propres
+à la mise en service d’une nouvelle version.
 
 ## Liste historique du 6 novembre
 
@@ -19,7 +20,7 @@ Les étapes ci-dessous décrivent la préparation d’alors, sans réouvrir les 
 | Information préalable | Valider le circuit final et la preuve minimale de remise de la notice avant collecte. Appliquer la règle D12 approuvée sur les résidus locaux et son suivi du volume. [D12](../rgpd/ANALYSE-STOCKAGES-NAVIGATEUR-D12.md) |
 | Conditions des prestataires et transferts | Rattacher conditions et DPA à l’organisation cible, confirmer l’offre et la région, puis vérifier la chaîne de services et le circuit manuel. Les durées exhaustives des journaux et le datacenter précis du webmail sont des limites documentées. [Preuves PF-01 à PF-03](../rgpd/FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes) |
 | Notice et publication | Relire les écarts substantiels et approuver la V1.1 résultante. Autoriser ensuite la publication statique de la version retenue et son contrôle public. [Spécification](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md) |
-| Limites de reprise et clôture | Accepter la reprise applicative partielle. Vérifier copie actuelle, fraîcheur, restauration isolée et journal d’effacements, chaîne opérateur de clôture et suivi des copies. [Procédures](EXPLOITATION-PRIVEE-SIX-ADULTES.md) |
+| Limites de reprise et clôture | Accepter la reprise applicative partielle. Vérifier copie actuelle, fraîcheur, restauration isolée et journal d’effacements, chaîne opérateur de clôture et suivi des copies. [Procédures](EXPLOITATION-PRIVEE.md) |
 | Cible et autorisations techniques | Choisir la cible, vérifier accès/roles/MFA et réglages, traiter les réserves C2 et prévoir exécuteur de liens et retour arrière. Activation et invitations relèvent de décisions distinctes. [Plan](PLAN-PREOUVERTURE-PRIVEE.md) |
 
 ## Interventions à délimiter par mandat (historique du 6 novembre)

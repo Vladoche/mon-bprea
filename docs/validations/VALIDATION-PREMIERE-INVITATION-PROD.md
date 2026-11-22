@@ -74,7 +74,7 @@ contenus, index, contraintes, routines, triggers applicatifs, RLS et droits.
 Les UUID locaux servent aux dépendances SQL. Auth, identités, sessions, jetons,
 Storage, Vault, secrets, réglages hébergés, journaux fournisseur et données non
 synchronisées restent hors portée. Le RTO hébergé reste à qualifier.
-[Preuve et rétention historiques](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#point-de-reprise-applicatif-du-8-novembre-2026).
+[Preuve et rétention historiques](../deploiement/EXPLOITATION-PRIVEE.md#point-de-reprise-applicatif-du-8-novembre-2026).
 
 ## Recette du code et du binaire
 

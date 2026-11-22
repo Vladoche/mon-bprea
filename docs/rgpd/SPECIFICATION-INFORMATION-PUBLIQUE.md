@@ -1,16 +1,21 @@
 # Information publique et publication de la notice
 
-**8 novembre 2026. V1.1 approuvée explicitement et publiée ; Auth PROD effectivement servie.** Le texte exact du 08/11 n’a pas changé depuis #50. Après l’échec initial #63, le correctif #51 a été fusionné humainement, puis un nouvel accord explicite a autorisé #64 sur `main` à `3952fd5a98705397bb341dc1fa54e0e8f92979d8`. Le déploiement et les contrôles HTTP/navigateur ont réussi. Le rattachement fournisseur est établi par lecture ciblée et attestation du titulaire : [PF-01 à PF-03](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes). Aucun compte n’a été créé ; activation et persistance avec session restent à qualifier séparément. [Matrice courante](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md).
+Le [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) décrit la
+procédure opérateur. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
+porte les exécutions et la version effectivement servie.
 
 ## Version préparée et approuvée
 
-La **V1.2 du 20 novembre 2026** a été approuvée par le responsable du traitement
-le même jour à **08:27:51 CET** pour l’empreinte SHA-256 LF
-`097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57`.
-La preuve privée `NOTICE-V12-20261120` est référencée dans la
-[validation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md). Publication 2027 non autorisée.
+La V1.2 a été approuvée le **20 novembre 2026 à 08:27:51 CET** pour l’empreinte
+SHA-256 LF `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57`.
+La [validation de l’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md)
+référence la preuve privée `NOTICE-V12-20261120`. La V1.2 est servie par Pages #67.
 
-La [source versionnée](POLITIQUE-CONFIDENTIALITE-PROJET.md) produit [confidentialite.html](../../confidentialite.html) avec `npm run build:privacy-notice`. `node scripts/build-privacy-notice.mjs --check` compare le rendu versionné au texte et imprime son empreinte SHA-256 avec fins de ligne LF. Cette empreinte lie l’approbation humaine au texte exact ; un changement de texte exige une nouvelle approbation. Le statut d’approbation reste dans cette fiche et la matrice, sans présenter une notice « en préparation » comme une politique validée sur le site. La présence du fichier dans la PR n’autorise pas sa publication.
+Sur main, la **V1.4 est candidate**. Elle reprend la capacité de la V1.3
+intermédiaire et couvre les préférences de « Mon parcours BPREA ». Toute
+approbation doit porter sur l’empreinte du texte au SHA retenu.
+
+La [source versionnée](POLITIQUE-CONFIDENTIALITE-PROJET.md) produit [confidentialite.html](../../confidentialite.html) avec `npm run build:privacy-notice`. `node scripts/build-privacy-notice.mjs --check` compare le rendu versionné au texte et imprime son empreinte SHA-256 avec fins de ligne LF. Cette empreinte lie l’approbation humaine au texte exact ; un changement de texte exige une nouvelle approbation. Cette fiche consigne la version candidate et l’approbation datée. La version publique se contrôle sur le site et dans le registre Pages. La présence du fichier dans la PR n’autorise pas sa publication.
 
 La page publique est statique et autonome : sommaire, liens et contact fonctionnent sans JavaScript ni compte. Elle réutilise les styles et la préférence d’apparence de l’appareil via `theme-init.js`, sans client Auth. Sans JavaScript elle suit le mode système. `npm run preopening:notice` conserve un aperçu privé autonome sans script, marqué comme aperçu non approuvé. Les liens externes n’ouvrent leur destination qu’au clic.
 
@@ -36,7 +41,7 @@ Ces liens sont intégrés dans les sources et la copie de publication locale. Le
 
 ## Publication Pages avec Auth PROD
 
-Les décisions et preuves ci-dessous concernent la V1.1 du 8 novembre. Pour le texte révisé du profil 2027, utiliser la [fiche d’approbation de la V1.2](../validations/CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation).
+Les décisions et preuves ci-dessous concernent la V1.1 du 8 novembre. Pour les versions suivantes, voir la [version préparée et approuvée](#version-préparée-et-approuvée).
 
 Le [workflow](../../.github/workflows/deploy.yml), **fusionné par #50**, ne se déclenche plus sur push : une fusion ne publie plus Pages. Seul un `workflow_dispatch` sur `main`, avec `publish_auth_production=true` et le SHA-256 LF de la notice expressément approuvée, peut publier. La confirmation est désactivée par défaut. Un lancement exige son autorisation explicite ; aucune fusion par Codex. Les anciens workflows et anciennes versions restent à éviter ; ces contrôles s’appliquent au workflow modifié sur `main`.
 

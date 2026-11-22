@@ -1,5 +1,10 @@
 # Plan de recette hébergée DEV
 
+**Référence historique de campagne.** Ce plan conserve les hypothèses, décisions et limites de la campagne DEV d’octobre et novembre 2026.
+L’[état du projet](../developpement/ETAT-DU-PROJET.md) porte les priorités
+actuelles. Toute nouvelle opération hébergée exige un mandat et une vérification
+de sa cible.
+
 **Suivi 6.5.4.C, 4 novembre 2026 :** [bilan C2](../archives/validations/VALIDATION-LOT6-5-4C.md), [état à reprendre](RUNBOOK-REPRISE-DEV-6-5-4C.md). Correctif JSON validé avec le frontend local **5c910b7** contre Supabase DEV ; T03/T08/T10/T12 réussis. T11 expiration JWT **NON EXÉCUTÉE**, report choisi par l'exploitant. Banc fermé ; **3/3 liens, 29/60 Auth, 104/140 tentatives**, A/B et **36 lignes** conservés. Deux créations QCM/Drill d'origine confirmées, botanique bloquée, cours récent et B préservés. D non autorisée ; aucun déploiement ou accord d'ouverture. Les matrices et états datés suivants restent historiques ; aucun budget remis à zéro ni sous-cas manquant déclaré acquis.
 
 **Suivi 6.5.4.C, 31 octobre 2026 :** [résultats factuels](../archives/validations/VALIDATION-LOT6-5-4C.md), [procédure corrective](RUNBOOK-REPRISE-DEV-6-5-4C.md). R/C/C1 reçus, invitation B et récupération A réussies sur DEV ; 3/3 liens, 22/60 Auth et 102/140 tentatives consommés. Cinq créations restaurées, puis défaut JSON corrigé localement et en CI. **C2 non autorisée : choix de conserver la recette partielle**, aucune nouvelle exécution. D absent, A/B et 34 lignes présents. Matrice B et constats datés historiques conservés, aucun reset.

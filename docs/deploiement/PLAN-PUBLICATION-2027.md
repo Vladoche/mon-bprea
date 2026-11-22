@@ -1,24 +1,23 @@
 # Plan de publication Mon BPREA 2027
 
-**21 novembre 2026.** La refonte 2027 et la notice V1.2 sont servies par Pages #67.
-Ce plan s’applique au prochain cycle et à la future décision sur la V1.3 candidate. La
-[recette de préproduction](../validations/VALIDATION-RECETTE-FINALE-2027.md)
-porte le verdict de la campagne initiale. La
-[validation de l’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md)
-porte les contrôles complémentaires et le relevé de référence. Ce plan prépare
-une décision ultérieure de l’exploitant. Le [registre Pages](EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
-reste la source des publications effectives.
+Ce plan prépare le prochain cycle sous autorisation de l’exploitant. Le
+[registre Pages](EXPLOITATION-PRIVEE.md#registre-de-publication-pages) donne
+la version effectivement servie. La
+[recette de préproduction 2027](../validations/VALIDATION-RECETTE-FINALE-2027.md)
+et la [validation de l’approbation V1.2](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md)
+conservent les résultats de la campagne du 20 novembre.
 
 ## Phase A — Décision préalable
 
 | Prérequis | État et preuve à obtenir avant lancement |
 | --- | --- |
 | Version et revue | Consulter le [SHA vérifié et les changements fusionnés](../developpement/ETAT-DU-PROJET.md). Retenir le **SHA complet effectivement sur main**, vérifier les checks et comparer avec le SHA publié dans le registre Pages. Rejouer les vérifications affectées. [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md). |
-| Notice | **V1.3 candidate** avec le plafond corrigé. L’approbation de la [V1.2](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md) couvre son texte exact. Enregistrer l’approbation de l’empreinte V1.3 sur le SHA de livraison avant toute publication. Informer les personnes concernées avant application des changements importants. |
-| Sauvegarde et journal | Revalider le dernier point restaurable, son manifeste, le journal des effacements, les dépendances et l’âge sur le poste de l’exploitant. Le point applicatif des dix tables du **18/11/2026 à 13:09:16 CET** a été restauré à **13:09:41 CET** et arrive à échéance le **25/11/2026 à 13:09:16 CET**. Leur concordance a été vérifiée en local le 20/11 à 08:30 CET. Refaire le contrôle au lancement. [Relevé](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md#prérequis-et-réserves). Auth, Storage, sessions et données uniquement locales restent hors périmètre du point applicatif. [Qualification datée](../validations/VALIDATION-PREMIERE-INVITATION-PROD.md). |
-| Paramètres et accès | Relire le projet PROD autorisé et ses réglages dans le runbook, les deux variables publiques Actions, l’origine HTTPS et le callback exact. Le dernier contrôle opérateur daté du 18/11 reste une preuve historique. Le plafond de dix comptes, invitations en attente comprises, relève du circuit administratif. [Contrat Auth](../architecture/AUTHENTIFICATION.md). |
+| Notice | Vérifier la [version candidate et le rendu](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#version-préparée-et-approuvée) au SHA de livraison, recueillir l’approbation de son empreinte et informer les personnes concernées avant application des changements importants. |
+| Schéma applicatif | Pour publier le Parcours, vérifier que la cible correspond au SHA candidat et qualifier la [migration Parcours](../../supabase/migrations/20261121171000_create_parcours_preferences.sql), sa restauration et la synchronisation avec comptes fictifs. L’application de la migration sur PROD exige son propre accord. Le workflow Pages contrôle Auth et la notice. La concordance du schéma est un prérequis opérateur. |
+| Sauvegarde et journal | Vérifier sur le poste opérateur le [point restaurable au schéma courant](EXPLOITATION-PRIVEE.md#sauvegarde-hebdomadaire-et-rpo), ses empreintes, ses dépendances, le journal d’effacements et l’âge du snapshot. Traiter toute dérive avant décision. |
+| Paramètres et accès | Relire le projet PROD autorisé et ses réglages dans le runbook, les deux variables publiques Actions, l’origine HTTPS et le callback exact. Le dernier contrôle opérateur daté du 18/11 reste une preuve historique. Vérifier le [plafond administratif](../rgpd/CADRAGE-MON-BPREA.md#périmètre-acté), invitations en attente comprises. [Contrat Auth](../architecture/AUTHENTIFICATION.md). |
 | Liens individuels et droits | Admin 2.2 est qualifié pour le renouvellement local sur le même UUID. Le réglage PROD à 86 400 s et le renouvellement réel requièrent un mandat distinct. Confirmer le circuit de récupération et le traitement assisté des droits. La suppression depuis le binaire PROD reste bloquée. [Qualification Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md) · [Circuit droits](../rgpd/PROCEDURE-DEMANDES-ET-INCIDENTS-PROJET.md). |
-| Canal de contact | L’accès public et le lien de messagerie ont été vérifiés. Relire les preuves opérateur de maîtrise, protection, récupération, consultation et réception/réponse qui manquent au relevé local du 20/11. [Dossier opérateur et contact](EXPLOITATION-PRIVEE-SIX-ADULTES.md#dossier-opérateur-et-contact). |
+| Canal de contact | L’accès public et le lien de messagerie ont été vérifiés. Relire les preuves opérateur de maîtrise, protection, récupération, consultation et réception/réponse qui manquent au relevé local du 20/11. [Dossier opérateur et contact](EXPLOITATION-PRIVEE.md#dossier-opérateur-et-contact). |
 | Repli et réserves | Vérifier les conditions du repli ci-dessous, l’état du site réellement servi et le traitement des réserves. Préparer les parcours hébergés et le compte de l’exploitant si leur exercice est explicitement autorisé. |
 | Accord | L’exploitant date son accord sur le SHA de `main`, l’empreinte approuvée, le périmètre de recette connectée et la fenêtre de lancement. Consigner aussi la décision distincte d’accueil et d’invitations. |
 
@@ -61,7 +60,7 @@ reste la source des publications effectives.
 
 ## Retour arrière frontend
 
-**Référence observée** — workflow [#64](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393),
+**Repli répété localement lors de la campagne du 20 novembre** — workflow [#64](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393),
 succès le **08/11/2026 à 15:34:30 UTC** sur
 `3952fd5a98705397bb341dc1fa54e0e8f92979d8`. L’API de ce run renvoie zéro
 artefact téléchargeable au relevé du 20/11. La recette a reconstruit le repli

@@ -5,6 +5,9 @@ confirmation de restauration JSON sont retirés du profil partagé. Les tests
 chargent l’interface historique sur leur page dédiée. Le profil propose
 l’import volontaire des cours et QCM depuis l’historique visiteur du
 navigateur. [Synchronisation des cours et QCM](COURSE-QUIZ-SYNCHRONISATION-CLIENT.md).
+Sur main, une copie du [Parcours](ARCHITECTURE.md#mon-parcours-bprea) peut
+préparer un brouillon pour le même compte. Un enregistrement explicite ultérieur
+est nécessaire pour le synchroniser.
 
 **Suivi 6.5.4.C, 4 novembre 2026 :** [correctif validé contre DEV](../archives/validations/VALIDATION-LOT6-5-4C.md) au frontend servi localement **5c910b748fae0b7747c8192424e7ecd49c86a520**. Le JSON original intact est analysé/annulé sans écriture, puis ses deux intentions compatibles QCM/Drill sont confirmées serveur sous leurs UUID/corps d'origine ; double clic, reload et réimport sans doublon. Réponse botanique toujours bloquée par sa dépendance ; cours récent révision 6, séries et archives préservés. Refus A sous B, séparation A→B→A et barrière après retrait du seul cache ITK synthétique vérifiés. Contrats v1/SQL/privacy inchangés. T11 expiration JWT reportée et **NON EXÉCUTÉE** ; D non autorisée, aucune validation de restauration globale ou ouverture du service.
 
@@ -52,7 +55,7 @@ La couverture distingue source présente, limitée, absente, exclue, illisible e
 
 [restore-service.js](../../assets/restore-service.js) utilise `getExportIdentity()` du service Auth partagé : `getUser()` réseau frais. Ni l'e-mail, ni l'UUID du fichier, ni une session seulement locale ne suffisent. Compte, génération Auth, environnement et origine Supabase doivent correspondre à `sourceScope`. La portée reste `JSON.stringify([environment, supabaseOrigin, UUIDAuth])`. Le v1 ne contient pas l'origine du site ou de l'ancien appareil : leur provenance n'est pas certifiée au-delà de cette portée applicative.
 
-L'analyse lit le fichier en mémoire, les dix tables via le transport d'export paginé et les quatre records via `readScopedSnapshot()`. Celui-ci lit `accounts` et `privacy` dans une transaction readonly, sans créer/migrer une base absente. Deux passes identiques sont exigées, sur trois au maximum. Une panne distante est indisponible, jamais zéro ligne. Aucun repository écrivain, nouvelle opération, notification ou démarrage de synchronisation ne résulte de cette phase. Une synchronisation déjà active peut faire évoluer les sources et imposer une nouvelle analyse.
+L'analyse lit le fichier en mémoire, les tables prévues par le [contrat d’export](EXPORT-DONNEES-PERSONNELLES.md) via le transport paginé et les records présents via `readScopedSnapshot()`. Celui-ci lit `accounts` et `privacy` dans une transaction readonly, sans créer/migrer une base absente. Deux passes identiques sont exigées, sur trois au maximum. Une panne distante est indisponible, jamais zéro ligne. Aucun repository écrivain, nouvelle opération, notification ou démarrage de synchronisation ne résulte de cette phase. Une synchronisation déjà active peut faire évoluer les sources et imposer une nouvelle analyse.
 
 [restore-plan.js](../../assets/restore-plan.js) travaille sur des clones. Il prépare les actions et un résumé par domaine : récupérables, déjà présentes, conflits, ignorées et non restaurables. L'aperçu donne date, taille et portée vérifiée sans UUID/e-mail. Les abonnés ne reçoivent que les compteurs, statuts et codes fixes, jamais les payloads ou le fichier privé.
 
@@ -76,7 +79,7 @@ Catégories distinctes : déjà présentes, récupérées dans le cache, confirm
 
 Le plan reste en mémoire et disparaît à l'annulation/changement d'identité/rechargement. Aucun plan durable ne contourne l'effacement. Une opération autorisée déjà envoyée peut atteindre SQL malgré l'annulation ; une nouvelle analyse contrôle alors l'état réel. Les vues de l'ancien compte sont immédiatement retirées.
 
-**Aucune transaction globale** entre les quatre bases IndexedDB et PostgreSQL : résultats partiels et domaines restés en attente sont annoncés. Deux passes ne sont pas un snapshot et ne détectent pas une transaction longtemps invisible ou une modification aller-retour. Le cache reste non chiffré, exposé au contrôle du profil navigateur/XSS/extensions. Le JSON est non signé ; les résultats restent déclaratifs, sans certification d'examen.
+**Aucune transaction globale** entre les bases IndexedDB et PostgreSQL : résultats partiels et domaines restés en attente sont annoncés. Deux passes ne sont pas un snapshot et ne détectent pas une transaction longtemps invisible ou une modification aller-retour. Le cache reste non chiffré, exposé au contrôle du profil navigateur/XSS/extensions. Le JSON est non signé ; les résultats restent déclaratifs, sans certification d'examen.
 
 ## Limites opérationnelles et vérification
 
