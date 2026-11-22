@@ -13,7 +13,7 @@ La version de l’application Windows reste propre à cet outil.
   l’empreinte de la notice et vérifie son contenu, ses liens et son rendu.
   Les préflights Pages, hors ligne et Windows retirent l’approbation
   documentaire. La V1.4 précise les fonctions disponibles dans le Parcours.
-  [Procédure](docs/rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques).
+  [PR #88](https://github.com/Vladoche/mon-bprea/pull/88) · [Procédure](docs/rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques).
 
 - **Mon parcours BPREA**. Le Profil permet de déclarer les UC suivies, la dispense
   d’UC1, les UCARE, les épreuves et leurs échéances. Les choix et le brouillon
