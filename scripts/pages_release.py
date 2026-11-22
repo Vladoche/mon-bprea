@@ -1,8 +1,6 @@
 """Production Pages parameters: public fields only, fixed target, read-only preflight."""
 
 import argparse
-import hashlib
-import hmac
 import json
 import os
 from pathlib import Path
@@ -10,11 +8,9 @@ import re
 import sys
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
-ROOT = Path(__file__).resolve().parent.parent
 PROD_API = "https://oqoqrxwfbkhtpksqimgd.supabase.co"
 PROD_SITE = "https://vladoche.github.io/mon-bprea/"
 PUBLIC_FIELDS = {"enabled", "environment", "url", "publishableKey", "siteUrl"}
-NOTICE = ROOT / "docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md"
 
 
 def validate_production_config(config):
@@ -26,18 +22,6 @@ def validate_production_config(config):
             or not re.fullmatch(r"sb_publishable_[A-Za-z0-9_-]{16,256}", config["publishableKey"])):
         raise ValueError("Configuration de release absente ou invalide : cinq paramètres publics PROD exacts requis.")
     return config
-
-
-def notice_sha256():
-    # Stable on Windows checkout and Linux runner. The approved text is versioned.
-    return hashlib.sha256(NOTICE.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-
-
-def validate_notice_approval(approved):
-    if (not re.fullmatch(r"[a-f0-9]{64}", approved or "")
-            or not hmac.compare_digest(approved, notice_sha256())
-            or re.search(r"en préparation", NOTICE.read_text(encoding="utf-8"), re.IGNORECASE)):
-        raise ValueError("Approbation de la version exacte de la notice requise (SHA-256 du texte avec fins de ligne LF).")
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -74,10 +58,8 @@ def check_production_settings(config, opener=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--approved-notice-sha256", required=True)
     args = parser.parse_args()
     try:
-        validate_notice_approval(args.approved_notice_sha256)
         config = validate_production_config({
             "enabled": True, "environment": "production",
             "url": os.environ.get("PAGES_SUPABASE_PROD_URL", ""),

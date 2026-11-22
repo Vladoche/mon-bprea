@@ -15,11 +15,11 @@
 | D07 | **APPROUVÉE.** Calendrier et durées résiduelles, exceptions motivées, copie historique du 29/10 à part. [Politique](POLITIQUE-CONSERVATION-PROJET.md) | Délais fournisseur et exécution réelle dans leurs portes opérationnelles |
 | D08 | **CHOIX ACTÉ.** Clôture assistée native, sauvegarde applicative hebdomadaire visée, perte visée sept jours | Accepter limites Auth/projet/caches. Éprouver première copie, reprise et assistance réelles |
 | D09 | **ACTÉE le 20/11/2026.** Dix comptes adultes au total, dont un exploitant et neuf participants. L’usage reste gratuit, volontaire et privé, avec fermeture le 30/06/2027 | Maintenir ce périmètre et le plafond administratif |
-| D10 | **VOLONTARIAT ET REMISE INDIVIDUELLE ACTÉS SUR LE FOND.** La V1.0 décrit la fourniture directe de l’adresse après information | Confirmer le circuit de remise sur la cible. Valider et vérifier la remise de la notice accessible avant collecte, avec preuve minimale de sa version et de sa date |
+| D10 | **VOLONTARIAT ET REMISE INDIVIDUELLE ACTÉS SUR LE FOND.** La V1.0 décrit la fourniture directe de l’adresse après information | Confirmer le circuit de remise sur la cible. Vérifier la remise de la notice accessible avant collecte, avec preuve minimale de sa version et de sa date |
 | D11 | **APPROUVÉE.** AIPD complète non jugée nécessaire dans le périmètre examiné ci-dessous | Réexaminer au changement significatif ou à l’apparition d’un risque élevé |
 | D12 | **APPROUVÉE PAR L’EXPLOITANT LE 06/11/2026.** Qualifications par usage, nouvelles archives minimisées, historique conservé, retrait ciblé sur vérification et suivi du volume. [Reçu](RECU-ARBITRAGE-D12-2026-11-06.md) | Réexaminer en cas d’évolution significative. La rédaction finale de la V1.1 et sa publication relèvent de P0-05 |
 | D13 | **CHOIX ACTÉ.** Exploitant seul administrateur, MFA/récupération et secrets protégés | Preuves distinctes de D04 sur la cible, le poste et la gestion des accès |
-| D14 | **OUVERTURE SUSPENDUE.** G1 autorise la branche, la PR et les contrôles CI ordinaires. V1.0 approuvée sur le fond. V1.1 en préparation | Approbation finale de la V1.1 et mandat de publication séparé. Cible, réserves T11/D et autres preuves opérationnelles avant autorisation d’activation et invitations |
+| D14 | **OUVERTURE SUSPENDUE.** G1 autorise la branche, la PR et les contrôles CI ordinaires. | Appliquer les [contrôles automatiques de la notice](SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques) et obtenir l’autorisation de publication. Cible, réserves T11/D et autres preuves opérationnelles avant autorisation d’activation et invitations |
 
 ## Première analyse qualitative des risques — historique 6.4, précisé ci-dessous
 

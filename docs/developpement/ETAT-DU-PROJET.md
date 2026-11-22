@@ -16,17 +16,17 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 
 | Repère | État vérifié |
 | --- | --- |
-| Référence | `origin/main` à `4442b67f484fec695b5048fcdf05ae51eb413fc7` |
-| Dernière fusion | [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86), 21/11/2026 à 22:11:52 UTC |
-| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84) et [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85). |
+| Référence | `origin/main` à `50d422def1a5df33efc933a2b885fb4c38b3e921` |
+| Dernière fusion | [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87), 22/11/2026 à 09:18:07 UTC |
+| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85) et [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86). |
 
 ## C — Fusion, validation et publication
 
 | État | Périmètre vérifié le 22 novembre 2026 |
 | --- | --- |
 | **Déployé** | [Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), succès du 20/11 à 15:27:11 UTC, SHA `47aff29763763fd3be0b16b60f90e5c8f1048508`. Refonte 2027, Profil simplifié, couleurs personnalisées et continuité de la palette. Notice V1.2 et configuration publique Auth PROD. |
-| **Fusionné depuis ce déploiement** | 17 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA » et notice **V1.4 candidate**. La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
-| **En développement** | Aucune PR fonctionnelle ouverte au relevé. [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87) est en revue. |
+| **Fusionné depuis ce déploiement** | 20 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4 et assainissement documentaire. La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
+| **En développement** | [#88, suppression de l’approbation documentaire manuelle](https://github.com/Vladoche/mon-bprea/pull/88) et renforcement des contrôles automatiques, en revue. [Décision et procédure](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques). |
 | **Planifié** | Validation et alimentation des référentiels UCARE/sessions, calendrier personnalisé. La consolidation des tests du lot C est reportée. [Matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c). |
 
 La lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources de 15
@@ -103,7 +103,8 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
 1. Valider les référentiels UCARE et sessions avant de préparer le calendrier personnalisé.
 2. Qualifier un point de reprise au schéma courant et traiter les décisions
    Auth et renouvellement. Pour publier le Parcours, qualifier sa migration,
-   l’empreinte de la notice candidate et les contrôles de bout en bout.
+   les contrôles automatiques de la V1.4 et les parcours de bout en bout,
+   puis suivre la procédure d’autorisation du déploiement.
    [Prérequis de publication](../deploiement/PLAN-PUBLICATION-2027.md#phase-a--décision-préalable).
 3. Obtenir les décisions d’ouverture et les autorisations individuelles de
    collecte et d’invitation. [Actions d’exploitation](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md).

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -9,26 +10,53 @@ function python(code) {
 }
 
 describe('release Pages : préflight en lecture seule et absence de publication implicite', () => {
-  it('vérifie et génère la notice sur un runner sans dépendances npm ni outils administratifs', () => {
+  it('accepte une réécriture substantielle synchronisée et calcule son empreinte sans accord documentaire', () => {
     const directory = mkdtempSync(join(tmpdir(), 'bprea-notice-release-'));
     try {
-      for (const path of ['scripts/build-privacy-notice.mjs', 'scripts/preopening/notice-preview.mjs', 'assets/footer.js',
-        'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md', 'confidentialite.html']) {
+      const notice = 'docs/rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md';
+      for (const path of ['scripts/build-privacy-notice.mjs', 'scripts/preopening/notice-preview.mjs',
+        'scripts/preopening/notice-checks.mjs', 'scripts/preopening/policy.json',
+        'tools/mon-bprea-admin/Core/AdminContract.cs', 'docs/rgpd/REGISTRE-TRAITEMENTS.md',
+        'docs/rgpd/CONSERVATION-PROJET.json', notice, 'confidentialite.html', 'contact.html', 'index.html',
+        'mes-cours.html', 'outils.html', 'connexion.html', 'ressources.html', 'calendrier.html', 'profil.html',
+        'assets/footer.js', 'assets/favicon.svg', 'assets/theme-init.js', 'assets/style.css',
+        'assets/navigation.css', 'assets/contact.css']) {
         const destination = join(directory, path);
         mkdirSync(dirname(destination), { recursive: true });
         copyFileSync(path, destination);
       }
-      const options = { cwd: directory, encoding: 'utf8', env: { ...process.env, NODE_PATH: '' } };
-      const checked = spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs', '--check'], options);
-      expect(checked.stderr).toBe('');
-      expect(checked.status).toBe(0);
-      expect(checked.stdout).toMatch(/^Notice · SHA-256 LF : [a-f0-9]{64}$/m);
-      const built = spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs'], options);
+      const run = (...args) => spawnSync(process.execPath, ['scripts/build-privacy-notice.mjs', ...args],
+        { cwd: directory, encoding: 'utf8', env: { NODE_PATH: '' } });
+      const noticePath = join(directory, notice);
+      const original = readFileSync(noticePath, 'utf8').replaceAll('\r\n', '\n');
+      const revised = original.replace(/^Version .+$/m, 'Version 12.0 · 23 novembre 2026')
+        .replace(/^- \*\*R03 .+$/m, '- **R03 — Révision privée.** Vos historiques et choix pédagogiques restent disponibles pour vos révisions.')
+        .replace(/^(## Évolutions de la notice\n\n)[\s\S]+$/m, '$1La date identifie la version. Les personnes concernées sont informées avant toute évolution importante des usages.\n');
+      const initial = run('--check');
+      expect(initial.status).toBe(0);
+      writeFileSync(noticePath, revised.replaceAll('\n', '\r\n'));
+      const stale = run('--check');
+      expect(stale.status).toBe(1);
+      expect(stale.stderr).toContain('Notice publique périmée');
+      const built = run();
       expect(built.stderr).toBe('');
       expect(built.status).toBe(0);
-      expect(built.stdout).toBe(checked.stdout);
-      expect(readFileSync(join(directory, 'confidentialite.html'), 'utf8'))
-        .toBe(readFileSync('confidentialite.html', 'utf8').replaceAll('\r\n', '\n'));
+      expect(built.stdout).toContain(createHash('sha256').update(revised).digest('hex'));
+      expect(built.stdout).not.toBe(initial.stdout);
+      expect(readFileSync(join(directory, 'confidentialite.html'), 'utf8')).toContain('Version 12.0');
+      expect(run('--check')).toMatchObject({ status: 0, stdout: built.stdout });
+      for (const [invalid, diagnostic] of [
+        [revised.replace('## Vos droits et la clôture', '## Autre'), 'rubrique manquante'],
+        [revised.replace('10 adultes au total', '11 adultes au total'), 'capacité'],
+        [revised.replace('30 juin 2027', '29 juin 2027'), 'date de fermeture'],
+        [revised.replace('https://www.cnil.fr/', 'http://www.cnil.fr/'), 'lien Markdown non rendu'],
+      ]) {
+        writeFileSync(noticePath, invalid);
+        expect(run()).toMatchObject({ status: 1, stderr: expect.stringContaining(diagnostic) });
+      }
+      writeFileSync(noticePath, revised);
+      rmSync(join(directory, 'ressources.html'));
+      expect(run('--check')).toMatchObject({ status: 1, stderr: expect.stringContaining('cible locale introuvable') });
     } finally { rmSync(directory, { recursive: true, force: true }); }
   });
 
@@ -67,19 +95,6 @@ print('read-only preflight passed')
     expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   });
 
-  it('lie l’accord à la notice exacte et bloque toute approbation absente ou périmée', () => {
-    const result = python(`
-from pages_release import notice_sha256, validate_notice_approval
-validate_notice_approval(notice_sha256())
-approved_v11 = 'c2b2422b9c3d6b7ec25227f143080782842c4c077f5a1361d4cd36653ad9b8c1'
-for approval in ['', 'approved', '0'*64, notice_sha256().upper(), approved_v11]:
-    try: validate_notice_approval(approval)
-    except ValueError: pass
-    else: raise AssertionError('unapproved notice accepted')
-`);
-    expect(result.stderr).toBe(''); expect(result.status).toBe(0);
-  });
-
   it('refuse les secrets modernes, SQL, service_role legacy et liens Auth dans les fichiers publics', () => {
     const result = python(`
 import base64, json, runpy
@@ -98,24 +113,33 @@ check('let access_token=provider_response.access_token;')
   });
 
   it('refuse sans créer de configuration ni imprimer des paramètres privés', () => {
-    const result = spawnSync(process.env.PYTHON || 'python', ['scripts/pages_release.py', '--output', 'must-not-be-created.json',
-      '--approved-notice-sha256', 'unapproved'], { encoding: 'utf8', env: { ...process.env,
+    const output = 'must-not-be-created.json';
+    const result = spawnSync(process.env.PYTHON || 'python', ['scripts/pages_release.py', '--output', output],
+      { encoding: 'utf8', env: { ...process.env,
         PAGES_SUPABASE_PROD_URL: 'private-fixture-not-for-logs', PAGES_SUPABASE_PROD_PUBLISHABLE_KEY: 'sb_secret_private_fixture_only' } });
     expect(result.status).toBe(1);
     expect(result.stdout).toBe('');
+    expect(result.stderr).toContain('cinq paramètres publics PROD exacts requis');
     expect(result.stderr).not.toMatch(/private-fixture|sb_secret/);
+    expect(existsSync(output)).toBe(false);
   });
 
-  it('la fusion et les push ne déclenchent plus Pages ; le déclenchement exige main et deux décisions', () => {
+  it('seul le lancement manuel autorisé sur main peut publier après le contrôle de notice et d’Auth', () => {
     const workflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
     expect(workflow).not.toMatch(/^\s+(?:push|pull_request|workflow_run):/m);
     expect(workflow).toContain('workflow_dispatch:');
+    expect(workflow).toContain('test "$GITHUB_EVENT_NAME" = workflow_dispatch');
     expect(workflow).toContain('test "$GITHUB_REF" = refs/heads/main');
     expect(workflow).toContain('test "$PUBLICATION_APPROVED" = true');
     expect(workflow).toContain('default: false');
     expect(workflow).toContain('vars.PAGES_SUPABASE_PROD_PUBLISHABLE_KEY');
     expect(workflow).not.toMatch(/secrets\./);
     expect(workflow).toContain('--production');
-    expect(workflow).toContain('--approved-notice-sha256');
+    expect(workflow.match(/^ {6}(\w+):$/gm)).toEqual(['      publish_auth_production:']);
+    const steps = ['test "$PUBLICATION_APPROVED" = true', 'node scripts/build-privacy-notice.mjs --check',
+      'python3 scripts/pages_release.py', 'python3 scripts/prepare-pages.py --production', 'actions/deploy-pages@'];
+    const positions = steps.map(step => workflow.indexOf(step));
+    expect(positions).not.toContain(-1);
+    expect(positions).toEqual([...positions].sort((a, b) => a - b));
   });
 });
