@@ -122,6 +122,8 @@ internal sealed partial class SimpleMainForm
             page.Controls.Add(Label("Configuration terminée. Mon BPREA Admin est prêt."));
         if (explanation is not null && explanation != "key")
             page.Controls.Add(Label(AdminMessages.For(explanation), "SystemExplanation"));
+        if (state.Backup is { PreviousPointQualified: true })
+            page.Controls.Add(Label("Point de reprise avant Parcours restauré et vérifié. Une sauvegarde du schéma Parcours est requise pour les invitations."));
         if (state.HistoryProblem is not null)
         {
             page.Controls.Add(Label("Si l’historique est sur un support retiré, reconnecte-le. Ferme les anciens outils d’administration et réessaie. Si deux dossiers contiennent des opérations, conserve-les pour vérification."));
@@ -139,7 +141,11 @@ internal sealed partial class SimpleMainForm
             page.Controls.Add(Button("Vérifier à nouveau", "CheckBackupStorage", () => _ = OpenSystem(), false));
         }
         else if (state.ConnectionProblem is null)
-            page.Controls.Add(Button("Renouveler et vérifier maintenant", "RenewBackup", () => _ = OpenSystem(renew: true), false));
+        {
+            var renewalLabel = state.Backup?.Problem == "backup_drift" || state.InvitationProblem == "backup_drift"
+                ? "Requalifier la sauvegarde" : "Renouveler et vérifier maintenant";
+            page.Controls.Add(Button(renewalLabel, "RenewBackup", () => _ = OpenSystem(renew: true), false));
+        }
         else page.Controls.Add(Button("Vérifier à nouveau", "CheckConnectionAgain", () => _ = OpenSystem(), false));
         if (state.Backup is { Ready: true })
             page.Controls.Add(Label("Sauvegarde applicative PROD restaurée et vérifiée. Reprise Auth, sessions, secrets, Storage et délai de reprise non démontrés."));

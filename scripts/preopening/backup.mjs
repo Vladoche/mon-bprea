@@ -5,6 +5,10 @@ import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { POLICY, requireThat, instant, digest } from './preflight.mjs';
 
+const archiveFiles = ['application.dump', 'archive-toc.txt'];
+const boundFiles = [...archiveFiles, 'deletions.json', 'source-catalogue-before.json',
+  'source-definitions-before.json', 'source-privileges-before.json'];
+
 export function currentSchemaHash() {
   const directory = new URL('../../supabase/migrations/', import.meta.url);
   return digest(readdirSync(directory).filter(name => name.endsWith('.sql')).sort()
@@ -35,7 +39,7 @@ export function verifyBackup(directory, manifest, evidence, { now, projectRef, s
   let point = null;
   try {
     checkDirectory(directory);
-    requireThat(manifest?.version === 1 && manifest.projectRef === projectRef && typeof projectRef === 'string', 'project');
+    requireThat([1, 2].includes(manifest?.version) && manifest.projectRef === projectRef && typeof projectRef === 'string', 'project');
     requireThat(['synthetic', 'authorized-hosted'].includes(manifest.sourceKind)
       && (manifest.sourceKind === 'synthetic' ? projectRef.startsWith('synthetic-') : ['wcckbyhrtroittbfophv', 'oqoqrxwfbkhtpksqimgd'].includes(projectRef)), 'source_kind');
     requireThat(manifest.sourceKind === 'synthetic' || !insideRepository(directory), 'backup_must_be_outside_repository');
@@ -46,7 +50,8 @@ export function verifyBackup(directory, manifest, evidence, { now, projectRef, s
     requireThat(manifest.method === 'pg_dump-custom-single-snapshot' && manifest.authIncluded === false
       && manifest.tables?.slice().sort().join() === [...POLICY.tables].sort().join()
       && manifest.exclusions?.slice().sort().join() === [...POLICY.excludedBackupScopes].sort().join(), 'coverage');
-    requireThat(Object.keys(manifest.files || {}).sort().join() === 'application.dump,archive-toc.txt', 'files');
+    const expectedFiles = manifest.version === 2 ? boundFiles : archiveFiles;
+    requireThat(Object.keys(manifest.files || {}).sort().join() === expectedFiles.join(), 'files');
     for (const [name, spec] of Object.entries(manifest.files)) {
       const actual = fingerprint(regularFile(directory, name));
       requireThat(actual.bytes === spec.bytes && actual.sha256 === spec.sha256, 'integrity');
@@ -67,6 +72,11 @@ export function verifyBackup(directory, manifest, evidence, { now, projectRef, s
       && evidence.dependenciesCompatible === true, 'restore_not_proven');
     requireThat(/^[a-f0-9]{64}$/.test(ledgerHash) && evidence.deletionLedgerHash === ledgerHash
       && evidence.deletionsReconciled === true, 'deletions_not_reconciled');
+    if (manifest.version === 2) {
+      requireThat(digest(JSON.parse(readFileSync(regularFile(directory, 'deletions.json'), 'utf8'))) === ledgerHash,
+        'deletions_not_reconciled');
+      requireThat(evidence.clusterStopped === true && evidence.localChecksumsVerified === true, 'restore_not_proven');
+    }
   } catch (error) { reject(/^[a-z_]+$/.test(error.message) ? error.message : 'invalid_or_missing_files'); }
   const ageHours = point === null ? null : (instant(now) - point) / 3600_000;
   if (ageHours !== null && ageHours > POLICY.backup.maximumAgeHours) reject('older_than_seven_days');
@@ -77,7 +87,7 @@ export function verifyBackup(directory, manifest, evidence, { now, projectRef, s
     completeAuthRecovery: 'NON DÉMONTRÉE', scope: 'application-only', syntheticOnly: manifest?.sourceKind === 'synthetic', guaranteed: false };
 }
 export function makeManifest(directory, details, toc) {
-  const files = Object.fromEntries(['application.dump', 'archive-toc.txt'].map(name => [name, fingerprint(regularFile(directory, name))]));
+  const files = Object.fromEntries(archiveFiles.map(name => [name, fingerprint(regularFile(directory, name))]));
   requireThat(toc === readFileSync(regularFile(directory, 'archive-toc.txt'), 'utf8'), 'toc');
   return { version: 1, ...details, method: 'pg_dump-custom-single-snapshot', tables: POLICY.tables,
     exclusions: POLICY.excludedBackupScopes, authIncluded: false, files };

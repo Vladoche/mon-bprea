@@ -196,3 +196,44 @@ Commande de registre **PRÉPARÉE — NON EXÉCUTÉE**, cible PROD après autori
 ```
 
 Limiter les compensations aux deltas examinés et approuvés. Les opérations de remise à zéro, de suppression en cascade et les réparations automatiques du registre sont exclues du plan de reprise.
+
+## Mise en service de Mon parcours BPREA
+
+1. Depuis le SHA qualifié, vérifier la cible, le rôle et TLS sur la
+   [connexion directe](#tls-et-connexion-d’exploitation). Lire le registre et
+   comparer le catalogue et les droits au contrat pour le préfixe installé.
+   Si Parcours est déjà enregistré avec son schéma conforme, passer à la
+   sauvegarde du schéma courant. Si le registre et les objets divergent,
+   suspendre les écritures et établir l’état réel.
+2. Si Parcours est absent et le préfixe de six migrations est conforme, obtenir
+   le [point de reprise pré-migration](../deploiement/EXPLOITATION-PRIVEE.md#requalification-après-migration)
+   sur dix tables, restauré et vérifié. Conserver sa preuve privée, confirmer
+   l’état du journal et vérifier à nouveau le préfixe et l’absence d’opération
+   concurrente avant la migration.
+3. Dans un répertoire CLI isolé sans liaison ni réglage Vault, copier le
+   préfixe exact de sept fichiers du SHA qualifié et contrôler leurs
+   empreintes. Avec Supabase CLI 2.121.0, la commande `migration up` à cible
+   explicite applique l’unique fichier en attente,
+   [`20261121171000_create_parcours_preferences.sql`](../../supabase/migrations/20261121171000_create_parcours_preferences.sql).
+   Ce fichier et son insertion au registre passent dans le même batch
+   transactionnel. [Code de la CLI épinglée](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/command-internal/migration-apply.ts#L485-L557).
+
+   ```powershell
+   & $Cli migration up --workdir $Stage --db-url $ProdUri --agent no --yes
+   ```
+
+4. Relire immédiatement, sur une connexion vérifiée, le registre, le catalogue
+   et les privilèges effectifs. Confirmer le préfixe à sept versions,
+   `parcours_preferences`, sa clé étrangère Auth, sa validation privée, ses
+   triggers, sa RLS, les droits du titulaire et le RPC
+   `personal_save_parcours`. Comparer aussi les dix tables préexistantes.
+   Sur erreur ou résultat incertain, conserver l’état et les preuves, puis
+   diagnostiquer depuis une nouvelle session avant toute autre écriture.
+5. Requalifier et faire reconnaître dans l’Admin une nouvelle génération à
+   onze tables. Vérifier la restauration isolée, les dépendances, le journal
+   et l’échéance calculée à partir du début du snapshot. En cas de divergence
+   ou de reprise nécessaire, restaurer seulement en environnement local
+   isolé pour diagnostiquer. La sauvegarde applicative laisse Auth hébergé
+   hors de son périmètre.
+6. Après ces vérifications, suivre le
+   [plan de publication Pages](../deploiement/PLAN-PUBLICATION-2027.md).

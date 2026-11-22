@@ -16,17 +16,17 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 
 | Repère | État vérifié |
 | --- | --- |
-| Référence | `origin/main` à `50d422def1a5df33efc933a2b885fb4c38b3e921` |
-| Dernière fusion | [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87), 22/11/2026 à 09:18:07 UTC |
-| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85) et [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86). |
+| Référence | `origin/main` à `78875cd046553d282b802c20b39432dff3ae0cfe` |
+| Dernière fusion | [#88, contrôles documentaires automatiques](https://github.com/Vladoche/mon-bprea/pull/88), 22/11/2026 à 11:12:13 UTC |
+| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86) et [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87). |
 
 ## C — Fusion, validation et publication
 
 | État | Périmètre vérifié le 22 novembre 2026 |
 | --- | --- |
 | **Déployé** | [Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), succès du 20/11 à 15:27:11 UTC, SHA `47aff29763763fd3be0b16b60f90e5c8f1048508`. Refonte 2027, Profil simplifié, couleurs personnalisées et continuité de la palette. Notice V1.2 et configuration publique Auth PROD. |
-| **Fusionné depuis ce déploiement** | 20 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4 et assainissement documentaire. La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
-| **En développement** | [#88, suppression de l’approbation documentaire manuelle](https://github.com/Vladoche/mon-bprea/pull/88) et renforcement des contrôles automatiques, en revue. [Décision et procédure](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques). |
+| **Fusionné depuis ce déploiement** | 24 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4, assainissement documentaire et [contrôles automatiques des notices](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques). La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
+| **En revue** | [#89, requalification des sauvegardes Admin après migration](https://github.com/Vladoche/mon-bprea/pull/89). |
 | **Planifié** | Validation et alimentation des référentiels UCARE/sessions, calendrier personnalisé. La consolidation des tests du lot C est reportée. [Matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c). |
 
 La lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources de 15
@@ -82,7 +82,10 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
   [runbook PROD](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md).
   La migration de l’apparence a été appliquée le 20 novembre selon la
   [validation #81](../validations/VALIDATION-PROFIL-COULEURS-THEME.md).
-  La présence hébergée de la migration Parcours reste à vérifier avant sa mise en service.
+  Le relevé PROD en lecture seule du 22 novembre 2026 confirme six migrations
+  jusqu’à l’apparence, dix tables applicatives sous RLS et l’absence de la
+  migration Parcours et de sa table. La procédure de mise en service prévoit
+  un [point de reprise qualifié avant Parcours](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md#mise-en-service-de-mon-parcours-bprea).
 - **Sauvegarde et invitations.** Le GO technique du 18 novembre était lié à
   la génération alors restaurée. Le diagnostic `backup_drift` du 20 novembre
   impose une qualification au schéma courant avant de reprendre les invitations.

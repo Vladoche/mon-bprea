@@ -56,6 +56,8 @@ Sur le service réel, cette version explique le blocage et ne supprime rien. En 
 
 Le petit accès **Paramètres** permet de remplacer ou supprimer la clé enregistrée, de vérifier la connexion et de consulter **État du système**. **Renouveler et vérifier maintenant** crée une nouvelle copie puis la restaure dans une base isolée sur le poste. La vérification se lance aussi à l’ouverture et pendant que l’application reste ouverte. La sauvegarde peut rattraper une échéance manquée lorsque le poste et la connexion sont disponibles.
 
+Après une migration, choisir **Requalifier la sauvegarde** dans **État du système**. L’assistant vérifie le schéma déployé à partir des migrations embarquées, puis crée et restaure une nouvelle génération. Si Parcours est encore en attente, l’écran indique quand le point de reprise du schéma précédent est restauré et vérifié. Les invitations nécessitent ensuite une sauvegarde qualifiée avec Parcours.
+
 Si un contrôle échoue, **Copier le diagnostic** fournit l’état des vérifications sans données de compte. Les anciennes archives restent disponibles. La copie couvre les données applicatives. La reprise des comptes Auth, des sessions, de Storage et des réglages hébergés reste à qualifier.
 
 Si la clé est renouvelée, révoquée ou perdue par Windows, l’application l’explique. Si une opération est incertaine, **ne pas la répéter** : l’application conserve son historique et bloque les nouveaux essais concernés. Elle ne demande jamais de commande ni de modification manuelle de fichier.

@@ -8,7 +8,7 @@ using static MonBprea.Admin.WindowsSecurity.BackupFiles;
 
 namespace MonBprea.Admin.WindowsSecurity;
 
-internal static class PostgresSnapshot
+internal static partial class PostgresSnapshot
 {
     private static readonly string[] SchemaFlags = ["--schema=public", "--schema=bprea_private", "--strict-names",
         "--no-large-objects", "--no-publications", "--no-subscriptions", "--no-security-labels", "--quote-all-identifiers"];
@@ -19,15 +19,32 @@ internal static class PostgresSnapshot
           'acl',coalesce(nspacl,acldefault('n',nspowner)))) from pg_namespace where nspname in ('public','bprea_private');
         """;
     private const string RoutineDefinitions = """
-        select coalesce(jsonb_agg(jsonb_build_array(n.nspname,p.proname,pg_get_functiondef(p.oid),
-          pg_get_userbyid(p.proowner),coalesce(p.proacl,acldefault('f',p.proowner)))),'[]') from pg_proc p
+        select coalesce(jsonb_agg(jsonb_build_object('schema',n.nspname,'name',p.proname,
+          'arguments',pg_get_function_identity_arguments(p.oid),'definition',pg_get_functiondef(p.oid),
+          'owner',pg_get_userbyid(p.proowner),'acl',coalesce(p.proacl,acldefault('f',p.proowner)))),'[]') from pg_proc p
         join pg_namespace n on n.oid=p.pronamespace where n.nspname in ('public','bprea_private') and p.prokind in ('f','p','w');
         """;
-    private static readonly string SummarySql = "select jsonb_build_object(" + string.Join(",",
-        Tables.Select(t => $"'{t}',(select jsonb_build_object('count',count(*),'digest',encode(sha256(convert_to("
+    private static string SummarySql(BackupSchema schema) => "select jsonb_build_object(" + string.Join(",",
+        schema.Tables.Select(t => $"'{t}',(select jsonb_build_object('count',count(*),'digest',encode(sha256(convert_to("
             + $"coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text collate \"C\"),'[]'::jsonb)::text,'UTF8')),'hex')) from public.{t} t)")) + ");";
 
-    internal sealed record Measurements(JsonElement Catalogue, JsonElement Privileges, JsonElement Schemas, JsonElement Routines, JsonElement Rows);
+    private const string AuthStub = """
+        CREATE SCHEMA auth;
+        CREATE TABLE auth.users(id uuid PRIMARY KEY);
+        CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT NULL::uuid $$;
+        CREATE FUNCTION auth.role() RETURNS text LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+        CREATE SCHEMA supabase_migrations;
+        CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY, name text NOT NULL);
+        """;
+    private const string DatabaseRoles = """
+        CREATE ROLE anon NOLOGIN;
+        CREATE ROLE authenticated NOLOGIN;
+        CREATE ROLE service_role NOLOGIN BYPASSRLS;
+        CREATE ROLE supabase_admin NOLOGIN;
+        """;
+
+    internal sealed record Measurements(JsonElement Catalogue, JsonElement Privileges, JsonElement Schemas, JsonElement Routines,
+        JsonElement Rows, JsonElement Security);
     internal sealed record SourceIdentity(string Version, string LocaleProvider, string Locale, long TableBytes, string[] AccountIds, string[] ProfileIds);
 
     private static string AuditSelect(string resource) => Resource(resource)
@@ -73,11 +90,12 @@ internal static class PostgresSnapshot
             value.GetProperty("bytes").GetInt64(), ids, profiles);
     }
 
-    internal static async Task<Measurements> Measure(NativePostgres native, NativePostgres.Connection connection, bool data)
+    internal static async Task<Measurements> Measure(NativePostgres native, NativePostgres.Connection connection, bool data,
+        BackupSchema? schema = null)
     {
         var values = await ReadJson(native, connection, CatalogueSql + PrivilegesSql + EffectiveSchemas + RoutineDefinitions
-            + (data ? SummarySql : ""), data ? 5 : 4);
-        return new(values[0], values[1], values[2], values[3], data ? values[4] : default);
+            + ContractSecuritySql + (data ? SummarySql(schema ?? CurrentSchema) : ""), data ? 6 : 5);
+        return new(values[0], values[1], values[2], values[3], data ? values[5] : default, values[4]);
     }
 
     // Catalogue queries return set-valued arrays with no stable OID ordering.
@@ -91,21 +109,32 @@ internal static class PostgresSnapshot
     };
     internal static bool Same(JsonElement a, JsonElement b) => Canonical(a) == Canonical(b);
 
-    internal static void ValidateSource(Measurements value, JsonElement baseline, JsonElement grants)
+    internal static string[] ReadMigrationNames(Measurements value)
     {
-        var versions = value.Catalogue.GetProperty("migrations").EnumerateArray()
-            .Select(x => x.GetProperty("version").GetString() + "_" + x.GetProperty("name").GetString() + ".sql");
-        Require(versions.SequenceEqual(Migrations) && Same(value.Catalogue, baseline) && Same(value.Privileges, grants), "backup_drift");
+        var history = value.Catalogue.GetProperty("migrations");
+        return history.ValueKind == JsonValueKind.Null ? [] : history.EnumerateArray()
+            .Select(x => x.GetProperty("version").GetString() + "_" + x.GetProperty("name").GetString() + ".sql")
+            .Order(StringComparer.Ordinal).ToArray();
+    }
+
+    internal static void ValidateVersions(Measurements value, BackupSchema schema) =>
+        Require(ReadMigrationNames(value).SequenceEqual(schema.Migrations), "backup_drift");
+
+    internal static void ValidateSource(Measurements value, JsonElement baseline, JsonElement grants, BackupSchema? schema = null)
+    {
+        ValidateVersions(value, schema ?? CurrentSchema);
+        Require(Same(value.Catalogue, baseline) && Same(value.Privileges, grants), "backup_drift");
     }
 
     internal static void CompareSource(Measurements before, Measurements after)
     {
         Require(Same(before.Catalogue, after.Catalogue) && Same(before.Privileges, after.Privileges)
-            && Same(before.Schemas, after.Schemas) && Same(before.Routines, after.Routines) && Same(before.Rows, after.Rows), "backup_changed");
+            && Same(before.Schemas, after.Schemas) && Same(before.Routines, after.Routines) && Same(before.Security, after.Security)
+            && (before.Rows.ValueKind == JsonValueKind.Undefined || Same(before.Rows, after.Rows)), "backup_changed");
     }
 
     internal static async Task<(DateTimeOffset Start, DateTimeOffset Completed)> Capture(NativePostgres native,
-        NativePostgres.Connection source, string directory)
+        NativePostgres.Connection source, string directory, BackupSchema? schema = null)
     {
         var dump = Path.Combine(directory, Dump);
         Write(dump, "");
@@ -119,13 +148,15 @@ internal static class PostgresSnapshot
             Require(input.Read(header) == 5 && header.AsSpan().SequenceEqual("PGDMP"u8), "backup_capture");
         }
         var toc = await native.Run("pg_restore", ["--list", dump]);
-        CheckToc(toc);
+        CheckToc(toc, schema ?? CurrentSchema);
         Write(Path.Combine(directory, Toc), toc + "\n");
         return (started, completed);
     }
 
-    internal static async Task Restore(NativePostgres native, string directory, SourceIdentity identity, Measurements before)
+    internal static async Task Restore(NativePostgres native, string directory, SourceIdentity identity, Measurements before,
+        BackupSchema? schema = null)
     {
+        schema ??= CurrentSchema;
         var restore = Path.Combine(directory, "restoration");
         WindowsPrivateStore.CreateV2Directory(restore);
         VerifyStorage(restore, directory: true);
@@ -139,27 +170,9 @@ internal static class PostgresSnapshot
         try
         {
             await native.Run("pg_ctl", ["start", "-D", cluster, "-l", boot, "-w", "-t", "45"]);
-            var target = (await ReadJson(native, setup, """
-                select jsonb_build_object('host',host(inet_server_addr()),'port',inet_server_port(),
-                  'directory',current_setting('data_directory'),'listen',current_setting('listen_addresses'));
-                """, 1))[0];
-            Require(target.GetProperty("host").GetString() == "127.0.0.1"
-                && target.GetProperty("port").GetInt32() == port && target.GetProperty("listen").GetString() == "127.0.0.1"
-                && string.Equals(Path.GetFullPath(target.GetProperty("directory").GetString()!), cluster, StringComparison.OrdinalIgnoreCase), "backup_isolation");
-            await native.Sql(setup, """
-                CREATE ROLE anon NOLOGIN;
-                CREATE ROLE authenticated NOLOGIN;
-                CREATE ROLE service_role NOLOGIN BYPASSRLS;
-                CREATE ROLE supabase_admin NOLOGIN;
-                CREATE DATABASE bprea_restore;
-                """);
-            await native.Sql(destination, """
-                CREATE SCHEMA auth;
-                CREATE TABLE auth.users(id uuid PRIMARY KEY);
-                CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT NULL::uuid $$;
-                CREATE SCHEMA supabase_migrations;
-                CREATE TABLE supabase_migrations.schema_migrations(version text PRIMARY KEY, name text NOT NULL);
-                """);
+            await RequireIsolated(native, setup, cluster, port);
+            await native.Sql(setup, DatabaseRoles + "\nCREATE DATABASE bprea_restore;");
+            await native.Sql(destination, AuthStub);
             var toc = Read(Path.Combine(directory, Toc));
             var restoreToc = Regex.Replace(toc, @"^\d+; \d+ \d+ SCHEMA - public .*$", ";$0", RegexOptions.Multiline);
             Require(restoreToc != toc, "backup_restore");
@@ -170,15 +183,15 @@ internal static class PostgresSnapshot
             await native.Run("pg_restore", [.. args, "--section=pre-data", archive], destination);
             await native.Run("pg_restore", [.. args, "--section=data", archive], destination);
             await native.Sql(destination, "INSERT INTO auth.users(id) " + string.Join(" UNION ",
-                Tables.Select(t => $"SELECT {(t == "profiles" ? "id" : "user_id")} FROM public.{t}")) + ";");
+                schema.Tables.Select(t => $"SELECT {(t == "profiles" ? "id" : "user_id")} FROM public.{t}")) + ";");
             var restored = await Identify(native, destination);
             Require(restored.AccountIds.SequenceEqual(identity.AccountIds) && restored.ProfileIds.SequenceEqual(identity.ProfileIds)
                 && restored.LocaleProvider == identity.LocaleProvider && restored.Locale == identity.Locale, "backup_dependencies");
             await native.Run("pg_restore", [.. args, "--section=post-data", archive], destination);
-            var after = await Measure(native, destination, data: true);
+            var after = await Measure(native, destination, data: true, schema);
             CompareRestored(before, after);
             Save(Path.Combine(restore, "comparison-result.json"), new {
-                tables = Tables.Length, sourceData = before.Rows, restoredData = after.Rows,
+                tables = schema.Tables.Length, sourceData = before.Rows, restoredData = after.Rows,
                 beforeCatalogue = Hash(Canonical(before.Catalogue)), restoredCatalogue = Hash(Canonical(after.Catalogue)),
                 schemaAndPrivilegesCompared = true, roots = restored.AccountIds.Length, authStubOnly = true
             });
@@ -194,6 +207,17 @@ internal static class PostgresSnapshot
         await native.Run("pg_checksums", ["--check", "-D", cluster]);
         foreach (var path in Directory.EnumerateFileSystemEntries(restore, "*", SearchOption.AllDirectories))
             VerifyStorage(path, Directory.Exists(path));
+    }
+
+    private static async Task RequireIsolated(NativePostgres native, NativePostgres.Connection connection, string cluster, int port)
+    {
+        var target = (await ReadJson(native, connection, """
+            select jsonb_build_object('host',host(inet_server_addr()),'port',inet_server_port(),
+              'directory',current_setting('data_directory'),'listen',current_setting('listen_addresses'));
+            """, 1))[0];
+        Require(target.GetProperty("host").GetString() == "127.0.0.1" && target.GetProperty("port").GetInt32() == port
+            && target.GetProperty("listen").GetString() == "127.0.0.1"
+            && string.Equals(Path.GetFullPath(target.GetProperty("directory").GetString()!), cluster, StringComparison.OrdinalIgnoreCase), "backup_isolation");
     }
 
     internal static async Task<string> InitializeCluster(NativePostgres native, string restore, string cluster,
@@ -223,14 +247,13 @@ internal static class PostgresSnapshot
 
     private static void CompareRestored(Measurements before, Measurements after)
     {
-        static JsonElement Project(JsonElement value, params string[] excluded) => JsonSerializer.SerializeToElement(
-            value.EnumerateObject().Where(p => !excluded.Contains(p.Name)).ToDictionary(p => p.Name, p => p.Value));
         static IEnumerable<JsonElement> Triggers(JsonElement value) => value.GetProperty("triggers").ValueKind == JsonValueKind.Null ? []
             : value.GetProperty("triggers").EnumerateArray().Where(x => x.GetProperty("schema").GetString() != "auth");
         Require(Same(Project(before.Catalogue, "schemas", "migrations", "triggers"), Project(after.Catalogue, "schemas", "migrations", "triggers"))
             && Same(JsonSerializer.SerializeToElement(Triggers(before.Catalogue)), JsonSerializer.SerializeToElement(Triggers(after.Catalogue)))
             && Same(Project(before.Privileges, "extensions"), Project(after.Privileges, "extensions"))
-            && Same(before.Schemas, after.Schemas) && Same(before.Routines, after.Routines) && Same(before.Rows, after.Rows), "backup_comparison");
+            && Same(before.Schemas, after.Schemas) && Same(before.Routines, after.Routines) && Same(before.Rows, after.Rows)
+            && Same(before.Security.GetProperty("application"), after.Security.GetProperty("application")), "backup_comparison");
     }
 
     internal static int FreePort()
