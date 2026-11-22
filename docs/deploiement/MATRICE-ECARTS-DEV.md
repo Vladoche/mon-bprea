@@ -1,5 +1,10 @@
 # Matrice Git / Supabase DEV — lot 6.5.2
 
+**Référence historique de campagne.** Les écarts et les objets inventoriés concernent les relevés des 28 et 29 octobre 2026.
+L’[état du projet](../developpement/ETAT-DU-PROJET.md) porte les priorités
+actuelles. Toute nouvelle opération hébergée exige un mandat et une vérification
+de sa cible.
+
 ## Actualisation 6.5.3.B — 29 octobre 2026
 
 [Exécution actuelle et limites](../archives/validations/EXECUTION-LOT6-5-3B-2026-10-29.md) : DEV Free/eu-west-1/17.11 identifié ; trois migrations, dix tables, 98 colonnes, 95 contraintes, 24 index, onze triggers, 24 policies et quinze fonctions dont neuf RPC. Définitions et privilèges comparés à Git et au relevé antérieur sans dérive. Data API public/graphql_public exposés et privé exclu, réglages conservés. Aucun test JWT hébergé ni consultation PROD.

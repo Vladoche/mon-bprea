@@ -1,5 +1,10 @@
 # Validation de l’approbation de la notice V1.2
 
+**Preuve datée de prépublication.** Les verdicts ci-dessous décrivent le
+relevé de la campagne initiale. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
+consigne les lancements qui ont suivi et le [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md)
+porte les conditions du prochain lancement.
+
 **20 novembre 2026, heure de Paris (CET).** Approbation de la notice **enregistrée**.
 Préparation **GO PARTIEL**. Publication **non autorisée**.
 
@@ -81,7 +86,7 @@ jusqu’au lien de messagerie.
 | Sauvegarde et journal | Relecture locale à **08:30:03 CET**, sans accès hébergé. Le dernier point du **18/11 à 13:09:16 CET**, restauré en isolement à **13:09:41 CET**, est frais au relevé. ACL et EFS contrôlés, empreintes du manifeste et de l’archive recalculées, journal courant concordant avec la preuve de restauration. Échéance **25/11/2026 à 13:09:16 CET**. Revalider le point, le journal, le schéma et les dépendances au lancement. |
 | Limites de reprise | Preuve applicative sur dix tables. Auth complet, Storage, sessions, configuration, données uniquement locales et RTO restent hors preuve. [Qualification du 18 novembre](VALIDATION-PREMIERE-INVITATION-PROD.md). |
 | Accès et Auth | Invitations uniquement, inscription publique et anonyme désactivées, e-mail avec confirmation. Site URL `https://vladoche.github.io/mon-bprea/`, callback unique `authentification.html` à cette racine. Vérifier les variables publiques `PAGES_SUPABASE_PROD_URL` et `PAGES_SUPABASE_PROD_PUBLISHABLE_KEY` et les surcharges Actions au lancement. Le plafond de sept comptes relève du circuit administratif. Récupération assistée via le contact et le callback commun. Les relevés PROD du 8 et du 18 novembre restent datés. La durée de lien de 24 h et le renouvellement réel ont leur propre périmètre de décision. [Contrat Auth](../architecture/AUTHENTIFICATION.md) · [Plan de publication](../deploiement/PLAN-PUBLICATION-2027.md). |
-| Contact opérateur | Le canal public fonctionne jusqu’au `mailto:` et l’essai du 05/11 reste attesté. Le contrôle local `preopening -- contact` signale des preuves absentes dans le dossier pour la maîtrise de la boîte, sa protection, sa récupération, sa consultation et les dates de réception/réponse. Vérifier ces pièces avant lancement, le contact étant le canal d’exercice des droits. [Dossier opérateur et contact](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#dossier-opérateur-et-contact). |
+| Contact opérateur | Le canal public fonctionne jusqu’au `mailto:` et l’essai du 05/11 reste attesté. Le contrôle local `preopening -- contact` signale des preuves absentes dans le dossier pour la maîtrise de la boîte, sa protection, sa récupération, sa consultation et les dates de réception/réponse. Vérifier ces pièces avant lancement, le contact étant le canal d’exercice des droits. [Dossier opérateur et contact](../deploiement/EXPLOITATION-PRIVEE.md#dossier-opérateur-et-contact). |
 | Réserves de recette | Safari et lecteur d’écran natif hors couverture. P2 sur les interactions du catalogue synthétique de 600 fiches, catalogue officiel dans le budget au relevé #79. Recette authentifiée hébergée à autoriser. [Recette finale](VALIDATION-RECETTE-FINALE-2027.md#performance). |
 
 La [fiche d’approbation](CORRECTIONS-PREPUBLICATION-2027.md#fiche-dapprobation),

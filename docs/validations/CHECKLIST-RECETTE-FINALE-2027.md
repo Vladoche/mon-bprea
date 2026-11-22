@@ -1,5 +1,10 @@
 # Checklist de recette finale Mon BPREA 2027
 
+**Preuve datée de prépublication.** Les verdicts ci-dessous décrivent le
+relevé de la campagne initiale. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
+consigne les lancements qui ont suivi et le [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md)
+porte les conditions du prochain lancement.
+
 Campagne réalisée par Codex le **20 novembre 2026**. Base
 `21689d3b1861c9f7a215b51e3814e392f95efbff` après fusion de
 [#78](https://github.com/Vladoche/mon-bprea/pull/78). Code candidat
@@ -41,7 +46,7 @@ Suivi après fusion de #79, actualisé le 20 novembre 2026.
 [Contrôles complémentaires et décision](./VALIDATION-APPROBATION-NOTICE-V1-2.md).
 
 Suivre le [plan de publication 2027](../deploiement/PLAN-PUBLICATION-2027.md),
-le [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
+le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
 et le [contrat de cache](../architecture/CACHE.md).
 
 | ID · contrôle | Environnement et SHA | Résultat attendu | État | Résultat observé et preuve | Anomalie, gravité et suite |
@@ -52,7 +57,7 @@ et le [contrat de cache](../architecture/CACHE.md).
 | HP-02 · Paramètres publics Auth | Pages servie `3952fd5`, workflow futur | Revalider cible, URL, clé publishable, callback, invitation et refus d’anonyme. | Bloqué | Les cinq champs de la configuration servie correspondent à la forme attendue. Le dernier relevé opérateur Auth est daté du 18/11. Préflight du prochain workflow et contrôle administratif à réaliser sous mandat. | Recontrôler pour le SHA retenu. |
 | HP-03 · Repli | Pages `3952fd5`, artefacts locaux `3952fd5` et `bacb683` | Dernier SHA, notice, paramètres publics, procédure et répétition locale. | Réussi | Référence identifiée et repli répété localement. La future publication d’un repli requiert son propre accord. [Procédure](../deploiement/PLAN-PUBLICATION-2027.md#retour-arrière-frontend). | Artefact historique du run indisponible par l’API. Reconstitution à partir de Git et paramètres de test. |
 | HP-04 · Workflow Pages | GitHub Pages, SHA futur | Consigner run, conclusion, artefact et SHA réellement servi. | Bloqué | Aucun lancement de la version 2027. | Attendre l’accord de phase A. |
-| HP-05 · Vérification publique initiale | HTTP public Pages `3952fd5` | Identifier code servi, préfixe, notice, cache et configuration publique. | Réussi | Neuf pages 200, V1.1 servie, SHA homogène et cache annoncé à 600 s. [Registre](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages). | Lecture sans session sur la publication du 08/11. |
+| HP-05 · Vérification publique initiale | HTTP public Pages `3952fd5` | Identifier code servi, préfixe, notice, cache et configuration publique. | Réussi | Neuf pages 200, V1.1 servie, SHA homogène et cache annoncé à 600 s. [Registre](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages). | Lecture sans session sur la publication du 08/11. |
 | HP-06 · Vérification hébergée 2027 | GitHub Pages, SHA futur | Routes et ressources, navigateur neuf et ancien, contact et notice approuvée. | Non commencé | La version 2027 attend encore sa décision de publication. | Exécuter la phase B sous mandat. |
 | HP-07 · Recette hébergée authentifiée | Supabase PROD, SHA futur | Vérifier connexion et persistance uniquement dans le périmètre accordé. | Bloqué | Aucun essai connecté pendant cette mission. La preuve hébergée du 08/11 concerne le seul exploitant. | Autorisation distincte. |
 | HP-08 · Clôture de la campagne | Registre et état projet, SHA futur | Reporter preuves, réserves, dates effectives et décision d’accueil distincte. | Non commencé | État prépublication actualisé. La clôture hébergée suit la décision et les contrôles réels. | À consigner après la phase B éventuelle. |

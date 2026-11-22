@@ -1,5 +1,10 @@
 # Plan de mise à niveau Supabase DEV
 
+**Référence historique de campagne.** Ce plan conserve la préparation de la mise à niveau DEV d’octobre 2026 et ses résultats partiels.
+L’[état du projet](../developpement/ETAT-DU-PROJET.md) porte les priorités
+actuelles. Toute nouvelle opération hébergée exige un mandat et une vérification
+de sa cible.
+
 **Suivi 6.5.4.C, 4 novembre 2026 :** [bilan C2](../archives/validations/VALIDATION-LOT6-5-4C.md), [état à conserver](RUNBOOK-REPRISE-DEV-6-5-4C.md). Correctif JSON validé contre DEV, T03/T08/T10/T12 réussis ; T11 expiration JWT **NON EXÉCUTÉE**, explicitement reportée. Catalogue et privilèges concordants, aucune migration ou configuration modifiée. Compteurs **3/3 liens, 29/60 Auth, 104/140 tentatives** ; deux comptes fictifs A/B et **36 lignes** conservés. D non autorisée et non exécutée. Aucun accès PROD, déploiement Pages, invitation réelle ou accord d'ouverture. Les états et procédures datés ci-dessous restent historiques et n'autorisent aucune nouvelle intervention.
 
 **Suivi 6.5.4.C, 31 octobre 2026 :** [bilan DEV](../archives/validations/VALIDATION-LOT6-5-4C.md), [procédure corrective](RUNBOOK-REPRISE-DEV-6-5-4C.md). Catalogue et privilèges complets concordants après C/C1 ; aucune migration/configuration. A/B opérationnels, défaut JSON corrigé localement et en CI ; **C2 non autorisée, recette partielle conservée au choix de l'exploitant**. Compteurs 3/3 liens, 22/60 Auth, 102/140 tentatives ; D absent. Aucune mise à niveau ou ouverture autorisée.

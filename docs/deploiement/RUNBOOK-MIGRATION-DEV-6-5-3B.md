@@ -1,5 +1,10 @@
 # Runbook de migration DEV — lot 6.5.3.B
 
+**Référence historique de campagne.** La commande et les preuves ci-dessous concernent la migration autorisée du 29 octobre 2026.
+L’[état du projet](../developpement/ETAT-DU-PROJET.md) porte les priorités
+actuelles. Toute nouvelle opération hébergée exige un mandat et une vérification
+de sa cible.
+
 **29 octobre 2026 : migration unique appliquée après A/B, copie et restauration applicative partielle vérifiées.** [Preuve d’exécution](../archives/validations/EXECUTION-LOT6-5-3B-2026-10-29.md), [préparation historique](../archives/validations/VALIDATION-LOT6-5-3B.md) et [récupération](SAUVEGARDE-TECHNIQUE-SUPABASE-FREE.md). Aucun changement de version du moteur PostgreSQL.
 
 ## Cible, source et résultat

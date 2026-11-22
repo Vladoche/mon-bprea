@@ -6,7 +6,7 @@
 
 ## Actualisation documentaire 6.5.1
 
-La [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) est fusionnée dans `main` au commit `39a5196816060e4d2a3963b44af6bfe5019b7d30`. Les résultats historiques ci-dessous gardent leur SHA ; les nouveaux checks seront relevés sur la tête de la PR 6.5.1 dans sa description et la [validation](../archives/validations/VALIDATION-LOT6-5-1.md). Le [cadrage A–F](CADRAGE-MON-BPREA-SIX-ADULTES.md) renseigne B : six adultes maximum, usage facultatif indépendant, résultats privés sans accès formateur/évaluation officielle prévus, horizon juin 2027. Ces faits remplacent les inconnues de public des lignes C01/C05/C14 ; C10/C11 sont préparées pour l'exploitant cumulant les tâches, aucun canal réel validé. Les P0 restent bloquants et D01–D14 à valider. Ni état distant ni conformité ne sont inférés des tests.
+La [PR #24](https://github.com/Vladoche/mon-bprea/pull/24) est fusionnée dans `main` au commit `39a5196816060e4d2a3963b44af6bfe5019b7d30`. Les résultats historiques ci-dessous gardent leur SHA ; les nouveaux checks seront relevés sur la tête de la PR 6.5.1 dans sa description et la [validation](../archives/validations/VALIDATION-LOT6-5-1.md). Le [cadrage A–F](CADRAGE-MON-BPREA.md) renseigne B : six adultes maximum, usage facultatif indépendant, résultats privés sans accès formateur/évaluation officielle prévus, horizon juin 2027. Ces faits remplacent les inconnues de public des lignes C01/C05/C14 ; C10/C11 sont préparées pour l'exploitant cumulant les tâches, aucun canal réel validé. Les P0 restent bloquants et D01–D14 à valider. Ni état distant ni conformité ne sont inférés des tests.
 
 ## Registre des exécutions
 

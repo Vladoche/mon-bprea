@@ -4,9 +4,9 @@ Site de révision BPREA en HTML, CSS et JavaScript, publié sur [GitHub Pages](h
 
 **État actuel, code fusionné et version publiée : [état du projet](docs/developpement/ETAT-DU-PROJET.md).** Consulter le [changelog](CHANGELOG.md) pour les jalons et la [fiche de reprise Codex](docs/developpement/REPRISE-CODEX.md) pour démarrer un chantier. Les preuves datées restent dans les validations et leurs archives.
 
-L’accès personnel du site publié est **sur invitation avec Auth PROD activée** selon le dernier déploiement vérifié. La configuration `assets/auth-config.json` **versionnée reste volontairement désactivée** : elle ne décrit pas la configuration injectée dans l’artefact de production. La refonte 2027 fusionnée sur main n’est pas encore publiée à la dernière vérification ; consulter l’état central pour les SHA et dates.
+L’accès personnel du site publié est **sur invitation avec Auth PROD activée** selon le dernier déploiement vérifié. La configuration `assets/auth-config.json` **versionnée reste volontairement désactivée** : elle ne décrit pas la configuration injectée dans l’artefact de production. La refonte 2027 est publiée. Les préférences « Mon parcours BPREA » sont fusionnées et attendent leur mise en service. Les références vérifiées figurent dans l’état du projet.
 
-## Fonctionnalités
+## Fonctionnalités publiées
 
 - **Accueil et navigation 2027** : accueil panoramique, accès Mes cours/Outils et Mon profil (Connexion pour les visiteurs), reprise depuis une activité datée et hubs harmonisés.
 - **Mes cours** : 5 UC nationales et 2 UCARE, quatre cours d’exemple UC 03, QCM et progression.
@@ -15,7 +15,7 @@ L’accès personnel du site publié est **sur invitation avec Auth PROD activé
 - **Apparence** : icône clair/sombre dans le header, saisons et ambiances horaires dans Profil → Paramètres ; mémorisation d’appareil volontaire et préférences personnelles synchronisées.
 - **Espace personnel configuré** : activation sur invitation, connexion, récupération assistée et synchronisation des cours, QCM, Drill, botanique, paramètres ITK et apparence. Les demandes de copie, d’effacement et de clôture passent par le [contact officiel](contact.html).
 
-La banque Drill couvre surtout l’UC 03 et les autres UC signalent leur banque incomplète. Le quiz botanique propose 24 plantes réparties entre quatre catégories. Le calendrier affiche les dates de formation renseignées. Les statistiques portent sur les exercices réalisés, sans badge ni récompense. L’ITK et les indices de préparation sont des repères pédagogiques, sans valeur de prescription ou de prédiction de réussite.
+La banque Drill couvre surtout l’UC 03 et les autres UC signalent leur banque incomplète. Le quiz botanique propose 24 plantes réparties entre quatre catégories. Le calendrier affiche les dates de formation renseignées. La banque distribuée est actuellement vide. Les statistiques portent sur les exercices réalisés, sans badge ni récompense. L’ITK et les indices de préparation sont des repères pédagogiques, sans valeur de prescription ou de prédiction de réussite.
 
 ## Démarrer localement
 
@@ -47,7 +47,7 @@ Consulter [les conventions de test](docs/TESTS.md) pour choisir les contrôles p
 | `docs/architecture/` | [Architecture actuelle](docs/architecture/ARCHITECTURE.md) et contrats par domaine |
 | `docs/developpement/`, `docs/TESTS.md` | Reprise, maintenance et commandes de développement |
 | `docs/deploiement/`, `docs/rgpd/` | Procédures d’exploitation et décisions de préouverture/confidentialité |
-| `docs/validations/` | Preuves de la campagne 6.6 en cours |
+| `docs/validations/` | Preuves datées des campagnes de validation |
 | `docs/archives/validations/` | Rapports antérieurs conservés, à lire selon le besoin du chantier |
 | `scripts/` | Préparation Pages, outils locaux, maintenance et runners |
 | `tests/` | Configurations Vitest/Playwright, unités, intégration, parcours et fixtures synthétiques |
@@ -75,7 +75,7 @@ Les données visiteur restent distinctes des caches personnels isolés par envir
 
 Le workflow [Publier le site BPREA](.github/workflows/deploy.yml) prépare `site-public/` avec `scripts/prepare-pages.py`, puis publie cet artefact via GitHub Actions. Les HTML racine, les ressources publiques autorisées et les PDF gardent leurs chemins ; documentation, tests, scripts et `.tmp/` sont exclus. Le [guide de versionnement des ressources](docs/architecture/CACHE.md) détaille le cache busting.
 
-La publication est **manuelle uniquement** (`workflow_dispatch`) sur `main`, avec accord `publish_auth_production=true` et empreinte LF de la notice finale approuvée. Le workflow vérifie décision/branche, notice et paramètres publics/Auth en lecture seule avant de préparer, déposer puis publier l’artefact. Un push, une fusion ou les tests de PR ne déclenchent pas Pages. Le [registre de publication](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages) décrit le suivi et la recette hébergée distincte.
+La publication est manuelle et requiert un accord distinct. Le [plan de publication](docs/deploiement/PLAN-PUBLICATION-2027.md) décrit les contrôles et le lancement. Le [registre Pages](docs/deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages) conserve les exécutions et recettes hébergées.
 
 ## Contribuer
 

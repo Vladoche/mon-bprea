@@ -12,7 +12,7 @@ au démarrage. Les workflows de sa tête `2e62625` sont réussis :
 
 La [PR #66](https://github.com/Vladoche/mon-bprea/pull/66) est ouverte pour revue : aucune fusion, publication
 Pages ou mutation Supabase hébergée. Tableau de bord/statistiques PR3 lot 4 hors
-refonte. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages)
+refonte. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
 reste la source de publication ; aucune recette hébergée n’est déduite des tests.
 
 ## Présentation et architecture

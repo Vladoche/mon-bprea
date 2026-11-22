@@ -1,12 +1,12 @@
 # Conservation — politique et durées approuvées
 
-**5 novembre 2026, lot 6.5.5.D. Calendrier et durées résiduelles approuvés. Aucune purge automatique.** Le code n'ajoute aucun TTL ni effacement d'historique. [Inventaire](INVENTAIRE-DONNEES.md), [calendrier](CALENDRIER-FERMETURE-PROJET.md), [reprise/clôture](../deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md), [arbitrages regroupés](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md).
+**5 novembre 2026, lot 6.5.5.D. Calendrier et durées résiduelles approuvés. Aucune purge automatique.** Le code n'ajoute aucun TTL ni effacement d'historique. [Inventaire](INVENTAIRE-DONNEES.md), [calendrier](CALENDRIER-FERMETURE-PROJET.md), [reprise/clôture](../deploiement/EXPLOITATION-PRIVEE.md), [arbitrages regroupés](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md).
 
 Durée techniquement observée, choix de l'exploitant et obligation juridique restent distincts. Une borne de cache en nombre ou une expiration JWT n'est pas une durée d'historique. Le mandat B fixe **31 mai 2027** pour préavis/export, **30 juin** pour fermeture et **30 juillet au plus tard** pour suppression des comptes et lignes applicatives hébergées, sous future autorisation d'exécution. Il n'autorise aucune suppression actuelle ni conservation générale des données effacées.
 
 ## Matrice par catégorie
 
-L’exploitant a approuvé ces durées le 5 novembre 2026 pour une exploitation temporaire. Elles s’appliquent au [périmètre de dix comptes](CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté). Les critères et durées propres aux fournisseurs sont documentés séparément. Toute exception précise la justification, le périmètre minimal, le responsable et l’échéance de réexamen. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md).
+L’exploitant a approuvé ces durées le 5 novembre 2026 pour une exploitation temporaire. Elles s’appliquent au [périmètre de dix comptes](CADRAGE-MON-BPREA.md#périmètre-acté). Les critères et durées propres aux fournisseurs sont documentés séparément. Toute exception précise la justification, le périmètre minimal, le responsable et l’échéance de réexamen. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md).
 
 | Catégorie / finalité | Décision ou durée résiduelle | Contrôle, exceptions et preuve |
 | --- | --- | --- |

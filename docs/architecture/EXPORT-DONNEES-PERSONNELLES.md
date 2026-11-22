@@ -4,7 +4,11 @@
 profil partagé. La préparation et le téléchargement sont exercés sur une page
 servie uniquement dans les tests. Le code, le format JSON v1 et les contrats
 d’accès documentés ici restent disponibles pour la maintenance technique.
-Les demandes de copie passent par le contact existant de Mon BPREA.
+Les demandes de copie passent par le contact existant de Mon BPREA. Le
+[circuit de droits](../rgpd/PROCEDURE-DEMANDES-ET-INCIDENTS-PROJET.md) porte
+les décisions applicables. Sur main, #86 ajoute à la copie de compte la table
+`parcours_preferences` si elle est disponible, ainsi que l’instantané et le
+brouillon du cache Parcours.
 [Contact](../../contact.html) · [Confidentialité](../../confidentialite.html).
 
 **Complément 6.5.4.A :** « Restaurer une sauvegarde » comprend les copies de compte v1 sans changer leur format ni leurs exclusions. [Architecture et matrice](RESTAURATION-DONNEES-PERSONNELLES.md), [preuves](../archives/validations/VALIDATION-LOT6-5-4A.md). Analyse sans écriture, Auth fraîche, même portée et confirmation obligatoires. Les sources absentes/exclues, séries Drill absentes, révisions historiques et manifestes incomplets ne sont pas récupérés intégralement. Une copie partielle ne devient pas une sauvegarde d'Auth ou un dump PostgreSQL restaurable.
@@ -13,13 +17,13 @@ L’ancien panneau **Mes données personnelles** permet de préparer une copie d
 compte après vérification serveur et de choisir séparément une sélection
 locale. Le moteur construit le fichier JSON dans le navigateur.
 
-Cette fonctionnalité technique ne traite pas à elle seule toutes les demandes d'accès/copie (art. 12/15), et ne décide pas de l'applicabilité de la portabilité (art. 20). Celle-ci dépend notamment des bases et données concernées. **D01–D14 restent non validées.** Sources officielles consultées le **27/10/2026** : [CNIL, réponse au droit d'accès](https://www.cnil.fr/fr/repondre-une-demande-de-droit-dacces), [CNIL, portabilité](https://www.cnil.fr/fr/respecter-les-droits-des-personnes/professionnels-comment-repondre-une-demande-de-droit-la-portabilite), [RGPD, articles 12/15/20 sur CNIL](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3). Le projet de politique 6.4.1 n'est pas publié comme notice validée.
+Cette fonctionnalité technique ne traite pas à elle seule toutes les demandes d'accès/copie (art. 12/15), et ne décide pas de l'applicabilité de la portabilité (art. 20). Celle-ci dépend notamment des bases et données concernées. L’évaluation initiale précède les [décisions D01–D14](../rgpd/DECISIONS-A-VALIDER.md). Sources officielles consultées le **27/10/2026** : [CNIL, réponse au droit d'accès](https://www.cnil.fr/fr/repondre-une-demande-de-droit-dacces), [CNIL, portabilité](https://www.cnil.fr/fr/respecter-les-droits-des-personnes/professionnels-comment-repondre-une-demande-de-droit-la-portabilite), [RGPD, articles 12/15/20 sur CNIL](https://www.cnil.fr/fr/reglement-europeen-protection-donnees/chapitre3). Le projet de politique 6.4.1 n'est pas publié comme notice validée.
 
 ## Frontières et sécurité
 
 | Module | Responsabilité |
 | --- | --- |
-| [export-sources.js](../../assets/export-sources.js) | Contrats des dix tables et colonnes explicites, clés locales autorisées, quatre bases et limites. |
+| [export-sources.js](../../assets/export-sources.js) | Tables et colonnes explicites, clés locales autorisées, cinq bases de compte sur main et limites. |
 | [export-model.js](../../assets/export-model.js) | Projection récursive par listes de champs, contrôle de propriétaire, enveloppe/dictionnaire, volume et sérialisation. Jamais de copie générique du stockage ou d'un objet session. |
 | [export-transport.js](../../assets/export-transport.js) | SELECT paginés, vérification Auth et JWT fixé à chaque requête, filtres propriétaires, annulation et contrôle de progression. |
 | [export-service.js](../../assets/export-service.js) | Identité/génération, passes bornées, compléments locaux, couverture et invalidation du résultat privé en mémoire. Les abonnés ne reçoivent que l'état et les catégories/comptages. |
@@ -74,7 +78,7 @@ Le parcours appareil ne permet pas davantage un dump brut : il restitue les cham
 - Drill : clé UUID `id` ou `operation_id`. Cours : `lesson_id`. Sessions botaniques : `session_id`. Profil et singletons : clé propriétaire.
 - Tentatives QCM : `(created_at,attempt_id)` ; réponses botaniques : `(created_at,answer_id)`. Dates brutes avec microsecondes conservées et échappement des filtres ; pas de conversion en millisecondes pour construire les curseurs. L'ordre texte reste celui de PostgreSQL.
 - Un identifiant répété, une ligne étrangère, une page non-tableau ou une colonne requise manquante invalide la lecture. Une erreur n'est jamais convertie en historique vide.
-- Deux passes consécutives concordantes, sur les dix tables et les quatre compléments locaux, sont nécessaires. Une modification de révision, insertion tardive ou changement de cache impose une troisième passe ; si les deux dernières ne concordent pas, `unstable`, aucun fichier.
+- Deux passes consécutives concordantes sur le périmètre serveur et les compléments locaux sont nécessaires. Une modification de révision, insertion tardive ou changement de cache impose une troisième passe ; si les deux dernières ne concordent pas, `unstable`, aucun fichier.
 
 Il s'agit de convergence observée, **pas d'un snapshot transactionnel global**, ni d'une garantie d'absence de changement juste après la dernière lecture. Une transaction longtemps invisible ou une modification aller-retour peut échapper à cette observation. Le fichier et l'interface annoncent cette limite. L'export n'arrête pas les autres onglets et ne déclenche pas les services de synchronisation ; une activité de synchronisation déjà présente peut faire changer les données et conduire à recommencer.
 

@@ -2,7 +2,7 @@
 
 ## Vérification ciblée D05/D06 — 6 novembre 2026
 
-Le relevé du 6 novembre reprend les preuves publiques du 5 novembre pour GitHub Pages, Supabase Free et Outlook.com personnel. **P0-07 et P0-08 sont résolus le 8 novembre pour la cible et le circuit décrits ci-dessous**, après lecture ciblée et attestation du titulaire. Le service reste gratuit, temporaire et limité à sept adultes. Le contact Outlook.com et son fonctionnement sont acquis sur attestation de l’exploitant. [Reçu D04](RECU-ARBITRAGES-2026-11-05.md), [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15).
+Le relevé du 6 novembre reprend les preuves publiques du 5 novembre pour GitHub Pages, Supabase Free et Outlook.com personnel. **P0-07 et P0-08 sont résolus le 8 novembre pour la cible et le circuit décrits ci-dessous**, après lecture ciblée et attestation du titulaire. Le relevé portait sur sept adultes. Le [cadrage en vigueur](CADRAGE-MON-BPREA.md#périmètre-acté) fixe la capacité et conserve le caractère gratuit et temporaire du service. Le contact Outlook.com et son fonctionnement sont acquis sur attestation de l’exploitant. [Reçu D04](RECU-ARBITRAGES-2026-11-05.md), [matrice P0](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15).
 
 Les lettres de cette vérification distinguent **A** constat de code ou d’artefact, **B** source officielle du fournisseur, **C** déclaration de l’exploitant, **D** inférence motivée du projet et **E** inconnue ou preuve à obtenir. Les références G, S et M renvoient au [registre des sources publiques](#registre-des-sources-publiques). Le relevé historique plus bas conserve ses propres repères.
 

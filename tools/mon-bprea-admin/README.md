@@ -28,7 +28,7 @@ Le camarade ouvre lui-même le lien et choisit son mot de passe. L’application
 
 Si l’adresse est déjà activée, utilise **Récupérer un compte**. Si elle attend son activation, l’application retrouve le lien encore utilisable ou ouvre le parcours de renouvellement. Chaque copie revérifie l’invitation en cours.
 
-En PROD, une nouvelle invitation ou son renouvellement exige une sauvegarde applicative restaurée et vérifiée depuis moins de sept jours et une durée Auth vérifiée de 24 heures. La première invitation exige aussi une place disponible. **Créer un compte** affiche les places participantes d’après un inventaire Auth complet, relu sous verrou avant la mise en réserve. Une récupération ou un renouvellement conserve le compte et sa place.
+En PROD, une nouvelle invitation ou son renouvellement exige une sauvegarde applicative du schéma courant, restaurée, vérifiée et âgée d’au plus sept jours, ainsi qu’une durée Auth vérifiée de 24 heures. La première invitation exige aussi une place disponible. **Créer un compte** affiche les places participantes d’après un inventaire Auth complet, relu sous verrou avant la mise en réserve. Une récupération ou un renouvellement conserve le compte et sa place.
 
 ## Récupérer un compte
 
@@ -43,6 +43,8 @@ Après activation, trois opérations sont proposées.
 La connaissance de l’ancienne adresse ne suffit pas à vérifier une identité. En cas de doute, annuler. La confirmation de la nouvelle adresse est administrative, après cet échange ; elle ne demande aucun message à une ancienne boîte devenue inaccessible. Le compte garde le même identifiant et ses données.
 
 Un lien de récupération déjà créé peut être retrouvé. S’il a expiré ou a déjà été utilisé, **Créer un nouveau lien** permet de le remplacer pour une nouvelle demande vérifiée. Une erreur entre le changement d’adresse et la création du lien est signalée comme un changement partiel, jamais comme une récupération terminée.
+
+<a name="préparer-une-clôture-et-suivre-son-résultat"></a>
 
 ## Supprimer un compte
 

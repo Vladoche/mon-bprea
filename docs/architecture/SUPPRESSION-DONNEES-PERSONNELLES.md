@@ -3,10 +3,12 @@
 **Accès à partir de PR5 lot 1.** La sélection de caches, leur retrait et leur
 reprise, ainsi que le prototype de clôture, sont retirés du profil partagé.
 Les tests exercent ces fonctions sur leur page dédiée. Les demandes suivent
-la procédure de clôture assistée via le contact existant.
+la [procédure de clôture assistée](../rgpd/PROCEDURE-DEMANDES-ET-INCIDENTS-PROJET.md)
+via le contact existant. Sur main, le périmètre technique inclut le cache Parcours
+et sa table liée à l’UUID Auth.
 [Contact](../../contact.html) · [Droits et clôture](../../confidentialite.html#vos-droits-et-la-cloture).
 
-**Préparation technique ; activation hébergée bloquée.** Base `7b0bc77fbc3c8c3b341386a5cd681763ecdbc29e`, fusion #22 vérifiée. [Validation exécutée](../archives/validations/VALIDATION-LOT6-4-3.md). Les décisions [D01–D14](../rgpd/DECISIONS-A-VALIDER.md) restent ouvertes. Cette architecture ne décide ni du bien-fondé d'une demande RGPD, ni des exceptions de conservation. Le prototype local ne doit pas être déployé tel quel : il refuse matériellement une URL Supabase hébergée.
+**Préparation technique ; activation hébergée bloquée.** Base `7b0bc77fbc3c8c3b341386a5cd681763ecdbc29e`, fusion #22 vérifiée. [Validation exécutée](../archives/validations/VALIDATION-LOT6-4-3.md). Les [décisions D01–D14](../rgpd/DECISIONS-A-VALIDER.md) sont suivies séparément. Cette architecture ne décide ni du bien-fondé d'une demande RGPD, ni des exceptions de conservation. Le prototype local ne doit pas être déployé tel quel : il refuse matériellement une URL Supabase hébergée.
 
 ## Périmètres indépendants
 
@@ -39,11 +41,11 @@ Les guards pédagogiques s'exécutent sur INSERT/UPDATE, pas sur DELETE. L'appel
 
 Après commit, un JWT ancien peut encore être accepté cryptographiquement par PostgREST ; les prédicats de propriétaire seuls ne prouvent donc pas la fin du compte. Les FK validées vers la racine Auth, y compris les FK composites des dépendants, empêchent la recréation sous l'ancien UUID. L'étudiant ne possède aucun INSERT sur `profiles`, ni privilège permettant de recréer `auth.users`. Aucun transfert d'outbox/import d'A vers un nouveau compte B n'est ajouté. Pas de tombstone serveur identifiable ni de conservation perpétuelle introduite. Toute future modification du graphe, nouveau domaine ou ressource Storage impose une nouvelle recette.
 
-**Preuves distinctes :** pgTAP contrôle le graphe et injecte une panne de cascade avec rollback/reprise sur deux UUID fictifs. Chromium Supabase peuple les dix tables par opérations autorisées, exécute le vrai service, vérifie les dix absences avec JWT étudiant résiduel, conserve B, tente les neuf RPC et INSERT profil, puis reconnecte l'appareil hors ligne. Les tests JavaScript simulés ne prouvent pas ces propriétés SQL.
+**Preuves du lot sur le schéma historique de dix tables :** pgTAP contrôle le graphe et injecte une panne de cascade avec rollback/reprise sur deux UUID fictifs. Chromium Supabase peuple les dix tables par opérations autorisées, exécute le vrai service, vérifie les dix absences avec JWT étudiant résiduel, conserve B, tente les neuf RPC et INSERT profil, puis reconnecte l'appareil hors ligne. Les tests JavaScript simulés ne prouvent pas ces propriétés SQL.
 
 ## Effacement personnel transactionnel
 
-Modules : [erasure-service](../../assets/erasure-service.js), [erasure-store](../../assets/erasure-store.js), [personal-idb](../../assets/personal-idb.js), [privacy-events](../../assets/privacy-events.js). Noms des quatre bases `mon-bprea-*-personal-v1` et store `accounts` conservés. Le schéma IndexedDB passe de **1 à 2**, par ajout non destructif du store `privacy`. Une simple lecture d'export continue à accepter 1/2 sans créer/migrer de base.
+Modules : [erasure-service](../../assets/erasure-service.js), [erasure-store](../../assets/erasure-store.js), [personal-idb](../../assets/personal-idb.js), [privacy-events](../../assets/privacy-events.js). Le lot initial a conservé les noms des quatre bases `mon-bprea-*-personal-v1` et le store `accounts`. #86 ajoute le cache Parcours à la sélection d’effacement technique. Le schéma IndexedDB passe de **1 à 2**, par ajout non destructif du store `privacy`. Une simple lecture d'export continue à accepter 1/2 sans créer/migrer de base.
 
 1. Sélection explicite ; aucun domaine précoché, visiteur distinct. Vérification Auth serveur fraîche ; ni ancien UUID ni identité `offline` ne suffisent.
 2. Lecture du seul `accounts.get(scope)` dans chaque base choisie. Validation du format existant. Résumé des opérations non confirmées, avertissement sur brouillons/conflits/archives/imports et proposition d'export. Un format futur ou une archive non attribuable empêche l'aperçu destructif.
@@ -93,9 +95,9 @@ La capacité est une autorisation de clôture déjà réauthentifiée, valable b
 
 La suppression native Auth traite son utilisateur et les dépendances internes gérées par Supabase. Ce dépôt ne manipule ni mots de passe hachés, ni identités/refresh tokens par SQL direct. La disparition de sessions/identités internes et leurs journaux doit être qualifiée avec la version fournisseur ; on ne présente pas `getUserById` comme un audit de tous les objets internes. JWT déjà émis et logs restent distincts. Le site n'utilise pas Storage et la stack locale le désactive ; **aucun bucket ou objet fictif n'est inventé**. Supabase documente qu'un propriétaire d'objets Storage ne peut pas être supprimé ainsi : si de telles ressources apparaissent, le service doit échouer et demander une procédure revue.
 
-Backups, PITR, logs Auth/PostgREST/Edge, sécurité et copies opérationnelles ne sont pas supprimés par le contrôle des dix tables. Obtenir du prestataire plan, contenu, lieux, délais, possibilité de restriction, sort d'une suppression dans les backups et preuve de sortie de rétention. Ne pas enregistrer JWT, mot de passe, capacité, UUID cible, contenu effacé ou corps d'erreur dans les logs du service. Les compteurs et stades de tests ne contiennent que des fixtures, pas une preuve nominative à conserver sans règle.
+Backups, PITR, logs Auth/PostgREST/Edge, sécurité et copies opérationnelles ne sont pas supprimés par le contrôle des tables applicatives. Obtenir du prestataire plan, contenu, lieux, délais, possibilité de restriction, sort d'une suppression dans les backups et preuve de sortie de rétention. Ne pas enregistrer JWT, mot de passe, capacité, UUID cible, contenu effacé ou corps d'erreur dans les logs du service. Les compteurs et stades de tests ne contiennent que des fixtures, pas une preuve nominative à conserver sans règle.
 
-**Restauration à préparer avant activation :** isoler la restauration, désactiver accès et synchronisation, réconcilier avec les demandes de suppression autorisées postérieures au point restauré dans un dossier restreint, réappliquer les suppressions et contrôler les dix tables/Auth avant réouverture. D07/D08/D13 doivent définir source fiable, habilitations, minimisation, durée de ce suivi et preuve. Ce mécanisme opérationnel n'est pas développé ni réputé résolu ici ; sans lui, une restauration pourrait réactiver un ancien compte. Aucun registre perpétuel créé par commodité.
+**Restauration à préparer avant activation :** isoler la restauration, désactiver accès et synchronisation, réconcilier avec les demandes de suppression autorisées postérieures au point restauré dans un dossier restreint, réappliquer les suppressions et contrôler les tables applicatives et Auth avant réouverture. D07/D08/D13 doivent définir source fiable, habilitations, minimisation, durée de ce suivi et preuve. La [procédure courante](../deploiement/EXPLOITATION-PRIVEE.md#journal-minimal-et-réconciliation-avant-reprise) décrit la réconciliation et les limites de sa qualification. Aucun registre perpétuel créé par commodité.
 
 ## Sources officielles, consultées le 27 octobre 2026
 

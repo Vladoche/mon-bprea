@@ -1,10 +1,10 @@
 # Changelog
 
 Historique synthétique du code et de sa documentation, sans versionnement SemVer
-du frontend. Les dates ci-dessous sont les **dates de fusion UTC**, vérifiées sur
-GitHub le 19 novembre 2026. Une fusion ne prouve pas une publication : consulter
+du frontend. Les rubriques datées suivent les fusions UTC, sauf repère de
+publication explicite. Une fusion ne prouve pas une publication : consulter
 l’[état actuel](docs/developpement/ETAT-DU-PROJET.md) et le
-[registre Pages](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages).
+[registre Pages](docs/deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages).
 La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
@@ -21,10 +21,19 @@ La version de l’application Windows reste propre à cet outil.
 - **Admin Windows 2.3 et capacité de dix comptes**. Décision du 20 novembre
   2026, avec une place exploitant et neuf places participantes. Inventaire Auth
   complet exigé dans les circuits de création et places restantes affichées dans
-  Admin. Cadrage, registre et notice V1.3 candidate mis à jour. [PR #84](https://github.com/Vladoche/mon-bprea/pull/84) · [Décision](docs/rgpd/CADRAGE-MON-BPREA-SIX-ADULTES.md#périmètre-acté).
+  Admin. Cadrage, registre et notice V1.3 candidate mis à jour. [PR #84](https://github.com/Vladoche/mon-bprea/pull/84) · [Décision](docs/rgpd/CADRAGE-MON-BPREA.md#périmètre-acté).
 - **Hygiène Git après livraison**. Inventaire au démarrage, isolation des tâches
   et contrôle du distant avant le nettoyage des builds et worktrees de la tâche.
   [PR #83](https://github.com/Vladoche/mon-bprea/pull/83).
+
+- **Assainissement documentaire**. Guides d’exploitation et de cadrage renommés,
+  état Git/Pages et procédures de publication actualisés, références historiques
+  conservées. [PR #87](https://github.com/Vladoche/mon-bprea/pull/87).
+
+## Publication Pages du 20 novembre 2026 — #65 à #67
+
+La refonte 2027 jusqu’à #82, dont les changements des 15 et 16 novembre ci-dessous,
+est servie par Pages #67. [Registre Pages](docs/deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages).
 
 - **Continuité des palettes entre les pages**. La palette du compte reconnu
   s’applique avant les feuilles de style. Les modes saisonnier et personnalisé
@@ -39,14 +48,14 @@ La version de l’application Windows reste propre à cet outil.
 
 - **Approbation de la notice V1.2**. Décision du 20 novembre 2026 enregistrée
   pour le texte exact, avec contrôles ciblés du profil et de l’artefact Pages.
-  Publication non autorisée.
+  V1.2 publiée à partir du run #65.
   [PR #80](https://github.com/Vladoche/mon-bprea/pull/80) ·
   [Validation](docs/validations/VALIDATION-APPROBATION-NOTICE-V1-2.md).
 
 - **Recette finale de préproduction 2027**. Notice V1.2 candidate et parcours
   de copie, d’effacement et de clôture via le contact officiel. Vérification
   de la conservation des données et répétition locale de la mise à niveau et
-  du repli Pages. Approbation de la notice en attente.
+  du repli Pages. Approbation recueillie ensuite dans #80.
   [PR #79](https://github.com/Vladoche/mon-bprea/pull/79) ·
   [Recette](docs/validations/VALIDATION-RECETTE-FINALE-2027.md).
 
@@ -94,6 +103,8 @@ La version de l’application Windows reste propre à cet outil.
   adaptées au clavier et au mobile. Les dates de formation proviennent du même
   fichier JSON. [PR #71](https://github.com/Vladoche/mon-bprea/pull/71) et
   [validation](docs/validations/VALIDATION-UI-2027-PR4-LOT1.md).
+## Administration Windows — fusions des 17 et 18 novembre 2026
+
 - **Mon BPREA Admin 2.2 — invitations expirées**. Renouvellement depuis **Récupérer un compte** sur le même UUID Auth. La copie vérifie l’invitation en cours, le journal garde les générations protégées et le réglage de 24 heures est relu auprès de Supabase. [PR #70](https://github.com/Vladoche/mon-bprea/pull/70) · [Validation](docs/validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md).
 - **Tableau de bord 2027, clôture de PR3 (lot 4)**. Synthèse responsive,
   graphiques hebdomadaires consultables au clavier et au toucher, comparaison
@@ -117,19 +128,6 @@ La version de l’application Windows reste propre à cet outil.
   [Guide](tools/mon-bprea-admin/README.md),
   [architecture et limites](tools/mon-bprea-admin/DEVELOPPEMENT.md),
   [validation](docs/validations/VALIDATION-ADMIN-V2.md).
-- Drill hebdomadaire PR3 lot 3 #66 fusionné ; voir l’entrée datée ci-dessous.
-- QCM de cours PR3 lot 2 #65 fusionné ; voir l’entrée datée ci-dessous.
-- Correctif clair/sombre #64 fusionné ; voir l’entrée datée ci-dessous.
-- PR3 lot 1 UC/lecture #63 fusionnée ; voir l’entrée datée ci-dessous.
-- Maintenance documentaire #62 fusionnée ; voir l’entrée datée ci-dessous.
-- Frontend fusionné après le dernier commit publié : refonte 2027 #59–#66
-  détaillée ci-dessous. Les versions Windows sont distribuées par leur workflow
-  propre ; les preuves documentaires #52–#55 ne constituent pas une publication Pages.
-
-Pour une prochaine PR significative, ajouter ici un intitulé stable et son lien
-dès que le numéro est connu. À la reprise après fusion, inscrire la date réelle
-et conserver le statut de publication séparément ; ne jamais exiger le futur SHA
-de merge dans la PR elle-même. Une correction de ponctuation n’impose pas d’entrée.
 
 ## 2026-11-16
 
@@ -219,13 +217,13 @@ avec préflight, confirmation et conservation privée des opérations.
 
 Circuit opérateur droits/clôture, suppression native et réconciliation après
 restauration qualifiés avec comptes fictifs isolés ; aucune suppression réelle
-PROD. [Preuves](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#qualification-opérationnelle-de-p0-13--8-novembre-2026).
+PROD. [Preuves](docs/deploiement/EXPLOITATION-PRIVEE.md#qualification-opérationnelle-de-p0-13--8-novembre-2026).
 
 ### Qualifié — [#54](https://github.com/Vladoche/mon-bprea/pull/54), sauvegarde applicative
 
 Premier point applicatif des dix tables restauré et vérifié en PostgreSQL isolé.
 RPO satisfait à cet instant ; Auth et reprise complète hébergée restent exclus.
-[Preuve datée](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#point-de-reprise-applicatif-du-8-novembre-2026).
+[Preuve datée](docs/deploiement/EXPLOITATION-PRIVEE.md#point-de-reprise-applicatif-du-8-novembre-2026).
 
 ### Qualifié — [#53](https://github.com/Vladoche/mon-bprea/pull/53), premier compte réel
 
@@ -238,7 +236,7 @@ deux navigateurs ; pas de second compte ni de récupération réelle qualifiés.
 Préparation du frontend Auth PROD et de la notice approuvée, verrouillage du
 workflow sur lancement manuel autorisé, puis correction de la validation de
 notice avant dépôt Pages. #52 consigne la première publication Auth réussie,
-événement distinct tracé dans le [registre Pages](docs/deploiement/EXPLOITATION-PRIVEE-SIX-ADULTES.md#registre-de-publication-pages).
+événement distinct tracé dans le [registre Pages](docs/deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages).
 
 ### Ajouté — [#49](https://github.com/Vladoche/mon-bprea/pull/49), Auth sur invitation
 
