@@ -56,6 +56,20 @@ conservent les résultats de la campagne du 20 novembre.
    lien d’accès, identifiant personnel ni données pédagogiques. Consigner les
    limites dans le registre et l’état du projet.
 
+## Candidat qualifié le 22 novembre 2026
+
+Le build de `6e63090061cc80ae87d90cdbdeb78e160bcf137b` a contrôlé
+169 fichiers finaux, 360 références versionnées, les cinq champs publics Auth,
+la notice V1.4 et l’accès à Parcours depuis le Profil. Les cinq checks de la
+PR #89 ont réussi. Les parcours critiques et l’isolation par compte ont été
+vérifiés sur une stack Supabase locale avec des comptes fictifs. Le backend
+Parcours et la sauvegarde restaurée ont été vérifiés sur PROD.
+
+La notice passe les contrôles automatiques sans approbation documentaire
+séparée. La publication attend l’autorisation de déclencher le workflow.
+Vérifier le SHA effectivement sur `main` avant le lancement selon la phase B.
+[Checks de la PR](https://github.com/Vladoche/mon-bprea/pull/89/checks) · [Qualification PROD](EXPLOITATION-PRIVEE.md#qualification-prod-du-22-novembre-2026).
+
 ## Retour arrière frontend
 
 **Repli répété localement lors de la campagne du 20 novembre** — workflow [#64](https://github.com/Vladoche/mon-bprea/actions/runs/42495467393),

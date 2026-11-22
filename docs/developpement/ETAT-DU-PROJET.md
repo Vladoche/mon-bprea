@@ -16,17 +16,17 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 
 | Repère | État vérifié |
 | --- | --- |
-| Référence | `origin/main` à `78875cd046553d282b802c20b39432dff3ae0cfe` |
-| Dernière fusion | [#88, contrôles documentaires automatiques](https://github.com/Vladoche/mon-bprea/pull/88), 22/11/2026 à 11:12:13 UTC |
-| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86) et [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87). |
+| SHA qualifié pour Pages le 22/11 | `6e63090061cc80ae87d90cdbdeb78e160bcf137b` |
+| Fusion du correctif Admin | [#89, requalification des sauvegardes](https://github.com/Vladoche/mon-bprea/pull/89), 22/11/2026 à 16:36:31 UTC |
+| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86), [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87) et [#88, contrôles documentaires automatiques](https://github.com/Vladoche/mon-bprea/pull/88). |
 
 ## C — Fusion, validation et publication
 
 | État | Périmètre vérifié le 22 novembre 2026 |
 | --- | --- |
 | **Déployé** | [Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), succès du 20/11 à 15:27:11 UTC, SHA `47aff29763763fd3be0b16b60f90e5c8f1048508`. Refonte 2027, Profil simplifié, couleurs personnalisées et continuité de la palette. Notice V1.2 et configuration publique Auth PROD. |
-| **Fusionné depuis ce déploiement** | 24 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4, assainissement documentaire et [contrôles automatiques des notices](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques). La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
-| **En revue** | [#89, requalification des sauvegardes Admin après migration](https://github.com/Vladoche/mon-bprea/pull/89). |
+| **Fusionné depuis ce déploiement** | Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4, assainissement documentaire et requalification des sauvegardes. Admin Windows suit son propre circuit de distribution. |
+| **Prêt à publier après autorisation** | Build Pages du SHA qualifié, notice V1.4, Auth et Parcours contrôlés. [Plan de publication](../deploiement/PLAN-PUBLICATION-2027.md#candidat-qualifié-le-22-novembre-2026). |
 | **Planifié** | Validation et alimentation des référentiels UCARE/sessions, calendrier personnalisé. La consolidation des tests du lot C est reportée. [Matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c). |
 
 La lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources de 15
@@ -65,7 +65,7 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
 | Ressources | Bibliothèque, filtres et aperçus (#73). Focus et recherche au tri corrigés sur main (#85) | Références éditoriales à entretenir | [Validation de la bibliothèque](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
 | Reconnaissance botanique | Refonte 2027 fusionnée dans #74. Photothèque enrichie intégrée dans #76 | 24 plantes et série Légumineuses | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
 | Mon profil | Compte, pseudo et paramètres d’apparence depuis #77 et #81 | Copie, effacement et clôture via le contact officiel | [Auth](../architecture/AUTHENTIFICATION.md) |
-| Mon parcours BPREA | Paramètres du Profil sur main (#86) | Livraison dépendante de la migration et de la notice. Les référentiels UCARE et sessions sont vides | [Architecture](../architecture/ARCHITECTURE.md#mon-parcours-bprea) |
+| Mon parcours BPREA | Paramètres du Profil sur main (#86), migration PROD appliquée le 22/11 | Publication Pages en attente d’autorisation. Les référentiels UCARE et sessions sont vides | [Architecture](../architecture/ARCHITECTURE.md#mon-parcours-bprea) |
 | Apparence | Luminosité, modes automatique et personnalisé, profils de couleur (#59, #81 et #82) | Mémorisation volontaire en visiteur ; préférences du compte synchronisables | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
 | Authentification | Activation sur invitation, connexion et récupération assistée ; #49–#51 | Inscription publique/anonyme fermées ; pas de récupération réelle ni isolation A/B PROD recettées | [Auth](../architecture/AUTHENTIFICATION.md) |
@@ -82,14 +82,13 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
   [runbook PROD](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md).
   La migration de l’apparence a été appliquée le 20 novembre selon la
   [validation #81](../validations/VALIDATION-PROFIL-COULEURS-THEME.md).
-  Le relevé PROD en lecture seule du 22 novembre 2026 confirme six migrations
-  jusqu’à l’apparence, dix tables applicatives sous RLS et l’absence de la
-  migration Parcours et de sa table. La procédure de mise en service prévoit
-  un [point de reprise qualifié avant Parcours](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md#mise-en-service-de-mon-parcours-bprea).
-- **Sauvegarde et invitations.** Le GO technique du 18 novembre était lié à
-  la génération alors restaurée. Le diagnostic `backup_drift` du 20 novembre
-  impose une qualification au schéma courant avant de reprendre les invitations.
-  [Routine, périmètre et limites](../deploiement/EXPLOITATION-PRIVEE.md#sauvegarde-hebdomadaire-et-rpo).
+  Le 22 novembre, la migration Parcours a porté PROD à sept migrations et
+  onze tables sous RLS. Le catalogue et les droits concordent avec le contrat
+  indépendant reconstruit. [Relevé de mise en service](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md#exécution-du-22-novembre-2026).
+- **Sauvegarde et invitations.** Le 22 novembre, l’Admin a reconnu le point
+  restauré du schéma Parcours sans `backup_drift`. L’inventaire Auth du relevé
+  compte cinq comptes. Les préconditions propres aux invitations continuent
+  de s’appliquer. [Registre de sauvegarde](../deploiement/EXPLOITATION-PRIVEE.md#qualification-prod-du-22-novembre-2026).
 - **Admin Windows.** Le [guide courant](../../tools/mon-bprea-admin/README.md)
   décrit la version 2.3, l’inventaire complet et le renouvellement.
   La durée de 24 h et le renouvellement réel demandent encore leur
@@ -104,10 +103,8 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
 ## F — Prochaines actions
 
 1. Valider les référentiels UCARE et sessions avant de préparer le calendrier personnalisé.
-2. Qualifier un point de reprise au schéma courant et traiter les décisions
-   Auth et renouvellement. Pour publier le Parcours, qualifier sa migration,
-   les contrôles automatiques de la V1.4 et les parcours de bout en bout,
-   puis suivre la procédure d’autorisation du déploiement.
+2. Après autorisation de publication, lancer Pages au SHA contrôlé et effectuer
+   la recette hébergée. Suivre l’échéance du point de reprise Parcours.
    [Prérequis de publication](../deploiement/PLAN-PUBLICATION-2027.md#phase-a--décision-préalable).
 3. Obtenir les décisions d’ouverture et les autorisations individuelles de
    collecte et d’invitation. [Actions d’exploitation](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md).
