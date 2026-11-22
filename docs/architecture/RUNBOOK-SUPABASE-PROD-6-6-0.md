@@ -237,3 +237,20 @@ Limiter les compensations aux deltas examinés et approuvés. Les opérations de
    hors de son périmètre.
 6. Après ces vérifications, suivre le
    [plan de publication Pages](../deploiement/PLAN-PUBLICATION-2027.md).
+
+### Exécution du 22 novembre 2026
+
+Après fusion de la PR #89 et [qualification du point de reprise à dix tables](../deploiement/EXPLOITATION-PRIVEE.md#qualification-prod-du-22-novembre-2026),
+Supabase CLI 2.121.0 a appliqué l’unique migration
+`20261121171000_create_parcours_preferences` à PROD via la connexion directe
+en TLS avec validation du nom d’hôte.
+
+La lecture immédiate du registre a confirmé sept migrations et onze tables
+avec RLS. Le schéma et les droits ont concordé avec la référence reconstruite
+depuis les migrations versionnées. La table Parcours possède ses contraintes,
+sa clé étrangère Auth, son index, son trigger et ses politiques du titulaire.
+Les privilèges de colonnes autorisent les écritures attendues du titulaire,
+et l’accès direct ainsi que l’exécution du RPC sont refusés à `anon` et
+`service_role`. Les contrôles SQL des dix tables antérieures concordent avec
+le relevé préalable. Le point du nouveau schéma a été restauré et reconnu
+par l’Admin. [PR #89](https://github.com/Vladoche/mon-bprea/pull/89).
