@@ -82,7 +82,10 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
   [runbook PROD](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md).
   La migration de l’apparence a été appliquée le 20 novembre selon la
   [validation #81](../validations/VALIDATION-PROFIL-COULEURS-THEME.md).
-  La présence hébergée de la migration Parcours reste à vérifier avant sa mise en service.
+  Le relevé PROD en lecture seule du 22 novembre 2026 confirme six migrations
+  jusqu’à l’apparence, dix tables applicatives sous RLS et l’absence de la
+  migration Parcours et de sa table. La procédure de mise en service prévoit
+  un [point de reprise qualifié avant Parcours](../architecture/RUNBOOK-SUPABASE-PROD-6-6-0.md#mise-en-service-de-mon-parcours-bprea).
 - **Sauvegarde et invitations.** Le GO technique du 18 novembre était lié à
   la génération alors restaurée. Le diagnostic `backup_drift` du 20 novembre
   impose une qualification au schéma courant avant de reprendre les invitations.

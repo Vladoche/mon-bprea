@@ -11,7 +11,11 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
     private const string RegistryPath = @"Software\MonBPREAAdmin";
     private readonly AdminCredentialVault vault = AdminCredentialVault.ForPostgres();
     private sealed record Configuration(string Root, string? LegacyLedger, string? Tools);
-    private sealed record Generation(string Path, BackupStatus Status);
+    private sealed record Generation(string Path, VerifiedGeneration Verification)
+    {
+        internal BackupStatus Status => Verification.Status;
+        internal BackupSchema Schema => Verification.Schema;
+    }
 
     public BackupStatus AttachConfiguration()
     {
@@ -81,10 +85,11 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
     private static IEnumerable<string> Generations(Configuration config) => Directory.EnumerateDirectories(config.Root)
         .Where(p => Regex.IsMatch(Path.GetFileName(p), @"^applicative-\d{8}T\d{6}Z-[a-f0-9]{32}$"));
 
-    private static Generation? Latest(Configuration config, string ledger, DateTimeOffset? verifiedAt = null)
+    private static Generation? Latest(Configuration config, string ledger, BackupSchema? expectedSchema = null)
     {
+        var now = DateTimeOffset.UtcNow;
         return Generations(config).Select(path => {
-            try { return new Generation(path, Verify(path, ledger, verifiedAt ?? DateTimeOffset.UtcNow)); }
+            try { return new Generation(path, Inspect(path, ledger, now, expectedSchema: expectedSchema)); }
             catch (Exception e) when (e is AdminException or IOException or UnauthorizedAccessException or JsonException
                 or InvalidOperationException or KeyNotFoundException or FormatException) { return null; }
         }).OfType<Generation>().OrderBy(x => x.Status.Problem == "backup_drift")
@@ -101,10 +106,10 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         var config = Configure();
         var ledger = ReadLedger(config);
         var latest = Latest(config, ledger) ?? throw new AdminException("backup_evidence");
-        if (latest.Status.Problem == "backup_drift") throw new AdminException("backup_drift");
         if (automatic && !latest.Status.Due) return latest.Status;
         Require(inventory.Accounts.All(a => !a.RecoveryRestricted && (a.ConfirmedAt.HasValue || a.InvitedAt.HasValue)), "lookup");
-        Require(!Generations(config).Any(path => File.Exists(Path.Combine(path, "restoration", "cluster", "postmaster.pid"))), "backup_isolation");
+        Require(!Generations(config).Any(path => new[] { "restoration", "contract" }
+            .Any(stage => File.Exists(Path.Combine(path, stage, "cluster", "postmaster.pid")))), "backup_isolation");
         var password = suppliedPassword ?? vault.Read() ?? throw new AdminException("backup_access");
         Require(!string.IsNullOrWhiteSpace(password) && password.Length <= 266 && !password.Any(char.IsControl)
             && !password.StartsWith("sb_secret_", StringComparison.Ordinal), "backup_access");
@@ -123,22 +128,26 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
             var identity = await PostgresSnapshot.Identify(native, source);
             MatchInventory(inventory, identity);
             Require(new DriveInfo(Path.GetPathRoot(directory)!).AvailableFreeSpace >= checked((1L << 30) + 5 * identity.TableBytes), "backup_space");
-            var before = await PostgresSnapshot.Measure(native, source, data: true);
-            CheckBaseline(latest.Path, before);
-            if (suppliedPassword is not null)
+            var metadata = await PostgresSnapshot.Measure(native, source, data: false);
+            var migrations = PostgresSnapshot.ReadMigrationNames(metadata);
+            var schema = CurrentSchema;
+            if (!migrations.SequenceEqual(CurrentSchema.Migrations))
             {
-                vault.Save(suppliedPassword);
-                Require(vault.Read() == suppliedPassword, "credential");
+                Require(!automatic && latest.Schema.Hash != CurrentSchema.Hash
+                    && migrations.SequenceEqual(PreviousSchema.Migrations), "backup_drift");
+                schema = PreviousSchema;
+                latest = Latest(config, ledger, schema) ?? throw new AdminException("backup_evidence");
             }
-            SaveConfiguration(config);
-            Save(Path.Combine(directory, Catalogue), before.Catalogue);
-            Save(Path.Combine(directory, Privileges), before.Privileges);
-            Save(Path.Combine(directory, Ledger), Array.Empty<object>());
-            var (start, completed) = await PostgresSnapshot.Capture(native, source, directory);
-            PostgresSnapshot.CompareSource(before, await PostgresSnapshot.Measure(native, source, data: true));
+            Require(!automatic || latest.Schema.Hash == schema.Hash, "backup_drift");
+            await CheckRenewalBaseline(native, directory, latest.Path, identity, metadata, schema, latest.Schema, hosted: true);
+            var before = await PostgresSnapshot.Measure(native, source, data: true, schema: schema);
+            PostgresSnapshot.CompareSource(metadata, before);
+            SaveBaseline(directory, before);
+            var (start, completed) = await PostgresSnapshot.Capture(native, source, directory, schema: schema);
+            PostgresSnapshot.CompareSource(before, await PostgresSnapshot.Measure(native, source, data: true, schema: schema));
             MatchInventory(inventory, await PostgresSnapshot.Identify(native, source));
-            var manifest = Seal(directory, start, completed, version, SourceCommit);
-            return await RestoreAndValidate(native, directory, identity, before, manifest, ledger, () => {
+            var manifest = Seal(directory, start, completed, version, SourceCommit, schema: schema);
+            var result = await RestoreAndValidate(native, directory, identity, before, manifest, ledger, () => {
                 Require(ledger == ReadLedger(config), "backup_ledger");
                 var tested = DateTimeOffset.UtcNow;
                 Save(Path.Combine(directory, "renewal.json"), new {
@@ -149,7 +158,15 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
                 });
                 var primary = Path.Combine(config.Root, Ledger);
                 if (!File.Exists(primary)) Save(primary, Array.Empty<object>());
-            });
+                if (suppliedPassword is not null)
+                {
+                    vault.Save(suppliedPassword);
+                    Require(vault.Read() == suppliedPassword, "credential");
+                }
+                SaveConfiguration(config);
+            }, schema: schema);
+            return schema.Hash == CurrentSchema.Hash ? result
+                : result with { Problem = "backup_drift", Due = false, PreviousPointQualified = true };
         }
         catch (Exception error)
         {
@@ -161,15 +178,19 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
 
     internal static async Task<BackupStatus> RestoreAndValidate(NativePostgres native, string directory,
         PostgresSnapshot.SourceIdentity identity, PostgresSnapshot.Measurements before, JsonElement manifest,
-        string ledger, Action verifyCurrentLedger)
+        string ledger, Action verifyCurrentLedger, BackupSchema? schema = null)
     {
+        schema ??= CurrentSchema;
         var project = manifest.GetProperty("projectRef").GetString()!;
-        await PostgresSnapshot.Restore(native, directory, identity, before);
+        Require(manifest.GetProperty("schemaHash").GetString() == schema.Hash
+            && Digest(Parse(Read(Path.Combine(directory, Manifest)))) == Digest(manifest));
+        CheckFiles(directory, manifest.GetProperty("files"), manifest.GetProperty("version").GetInt32());
+        await PostgresSnapshot.Restore(native, directory, identity, before, schema: schema);
         verifyCurrentLedger();
         var archived = manifest.GetProperty("files").GetProperty(Dump).GetProperty("sha256").GetString();
         var receipt = new {
             version = 1, manifestHash = Digest(manifest), archiveHash = archived, projectRef = project,
-            schemaHash = SchemaHash, testedAt = Stamp(DateTimeOffset.UtcNow), isolated = true, restoreSucceeded = true, dataCompared = true,
+            schemaHash = schema.Hash, testedAt = Stamp(DateTimeOffset.UtcNow), isolated = true, restoreSucceeded = true, dataCompared = true,
             schemaAndPrivilegesCompared = true, dependenciesCompatible = true, deletionLedgerHash = ledger,
             deletionsReconciled = true, scope = "application-sql-only-with-minimal-local-auth-dependencies",
             detailsDirectory = "restoration", clusterStopped = true, localChecksumsVerified = true
@@ -179,7 +200,7 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         const string pendingName = "restore-evidence.pending";
         var pending = Path.Combine(directory, pendingName);
         Save(pending, receipt);
-        var result = Verify(directory, ledger, DateTimeOffset.UtcNow, project, pendingName);
+        var result = Verify(directory, ledger, DateTimeOffset.UtcNow, project, pendingName, schema);
         Require(result.Ready, "backup_expired");
         File.Move(pending, Path.Combine(directory, Evidence));
         return result;
@@ -202,7 +223,8 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
             var certificate = GetTrustedCertificate(config.Root, create: false);
             var source = NativePostgres.Connection.Production(certificate, password);
             MatchInventory(inventory, await PostgresSnapshot.Identify(native, source));
-            CheckBaseline(latest.Path, await PostgresSnapshot.Measure(native, source, data: false));
+            CheckBaseline(latest.Path, await PostgresSnapshot.Measure(native, source, data: false),
+                CurrentSchema, latest.Verification.BaselineBound);
             Require(ledger == ReadLedger(config) && latest.Status.Deadline > DateTimeOffset.UtcNow, "backup_expired");
             Require(DateTimeOffset.UtcNow - inventory.ObservedAt < AdminContract.MaximumInventoryAge, "stale");
         }
@@ -210,21 +232,55 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         catch { throw new AdminException("backup_evidence"); }
     }
 
-    private static string GetTrustedCertificate(string root, bool create)
+    internal static string GetTrustedCertificate(string root, bool create)
     {
         var certificate = Path.Combine(root, "supabase-root-2021.crt");
         var pinned = Resource("supabase-root-2021.crt");
         if (create && !File.Exists(certificate)) Write(certificate, pinned);
-        Require(File.Exists(certificate) && Read(certificate).Trim() == pinned.Trim(), "backup_source");
+        static string CanonicalPem(string text) => text.Replace("\r\n", "\n", StringComparison.Ordinal).Trim();
+        Require(File.Exists(certificate) && CanonicalPem(Read(certificate)) == CanonicalPem(pinned), "backup_source");
         return certificate;
     }
 
-    private static void CheckBaseline(string generation, PostgresSnapshot.Measurements current)
+    internal static Task CheckRenewalBaseline(NativePostgres native, string directory, string previousGeneration,
+        PostgresSnapshot.SourceIdentity identity, PostgresSnapshot.Measurements current, BackupSchema schema,
+        BackupSchema previousSchema, bool hosted = false)
     {
-        PostgresSnapshot.ValidateSource(current, Parse(Read(Path.Combine(generation, Catalogue))), Parse(Read(Path.Combine(generation, Privileges))));
+        PostgresSnapshot.ValidateVersions(current, schema);
+        var version = Parse(Read(Path.Combine(previousGeneration, Manifest))).GetProperty("version").GetInt32();
+        if (schema.Hash == previousSchema.Hash)
+        {
+            CheckBaseline(previousGeneration, current, schema, version == 2);
+            if (version == 2) return Task.CompletedTask;
+        }
+        else
+        {
+            Require(previousSchema.Migrations.Length < schema.Migrations.Length
+                && previousSchema.Migrations.SequenceEqual(schema.Migrations.Take(previousSchema.Migrations.Length)), "backup_drift");
+        }
+        return PostgresSnapshot.ValidateContract(native, directory, identity, current, schema, hosted);
     }
 
-    private static void MatchInventory(AccountInventory auth, PostgresSnapshot.SourceIdentity sql)
+    private static JsonElement SourceDefinitions(PostgresSnapshot.Measurements value) =>
+        JsonSerializer.SerializeToElement(new { value.Schemas, value.Routines, value.Security }, Json);
+
+    internal static void SaveBaseline(string generation, PostgresSnapshot.Measurements value)
+    {
+        Save(Path.Combine(generation, Catalogue), value.Catalogue);
+        Save(Path.Combine(generation, Privileges), value.Privileges);
+        Save(Path.Combine(generation, Definitions), SourceDefinitions(value));
+        Save(Path.Combine(generation, Ledger), Array.Empty<object>());
+    }
+
+    private static void CheckBaseline(string generation, PostgresSnapshot.Measurements current, BackupSchema schema, bool baselineBound)
+    {
+        PostgresSnapshot.ValidateSource(current, Parse(Read(Path.Combine(generation, Catalogue))),
+            Parse(Read(Path.Combine(generation, Privileges))), schema);
+        if (baselineBound)
+            Require(PostgresSnapshot.Same(SourceDefinitions(current), Parse(Read(Path.Combine(generation, Definitions)))), "backup_drift");
+    }
+
+    internal static void MatchInventory(AccountInventory auth, PostgresSnapshot.SourceIdentity sql)
     {
         Require(auth.Accounts.Select(account => account.Id.ToLowerInvariant()).Order(StringComparer.Ordinal)
             .SequenceEqual(sql.AccountIds), "backup_inventory");

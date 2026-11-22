@@ -9,6 +9,11 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Requalification des sauvegardes Admin après migration**. L’outil contrôle le
+  schéma à partir des migrations embarquées, conserve les générations précédentes
+  et active la nouvelle preuve après restauration isolée. Le point avant Parcours
+  conserve son propre périmètre de dix tables.
+
 - **Contrôles automatiques des mises à jour documentaires**. Pages calcule
   l’empreinte de la notice et vérifie son contenu, ses liens et son rendu.
   Les préflights Pages, hors ligne et Windows retirent l’approbation

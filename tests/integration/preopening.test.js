@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, rmSync, realpathSy
 import { join, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { POLICY, emptyPrivateConfiguration, withConfirmedDecisions, contactCheck, invitationPreflight, closurePreflight, digest } from '../../scripts/preopening/preflight.mjs';
-import { makeManifest, verifyBackup, localPgTarget } from '../../scripts/preopening/backup.mjs';
+import { fingerprint, makeManifest, verifyBackup, localPgTarget } from '../../scripts/preopening/backup.mjs';
 import { noticeHtml } from '../../scripts/preopening/notice-preview.mjs';
 import { run } from '../../scripts/preopening/operator.mjs';
 
@@ -201,6 +201,22 @@ describe('RPO mesuré depuis un snapshot restauré, jamais depuis le dernier dé
     expect(verifyBackup(directory, manifest, evidence, { ...context, ledgerHash: digest(['new-deletion']) }).reasons).toContain('deletions_not_reconciled');
     expect(verifyBackup(directory, manifest, { ...evidence, deletionsReconciled: false }, context).status).toBe('OBJECTIF RPO NON SATISFAIT');
     expect(verifyBackup(directory, manifest, null, context).status).toBe('OBJECTIF RPO NON SATISFAIT');
+  });
+  it('lit le manifeste Admin v2 et refuse toute modification du catalogue scellé', () => {
+    const { manifest, evidence, context } = backup();
+    manifest.version = 2;
+    for (const [name, contents] of [
+      ['deletions.json', '[]'], ['source-catalogue-before.json', '{}'],
+      ['source-definitions-before.json', '{}'], ['source-privileges-before.json', '{}']
+    ]) {
+      const path = join(directory, name);
+      writeFileSync(path, contents);
+      manifest.files[name] = fingerprint(path);
+    }
+    Object.assign(evidence, { manifestHash: digest(manifest), clusterStopped: true, localChecksumsVerified: true });
+    expect(verifyBackup(directory, manifest, evidence, context).reasons).toEqual([]);
+    writeFileSync(join(directory, 'source-definitions-before.json'), '{"changed":true}');
+    expect(verifyBackup(directory, manifest, evidence, context).reasons).toEqual(['integrity']);
   });
   it('scelle un snapshot synthétique une seule fois, sans succès RPO ni écrasement implicite', () => {
     const { context } = backup(), name = directory.split(/[\\/]/).at(-1);
