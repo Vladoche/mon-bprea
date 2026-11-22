@@ -44,7 +44,7 @@ La connaissance de l’ancienne adresse ne suffit pas à vérifier une identité
 
 Un lien de récupération déjà créé peut être retrouvé. S’il a expiré ou a déjà été utilisé, **Créer un nouveau lien** permet de le remplacer pour une nouvelle demande vérifiée. Une erreur entre le changement d’adresse et la création du lien est signalée comme un changement partiel, jamais comme une récupération terminée.
 
-<a id="préparer-une-clôture-et-suivre-son-résultat"></a>
+<a name="préparer-une-clôture-et-suivre-son-résultat"></a>
 
 ## Supprimer un compte
 

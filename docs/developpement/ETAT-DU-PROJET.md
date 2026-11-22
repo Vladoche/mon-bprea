@@ -26,7 +26,7 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 | --- | --- |
 | **Déployé** | [Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), succès du 20/11 à 15:27:11 UTC, SHA `47aff29763763fd3be0b16b60f90e5c8f1048508`. Refonte 2027, Profil simplifié, couleurs personnalisées et continuité de la palette. Notice V1.2 et configuration publique Auth PROD. |
 | **Fusionné depuis ce déploiement** | 17 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA » et notice **V1.4 candidate**. La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
-| **En développement** | Aucune PR ouverte lors du relevé. |
+| **En développement** | Aucune PR fonctionnelle ouverte au relevé. [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87) est en revue. |
 | **Planifié** | Validation et alimentation des référentiels UCARE/sessions, calendrier personnalisé. La consolidation des tests du lot C est reportée. [Matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c). |
 
 La lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources de 15

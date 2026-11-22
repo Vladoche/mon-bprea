@@ -28,7 +28,7 @@ La version de l’application Windows reste propre à cet outil.
 
 - **Assainissement documentaire**. Guides d’exploitation et de cadrage renommés,
   état Git/Pages et procédures de publication actualisés, références historiques
-  conservées.
+  conservées. [PR #87](https://github.com/Vladoche/mon-bprea/pull/87).
 
 ## Publication Pages du 20 novembre 2026 — #65 à #67
 
