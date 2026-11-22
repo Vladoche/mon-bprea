@@ -16,17 +16,17 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 
 | Repère | État vérifié |
 | --- | --- |
-| Référence | `origin/main` à `50d422def1a5df33efc933a2b885fb4c38b3e921` |
-| Dernière fusion | [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87), 22/11/2026 à 09:18:07 UTC |
-| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85) et [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86). |
+| Référence | `origin/main` à `78875cd046553d282b802c20b39432dff3ae0cfe` |
+| Dernière fusion | [#88, contrôles documentaires automatiques](https://github.com/Vladoche/mon-bprea/pull/88), 22/11/2026 à 11:12:13 UTC |
+| Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86) et [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87). |
 
 ## C — Fusion, validation et publication
 
 | État | Périmètre vérifié le 22 novembre 2026 |
 | --- | --- |
 | **Déployé** | [Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), succès du 20/11 à 15:27:11 UTC, SHA `47aff29763763fd3be0b16b60f90e5c8f1048508`. Refonte 2027, Profil simplifié, couleurs personnalisées et continuité de la palette. Notice V1.2 et configuration publique Auth PROD. |
-| **Fusionné depuis ce déploiement** | 20 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4 et assainissement documentaire. La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
-| **En développement** | [#88, suppression de l’approbation documentaire manuelle](https://github.com/Vladoche/mon-bprea/pull/88) et renforcement des contrôles automatiques, en revue. [Décision et procédure](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques). |
+| **Fusionné depuis ce déploiement** | 24 commits. Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4, assainissement documentaire et [contrôles automatiques des notices](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques). La V1.3 appartenait au périmètre de #84. Admin Windows suit son propre circuit de distribution. |
+| **En revue** | [#89, requalification des sauvegardes Admin après migration](https://github.com/Vladoche/mon-bprea/pull/89). |
 | **Planifié** | Validation et alimentation des référentiels UCARE/sessions, calendrier personnalisé. La consolidation des tests du lot C est reportée. [Matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c). |
 
 La lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources de 15

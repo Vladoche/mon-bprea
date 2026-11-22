@@ -192,7 +192,16 @@ internal static partial class Program
                     await File.WriteAllTextAsync(Path.Combine(attempt, Dump), "not-a-postgresql-archive");
                 var before = failure == "source-data-drift" ? measurements with { Rows = Parse("{}") } : measurements;
                 if (failure == "interrupted")
-                    Check("capture without a completed restore has no eligible evidence", !File.Exists(Path.Combine(attempt, BackupFiles.Evidence)));
+                {
+                    const string pendingEvidence = "restore-evidence.pending";
+                    var otherProof = JsonNode.Parse(proof.GetRawText())!.AsObject();
+                    otherProof["testedAt"] = Stamp(DateTimeOffset.UtcNow);
+                    Save(Path.Combine(attempt, pendingEvidence), otherProof);
+                    Check("interrupted qualification has no final evidence even with a staged receipt",
+                        !File.Exists(Path.Combine(attempt, BackupFiles.Evidence)));
+                    Check("receipt from a different generation with the same schema is rejected",
+                        !Valid(() => Verify(attempt, ledger, DateTimeOffset.UtcNow, project, proofName: pendingEvidence)));
+                }
                 else
                     await Reject("restore must refuse " + failure, code,
                         () => ProductionBackup.RestoreAndValidate(native, attempt, identity, before, pending, ledger,
@@ -202,8 +211,6 @@ internal static partial class Program
                     && (await File.ReadAllBytesAsync(Path.Combine(good, Dump))).SequenceEqual(goodHash));
             }
             var beforeProof = await File.ReadAllTextAsync(Path.Combine(good, BackupFiles.Evidence));
-            await File.WriteAllTextAsync(Path.Combine(good, BackupFiles.Evidence), preservedEvidence);
-            Check("proof from another real generation is rejected", !Valid(() => Verify(good, ledger, DateTimeOffset.UtcNow, project)));
             await File.WriteAllTextAsync(Path.Combine(good, BackupFiles.Evidence), beforeProof.Replace(ledger, Hash("[1]"), StringComparison.Ordinal));
             Check("proof tampering blocks next read", !Valid(() => Verify(good, ledger, DateTimeOffset.UtcNow, project)));
             await File.WriteAllTextAsync(Path.Combine(good, BackupFiles.Evidence), beforeProof);
