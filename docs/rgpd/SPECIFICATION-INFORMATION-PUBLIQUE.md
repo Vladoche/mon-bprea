@@ -4,20 +4,23 @@ Le [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md) décrit la
 procédure opérateur. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
 porte les exécutions et la version effectivement servie.
 
-## Version préparée et approuvée
+## Versions et contrôles automatiques
 
 La V1.2 a été approuvée le **20 novembre 2026 à 08:27:51 CET** pour l’empreinte
 SHA-256 LF `097bf1e94fe869940d286f78b9900d28f02e13fecc9b08680068ef2a56d2dc57`.
 La [validation de l’approbation](../validations/VALIDATION-APPROBATION-NOTICE-V1-2.md)
 référence la preuve privée `NOTICE-V12-20261120`. La V1.2 est servie par Pages #67.
 
-Sur main, la **V1.4 est candidate**. Elle reprend la capacité de la V1.3
-intermédiaire et couvre les préférences de « Mon parcours BPREA ». Toute
-approbation doit porter sur l’empreinte du texte au SHA retenu.
+La **V1.4** reprend la capacité de la V1.3 intermédiaire et décrit les choix
+de « Mon parcours BPREA ». Les contrôles de publication s’appliquent à la
+V1.4 selon la même règle qu’à toute version. La V1.2 reste la version publiée
+au dernier relevé du registre.
 
-La [source versionnée](POLITIQUE-CONFIDENTIALITE-PROJET.md) produit [confidentialite.html](../../confidentialite.html) avec `npm run build:privacy-notice`. `node scripts/build-privacy-notice.mjs --check` compare le rendu versionné au texte et imprime son empreinte SHA-256 avec fins de ligne LF. Cette empreinte lie l’approbation humaine au texte exact ; un changement de texte exige une nouvelle approbation. Cette fiche consigne la version candidate et l’approbation datée. La version publique se contrôle sur le site et dans le registre Pages. La présence du fichier dans la PR n’autorise pas sa publication.
+Depuis la décision du 22 novembre 2026, [la règle permanente](../../AGENTS.md#sécurité-git-et-limites-dintervention) s’applique à toute mise à jour documentaire. Git conserve la source, le HTML et leurs versions antérieures. Pour mettre à jour la notice, éditer [la source Markdown](POLITIQUE-CONFIDENTIALITE-PROJET.md), puis exécuter `npm run build:privacy-notice` et versionner les deux fichiers.
 
-La page publique est statique et autonome : sommaire, liens et contact fonctionnent sans JavaScript ni compte. Elle réutilise les styles et la préférence d’apparence de l’appareil via `theme-init.js`, sans client Auth. Sans JavaScript elle suit le mode système. `npm run preopening:notice` conserve un aperçu privé autonome sans script, marqué comme aperçu non approuvé. Les liens externes n’ouvrent leur destination qu’au clic.
+`node scripts/build-privacy-notice.mjs --check` contrôle le titre, la version, les rubriques requises, le quota administratif, le contact, les finalités du registre et les dates de conservation. Il vérifie les chemins et ancres du site, ainsi que la syntaxe et le rendu des liens externes. Il compare le HTML généré au HTML versionné et calcule le SHA-256 de la source en LF. La CI et le workflow Pages exécutent cette commande sans dépendance npm ni requête externe. La disponibilité des sites tiers peut être vérifiée en lecture séparément. L’empreinte sert à identifier le texte vérifié dans les journaux et Git.
+
+La page publique est statique. Le sommaire, les liens et le contact fonctionnent sans JavaScript ni compte. La page réutilise les styles et la préférence d’apparence de l’appareil via `theme-init.js`. Sans JavaScript elle suit le mode système. `npm run preopening:notice` produit un aperçu privé autonome sans script. Les liens externes n’ouvrent leur destination qu’au clic.
 
 ## Liens préparés pour la mise en ligne
 
@@ -35,15 +38,13 @@ Ces liens sont intégrés dans les sources et la copie de publication locale. Le
 
 ## Conditions avant publication
 
-1. Données, destinataires, garanties de la cible et circuit manuel vérifiés ; attestation du titulaire et approbation exacte de la V1.1 reçues le 08/11. Réexaminer en cas de changement substantiel. [Preuves fournisseurs](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes).
-2. Vérifier la page finale et l’artefact exact avant fusion. Le constructeur `prepare-pages.py` prend les HTML racine, les types autorisés sous `assets/` et les PDF sous `documents/` ; les sources documentaires, outils et aperçus privés sont exclus. Après intégration du dossier, revérifier le texte au SHA retenu et soumettre les réserves et la demande de publication à l’exploitant. Aucune fusion ou publication n’est effectuée sans leurs accords.
+1. Aligner la notice sur les fonctionnalités, flux et décisions effectivement applicables. Actualiser le registre et expliquer les conditions de disponibilité des fonctions. Traiter les écarts d’information et conserver la preuve de l’information des personnes concernées lorsque leur usage des données change. [Preuves fournisseurs](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes).
+2. Vérifier les résultats automatiques et l’artefact au SHA de livraison. Le constructeur `prepare-pages.py` prend les HTML racine, les types autorisés sous `assets/` et les PDF sous `documents/`. Appliquer les accords distincts de fusion et de publication, ainsi que les prérequis de mise en service du [plan de publication](../deploiement/PLAN-PUBLICATION-2027.md#phase-a--décision-préalable).
 3. Contrôler publiquement le rendu, les liens et le contact depuis l’URL finale après publication autorisée, puis consigner version, date et preuve. Pour une collecte ultérieure, la notice doit déjà être disponible et remise avant de recevoir une adresse. L’activation et les invitations ont des autorisations distinctes.
 
 ## Publication Pages avec Auth PROD
 
-Les décisions et preuves ci-dessous concernent la V1.1 du 8 novembre. Pour les versions suivantes, voir la [version préparée et approuvée](#version-préparée-et-approuvée).
-
-Le [workflow](../../.github/workflows/deploy.yml), **fusionné par #50**, ne se déclenche plus sur push : une fusion ne publie plus Pages. Seul un `workflow_dispatch` sur `main`, avec `publish_auth_production=true` et le SHA-256 LF de la notice expressément approuvée, peut publier. La confirmation est désactivée par défaut. Un lancement exige son autorisation explicite ; aucune fusion par Codex. Les anciens workflows et anciennes versions restent à éviter ; ces contrôles s’appliquent au workflow modifié sur `main`.
+Le [workflow](../../.github/workflows/deploy.yml) publie uniquement sur `workflow_dispatch` autorisé depuis `main` avec `publish_auth_production=true`. La valeur par défaut est `false`. Il exécute le contrôle automatique de la notice avant le préflight Auth et la préparation de l’artefact.
 
 Paramètres publics à fournir dans les variables Actions du dépôt (ou dans `github-pages`, en vérifiant les éventuelles surcharges) :
 
@@ -52,6 +53,8 @@ Paramètres publics à fournir dans les variables Actions du dépôt (ou dans `g
 | `PAGES_SUPABASE_PROD_URL` | `https://oqoqrxwfbkhtpksqimgd.supabase.co` |
 | `PAGES_SUPABASE_PROD_PUBLISHABLE_KEY` | Clé moderne `sb_publishable_…` reconnue par ce projet ; aucune clé administrative |
 | Champs fixés par le constructeur | `enabled: true`, `environment: "production"`, `siteUrl: "https://vladoche.github.io/mon-bprea/"` |
+
+### Preuves historiques de la V1.1, 8 novembre 2026
 
 Les deux variables Actions du dépôt ont été relues le 8 novembre, sans variable de surcharge dans `github-pages` ; cet environnement n’autorise que `main`. La clé publique réelle est reconnue par la cible en GET et aucun fournisseur autre que l’e-mail n’est actif. Les lectures du Dashboard confirment Site URL et unique callback exacts, inscriptions/anonyme fermés, confirmation e-mail active et SMTP personnalisé désactivé. La V1.1 du 08/11 a été présentée via son fichier immuable au commit `316a0773e1ba6e9c0b036ab790389fb16d77821a`, puis approuvée explicitement par l’exploitant. Empreinte SHA-256 LF recalculée avant lancement : `c2b2422b9c3d6b7ec25227f143080782842c4c077f5a1361d4cd36653ad9b8c1`.
 
@@ -70,6 +73,6 @@ Validation locale du correctif sous Node 24.22.0 après `npm ci` : **604 tests r
 
 **Retour arrière contrôlé.** Un échec avant déploiement conserve la version précédente, comme pour #63. Si un artefact incorrect était effectivement publié, suspendre son utilisation et préparer une republication de la version antérieure vérifiée avec Auth désactivée ; passer par revue/fusion humaine et autorisation adaptée, sans changement Auth, RLS ou PostgreSQL. Cette configuration frontend ne révoque aucune session serveur. Aucune opération de retour arrière n’a été nécessaire ni exécutée ici.
 
-Le runner vérifie le rendu de la notice, son approbation exacte et les cinq champs autorisés. Il lit seulement `/auth/v1/settings` pour établir que la clé est reconnue par la cible et que les inscriptions/anonyme restent fermés, seul l’e-mail actif avec confirmation. Une erreur réseau ou une divergence bloque avant dépôt de l’artefact. Les redirections de cette requête sont refusées. `scripts/pages_release.py` écrit ensuite un fichier neuf dans `$RUNNER_TEMP` ; `prepare-pages.py --production --auth-config …` le copie uniquement dans l’artefact. Aucun fichier local ignoré n’est attendu sur GitHub. Le défaut `assets/auth-config.json` reste désactivé. Le constructeur refuse aussi les clés administratives modernes, JWT `service_role` et URL SQL avec mot de passe ou preuves Auth littérales détectables dans les fichiers texte publics.
+Le runner vérifie les cinq champs publics autorisés après les contrôles de la notice. Il lit seulement `/auth/v1/settings` pour établir que la clé est reconnue par la cible et que les inscriptions/anonyme restent fermés, seul l’e-mail actif avec confirmation. Une erreur réseau ou une divergence bloque avant dépôt de l’artefact. Les redirections de cette requête sont refusées. `scripts/pages_release.py` écrit ensuite un fichier neuf dans `$RUNNER_TEMP` pour l’artefact `prepare-pages.py --production --auth-config …`. Le défaut `assets/auth-config.json` reste désactivé. Le constructeur refuse aussi les clés administratives modernes, JWT `service_role`, URL SQL avec mot de passe et preuves Auth littérales détectables dans les fichiers texte publics.
 
 **Effets constatés :** connexion PROD disponible sans session et notice V1.1 publique ; pages pédagogiques et mode visiteur accessibles. Aucun compte, lien ou inscription publique créé. Le callback reste `https://vladoche.github.io/mon-bprea/authentification.html`. La création du compte exploitant et la récupération demandent chacune un accord distinct ; remettre la notice publiée avant de collecter son adresse.

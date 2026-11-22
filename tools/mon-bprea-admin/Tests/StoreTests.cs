@@ -307,7 +307,10 @@ public static class StoreTests
             await Refuses("future operator evidence refused", () => good.ValidateAsync(), "attestations");
             WriteConfig(configPath, now, missingApproval: true);
             await Refuses("missing existing preflight approval refused", () => good.ValidateAsync(), "attestations");
+            WriteConfig(configPath, now, legacyNotice: true);
+            await good.ValidateAsync();
             WriteConfig(configPath, now);
+            await good.ValidateAsync();
             DiagnosticStage = "completed";
         }
         finally
@@ -423,11 +426,12 @@ public static class StoreTests
         FileSystemAclExtensions.Create(new DirectoryInfo(path), security);
     }
 
-    private static void WriteConfig(string path, DateTimeOffset date, bool missingApproval = false, bool finalNewline = false)
+    private static void WriteConfig(string path, DateTimeOffset date, bool missingApproval = false, bool finalNewline = false, bool legacyNotice = false)
     {
         var approvals = new JsonObject();
-        foreach (var name in new[] { "legalFramework", "legalBases", "impactAssessment", "terminal", "notice", "residualRetention", "recoveryLimits" })
-            approvals[name] = !missingApproval || name != "notice";
+        foreach (var name in new[] { "legalFramework", "legalBases", "impactAssessment", "terminal", "residualRetention", "recoveryLimits" })
+            approvals[name] = !missingApproval || name != "legalBases";
+        if (legacyNotice) approvals["notice"] = false;
         WritePrivateFixture(path, new JsonObject
         {
             ["version"] = 1, ["operatorIdentity"] = "Synthetic operator", ["capacityConfirmed"] = true,

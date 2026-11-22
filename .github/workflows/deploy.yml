@@ -8,10 +8,6 @@ on:
         type: boolean
         required: true
         default: false
-      approved_notice_sha256:
-        description: "SHA-256 LF de la notice finale approuvée (voir la PR)"
-        type: string
-        required: true
 
 permissions:
   contents: read
@@ -45,17 +41,15 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - name: Vérifier le rendu exact de la notice
+      - name: Vérifier le contenu, les liens et le rendu de la notice
         run: node scripts/build-privacy-notice.mjs --check
       - name: Valider les paramètres publics et Auth PROD en lecture seule
         env:
           PAGES_SUPABASE_PROD_URL: ${{ vars.PAGES_SUPABASE_PROD_URL }}
           PAGES_SUPABASE_PROD_PUBLISHABLE_KEY: ${{ vars.PAGES_SUPABASE_PROD_PUBLISHABLE_KEY }}
-          APPROVED_NOTICE_SHA256: ${{ inputs.approved_notice_sha256 }}
         run: >-
           python3 scripts/pages_release.py
           --output "$RUNNER_TEMP/auth-config.production.json"
-          --approved-notice-sha256 "$APPROVED_NOTICE_SHA256"
       - name: Préparer GitHub Pages
         uses: actions/configure-pages@v6
       - name: Préparer les fichiers publics

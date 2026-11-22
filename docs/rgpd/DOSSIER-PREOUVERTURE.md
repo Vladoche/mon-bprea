@@ -2,7 +2,7 @@
 
 **6 novembre 2026. Sept P0 résolus et huit ouverts.** La [matrice des quinze portes](../deploiement/PLAN-PREOUVERTURE-PRIVEE.md#matrice-de-résolution-p0-01-à-p0-15) donne les preuves et conditions restantes. [Reçu du 5 novembre](RECU-ARBITRAGES-2026-11-05.md), [reçu D12](RECU-ARBITRAGE-D12-2026-11-06.md), [D01–D14](DECISIONS-A-VALIDER.md), [validation G](../archives/validations/VALIDATION-LOT6-5-5G.md).
 
-Dix comptes adultes au total, dont l’exploitant et neuf participants. [Décision du 20 novembre 2026](CADRAGE-MON-BPREA.md#périmètre-acté). Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. Le fond de la V1.0 est approuvé. L’exploitant a approuvé D12 le 6 novembre, y compris la règle de traitement des archives résiduelles. La V1.1 reste en préparation hors Pages. Elle attend les preuves fournisseurs déterminantes, la revue de ses écarts substantiels, l’approbation du texte final et le mandat de publication. [Preuves restantes](FLUX-ET-PRESTATAIRES.md#preuves-matérielles-restantes).
+Dix comptes adultes au total, dont l’exploitant et neuf participants. [Décision du 20 novembre 2026](CADRAGE-MON-BPREA.md#périmètre-acté). Invitation individuelle, service indépendant, gratuit, volontaire et résultats privés. Cadre RGPD, responsable, bases, durées et screening approuvés. Contact sans compte livré et fonctionnement attesté. L’exploitant a approuvé D12 le 6 novembre, y compris la règle de traitement des archives résiduelles. Pour la notice en vigueur et les conditions de la prochaine mise en ligne, suivre la [spécification courante](SPECIFICATION-INFORMATION-PUBLIQUE.md).
 
 ## Historique daté — ne vaut pas état courant des P0
 
@@ -58,7 +58,7 @@ Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan coura
 | Invitation et récupération | PRÉPARÉ MAIS NON ACTIVÉ | Générateur manuel et capture SMTP de régression distincts, aucun destinataire réel | Opérateur comptes | Recette hébergée autorisée puis vérifier information préalable, usage unique et expiration |
 | Paramètres Auth | PRÉPARÉ MAIS NON ACTIVÉ | 6.5.2 : signup/anonyme off, e-mail on ; JWT/OTP 3600 s, rotation on ; écart Secure password change off | Opérateur Auth / sécurité | Décider réglages et durées puis recette réelle dédiée ; ne pas copier les 120/60 s de tests |
 | Accès au terminal D12 | APPROUVÉE LE 06/11/2026 | [Analyse D12](ANALYSE-STOCKAGES-NAVIGATEUR-D12.md), corrections recettées et [reçu](RECU-ARBITRAGE-D12-2026-11-06.md) | Responsable | Surveiller le volume des archives de réglages et réexaminer en cas d’évolution significative. Revoir la rédaction finale de la V1.1 en P0-05 |
-| Artefact Pages exact | VALIDÉ TECHNIQUEMENT en local | Préparation et audit sous `/mon-bprea/`, Auth off ; pas de réponse CDN réelle | Opérateur frontend | Revalider SHA/digest et notice approuvée dans la future recette autorisée, avant publication |
+| Artefact Pages exact | VALIDÉ TECHNIQUEMENT en local | Préparation et audit sous `/mon-bprea/`, Auth off ; pas de réponse CDN réelle | Opérateur frontend | Vérifier le SHA et les contrôles automatiques de la notice avant publication autorisée |
 | Retour arrière | DÉCISION À VALIDER | 6.5.2 : plan d'arrêt/retour sûr par incident préparé, non approuvé ni exécuté | Exploitant / sécurité | Autoriser méthode serveur de confinement/reprise, préserver données et réconcilier effacements avant restauration |
 | Sauvegardes/restauration | BLOQUANT pour la mise en service | Plan réel, durées, accès et preuve de réapplication des effacements manquants | Opérateur base et référent droits | Essai isolé autorisé, inventaire des suppressions postérieures et contrôle avant réouverture |
 | Mise en service progressive | DÉCISION À VALIDER | Aucun pilote étudiant lancé | Exploitant | Définir périmètre/critères d'arrêt et support, après levée P0 et décision d'ouverture |
@@ -67,7 +67,7 @@ Les quinze lignes et leurs statuts sont maintenus uniquement dans le [plan coura
 
 | Critère | État / preuve | Décision et responsable à désigner | Action / intervention |
 | --- | --- | --- | --- |
-| Guides d'usage des droits | PRÉPARÉ MAIS NON ACTIVÉ : projets disponibles | Référent droits/éditorial, langage et besoins du public | Guide court et version accessible après approbation des mentions |
+| Guides d'usage des droits | PRÉPARÉ MAIS NON ACTIVÉ : projets disponibles | Référent droits/éditorial, langage et besoins du public | Guide court, accessible et cohérent avec la notice en vigueur |
 | Ergonomie des copies volumineuses | DÉCISION À VALIDER : limites 20 Mio/100 000 lignes connues | Produit/sécurité, procédure de confiance pour dépassements | Optimisation ciblée ou remise assistée, sans copie supplémentaire non justifiée |
 | Observabilité minimisée | DÉCISION À VALIDER : pas de ledger nominatif serveur ajouté | Sécurité/droits, finalité et durée | Indicateurs sans réponses/JWT/capacités ; aucun outil tiers ajouté implicitement |
 | Revue documentaire régulière | DÉCISION À VALIDER : matrices datées | Responsable et gardien du registre | Définir fréquence et déclencheurs ; aucune automatisation/purge créée ici |

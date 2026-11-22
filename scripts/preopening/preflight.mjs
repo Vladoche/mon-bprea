@@ -30,7 +30,7 @@ export function emptyPrivateConfiguration() {
   return {
     version: 1, operatorIdentity: null, capacityConfirmed: false,
     contact: { email: null, publicationApproved: false, owned: false, protected: false, recoveryChecked: false, monitoringConfirmed: false, withoutAccountChecked: false, receivedAt: null, repliedAt: null },
-    approvals: { legalFramework: false, legalBases: false, impactAssessment: false, terminal: false, notice: false, residualRetention: false, recoveryLimits: false },
+    approvals: { legalFramework: false, legalBases: false, impactAssessment: false, terminal: false, residualRetention: false, recoveryLimits: false },
   };
 }
 // Les décisions ne sont pas des preuves d'accès, de MFA ou de réception.
@@ -87,8 +87,11 @@ export function invitationPreflight(input, config, now) {
   requireThat(input.type === 'invite' ? !existing : existing?.state === 'active', 'account_state');
   if (input.type === 'invite') requireThat(occupied < POLICY.capacity.total, 'capacity_full');
   requireThat(contactCheck(config, now).missing.length === 0 && Boolean(config.operatorIdentity?.trim()), 'contact_or_identity');
-  requireThat(Object.values(emptyPrivateConfiguration().approvals).length === Object.keys(config.approvals || {}).length
-    && Object.keys(emptyPrivateConfiguration().approvals).every(key => config.approvals[key] === true), 'approvals');
+  // Ignore the former documentary field in existing private configurations.
+  const requiredApprovals = Object.keys(emptyPrivateConfiguration().approvals);
+  const configuredApprovals = Object.keys(config.approvals || {}).filter(key => key !== 'notice');
+  requireThat(configuredApprovals.length === requiredApprovals.length
+    && requiredApprovals.every(key => config.approvals[key] === true), 'approvals');
   requireThat(input.noticeProvidedBeforeEmail === true && input.directRequest === true && input.emailConfirmed === true
     && typeof input.noticeVersion === 'string' && input.noticeVersion.length > 0 && input.identityChecked === true, 'prior_information');
   // Aucun lien généré ni place réservée : relecture/lock/réservation nécessaires au futur exécuteur.

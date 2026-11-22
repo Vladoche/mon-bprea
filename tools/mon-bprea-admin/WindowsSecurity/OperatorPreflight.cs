@@ -3,10 +3,10 @@ using MonBprea.Admin.Core;
 
 namespace MonBprea.Admin.WindowsSecurity;
 
-// Reuses the exact offline operator.json schema; no timestamps or attestations are rewritten.
+// Reuses the offline operator.json schema without rewriting private evidence.
 public static class OperatorPreflight
 {
-    private static readonly string[] ApprovalNames = ["legalFramework", "legalBases", "impactAssessment", "terminal", "notice", "residualRetention", "recoveryLimits"];
+    private static readonly string[] ApprovalNames = ["legalFramework", "legalBases", "impactAssessment", "terminal", "residualRetention", "recoveryLimits"];
     private static readonly string[] ContactFlags = ["publicationApproved", "owned", "protected", "recoveryChecked", "monitoringConfirmed", "withoutAccountChecked"];
 
     public static void Validate(string path, DateTimeOffset now)
@@ -21,7 +21,9 @@ public static class OperatorPreflight
             if (config.GetProperty("version").GetInt32() != 1 || !config.GetProperty("capacityConfirmed").GetBoolean()
                 || string.IsNullOrWhiteSpace(config.GetProperty("operatorIdentity").GetString())) throw new AdminException("attestations");
             var approvals = config.GetProperty("approvals");
-            if (approvals.EnumerateObject().Count() != ApprovalNames.Length || ApprovalNames.Any(name => !approvals.GetProperty(name).GetBoolean()))
+            // Existing files may still contain the obsolete documentary field.
+            if (approvals.EnumerateObject().Count(property => !property.NameEquals("notice")) != ApprovalNames.Length
+                || ApprovalNames.Any(name => !approvals.GetProperty(name).GetBoolean()))
                 throw new AdminException("attestations");
             var contact = config.GetProperty("contact");
             if (ContactFlags.Any(name => !contact.GetProperty(name).GetBoolean())) throw new AdminException("attestations");

@@ -34,6 +34,17 @@ describe('préouverture : capacité administrative, jamais quota Supabase', () =
     expect(() => invitationPreflight(input(10), config(), now)).toThrow('capacity_full');
     expect(() => invitationPreflight(input(11), config(), now)).toThrow('capacity_exceeded');
   });
+  it('accepte les configurations sans approbation de notice et conserve l’information préalable', () => {
+    const current = config();
+    expect(current.approvals).not.toHaveProperty('notice');
+    const old = { ...current, approvals: { ...current.approvals, notice: false } };
+    expect(invitationPreflight(input(), old, now)).toEqual(invitationPreflight(input(), current, now));
+    expect(() => invitationPreflight({ ...input(), noticeProvidedBeforeEmail: false }, current, now))
+      .toThrow('prior_information');
+    expect(() => invitationPreflight({ ...input(), noticeVersion: '' }, current, now)).toThrow('prior_information');
+    current.approvals.legalBases = false;
+    expect(() => invitationPreflight(input(), current, now)).toThrow('approvals');
+  });
   it('réserve la place de l’exploitant absent et exige la confirmation du décompte', () => {
     const value = input(); value.inventory.accounts = value.inventory.accounts.filter(a => a.kind !== 'operator');
     expect(invitationPreflight(value, config(), now).occupiedIncludingOperator).toBe(9);

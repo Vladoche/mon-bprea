@@ -12,14 +12,14 @@ conservent les résultats de la campagne du 20 novembre.
 | Prérequis | État et preuve à obtenir avant lancement |
 | --- | --- |
 | Version et revue | Consulter le [SHA vérifié et les changements fusionnés](../developpement/ETAT-DU-PROJET.md). Retenir le **SHA complet effectivement sur main**, vérifier les checks et comparer avec le SHA publié dans le registre Pages. Rejouer les vérifications affectées. [Checklist](../validations/CHECKLIST-RECETTE-FINALE-2027.md). |
-| Notice | Vérifier la [version candidate et le rendu](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#version-préparée-et-approuvée) au SHA de livraison, recueillir l’approbation de son empreinte et informer les personnes concernées avant application des changements importants. |
+| Notice | Vérifier les [contrôles automatiques de la notice](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques) au SHA de livraison. Informer les personnes concernées avant application des changements importants de l’usage de leurs données. |
 | Schéma applicatif | Pour publier le Parcours, vérifier que la cible correspond au SHA candidat et qualifier la [migration Parcours](../../supabase/migrations/20261121171000_create_parcours_preferences.sql), sa restauration et la synchronisation avec comptes fictifs. L’application de la migration sur PROD exige son propre accord. Le workflow Pages contrôle Auth et la notice. La concordance du schéma est un prérequis opérateur. |
 | Sauvegarde et journal | Vérifier sur le poste opérateur le [point restaurable au schéma courant](EXPLOITATION-PRIVEE.md#sauvegarde-hebdomadaire-et-rpo), ses empreintes, ses dépendances, le journal d’effacements et l’âge du snapshot. Traiter toute dérive avant décision. |
 | Paramètres et accès | Relire le projet PROD autorisé et ses réglages dans le runbook, les deux variables publiques Actions, l’origine HTTPS et le callback exact. Le dernier contrôle opérateur daté du 18/11 reste une preuve historique. Vérifier le [plafond administratif](../rgpd/CADRAGE-MON-BPREA.md#périmètre-acté), invitations en attente comprises. [Contrat Auth](../architecture/AUTHENTIFICATION.md). |
 | Liens individuels et droits | Admin 2.2 est qualifié pour le renouvellement local sur le même UUID. Le réglage PROD à 86 400 s et le renouvellement réel requièrent un mandat distinct. Confirmer le circuit de récupération et le traitement assisté des droits. La suppression depuis le binaire PROD reste bloquée. [Qualification Admin 2.2](../validations/VALIDATION-ADMIN-INVITATIONS-EXPIREES.md) · [Circuit droits](../rgpd/PROCEDURE-DEMANDES-ET-INCIDENTS-PROJET.md). |
 | Canal de contact | L’accès public et le lien de messagerie ont été vérifiés. Relire les preuves opérateur de maîtrise, protection, récupération, consultation et réception/réponse qui manquent au relevé local du 20/11. [Dossier opérateur et contact](EXPLOITATION-PRIVEE.md#dossier-opérateur-et-contact). |
 | Repli et réserves | Vérifier les conditions du repli ci-dessous, l’état du site réellement servi et le traitement des réserves. Préparer les parcours hébergés et le compte de l’exploitant si leur exercice est explicitement autorisé. |
-| Accord | L’exploitant date son accord sur le SHA de `main`, l’empreinte approuvée, le périmètre de recette connectée et la fenêtre de lancement. Consigner aussi la décision distincte d’accueil et d’invitations. |
+| Accord de publication | L’exploitant date son autorisation de publication pour le SHA de `main` et la fenêtre de lancement. Consigner aussi le mandat de recette connectée et les décisions distinctes d’accueil et d’invitations. |
 
 ## Phase B — Exécution future sous autorisation
 
@@ -27,12 +27,10 @@ conservent les résultats de la campagne du 20 novembre.
    le [workflow Pages](../../.github/workflows/deploy.yml) est actif avec
    l’environnement `github-pages`. Contrôler le rendu avec
    `node scripts/build-privacy-notice.mjs --check`. Si `main` a bougé,
-   comparer les changements à la version qualifiée, recalculer l’empreinte LF
-   et rejouer les contrôles affectés. Faire confirmer le nouveau SHA avant
-   tout lancement ; un autre texte requiert sa propre approbation.
+   comparer les changements à la version qualifiée et rejouer les contrôles
+   affectés. Faire confirmer le SHA de déploiement avant tout lancement.
 2. Dans **Actions → Publier le site BPREA → Run workflow**, choisir **main**
-   et fournir `publish_auth_production=true` et
-   `approved_notice_sha256=<empreinte LF du texte approuvé>`.
+   et fournir `publish_auth_production=true`.
    `PAGES_SUPABASE_PROD_URL` et
    `PAGES_SUPABASE_PROD_PUBLISHABLE_KEY` sont les variables publiques
    du dépôt ou de l’environnement. Vérifier les surcharges éventuelles.
@@ -46,7 +44,7 @@ conservent les résultats de la campagne du 20 novembre.
    Auth attendus. Consigner l’ID, la tentative, l’artefact, le SHA et la fin
    UTC du job de déploiement. Après un échec, vérifier le site et diagnostiquer
    l’étape avant de décider d’une nouvelle tentative.
-4. Vérifier sans session la notice approuvée, Contact, les routes directes,
+4. Vérifier sans session la notice correspondant au SHA publié, Contact, les routes directes,
    les menus, les cours, les ressources images/PDF et le callback sans
    preuve personnelle. Contrôler un navigateur neuf et un onglet existant
    après rechargement normal puis forcé, le SHA dans les CSS/JS/JSON et les
@@ -77,12 +75,12 @@ reste désactivé.
    leurs échéances.
 2. Si le repli est nécessaire, créer depuis `main` une branche de correction
    dédiée. Préparer une PR qui restaure le **périmètre public vérifié** depuis
-   le commit de repli choisi, y compris la source et le rendu de sa notice
-   ainsi que le gabarit de rendu correspondant. Adapter les assertions qui
-   ciblent spécifiquement le texte remplacé. Comparer les URL, les contrats de
-   données, les clés, les migrations et le workflow sur le diff. Préserver
-   les migrations et politiques appliquées. Si la notice ou les paramètres
-   doivent différer de la référence, les qualifier sur le nouveau périmètre.
+   le commit de repli choisi. Aligner la notice sur les traitements qui
+   s’appliqueraient après le repli, puis régénérer le HTML. Conserver les
+   contrôles automatiques du workflow actuel. Comparer les URL, les contrats
+   de données, les clés et les migrations. Préserver les migrations et
+   politiques appliquées. Qualifier les écarts entre la référence historique
+   et le périmètre de repli.
 3. Rejouer à partir de dossiers neufs. Pour chaque SHA, extraire les sources
    avec `git archive`, exécuter le contrôle de notice puis
    `python scripts/prepare-pages.py --version <SHA> --auth-config <fixture-locale> --output <dossier-neuf>`.

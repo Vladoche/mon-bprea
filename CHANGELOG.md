@@ -9,10 +9,16 @@ La version de l’application Windows reste propre à cet outil.
 
 ## Non publié
 
+- **Contrôles automatiques des mises à jour documentaires**. Pages calcule
+  l’empreinte de la notice et vérifie son contenu, ses liens et son rendu.
+  Les préflights Pages, hors ligne et Windows retirent l’approbation
+  documentaire. La V1.4 précise les fonctions disponibles dans le Parcours.
+  [Procédure](docs/rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques).
+
 - **Mon parcours BPREA**. Le Profil permet de déclarer les UC suivies, la dispense
   d’UC1, les UCARE, les épreuves et leurs échéances. Les choix et le brouillon
   sont isolés par compte, avec synchronisation explicite et contrôle des révisions.
-  La notice V1.4 est candidate. [PR #86](https://github.com/Vladoche/mon-bprea/pull/86) · [Architecture](docs/architecture/ARCHITECTURE.md#mon-parcours-bprea).
+  La notice V1.4 décrit ce traitement. [PR #86](https://github.com/Vladoche/mon-bprea/pull/86) · [Architecture](docs/architecture/ARCHITECTURE.md#mon-parcours-bprea).
 
 - **Audit technique et chargement des rubriques**. Chargement des modules
   selon la page avec état de reprise, sauvegardes de cours isolées après un

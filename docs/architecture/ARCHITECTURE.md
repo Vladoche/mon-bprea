@@ -55,7 +55,7 @@ Les semaines Drill et l’anecdote suivent Europe/Paris ; les saisons et ambianc
 
 Les liens publics sont relatifs, sans `/` initial ni nom de dépôt codé en dur. Les JSON chargés par `new URL('./fichier.json', import.meta.url)` conservent leur relation au module. `scripts/prepare-pages.py` copie les HTML racine, les types publics autorisés dans `assets/` et les PDF de `documents/`, puis ajoute `.nojekyll`. Les versions CSS/JS/JSON s’appliquent à cette copie ; voir [CACHE.md](CACHE.md).
 
-Le [workflow Pages](../../.github/workflows/deploy.yml) est déclenché uniquement par `workflow_dispatch` sur `main`. Il exige `publish_auth_production=true` et le SHA-256 LF de la notice approuvée. Après contrôle décision/branche, il vérifie le rendu de notice, valide les paramètres publics et Auth PROD en lecture seule via `pages_release.py`, génère une configuration publique éphémère, puis prépare `site-public/` en mode production, versionne ses ressources au SHA, dépose l’artefact et le publie via `actions/deploy-pages`. Un push ou une fusion ne publie pas. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages) sépare succès du workflow et recette hébergée. Les outils npm, configurations de tests, documentation, caches et rapports sont exclus de cette liste publique. La publication et les opérations PROD restent soumises à autorisation explicite.
+Le [workflow Pages](../../.github/workflows/deploy.yml) est déclenché uniquement par `workflow_dispatch` sur `main` avec `publish_auth_production=true`. Après contrôle de la décision et de la branche, il vérifie automatiquement la notice et calcule son SHA-256 LF. Il valide les paramètres publics et Auth PROD en lecture seule via `pages_release.py`, génère une configuration publique éphémère, puis prépare `site-public/` en mode production, versionne ses ressources au SHA, dépose l’artefact et le publie via `actions/deploy-pages`. Un push ou une fusion ne publie pas. Le [registre Pages](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages) sépare succès du workflow et recette hébergée. Les outils npm, configurations de tests, documentation, caches et rapports sont exclus de cette liste publique. La publication et les opérations PROD restent soumises à autorisation explicite.
 
 Les configurations des outils sont dans `tests/`, les scripts locaux dans `scripts/`, et la structure attendue par Supabase CLI reste dans `supabase/`. Les migrations historiques ne sont ni renommées ni réécrites. Consulter les [commandes de test](../TESTS.md), la [politique de maintenance](../developpement/MAINTENANCE-DOSSIER-TMP.md) et le [guide des PDF](../../documents/README.md).
 
@@ -182,5 +182,6 @@ La reprise assistée d’une archive de parcours produit un brouillon sur le
 même compte et exige ensuite un enregistrement explicite. Le droit d’effacement
 couvre le cache local et la cascade Auth. La sauvegarde opérateur doit couvrir
 le nouveau schéma avant toute mise en service du parcours. La
-[notice candidate](../rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) doit être validée
-pour ce périmètre.
+[notice V1.4](../rgpd/POLITIQUE-CONFIDENTIALITE-PROJET.md) décrit ce traitement.
+Les [contrôles automatiques](../rgpd/SPECIFICATION-INFORMATION-PUBLIQUE.md#versions-et-contrôles-automatiques)
+et l’information des personnes concernées s’appliquent à sa mise en service.
