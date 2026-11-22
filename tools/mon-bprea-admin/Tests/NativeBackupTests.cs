@@ -254,6 +254,9 @@ internal static partial class Program
             Check("known version-one archive is readable and retained as historical evidence",
                 legacy.Schema.Hash == PreviousSchema.Hash && !legacy.BaselineBound
                 && legacy.Status is { Ready: false, Problem: "backup_drift", PreviousPointQualified: false });
+            Check("version-one archive with a matching schema still requires requalification",
+                Verify(path, ledger, DateTimeOffset.UtcNow, project, expectedSchema: PreviousSchema)
+                    is { Ready: false, Problem: "backup_drift", PreviousPointQualified: false });
             manifest["schemaHash"] = Hash("unknown historical schema");
             proof["schemaHash"] = manifest["schemaHash"]!.GetValue<string>();
             proof["manifestHash"] = Digest(Parse(manifest.ToJsonString()));

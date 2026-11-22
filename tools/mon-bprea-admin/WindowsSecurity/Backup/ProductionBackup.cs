@@ -87,12 +87,14 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
 
     private static Generation? Latest(Configuration config, string ledger, BackupSchema? expectedSchema = null)
     {
+        expectedSchema ??= CurrentSchema;
         var now = DateTimeOffset.UtcNow;
         return Generations(config).Select(path => {
             try { return new Generation(path, Inspect(path, ledger, now, expectedSchema: expectedSchema)); }
             catch (Exception e) when (e is AdminException or IOException or UnauthorizedAccessException or JsonException
                 or InvalidOperationException or KeyNotFoundException or FormatException) { return null; }
-        }).OfType<Generation>().OrderBy(x => x.Status.Problem == "backup_drift")
+        }).OfType<Generation>().OrderBy(x => x.Schema.Hash != expectedSchema.Hash)
+            .ThenByDescending(x => x.Verification.BaselineBound)
             .ThenByDescending(x => x.Status.Snapshot).FirstOrDefault();
     }
 
@@ -223,8 +225,7 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
             var certificate = GetTrustedCertificate(config.Root, create: false);
             var source = NativePostgres.Connection.Production(certificate, password);
             MatchInventory(inventory, await PostgresSnapshot.Identify(native, source));
-            CheckBaseline(latest.Path, await PostgresSnapshot.Measure(native, source, data: false),
-                CurrentSchema, latest.Verification.BaselineBound);
+            CheckBaseline(latest.Path, await PostgresSnapshot.Measure(native, source, data: false), CurrentSchema);
             Require(ledger == ReadLedger(config) && latest.Status.Deadline > DateTimeOffset.UtcNow, "backup_expired");
             Require(DateTimeOffset.UtcNow - inventory.ObservedAt < AdminContract.MaximumInventoryAge, "stale");
         }
@@ -248,16 +249,13 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
     {
         PostgresSnapshot.ValidateVersions(current, schema);
         var version = Parse(Read(Path.Combine(previousGeneration, Manifest))).GetProperty("version").GetInt32();
-        if (schema.Hash == previousSchema.Hash)
+        if (schema.Hash == previousSchema.Hash && version == 2)
         {
-            CheckBaseline(previousGeneration, current, schema, version == 2);
-            if (version == 2) return Task.CompletedTask;
+            CheckBaseline(previousGeneration, current, schema);
+            return Task.CompletedTask;
         }
-        else
-        {
-            Require(previousSchema.Migrations.Length < schema.Migrations.Length
-                && previousSchema.Migrations.SequenceEqual(schema.Migrations.Take(previousSchema.Migrations.Length)), "backup_drift");
-        }
+        Require(schema.Hash == previousSchema.Hash || (previousSchema.Migrations.Length < schema.Migrations.Length
+            && previousSchema.Migrations.SequenceEqual(schema.Migrations.Take(previousSchema.Migrations.Length))), "backup_drift");
         return PostgresSnapshot.ValidateContract(native, directory, identity, current, schema, hosted);
     }
 
@@ -272,12 +270,11 @@ public sealed class ProductionBackup(AutomaticPrivateStore history)
         Save(Path.Combine(generation, Ledger), Array.Empty<object>());
     }
 
-    private static void CheckBaseline(string generation, PostgresSnapshot.Measurements current, BackupSchema schema, bool baselineBound)
+    private static void CheckBaseline(string generation, PostgresSnapshot.Measurements current, BackupSchema schema)
     {
         PostgresSnapshot.ValidateSource(current, Parse(Read(Path.Combine(generation, Catalogue))),
             Parse(Read(Path.Combine(generation, Privileges))), schema);
-        if (baselineBound)
-            Require(PostgresSnapshot.Same(SourceDefinitions(current), Parse(Read(Path.Combine(generation, Definitions)))), "backup_drift");
+        Require(PostgresSnapshot.Same(SourceDefinitions(current), Parse(Read(Path.Combine(generation, Definitions)))), "backup_drift");
     }
 
     internal static void MatchInventory(AccountInventory auth, PostgresSnapshot.SourceIdentity sql)

@@ -198,7 +198,7 @@ internal static class BackupFiles
             "dependenciesCompatible", "deletionsReconciled", "clusterStopped", "localChecksumsVerified" })
             Require(proof.GetProperty(field).ValueKind == JsonValueKind.True);
         var deadline = point.AddHours(MaximumHours);
-        if (schema.Hash != expectedSchema.Hash)
+        if (schema.Hash != expectedSchema.Hash || version == 1)
             return new(new(point, deadline, false, "backup_drift",
                 PreviousPointQualified: schema.Hash == PreviousSchema.Hash && version == 2 && now < deadline), schema, version == 2);
         var expired = now >= deadline;
