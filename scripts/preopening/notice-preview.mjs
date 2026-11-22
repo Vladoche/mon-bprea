@@ -88,7 +88,7 @@ export function noticeHtml(markdown, { preview = true } = {}) {
   <a class="skip" href="#contenu">Aller au contenu</a>
   ${preview ? '<header><div class="wrap"><p>Mon BPREA · Espace de révision</p></div></header>' : '<header class="standalone-header"><div class="wrap"><a class="brand" href="index.html" aria-label="Mon BPREA · Accueil"><span class="brand-symbol"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4c-9-1-15 2-15 8a6 6 0 0 0 6 6c6 0 9-6 9-14Z"/><path d="M4 21 15 10"/></svg></span><span class="brand-copy"><b>BPREA<span class="brand-dot">.</span></b><small>Mon espace de révision</small></span></a><nav class="standalone-nav" aria-label="Navigation principale"><a class="btn btn-surface" href="index.html">Accueil</a><a class="btn btn-surface" href="mes-cours.html">Mes cours</a><a class="btn btn-surface" href="outils.html">Outils</a><a class="btn btn-surface" href="connexion.html">Connexion</a></nav></div></header>'}
   <main class="wrap" id="contenu" tabindex="-1">
-    ${preview ? '<aside role="note"><strong>Aperçu local.</strong> La publication en ligne requiert sa propre autorisation.</aside>' : ''}
+    ${preview ? '<aside role="note"><strong>Aperçu local.</strong> La publication requiert un accord distinct.</aside>' : ''}
     ${blocks.join('\n    ')}
   </main>
   ${preview ? '' : `<footer class="site-footer">${footerMarkup()}</footer>`}
