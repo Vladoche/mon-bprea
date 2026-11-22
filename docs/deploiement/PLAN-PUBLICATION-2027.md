@@ -65,10 +65,10 @@ PR #89 ont réussi. Les parcours critiques et l’isolation par compte ont été
 vérifiés sur une stack Supabase locale avec des comptes fictifs. Le backend
 Parcours et la sauvegarde restaurée ont été vérifiés sur PROD.
 
-La notice passe les contrôles automatiques sans approbation documentaire
-séparée. La publication attend l’autorisation de déclencher le workflow.
-Vérifier le SHA effectivement sur `main` avant le lancement selon la phase B.
-[Checks de la PR](https://github.com/Vladoche/mon-bprea/pull/89/checks) · [Qualification PROD](EXPLOITATION-PRIVEE.md#qualification-prod-du-22-novembre-2026).
+Après la fusion documentaire de #90, les contrôles de build et d’Auth ont été
+rejoués sur `3a2e8000f5e9efe005fd0c8511ba6f8572f384a9`. La notice V1.4 a passé
+les contrôles automatiques. Après autorisation, ce SHA a été publié sur Pages #68
+et les réponses publiques ont été vérifiées. [Registre Pages](EXPLOITATION-PRIVEE.md#registre-de-publication-pages) · [Checks de la PR](https://github.com/Vladoche/mon-bprea/pull/89/checks) · [Qualification PROD](EXPLOITATION-PRIVEE.md#qualification-prod-du-22-novembre-2026).
 
 ## Retour arrière frontend
 

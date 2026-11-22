@@ -16,7 +16,7 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 
 | Repère | État vérifié |
 | --- | --- |
-| SHA qualifié pour Pages le 22/11 | `6e63090061cc80ae87d90cdbdeb78e160bcf137b` |
+| SHA publié sur Pages le 22/11 | `3a2e8000f5e9efe005fd0c8511ba6f8572f384a9`, issu de la fusion documentaire de la [PR #90](https://github.com/Vladoche/mon-bprea/pull/90) |
 | Fusion du correctif Admin | [#89, requalification des sauvegardes](https://github.com/Vladoche/mon-bprea/pull/89), 22/11/2026 à 16:36:31 UTC |
 | Fusions antérieures depuis Pages #67 | [#83, hygiène Git](https://github.com/Vladoche/mon-bprea/pull/83), [#84, Admin 2.3](https://github.com/Vladoche/mon-bprea/pull/84), [#85, audit technique du lot B](https://github.com/Vladoche/mon-bprea/pull/85), [#86, Mon parcours BPREA](https://github.com/Vladoche/mon-bprea/pull/86), [#87, assainissement documentaire](https://github.com/Vladoche/mon-bprea/pull/87) et [#88, contrôles documentaires automatiques](https://github.com/Vladoche/mon-bprea/pull/88). |
 
@@ -24,15 +24,15 @@ PostgreSQL pour l’espace personnel et une application opérateur Windows .NET/
 
 | État | Périmètre vérifié le 22 novembre 2026 |
 | --- | --- |
-| **Déployé** | [Pages #67](https://github.com/Vladoche/mon-bprea/actions/runs/44763339527), succès du 20/11 à 15:27:11 UTC, SHA `47aff29763763fd3be0b16b60f90e5c8f1048508`. Refonte 2027, Profil simplifié, couleurs personnalisées et continuité de la palette. Notice V1.2 et configuration publique Auth PROD. |
-| **Fusionné depuis ce déploiement** | Hygiène Git, Admin 2.3 et quota administratif, améliorations du lot B, préférences « Mon parcours BPREA », notice V1.4, assainissement documentaire et requalification des sauvegardes. Admin Windows suit son propre circuit de distribution. |
-| **Prêt à publier après autorisation** | Build Pages du SHA qualifié, notice V1.4, Auth et Parcours contrôlés. [Plan de publication](../deploiement/PLAN-PUBLICATION-2027.md#candidat-qualifié-le-22-novembre-2026). |
+| **Déployé** | [Pages #68](https://github.com/Vladoche/mon-bprea/actions/runs/45072795727), succès du 22/11 à 21:34:12 UTC. Mon parcours BPREA dans le Profil, améliorations du lot B, notice V1.4 et configuration publique Auth PROD. |
+| **Distribution séparée** | Admin Windows 2.3, contrôle du quota et requalification des sauvegardes. [Guide Admin](../../tools/mon-bprea-admin/README.md). |
 | **Planifié** | Validation et alimentation des référentiels UCARE/sessions, calendrier personnalisé. La consolidation des tests du lot C est reportée. [Matrice de couverture](../validations/VALIDATION-AUDIT-TECHNIQUE-LOT-B.md#couverture-existante-et-préparation-du-lot-c). |
 
-La lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources de 15
-pages, dont Profil, Confidentialité et les rubriques pédagogiques. Le module
-`parcours-ui.js` répondait HTTP 404 sur Pages. Le [registre](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
-conserve la portée de ce relevé public.
+Après #68, la lecture HTTP du 22/11 a retrouvé le SHA publié dans les ressources
+des 19 pages HTML. Elle a confirmé la notice V1.4, le callback, l’entrée
+Parcours et les fichiers de son module. Les inscriptions publiques et anonymes
+restent fermées. Le [registre](../deploiement/EXPLOITATION-PRIVEE.md#registre-de-publication-pages)
+conserve la portée du relevé.
 
 Les cinq checks de la [tête de #86](https://github.com/Vladoche/mon-bprea/pull/86/checks)
 `fbd6f23230699dc11ce432ee94671e676b6bbf17` ont réussi. Ils couvrent Qualité,
@@ -49,7 +49,7 @@ fixe les vérifications avant lancement et la recette hébergée.
 
 ## D — Modules
 
-Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne État précise aussi les évolutions restées sur main.
+Les rubriques pédagogiques de ce tableau sont servies par Pages #68.
 
 | Module | État / dernier jalon majeur | Limites importantes | Référence |
 | --- | --- | --- | --- |
@@ -65,7 +65,7 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
 | Ressources | Bibliothèque, filtres et aperçus (#73). Focus et recherche au tri corrigés sur main (#85) | Références éditoriales à entretenir | [Validation de la bibliothèque](../validations/VALIDATION-UI-2027-PR4-LOT3.md) |
 | Reconnaissance botanique | Refonte 2027 fusionnée dans #74. Photothèque enrichie intégrée dans #76 | 24 plantes et série Légumineuses | [Botanique](../architecture/RECONNAISSANCE-PLANTES.md) |
 | Mon profil | Compte, pseudo et paramètres d’apparence depuis #77 et #81 | Copie, effacement et clôture via le contact officiel | [Auth](../architecture/AUTHENTIFICATION.md) |
-| Mon parcours BPREA | Paramètres du Profil sur main (#86), migration PROD appliquée le 22/11 | Publication Pages en attente d’autorisation. Les référentiels UCARE et sessions sont vides | [Architecture](../architecture/ARCHITECTURE.md#mon-parcours-bprea) |
+| Mon parcours BPREA | Paramètres du Profil publiés sur Pages #68, migration PROD appliquée le 22/11 | Les référentiels UCARE et sessions sont vides | [Architecture](../architecture/ARCHITECTURE.md#mon-parcours-bprea) |
 | Apparence | Luminosité, modes automatique et personnalisé, profils de couleur (#59, #81 et #82) | Mémorisation volontaire en visiteur ; préférences du compte synchronisables | [Thèmes](../architecture/THEMES.md) |
 | Synchronisation | Cours/QCM, Drill, botanique, ITK/apparence | Import volontaire, conflits et opérations en attente conservés ; confirmation distante requise | [Architecture](../architecture/ARCHITECTURE.md#stockage-et-conservation-des-données) |
 | Authentification | Activation sur invitation, connexion et récupération assistée ; #49–#51 | Inscription publique/anonyme fermées ; pas de récupération réelle ni isolation A/B PROD recettées | [Auth](../architecture/AUTHENTIFICATION.md) |
@@ -103,8 +103,7 @@ Les rubriques pédagogiques de ce tableau sont servies par Pages #67. La colonne
 ## F — Prochaines actions
 
 1. Valider les référentiels UCARE et sessions avant de préparer le calendrier personnalisé.
-2. Après autorisation de publication, lancer Pages au SHA contrôlé et effectuer
-   la recette hébergée. Suivre l’échéance du point de reprise Parcours.
-   [Prérequis de publication](../deploiement/PLAN-PUBLICATION-2027.md#phase-a--décision-préalable).
+2. Suivre l’échéance du point de reprise Parcours et consigner la prochaine
+   recette connectée opérateur autorisée. [Plan de publication](../deploiement/PLAN-PUBLICATION-2027.md#phase-b--exécution-future-sous-autorisation).
 3. Obtenir les décisions d’ouverture et les autorisations individuelles de
    collecte et d’invitation. [Actions d’exploitation](../deploiement/ARBITRAGES-FINAUX-PREOUVERTURE.md).
